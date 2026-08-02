@@ -47,7 +47,8 @@ class GroupMatrixChatSDK extends MeetingPlaceMatrixChatSDK
   static const String _logkey = 'GroupMatrixChatSDK';
 
   @override
-  TransportCapabilities get capabilities => _capabilities;
+  TransportCapabilities get capabilities =>
+      withSuggestionRequestCapability(_capabilityBaseFeatures);
 
   @override
   void onChatSessionStarted() {}
@@ -55,8 +56,9 @@ class GroupMatrixChatSDK extends MeetingPlaceMatrixChatSDK
   /// Per-chat features supported by a group chat. Group chats always use the
   /// Matrix transport and share the individual Matrix feature set. Group
   /// membership itself is a property of the channel, not a gated chat feature.
-  static const _capabilities = TransportCapabilities({
+  static const _capabilityBaseFeatures = {
     ChatFeature.textMessaging,
+    ChatFeature.mentions,
     ChatFeature.imageAttachments,
     ChatFeature.videoAttachments,
     ChatFeature.documentAttachments,
@@ -69,7 +71,7 @@ class GroupMatrixChatSDK extends MeetingPlaceMatrixChatSDK
     ChatFeature.effects,
     ChatFeature.contactDetailsUpdate,
     ChatFeature.audioVideoCalling,
-  });
+  };
 
   @override
   @protected

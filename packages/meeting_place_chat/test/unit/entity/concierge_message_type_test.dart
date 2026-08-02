@@ -52,6 +52,31 @@ void main() {
       },
     );
 
+    test('attachments round-trip through toJson/fromJson', () {
+      final msg = ConciergeMessage.fromJson(
+        _baseJson()
+          ..['attachments'] = [
+            {
+              'id': 'att-1',
+              'filename': 'contract.pdf',
+              'media_type': 'application/pdf',
+              'format': 'cierge/sign-document',
+              'transport_id': r'$event-1',
+            },
+          ],
+      );
+
+      final restored = ConciergeMessage.fromJson(msg.toJson());
+
+      expect(restored.attachments, hasLength(1));
+      expect(restored.attachments!.single.id, equals('att-1'));
+      expect(
+        restored.attachments!.single.format,
+        equals('cierge/sign-document'),
+      );
+      expect(restored.attachments!.single.transportId, equals(r'$event-1'));
+    });
+
     test('toJson omits null fields (includeIfNull: false)', () {
       final json = ConciergeMessage.fromJson(_baseJson()).toJson();
       expect(json.values, everyElement(isNotNull));

@@ -8,8 +8,14 @@ part of 'invitation_acceptance_body.dart';
 
 InvitationAcceptanceBody _$InvitationAcceptanceBodyFromJson(
   Map<String, dynamic> json,
-) => InvitationAcceptanceBody(channelDid: json['channel_did'] as String);
+) => InvitationAcceptanceBody(
+  channelDid: json['channel_did'] as String,
+  agentDid: json['agent_did'] as String?,
+);
 
 Map<String, dynamic> _$InvitationAcceptanceBodyToJson(
   InvitationAcceptanceBody instance,
-) => <String, dynamic>{'channel_did': instance.channelDid};
+) => <String, dynamic>{
+  'channel_did': instance.channelDid,
+  'agent_did': ?instance.agentDid,
+};

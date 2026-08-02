@@ -8,8 +8,14 @@ part of 'connection_request_approval_body.dart';
 
 ConnectionRequestApprovalBody _$ConnectionRequestApprovalBodyFromJson(
   Map<String, dynamic> json,
-) => ConnectionRequestApprovalBody(channelDid: json['channel_did'] as String);
+) => ConnectionRequestApprovalBody(
+  channelDid: json['channel_did'] as String,
+  agentDid: json['agent_did'] as String?,
+);
 
 Map<String, dynamic> _$ConnectionRequestApprovalBodyToJson(
   ConnectionRequestApprovalBody instance,
-) => <String, dynamic>{'channel_did': instance.channelDid};
+) => <String, dynamic>{
+  'channel_did': instance.channelDid,
+  'agent_did': ?instance.agentDid,
+};

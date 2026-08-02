@@ -51,12 +51,18 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
               otherPartyPermanentChannelDid: Value(
                 channel.otherPartyPermanentChannelDid,
               ),
+              agentPermanentChannelDid: Value(channel.agentPermanentChannelDid),
+              otherPartyAgentPermanentChannelDid: Value(
+                channel.otherPartyAgentPermanentChannelDid,
+              ),
               notificationToken: Value(channel.notificationToken),
               otherPartyNotificationToken: Value(
                 channel.otherPartyNotificationToken,
               ),
               seqNo: Value(channel.seqNo),
               messageSyncMarker: Value(channel.messageSyncMarker),
+              matrixRoomId: Value(channel.matrixRoomId),
+              contextKey: Value(channel.contextKey),
               mediatorDid: Value(channel.mediatorDid),
               externalRef: Value(channel.externalRef),
               isConnectionInitiator: Value(channel.isConnectionInitiator),
@@ -140,12 +146,18 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
           otherPartyPermanentChannelDid: Value(
             channel.otherPartyPermanentChannelDid,
           ),
+          agentPermanentChannelDid: Value(channel.agentPermanentChannelDid),
+          otherPartyAgentPermanentChannelDid: Value(
+            channel.otherPartyAgentPermanentChannelDid,
+          ),
           notificationToken: Value(channel.notificationToken),
           otherPartyNotificationToken: Value(
             channel.otherPartyNotificationToken,
           ),
           seqNo: Value(channel.seqNo),
           messageSyncMarker: Value(channel.messageSyncMarker),
+          matrixRoomId: Value(channel.matrixRoomId),
+          contextKey: Value(channel.contextKey),
           mediatorDid: Value(channel.mediatorDid),
           externalRef: Value(channel.externalRef),
           isConnectionInitiator: Value(channel.isConnectionInitiator),
@@ -320,10 +332,14 @@ class _ChannelMapper {
       acceptOfferDid: channel.acceptOfferDid,
       permanentChannelDid: channel.permanentChannelDid,
       otherPartyPermanentChannelDid: channel.otherPartyPermanentChannelDid,
+      agentPermanentChannelDid: channel.agentPermanentChannelDid,
+      otherPartyAgentPermanentChannelDid:
+          channel.otherPartyAgentPermanentChannelDid,
       notificationToken: channel.notificationToken,
       otherPartyNotificationToken: channel.otherPartyNotificationToken,
       seqNo: channel.seqNo,
-      messageSyncMarker: channel.messageSyncMarker,
+      matrixRoomId: channel.matrixRoomId,
+      contextKey: channel.contextKey,
       externalRef: channel.externalRef,
     );
   }

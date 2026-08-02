@@ -111,6 +111,24 @@ class Channels extends Table with TableInfo {
         requiredDuringInsert: false,
         $customConstraints: 'NULL',
       );
+  late final GeneratedColumn<String> agentPermanentChannelDid =
+      GeneratedColumn<String>(
+        'agent_permanent_channel_did',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        $customConstraints: 'NULL',
+      );
+  late final GeneratedColumn<String> otherPartyAgentPermanentChannelDid =
+      GeneratedColumn<String>(
+        'other_party_agent_permanent_channel_did',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        $customConstraints: 'NULL',
+      );
   late final GeneratedColumn<String> notificationToken =
       GeneratedColumn<String>(
         'notification_token',
@@ -168,6 +186,8 @@ class Channels extends Table with TableInfo {
     acceptOfferDid,
     permanentChannelDid,
     otherPartyPermanentChannelDid,
+    agentPermanentChannelDid,
+    otherPartyAgentPermanentChannelDid,
     notificationToken,
     otherPartyNotificationToken,
     externalRef,

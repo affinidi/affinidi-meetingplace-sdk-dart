@@ -41,6 +41,7 @@ void main() {
   const acceptOfferDid = 'did:test:accept';
   const permanentChannelDid = 'did:test:permanent';
   const otherPartyPermanentDid = 'did:test:other-permanent';
+  const otherPartyAgentPermanentDid = 'did:test:other-agent-permanent';
   const mediatorDid = 'did:test:mediator';
   const offerLink = 'offer-link';
   const notificationToken = 'notification-token';
@@ -51,14 +52,18 @@ void main() {
     notificationToken: 'other-party-notification-token',
   );
 
-  PlainTextMessage createApprovalMessage() => PlainTextMessage(
-    id: 'msg-id',
-    from: 'did:test:sender',
-    to: [acceptOfferDid],
-    type: Uri.parse(MeetingPlaceProtocol.connectionRequestApproval.value),
-    body: {'channel_did': otherPartyPermanentDid},
-    parentThreadId: 'thread-id',
-  );
+  PlainTextMessage createApprovalMessage({String? agentDid}) =>
+      PlainTextMessage(
+        id: 'msg-id',
+        from: 'did:test:sender',
+        to: [acceptOfferDid],
+        type: Uri.parse(MeetingPlaceProtocol.connectionRequestApproval.value),
+        body: {
+          'channel_did': otherPartyPermanentDid,
+          if (agentDid != null) 'agent_did': agentDid,
+        },
+        parentThreadId: 'thread-id',
+      );
 
   Channel createChannel({required ChannelTransport transport}) => Channel(
     offerLink: offerLink,
@@ -120,7 +125,9 @@ void main() {
       didResolver: mockDidResolver,
       channelTransport: mockMeetingPlaceTransport,
       identityService: mockIdentityService,
-      options: const ControlPlaneEventHandlerManagerOptions(),
+      options: const ControlPlaneEventHandlerManagerOptions(
+        agentDid: 'did:test:agent-subscriber',
+      ),
       logger: DefaultMeetingPlaceCoreSDKLogger(),
     );
 
@@ -209,6 +216,9 @@ void main() {
         otherPartyPermanentChannelDid: any(
           named: 'otherPartyPermanentChannelDid',
         ),
+        otherPartyAgentPermanentChannelDid: any(
+          named: 'otherPartyAgentPermanentChannelDid',
+        ),
         outboundMessageId: any(named: 'outboundMessageId'),
         otherPartyContactCard: any(named: 'otherPartyContactCard'),
       ),
@@ -234,7 +244,7 @@ void main() {
           channel: any(named: 'channel'),
           didManager: any(named: 'didManager'),
         ),
-      ).thenAnswer((_) async {});
+      ).thenAnswer((_) async => '!room:matrix.test');
 
       await handler.processMessage(
         createApprovalMessage(),
@@ -268,5 +278,155 @@ void main() {
         ),
       );
     });
+  });
+
+  group('agent channel inauguration message', () {
+    const agentPermanentChannelDid = 'did:test:agent';
+    final otherPartyContactCard = ContactCard(
+      did: 'did:test:other-party',
+      type: 'individual',
+      contactInfo: {'fullName': 'Other Party'},
+    );
+
+    Channel createChannelWithAgent() => Channel(
+      offerLink: offerLink,
+      publishOfferDid: 'did:test:publish',
+      mediatorDid: mediatorDid,
+      status: ChannelStatus.waitingForApproval,
+      isConnectionInitiator: false,
+      contactCard: ContactCard(
+        did: 'did:test:card',
+        type: 'individual',
+        contactInfo: const {'fullName': 'Test'},
+      ),
+      otherPartyContactCard: otherPartyContactCard,
+      type: ChannelType.individual,
+      transport: ChannelTransport.didcomm,
+      acceptOfferDid: acceptOfferDid,
+      permanentChannelDid: permanentChannelDid,
+      otherPartyPermanentChannelDid: otherPartyPermanentDid,
+      agentPermanentChannelDid: agentPermanentChannelDid,
+    );
+
+    test('sends agent inauguration message with channel fields', () async {
+      final channel = createChannelWithAgent();
+      expect(
+        channel.otherPartyContactCard,
+        isNotNull,
+        reason:
+            'test precondition: createChannelWithAgent must set '
+            'otherPartyContactCard',
+      );
+
+      await handler.processMessage(
+        createApprovalMessage(),
+        event: event,
+        connection: connectionOffer,
+        channel: channel,
+      );
+
+      final captured = verify(
+        () => mockMediatorService.sendMessage(
+          captureAny(),
+          senderDidManager: any(named: 'senderDidManager'),
+          recipientDidDocument: any(named: 'recipientDidDocument'),
+          mediatorDid: any(named: 'mediatorDid'),
+        ),
+      ).captured;
+
+      final agentMsg = captured.whereType<PlainTextMessage>().firstWhere(
+        (m) =>
+            m.type.toString() ==
+            MeetingPlaceProtocol.agentChannelInauguration.value,
+      );
+
+      expect(agentMsg.body?['offer_link'], equals(offerLink));
+      expect(agentMsg.body?['publish_offer_did'], equals('did:test:publish'));
+      expect(
+        agentMsg.body?['permanent_channel_did'],
+        equals(otherPartyPermanentDid),
+      );
+      expect(
+        agentMsg.body?['notification_token'],
+        equals(event.notificationToken),
+      );
+      expect(
+        agentMsg.body?['contact_card'],
+        equals(otherPartyContactCard.toJson()),
+      );
+    });
+
+    test('does not send agent inauguration message when '
+        'agentPermanentChannelDid is null', () async {
+      final channel = createChannel(transport: ChannelTransport.didcomm);
+
+      await handler.processMessage(
+        createApprovalMessage(),
+        event: event,
+        connection: connectionOffer,
+        channel: channel,
+      );
+
+      final captured = verify(
+        () => mockMediatorService.sendMessage(
+          captureAny(),
+          senderDidManager: any(named: 'senderDidManager'),
+          recipientDidDocument: any(named: 'recipientDidDocument'),
+          mediatorDid: any(named: 'mediatorDid'),
+        ),
+      ).captured;
+
+      final agentMsgs = captured
+          .whereType<PlainTextMessage>()
+          .where(
+            (m) =>
+                m.type.toString() ==
+                MeetingPlaceProtocol.agentChannelInauguration.value,
+          )
+          .toList();
+
+      expect(agentMsgs, isEmpty);
+    });
+  });
+
+  group('other party agent DID propagation', () {
+    test(
+      'stores publisher agent DID from approval message on local channel',
+      () async {
+        final channel = createChannel(transport: ChannelTransport.didcomm);
+
+        await handler.processMessage(
+          createApprovalMessage(agentDid: otherPartyAgentPermanentDid),
+          event: event,
+          connection: connectionOffer,
+          channel: channel,
+        );
+
+        verify(
+          () => mockChannelService
+              .markChannelInauguratedForNonConnectionInitiator(
+                channel,
+                notificationToken: notificationToken,
+                otherPartyNotificationToken: event.notificationToken,
+                otherPartyPermanentChannelDid: otherPartyPermanentDid,
+                otherPartyAgentPermanentChannelDid: otherPartyAgentPermanentDid,
+                outboundMessageId: 'msg-id',
+                otherPartyContactCard: any(named: 'otherPartyContactCard'),
+              ),
+        ).called(1);
+
+        final permanentChannelAcl =
+            verify(
+                  () => mockMediatorService.updateAcl(
+                    ownerDidManager: mockPermanentDidManager,
+                    mediatorDid: mediatorDid,
+                    acl: captureAny(named: 'acl'),
+                  ),
+                ).captured.single
+                as AccessListAdd;
+
+        expect(permanentChannelAcl.granteeDids, hasLength(2));
+      },
+    );
   });
 }

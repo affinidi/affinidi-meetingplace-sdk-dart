@@ -159,6 +159,12 @@ class MatrixService {
     channel: channel,
   );
 
+  /// Joins a Matrix room by its room ID.
+  Future<String> joinRoomById({
+    required DidManager didManager,
+    required String roomId,
+  }) => _roomService.joinRoomById(didManager: didManager, roomId: roomId);
+
   /// Joins the Matrix room for a channel via its deterministic alias.
   Future<String> joinChannelRoom({
     required DidManager didManager,

@@ -1,4 +1,5 @@
 export 'src/chat/chat.dart';
+export 'src/chat/didcomm_incoming_message_handler.dart';
 export 'src/entity/entity.dart';
 export 'src/event/event.dart';
 export 'src/logger/meeting_place_chat_sdk_logger.dart';
@@ -6,7 +7,10 @@ export 'src/meeting_place_chat_sdk.dart';
 export 'src/meeting_place_chat_sdk_options.dart';
 export 'src/repository/chat_repository.dart';
 export 'src/transport/didcomm/chat_protocol.dart';
+export 'src/transport/didcomm/outgoing/chat_suggestion_message.dart';
+export 'src/transport/didcomm/outgoing/chat_suggestion_request_message.dart';
 export 'src/transport/didcomm/protocol/chat_group_details_update/chat_group_details_update.dart';
+export 'src/transport/didcomm/protocol/chat_suggestion_request/chat_suggestion_request.dart';
 export 'src/transport/transport_capabilities.dart';
 export 'src/zkp/liveness_zkp_concierge_chat_mapper.dart';
 export 'src/zkp/liveness_zkp_concierge_deriver.dart';

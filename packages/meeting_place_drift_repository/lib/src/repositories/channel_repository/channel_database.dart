@@ -56,7 +56,7 @@ class ChannelDatabase extends _$ChannelDatabase {
 
   /// The current schema version of the database.
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 7;
 
   /// Migration strategy to handle database version upgrades.
   @override
@@ -124,6 +124,19 @@ class ChannelDatabase extends _$ChannelDatabase {
           'ALTER TABLE channels ADD COLUMN matrix_sync_marker TEXT NULL',
         );
       }
+      if (from < 5 && to >= 5) {
+        await migrator.addColumn(channels, channels.agentPermanentChannelDid);
+        await migrator.addColumn(
+          channels,
+          channels.otherPartyAgentPermanentChannelDid,
+        );
+      }
+      if (from < 6 && to >= 6) {
+        await migrator.addColumn(channels, channels.matrixRoomId);
+      }
+      if (from < 7 && to >= 7) {
+        await migrator.addColumn(channels, channels.contextKey);
+      }
     },
   );
 }
@@ -153,8 +166,7 @@ class Channels extends Table {
   /// Transport used by the channel.
   ///
   /// Defaults to `didcomm` (value `1`) so existing rows have a sane value when
-  /// the column is added by the v5→v6 migration. The migration then backfills
-  /// rows with a `matrix_room_id` to `matrix` (value `2`).
+  /// the column is added by migration.
   IntColumn get transport => integer()
       .map(const _ChannelTransportConverter())
       .withDefault(const Constant(1))();
@@ -176,6 +188,12 @@ class Channels extends Table {
   /// Permanent DID of the other party in the channel.
   TextColumn get otherPartyPermanentChannelDid => text().nullable()();
 
+  /// Permanent channel DID of the local party's personal AI agent.
+  TextColumn get agentPermanentChannelDid => text().nullable()();
+
+  /// Permanent channel DID of the other party's personal AI agent.
+  TextColumn get otherPartyAgentPermanentChannelDid => text().nullable()();
+
   /// Notification token for the channel.
   TextColumn get notificationToken => text().nullable()();
 
@@ -193,6 +211,12 @@ class Channels extends Table {
   /// is an ISO 8601 UTC timestamp; for Matrix channels this is the Matrix
   /// event ID of the last fetched event.
   TextColumn get messageSyncMarker => text().nullable()();
+
+  /// Matrix room ID for the channel, stored when the channel joins a room.
+  TextColumn get matrixRoomId => text().nullable()();
+
+  /// Personal AI context selected for this channel, e.g. `work` or `personal`.
+  TextColumn get contextKey => text().nullable()();
 
   /// Primary key for the channels table.
   @override

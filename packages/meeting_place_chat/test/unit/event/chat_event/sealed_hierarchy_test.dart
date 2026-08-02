@@ -24,6 +24,7 @@ String _describe(ChatEvent event) => switch (event) {
   ChatRequestIssuanceEvent() => 'ChatRequestIssuanceEvent',
   ChatIssuedCredentialEvent() => 'ChatIssuedCredentialEvent',
   CallOutcomeChatEvent() => 'CallOutcomeChatEvent',
+  ChatSuggestionEvent() => 'ChatSuggestionEvent',
   UnhandledChatEvent() => 'UnhandledChatEvent',
 };
 
@@ -79,6 +80,12 @@ void main() {
         attachments: const [],
       ),
       CallOutcomeChatEvent(callId: 'room123@1', outcome: 'ended', endedAt: now),
+      ChatSuggestionEvent(
+        senderDid: 'did:test:agent',
+        relatedMessageId: 'm1',
+        text: 'Suggested reply',
+        createdTime: now,
+      ),
       const UnhandledChatEvent(type: 'unknown'),
     ];
 

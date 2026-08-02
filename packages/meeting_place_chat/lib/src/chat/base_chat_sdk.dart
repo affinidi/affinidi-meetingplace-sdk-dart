@@ -172,6 +172,7 @@ abstract class BaseChatSDK {
   Future<Message> sendTextMessage(
     String text, {
     List<ChatAttachment> attachments = const [],
+    List<ChatMention> mentions = const [],
   });
 
   /// Downloads and decrypts the media bytes referenced by
@@ -197,6 +198,13 @@ abstract class BaseChatSDK {
   /// Sends updated contact details from the current contact card.
   Future<void> sendChatContactDetailsUpdate(ConciergeMessage message);
 
+  /// Sends a DIDComm suggestion request to the configured personal agent DID,
+  /// using [messageId] and [text] as the suggestion context.
+  Future<void> sendSuggestionRequest({
+    required String messageId,
+    required String text,
+  });
+
   /// Rejects a contact details update and marks message as confirmed.
   Future<void> rejectChatContactDetailsUpdate(ConciergeMessage message) async {
     message.status = ChatItemStatus.confirmed;
@@ -210,7 +218,13 @@ abstract class BaseChatSDK {
   Future<void> reactOnMessage(Message message, {required String reaction});
 
   /// Edits a previously sent text message.
-  Future<void> editTextMessage(Message message, String newText);
+  ///
+  /// When [mentions] is `null`, the existing mentions are preserved.
+  Future<void> editTextMessage(
+    Message message,
+    String newText, {
+    List<ChatMention>? mentions,
+  });
 
   /// Deletes a chat message.
   ///

@@ -41,11 +41,15 @@ class Channel {
     this.acceptOfferDid,
     this.permanentChannelDid,
     this.otherPartyPermanentChannelDid,
+    this.agentPermanentChannelDid,
+    this.otherPartyAgentPermanentChannelDid,
     this.notificationToken,
     this.otherPartyNotificationToken,
     this.messageSyncMarker,
+    this.matrixRoomId,
     this.seqNo = 0,
     this.externalRef,
+    this.contextKey,
   }) : id = id ?? const Uuid().v4();
 
   factory Channel.fromJson(Map<String, dynamic> json) {
@@ -58,11 +62,13 @@ class Channel {
     required String acceptOfferDid,
     required ContactCard contactCard,
     required String? externalRef,
+    String? agentPermanentChannelDid,
   }) {
     return Channel(
       offerLink: connectionOffer.offerLink,
       publishOfferDid: connectionOffer.publishOfferDid,
       permanentChannelDid: permanentChannelDid,
+      agentPermanentChannelDid: agentPermanentChannelDid,
       acceptOfferDid: acceptOfferDid,
       mediatorDid: connectionOffer.mediatorDid,
       status: ChannelStatus.waitingForApproval,
@@ -72,6 +78,7 @@ class Channel {
       contactCard: contactCard,
       otherPartyContactCard: connectionOffer.contactCard,
       externalRef: externalRef,
+      contextKey: connectionOffer.contextKey,
     );
   }
 
@@ -81,11 +88,13 @@ class Channel {
     required String acceptOfferDid,
     required ContactCard card,
     required String? externalRef,
+    String? agentPermanentChannelDid,
   }) {
     return Channel(
       offerLink: connectionOffer.offerLink,
       publishOfferDid: connectionOffer.publishOfferDid,
       permanentChannelDid: permanentChannelDid,
+      agentPermanentChannelDid: agentPermanentChannelDid,
       acceptOfferDid: acceptOfferDid,
       mediatorDid: connectionOffer.mediatorDid,
       status: ChannelStatus.waitingForApproval,
@@ -146,6 +155,12 @@ class Channel {
   /// Permanent DID of the other party that is used for message exchange.
   String? otherPartyPermanentChannelDid;
 
+  /// Permanent channel DID of the local party's personal AI agent.
+  String? agentPermanentChannelDid;
+
+  /// Permanent channel DID of the other party's personal AI agent.
+  String? otherPartyAgentPermanentChannelDid;
+
   /// Notification token that is used to notify the party that owns the channel.
   ///
   /// If connection offer lives on device of offer owner, notification token
@@ -169,11 +184,20 @@ class Channel {
   /// Matrix channels this is the Matrix event ID of the last fetched event.
   String? messageSyncMarker;
 
+  /// The Matrix room ID for this channel, set when the channel joins a room via
+  /// `MatrixService.joinChannelRoom`. Avoids alias re-derivation for channels
+  /// where the local DID differs from the one used to create the room alias.
+  String? matrixRoomId;
+
   /// External reference that can be used to correlate the channel with external
   /// systems. This field is not used by the SDK, and can be set by the SDK
   /// consumer to store any relevant information that can be used to correlate
   /// the channel with external systems or data.
   String? externalRef;
+
+  /// Semantic or local context key selected for the channel owner side.
+  /// Personal-agent connectors use this to route ghost-agent traffic.
+  String? contextKey;
 
   /// Sequence number to keep track of latest message in the channel.
   int seqNo = 0;

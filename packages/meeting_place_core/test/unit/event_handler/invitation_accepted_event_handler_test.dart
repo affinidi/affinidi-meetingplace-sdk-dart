@@ -170,6 +170,79 @@ void main() {
     });
   });
 
+  group('agent_did in acceptance message', () {
+    test('stores agent_did as otherPartyAgentPermanentChannelDid', () async {
+      when(
+        () => mockMediatorService.fetchMessages(
+          didManager: mockDidManager,
+          mediatorDid: mediatorDid,
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer(
+        (_) async => [
+          MediatorMessage(
+            plainTextMessage: PlainTextMessage(
+              id: const Uuid().v4(),
+              from: acceptOfferDid,
+              to: [publishOfferDid],
+              type: Uri.parse(MeetingPlaceProtocol.invitationAcceptance.value),
+              body: {
+                'channel_did': 'did:web:bob-permanent',
+                'agent_did': 'did:web:bob-agent',
+              },
+            ),
+            messageHash: messageHash,
+          ),
+        ],
+      );
+
+      final result = await handler.process(event);
+
+      expect(result, hasLength(1));
+      expect(
+        result.first.otherPartyPermanentChannelDid,
+        equals('did:web:bob-permanent'),
+      );
+      expect(
+        result.first.otherPartyAgentPermanentChannelDid,
+        equals('did:web:bob-agent'),
+      );
+    });
+
+    test(
+      'otherPartyAgentPermanentChannelDid is null when agent_did absent',
+      () async {
+        when(
+          () => mockMediatorService.fetchMessages(
+            didManager: mockDidManager,
+            mediatorDid: mediatorDid,
+            options: any(named: 'options'),
+          ),
+        ).thenAnswer(
+          (_) async => [
+            MediatorMessage(
+              plainTextMessage: PlainTextMessage(
+                id: const Uuid().v4(),
+                from: acceptOfferDid,
+                to: [publishOfferDid],
+                type: Uri.parse(
+                  MeetingPlaceProtocol.invitationAcceptance.value,
+                ),
+                body: {'channel_did': 'did:web:bob-permanent'},
+              ),
+              messageHash: messageHash,
+            ),
+          ],
+        );
+
+        final result = await handler.process(event);
+
+        expect(result, hasLength(1));
+        expect(result.first.otherPartyAgentPermanentChannelDid, isNull);
+      },
+    );
+  });
+
   group('retry behavior for exceeded retries', () {
     setUpAll(() {
       // Mediator returns no messages

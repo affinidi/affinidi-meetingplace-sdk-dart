@@ -47,11 +47,15 @@ RepositoryConfig getRepositoryConfig() {
   );
 }
 
-Future<MeetingPlaceCoreSDK> initSDK({required Wallet wallet}) async {
+Future<MeetingPlaceCoreSDK> initSDK({
+  required Wallet wallet,
+  String? agentDid,
+}) async {
   return MeetingPlaceCoreSDK.create(
     wallet: wallet,
     repositoryConfig: getRepositoryConfig(),
     config: getConfig(),
+    options: MeetingPlaceCoreSDKOptions(agentDid: agentDid),
     logger: DefaultMeetingPlaceCoreSDKLogger(),
   );
 }

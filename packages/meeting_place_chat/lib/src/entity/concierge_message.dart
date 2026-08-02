@@ -1,4 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
+
+import 'chat_attachment.dart';
 import 'chat_item.dart';
 
 part 'concierge_message.g.dart';
@@ -115,6 +117,8 @@ class ConciergeMessage extends ChatItem {
   /// - [status]: Current status of the message.
   /// - [data]: Additional structured metadata required for the concierge
   /// request.
+  /// - [attachments]: Optional attachments preserved from the underlying chat
+  /// transport so downstream consumers can still access hosted or inline media.
   /// - [conciergeType]: The [ConciergeMessageType] of this message.
   /// - [type]: Always set to [ChatItemType.conciergeMessage].
   ConciergeMessage({
@@ -125,12 +129,16 @@ class ConciergeMessage extends ChatItem {
     required super.dateCreated,
     required super.status,
     required this.data,
+    this.attachments,
     required this.conciergeType,
     super.type = ChatItemType.conciergeMessage,
   });
 
   /// Structured metadata payload for the concierge request.
   final Map<String, dynamic> data;
+
+  /// Attachments preserved from the underlying chat message, when any.
+  final List<ChatAttachment>? attachments;
 
   /// Type of concierge message
   @_ConciergeMessageTypeConverter()

@@ -30,11 +30,16 @@ Channel _$ChannelFromJson(Map<String, dynamic> json) => Channel(
   permanentChannelDid: json['permanentChannelDid'] as String?,
   otherPartyPermanentChannelDid:
       json['otherPartyPermanentChannelDid'] as String?,
+  agentPermanentChannelDid: json['agentPermanentChannelDid'] as String?,
+  otherPartyAgentPermanentChannelDid:
+      json['otherPartyAgentPermanentChannelDid'] as String?,
   notificationToken: json['notificationToken'] as String?,
   otherPartyNotificationToken: json['otherPartyNotificationToken'] as String?,
   messageSyncMarker: json['messageSyncMarker'] as String?,
+  matrixRoomId: json['matrixRoomId'] as String?,
   seqNo: (json['seqNo'] as num?)?.toInt() ?? 0,
   externalRef: json['externalRef'] as String?,
+  contextKey: json['contextKey'] as String?,
 );
 
 Map<String, dynamic> _$ChannelToJson(Channel instance) => <String, dynamic>{
@@ -52,11 +57,16 @@ Map<String, dynamic> _$ChannelToJson(Channel instance) => <String, dynamic>{
   'acceptOfferDid': ?instance.acceptOfferDid,
   'permanentChannelDid': ?instance.permanentChannelDid,
   'otherPartyPermanentChannelDid': ?instance.otherPartyPermanentChannelDid,
+  'agentPermanentChannelDid': ?instance.agentPermanentChannelDid,
+  'otherPartyAgentPermanentChannelDid':
+      ?instance.otherPartyAgentPermanentChannelDid,
   'notificationToken': ?instance.notificationToken,
   'otherPartyNotificationToken': ?instance.otherPartyNotificationToken,
-  'externalRef': ?instance.externalRef,
-  'seqNo': instance.seqNo,
   'messageSyncMarker': ?instance.messageSyncMarker,
+  'matrixRoomId': ?instance.matrixRoomId,
+  'externalRef': ?instance.externalRef,
+  'contextKey': ?instance.contextKey,
+  'seqNo': instance.seqNo,
 };
 
 const _$ChannelStatusEnumMap = {

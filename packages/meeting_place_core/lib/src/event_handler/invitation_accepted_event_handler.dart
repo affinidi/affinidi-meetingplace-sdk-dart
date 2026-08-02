@@ -106,6 +106,7 @@ class InvitationAcceptedEventHandler
       acceptOfferDid: messageFrom,
       mediatorDid: connection.mediatorDid,
       otherPartyPermanentChannelDid: invitationAcceptance.body.channelDid,
+      otherPartyAgentPermanentChannelDid: invitationAcceptance.body.agentDid,
       outboundMessageId: message.id,
       status: ChannelStatus.waitingForApproval,
       type: ChannelType.individual,
@@ -114,6 +115,7 @@ class InvitationAcceptedEventHandler
       contactCard: connection.contactCard,
       otherPartyContactCard: invitationAcceptance.contactCard,
       externalRef: connection.externalRef,
+      contextKey: connection.contextKey,
     );
 
     await channelService.persistChannel(channel);

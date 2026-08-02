@@ -11,6 +11,7 @@ InvitationAcceptanceGroupBody _$InvitationAcceptanceGroupBodyFromJson(
 ) => InvitationAcceptanceGroupBody(
   channelDid: json['channel_did'] as String,
   publicKey: json['public_key'] as String,
+  agentDid: json['agent_did'] as String?,
 );
 
 Map<String, dynamic> _$InvitationAcceptanceGroupBodyToJson(
@@ -18,4 +19,5 @@ Map<String, dynamic> _$InvitationAcceptanceGroupBodyToJson(
 ) => <String, dynamic>{
   'channel_did': instance.channelDid,
   'public_key': instance.publicKey,
+  'agent_did': ?instance.agentDid,
 };

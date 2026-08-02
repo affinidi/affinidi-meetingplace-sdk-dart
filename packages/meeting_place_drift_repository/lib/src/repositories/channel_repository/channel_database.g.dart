@@ -139,6 +139,28 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
         type: DriftSqlType.string,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _agentPermanentChannelDidMeta =
+      const VerificationMeta('agentPermanentChannelDid');
+  @override
+  late final GeneratedColumn<String> agentPermanentChannelDid =
+      GeneratedColumn<String>(
+        'agent_permanent_channel_did',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _otherPartyAgentPermanentChannelDidMeta =
+      const VerificationMeta('otherPartyAgentPermanentChannelDid');
+  @override
+  late final GeneratedColumn<String> otherPartyAgentPermanentChannelDid =
+      GeneratedColumn<String>(
+        'other_party_agent_permanent_channel_did',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _notificationTokenMeta = const VerificationMeta(
     'notificationToken',
   );
@@ -194,6 +216,28 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
         type: DriftSqlType.string,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _matrixRoomIdMeta = const VerificationMeta(
+    'matrixRoomId',
+  );
+  @override
+  late final GeneratedColumn<String> matrixRoomId = GeneratedColumn<String>(
+    'matrix_room_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _contextKeyMeta = const VerificationMeta(
+    'contextKey',
+  );
+  @override
+  late final GeneratedColumn<String> contextKey = GeneratedColumn<String>(
+    'context_key',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -208,11 +252,15 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
     acceptOfferDid,
     permanentChannelDid,
     otherPartyPermanentChannelDid,
+    agentPermanentChannelDid,
+    otherPartyAgentPermanentChannelDid,
     notificationToken,
     otherPartyNotificationToken,
     externalRef,
     seqNo,
     messageSyncMarker,
+    matrixRoomId,
+    contextKey,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -304,6 +352,24 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
         ),
       );
     }
+    if (data.containsKey('agent_permanent_channel_did')) {
+      context.handle(
+        _agentPermanentChannelDidMeta,
+        agentPermanentChannelDid.isAcceptableOrUnknown(
+          data['agent_permanent_channel_did']!,
+          _agentPermanentChannelDidMeta,
+        ),
+      );
+    }
+    if (data.containsKey('other_party_agent_permanent_channel_did')) {
+      context.handle(
+        _otherPartyAgentPermanentChannelDidMeta,
+        otherPartyAgentPermanentChannelDid.isAcceptableOrUnknown(
+          data['other_party_agent_permanent_channel_did']!,
+          _otherPartyAgentPermanentChannelDidMeta,
+        ),
+      );
+    }
     if (data.containsKey('notification_token')) {
       context.handle(
         _notificationTokenMeta,
@@ -346,6 +412,21 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
           data['message_sync_marker']!,
           _messageSyncMarkerMeta,
         ),
+      );
+    }
+    if (data.containsKey('matrix_room_id')) {
+      context.handle(
+        _matrixRoomIdMeta,
+        matrixRoomId.isAcceptableOrUnknown(
+          data['matrix_room_id']!,
+          _matrixRoomIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('context_key')) {
+      context.handle(
+        _contextKeyMeta,
+        contextKey.isAcceptableOrUnknown(data['context_key']!, _contextKeyMeta),
       );
     }
     return context;
@@ -411,6 +492,14 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
         DriftSqlType.string,
         data['${effectivePrefix}other_party_permanent_channel_did'],
       ),
+      agentPermanentChannelDid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}agent_permanent_channel_did'],
+      ),
+      otherPartyAgentPermanentChannelDid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}other_party_agent_permanent_channel_did'],
+      ),
       notificationToken: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}notification_token'],
@@ -430,6 +519,14 @@ class $ChannelsTable extends Channels with TableInfo<$ChannelsTable, Channel> {
       messageSyncMarker: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}message_sync_marker'],
+      ),
+      matrixRoomId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}matrix_room_id'],
+      ),
+      contextKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}context_key'],
       ),
     );
   }
@@ -469,8 +566,7 @@ class Channel extends DataClass implements Insertable<Channel> {
   /// Transport used by the channel.
   ///
   /// Defaults to `didcomm` (value `1`) so existing rows have a sane value when
-  /// the column is added by the v5→v6 migration. The migration then backfills
-  /// rows with a `matrix_room_id` to `matrix` (value `2`).
+  /// the column is added by migration.
   final ChannelTransport transport;
 
   /// Indicates whether the channel was initiated by the local party or the
@@ -489,6 +585,12 @@ class Channel extends DataClass implements Insertable<Channel> {
   /// Permanent DID of the other party in the channel.
   final String? otherPartyPermanentChannelDid;
 
+  /// Permanent channel DID of the local party's personal AI agent.
+  final String? agentPermanentChannelDid;
+
+  /// Permanent channel DID of the other party's personal AI agent.
+  final String? otherPartyAgentPermanentChannelDid;
+
   /// Notification token for the channel.
   final String? notificationToken;
 
@@ -506,6 +608,12 @@ class Channel extends DataClass implements Insertable<Channel> {
   /// is an ISO 8601 UTC timestamp; for Matrix channels this is the Matrix
   /// event ID of the last fetched event.
   final String? messageSyncMarker;
+
+  /// Matrix room ID for the channel, stored when the channel joins a room.
+  final String? matrixRoomId;
+
+  /// Personal AI context selected for this channel, e.g. `work` or `personal`.
+  final String? contextKey;
   const Channel({
     required this.id,
     required this.publishOfferDid,
@@ -519,11 +627,15 @@ class Channel extends DataClass implements Insertable<Channel> {
     this.acceptOfferDid,
     this.permanentChannelDid,
     this.otherPartyPermanentChannelDid,
+    this.agentPermanentChannelDid,
+    this.otherPartyAgentPermanentChannelDid,
     this.notificationToken,
     this.otherPartyNotificationToken,
     this.externalRef,
     required this.seqNo,
     this.messageSyncMarker,
+    this.matrixRoomId,
+    this.contextKey,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -560,6 +672,16 @@ class Channel extends DataClass implements Insertable<Channel> {
         otherPartyPermanentChannelDid,
       );
     }
+    if (!nullToAbsent || agentPermanentChannelDid != null) {
+      map['agent_permanent_channel_did'] = Variable<String>(
+        agentPermanentChannelDid,
+      );
+    }
+    if (!nullToAbsent || otherPartyAgentPermanentChannelDid != null) {
+      map['other_party_agent_permanent_channel_did'] = Variable<String>(
+        otherPartyAgentPermanentChannelDid,
+      );
+    }
     if (!nullToAbsent || notificationToken != null) {
       map['notification_token'] = Variable<String>(notificationToken);
     }
@@ -574,6 +696,12 @@ class Channel extends DataClass implements Insertable<Channel> {
     map['seq_no'] = Variable<int>(seqNo);
     if (!nullToAbsent || messageSyncMarker != null) {
       map['message_sync_marker'] = Variable<String>(messageSyncMarker);
+    }
+    if (!nullToAbsent || matrixRoomId != null) {
+      map['matrix_room_id'] = Variable<String>(matrixRoomId);
+    }
+    if (!nullToAbsent || contextKey != null) {
+      map['context_key'] = Variable<String>(contextKey);
     }
     return map;
   }
@@ -601,6 +729,13 @@ class Channel extends DataClass implements Insertable<Channel> {
           otherPartyPermanentChannelDid == null && nullToAbsent
           ? const Value.absent()
           : Value(otherPartyPermanentChannelDid),
+      agentPermanentChannelDid: agentPermanentChannelDid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(agentPermanentChannelDid),
+      otherPartyAgentPermanentChannelDid:
+          otherPartyAgentPermanentChannelDid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(otherPartyAgentPermanentChannelDid),
       notificationToken: notificationToken == null && nullToAbsent
           ? const Value.absent()
           : Value(notificationToken),
@@ -615,6 +750,12 @@ class Channel extends DataClass implements Insertable<Channel> {
       messageSyncMarker: messageSyncMarker == null && nullToAbsent
           ? const Value.absent()
           : Value(messageSyncMarker),
+      matrixRoomId: matrixRoomId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(matrixRoomId),
+      contextKey: contextKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(contextKey),
     );
   }
 
@@ -644,6 +785,12 @@ class Channel extends DataClass implements Insertable<Channel> {
       otherPartyPermanentChannelDid: serializer.fromJson<String?>(
         json['otherPartyPermanentChannelDid'],
       ),
+      agentPermanentChannelDid: serializer.fromJson<String?>(
+        json['agentPermanentChannelDid'],
+      ),
+      otherPartyAgentPermanentChannelDid: serializer.fromJson<String?>(
+        json['otherPartyAgentPermanentChannelDid'],
+      ),
       notificationToken: serializer.fromJson<String?>(
         json['notificationToken'],
       ),
@@ -655,6 +802,8 @@ class Channel extends DataClass implements Insertable<Channel> {
       messageSyncMarker: serializer.fromJson<String?>(
         json['messageSyncMarker'],
       ),
+      matrixRoomId: serializer.fromJson<String?>(json['matrixRoomId']),
+      contextKey: serializer.fromJson<String?>(json['contextKey']),
     );
   }
   @override
@@ -675,6 +824,12 @@ class Channel extends DataClass implements Insertable<Channel> {
       'otherPartyPermanentChannelDid': serializer.toJson<String?>(
         otherPartyPermanentChannelDid,
       ),
+      'agentPermanentChannelDid': serializer.toJson<String?>(
+        agentPermanentChannelDid,
+      ),
+      'otherPartyAgentPermanentChannelDid': serializer.toJson<String?>(
+        otherPartyAgentPermanentChannelDid,
+      ),
       'notificationToken': serializer.toJson<String?>(notificationToken),
       'otherPartyNotificationToken': serializer.toJson<String?>(
         otherPartyNotificationToken,
@@ -682,6 +837,8 @@ class Channel extends DataClass implements Insertable<Channel> {
       'externalRef': serializer.toJson<String?>(externalRef),
       'seqNo': serializer.toJson<int>(seqNo),
       'messageSyncMarker': serializer.toJson<String?>(messageSyncMarker),
+      'matrixRoomId': serializer.toJson<String?>(matrixRoomId),
+      'contextKey': serializer.toJson<String?>(contextKey),
     };
   }
 
@@ -698,11 +855,15 @@ class Channel extends DataClass implements Insertable<Channel> {
     Value<String?> acceptOfferDid = const Value.absent(),
     Value<String?> permanentChannelDid = const Value.absent(),
     Value<String?> otherPartyPermanentChannelDid = const Value.absent(),
+    Value<String?> agentPermanentChannelDid = const Value.absent(),
+    Value<String?> otherPartyAgentPermanentChannelDid = const Value.absent(),
     Value<String?> notificationToken = const Value.absent(),
     Value<String?> otherPartyNotificationToken = const Value.absent(),
     Value<String?> externalRef = const Value.absent(),
     int? seqNo,
     Value<String?> messageSyncMarker = const Value.absent(),
+    Value<String?> matrixRoomId = const Value.absent(),
+    Value<String?> contextKey = const Value.absent(),
   }) => Channel(
     id: id ?? this.id,
     publishOfferDid: publishOfferDid ?? this.publishOfferDid,
@@ -724,6 +885,13 @@ class Channel extends DataClass implements Insertable<Channel> {
     otherPartyPermanentChannelDid: otherPartyPermanentChannelDid.present
         ? otherPartyPermanentChannelDid.value
         : this.otherPartyPermanentChannelDid,
+    agentPermanentChannelDid: agentPermanentChannelDid.present
+        ? agentPermanentChannelDid.value
+        : this.agentPermanentChannelDid,
+    otherPartyAgentPermanentChannelDid:
+        otherPartyAgentPermanentChannelDid.present
+        ? otherPartyAgentPermanentChannelDid.value
+        : this.otherPartyAgentPermanentChannelDid,
     notificationToken: notificationToken.present
         ? notificationToken.value
         : this.notificationToken,
@@ -735,6 +903,8 @@ class Channel extends DataClass implements Insertable<Channel> {
     messageSyncMarker: messageSyncMarker.present
         ? messageSyncMarker.value
         : this.messageSyncMarker,
+    matrixRoomId: matrixRoomId.present ? matrixRoomId.value : this.matrixRoomId,
+    contextKey: contextKey.present ? contextKey.value : this.contextKey,
   );
   Channel copyWithCompanion(ChannelsCompanion data) {
     return Channel(
@@ -764,6 +934,13 @@ class Channel extends DataClass implements Insertable<Channel> {
       otherPartyPermanentChannelDid: data.otherPartyPermanentChannelDid.present
           ? data.otherPartyPermanentChannelDid.value
           : this.otherPartyPermanentChannelDid,
+      agentPermanentChannelDid: data.agentPermanentChannelDid.present
+          ? data.agentPermanentChannelDid.value
+          : this.agentPermanentChannelDid,
+      otherPartyAgentPermanentChannelDid:
+          data.otherPartyAgentPermanentChannelDid.present
+          ? data.otherPartyAgentPermanentChannelDid.value
+          : this.otherPartyAgentPermanentChannelDid,
       notificationToken: data.notificationToken.present
           ? data.notificationToken.value
           : this.notificationToken,
@@ -777,6 +954,12 @@ class Channel extends DataClass implements Insertable<Channel> {
       messageSyncMarker: data.messageSyncMarker.present
           ? data.messageSyncMarker.value
           : this.messageSyncMarker,
+      matrixRoomId: data.matrixRoomId.present
+          ? data.matrixRoomId.value
+          : this.matrixRoomId,
+      contextKey: data.contextKey.present
+          ? data.contextKey.value
+          : this.contextKey,
     );
   }
 
@@ -797,17 +980,23 @@ class Channel extends DataClass implements Insertable<Channel> {
           ..write(
             'otherPartyPermanentChannelDid: $otherPartyPermanentChannelDid, ',
           )
+          ..write('agentPermanentChannelDid: $agentPermanentChannelDid, ')
+          ..write(
+            'otherPartyAgentPermanentChannelDid: $otherPartyAgentPermanentChannelDid, ',
+          )
           ..write('notificationToken: $notificationToken, ')
           ..write('otherPartyNotificationToken: $otherPartyNotificationToken, ')
           ..write('externalRef: $externalRef, ')
           ..write('seqNo: $seqNo, ')
-          ..write('messageSyncMarker: $messageSyncMarker')
+          ..write('messageSyncMarker: $messageSyncMarker, ')
+          ..write('matrixRoomId: $matrixRoomId, ')
+          ..write('contextKey: $contextKey')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     id,
     publishOfferDid,
     mediatorDid,
@@ -820,12 +1009,16 @@ class Channel extends DataClass implements Insertable<Channel> {
     acceptOfferDid,
     permanentChannelDid,
     otherPartyPermanentChannelDid,
+    agentPermanentChannelDid,
+    otherPartyAgentPermanentChannelDid,
     notificationToken,
     otherPartyNotificationToken,
     externalRef,
     seqNo,
     messageSyncMarker,
-  );
+    matrixRoomId,
+    contextKey,
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -843,12 +1036,17 @@ class Channel extends DataClass implements Insertable<Channel> {
           other.permanentChannelDid == this.permanentChannelDid &&
           other.otherPartyPermanentChannelDid ==
               this.otherPartyPermanentChannelDid &&
+          other.agentPermanentChannelDid == this.agentPermanentChannelDid &&
+          other.otherPartyAgentPermanentChannelDid ==
+              this.otherPartyAgentPermanentChannelDid &&
           other.notificationToken == this.notificationToken &&
           other.otherPartyNotificationToken ==
               this.otherPartyNotificationToken &&
           other.externalRef == this.externalRef &&
           other.seqNo == this.seqNo &&
-          other.messageSyncMarker == this.messageSyncMarker);
+          other.messageSyncMarker == this.messageSyncMarker &&
+          other.matrixRoomId == this.matrixRoomId &&
+          other.contextKey == this.contextKey);
 }
 
 class ChannelsCompanion extends UpdateCompanion<Channel> {
@@ -864,11 +1062,15 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
   final Value<String?> acceptOfferDid;
   final Value<String?> permanentChannelDid;
   final Value<String?> otherPartyPermanentChannelDid;
+  final Value<String?> agentPermanentChannelDid;
+  final Value<String?> otherPartyAgentPermanentChannelDid;
   final Value<String?> notificationToken;
   final Value<String?> otherPartyNotificationToken;
   final Value<String?> externalRef;
   final Value<int> seqNo;
   final Value<String?> messageSyncMarker;
+  final Value<String?> matrixRoomId;
+  final Value<String?> contextKey;
   final Value<int> rowid;
   const ChannelsCompanion({
     this.id = const Value.absent(),
@@ -883,11 +1085,15 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     this.acceptOfferDid = const Value.absent(),
     this.permanentChannelDid = const Value.absent(),
     this.otherPartyPermanentChannelDid = const Value.absent(),
+    this.agentPermanentChannelDid = const Value.absent(),
+    this.otherPartyAgentPermanentChannelDid = const Value.absent(),
     this.notificationToken = const Value.absent(),
     this.otherPartyNotificationToken = const Value.absent(),
     this.externalRef = const Value.absent(),
     this.seqNo = const Value.absent(),
     this.messageSyncMarker = const Value.absent(),
+    this.matrixRoomId = const Value.absent(),
+    this.contextKey = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ChannelsCompanion.insert({
@@ -903,11 +1109,15 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     this.acceptOfferDid = const Value.absent(),
     this.permanentChannelDid = const Value.absent(),
     this.otherPartyPermanentChannelDid = const Value.absent(),
+    this.agentPermanentChannelDid = const Value.absent(),
+    this.otherPartyAgentPermanentChannelDid = const Value.absent(),
     this.notificationToken = const Value.absent(),
     this.otherPartyNotificationToken = const Value.absent(),
     this.externalRef = const Value.absent(),
     required int seqNo,
     this.messageSyncMarker = const Value.absent(),
+    this.matrixRoomId = const Value.absent(),
+    this.contextKey = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : publishOfferDid = Value(publishOfferDid),
        mediatorDid = Value(mediatorDid),
@@ -928,11 +1138,15 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     Expression<String>? acceptOfferDid,
     Expression<String>? permanentChannelDid,
     Expression<String>? otherPartyPermanentChannelDid,
+    Expression<String>? agentPermanentChannelDid,
+    Expression<String>? otherPartyAgentPermanentChannelDid,
     Expression<String>? notificationToken,
     Expression<String>? otherPartyNotificationToken,
     Expression<String>? externalRef,
     Expression<int>? seqNo,
     Expression<String>? messageSyncMarker,
+    Expression<String>? matrixRoomId,
+    Expression<String>? contextKey,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -951,12 +1165,19 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
         'permanent_channel_did': permanentChannelDid,
       if (otherPartyPermanentChannelDid != null)
         'other_party_permanent_channel_did': otherPartyPermanentChannelDid,
+      if (agentPermanentChannelDid != null)
+        'agent_permanent_channel_did': agentPermanentChannelDid,
+      if (otherPartyAgentPermanentChannelDid != null)
+        'other_party_agent_permanent_channel_did':
+            otherPartyAgentPermanentChannelDid,
       if (notificationToken != null) 'notification_token': notificationToken,
       if (otherPartyNotificationToken != null)
         'other_party_notification_token': otherPartyNotificationToken,
       if (externalRef != null) 'external_ref': externalRef,
       if (seqNo != null) 'seq_no': seqNo,
       if (messageSyncMarker != null) 'message_sync_marker': messageSyncMarker,
+      if (matrixRoomId != null) 'matrix_room_id': matrixRoomId,
+      if (contextKey != null) 'context_key': contextKey,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -974,11 +1195,15 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     Value<String?>? acceptOfferDid,
     Value<String?>? permanentChannelDid,
     Value<String?>? otherPartyPermanentChannelDid,
+    Value<String?>? agentPermanentChannelDid,
+    Value<String?>? otherPartyAgentPermanentChannelDid,
     Value<String?>? notificationToken,
     Value<String?>? otherPartyNotificationToken,
     Value<String?>? externalRef,
     Value<int>? seqNo,
     Value<String?>? messageSyncMarker,
+    Value<String?>? matrixRoomId,
+    Value<String?>? contextKey,
     Value<int>? rowid,
   }) {
     return ChannelsCompanion(
@@ -996,12 +1221,19 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
       permanentChannelDid: permanentChannelDid ?? this.permanentChannelDid,
       otherPartyPermanentChannelDid:
           otherPartyPermanentChannelDid ?? this.otherPartyPermanentChannelDid,
+      agentPermanentChannelDid:
+          agentPermanentChannelDid ?? this.agentPermanentChannelDid,
+      otherPartyAgentPermanentChannelDid:
+          otherPartyAgentPermanentChannelDid ??
+          this.otherPartyAgentPermanentChannelDid,
       notificationToken: notificationToken ?? this.notificationToken,
       otherPartyNotificationToken:
           otherPartyNotificationToken ?? this.otherPartyNotificationToken,
       externalRef: externalRef ?? this.externalRef,
       seqNo: seqNo ?? this.seqNo,
       messageSyncMarker: messageSyncMarker ?? this.messageSyncMarker,
+      matrixRoomId: matrixRoomId ?? this.matrixRoomId,
+      contextKey: contextKey ?? this.contextKey,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1057,6 +1289,16 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
         otherPartyPermanentChannelDid.value,
       );
     }
+    if (agentPermanentChannelDid.present) {
+      map['agent_permanent_channel_did'] = Variable<String>(
+        agentPermanentChannelDid.value,
+      );
+    }
+    if (otherPartyAgentPermanentChannelDid.present) {
+      map['other_party_agent_permanent_channel_did'] = Variable<String>(
+        otherPartyAgentPermanentChannelDid.value,
+      );
+    }
     if (notificationToken.present) {
       map['notification_token'] = Variable<String>(notificationToken.value);
     }
@@ -1073,6 +1315,12 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
     }
     if (messageSyncMarker.present) {
       map['message_sync_marker'] = Variable<String>(messageSyncMarker.value);
+    }
+    if (matrixRoomId.present) {
+      map['matrix_room_id'] = Variable<String>(matrixRoomId.value);
+    }
+    if (contextKey.present) {
+      map['context_key'] = Variable<String>(contextKey.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -1097,11 +1345,17 @@ class ChannelsCompanion extends UpdateCompanion<Channel> {
           ..write(
             'otherPartyPermanentChannelDid: $otherPartyPermanentChannelDid, ',
           )
+          ..write('agentPermanentChannelDid: $agentPermanentChannelDid, ')
+          ..write(
+            'otherPartyAgentPermanentChannelDid: $otherPartyAgentPermanentChannelDid, ',
+          )
           ..write('notificationToken: $notificationToken, ')
           ..write('otherPartyNotificationToken: $otherPartyNotificationToken, ')
           ..write('externalRef: $externalRef, ')
           ..write('seqNo: $seqNo, ')
           ..write('messageSyncMarker: $messageSyncMarker, ')
+          ..write('matrixRoomId: $matrixRoomId, ')
+          ..write('contextKey: $contextKey, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1634,11 +1888,15 @@ typedef $$ChannelsTableCreateCompanionBuilder =
       Value<String?> acceptOfferDid,
       Value<String?> permanentChannelDid,
       Value<String?> otherPartyPermanentChannelDid,
+      Value<String?> agentPermanentChannelDid,
+      Value<String?> otherPartyAgentPermanentChannelDid,
       Value<String?> notificationToken,
       Value<String?> otherPartyNotificationToken,
       Value<String?> externalRef,
       required int seqNo,
       Value<String?> messageSyncMarker,
+      Value<String?> matrixRoomId,
+      Value<String?> contextKey,
       Value<int> rowid,
     });
 typedef $$ChannelsTableUpdateCompanionBuilder =
@@ -1655,11 +1913,15 @@ typedef $$ChannelsTableUpdateCompanionBuilder =
       Value<String?> acceptOfferDid,
       Value<String?> permanentChannelDid,
       Value<String?> otherPartyPermanentChannelDid,
+      Value<String?> agentPermanentChannelDid,
+      Value<String?> otherPartyAgentPermanentChannelDid,
       Value<String?> notificationToken,
       Value<String?> otherPartyNotificationToken,
       Value<String?> externalRef,
       Value<int> seqNo,
       Value<String?> messageSyncMarker,
+      Value<String?> matrixRoomId,
+      Value<String?> contextKey,
       Value<int> rowid,
     });
 
@@ -1767,6 +2029,17 @@ class $$ChannelsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get agentPermanentChannelDid => $composableBuilder(
+    column: $table.agentPermanentChannelDid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get otherPartyAgentPermanentChannelDid =>
+      $composableBuilder(
+        column: $table.otherPartyAgentPermanentChannelDid,
+        builder: (column) => ColumnFilters(column),
+      );
+
   ColumnFilters<String> get notificationToken => $composableBuilder(
     column: $table.notificationToken,
     builder: (column) => ColumnFilters(column),
@@ -1789,6 +2062,16 @@ class $$ChannelsTableFilterComposer
 
   ColumnFilters<String> get messageSyncMarker => $composableBuilder(
     column: $table.messageSyncMarker,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get matrixRoomId => $composableBuilder(
+    column: $table.matrixRoomId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get contextKey => $composableBuilder(
+    column: $table.contextKey,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1888,6 +2171,17 @@ class $$ChannelsTableOrderingComposer
         builder: (column) => ColumnOrderings(column),
       );
 
+  ColumnOrderings<String> get agentPermanentChannelDid => $composableBuilder(
+    column: $table.agentPermanentChannelDid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get otherPartyAgentPermanentChannelDid =>
+      $composableBuilder(
+        column: $table.otherPartyAgentPermanentChannelDid,
+        builder: (column) => ColumnOrderings(column),
+      );
+
   ColumnOrderings<String> get notificationToken => $composableBuilder(
     column: $table.notificationToken,
     builder: (column) => ColumnOrderings(column),
@@ -1910,6 +2204,16 @@ class $$ChannelsTableOrderingComposer
 
   ColumnOrderings<String> get messageSyncMarker => $composableBuilder(
     column: $table.messageSyncMarker,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get matrixRoomId => $composableBuilder(
+    column: $table.matrixRoomId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get contextKey => $composableBuilder(
+    column: $table.contextKey,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -1974,6 +2278,17 @@ class $$ChannelsTableAnnotationComposer
         builder: (column) => column,
       );
 
+  GeneratedColumn<String> get agentPermanentChannelDid => $composableBuilder(
+    column: $table.agentPermanentChannelDid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get otherPartyAgentPermanentChannelDid =>
+      $composableBuilder(
+        column: $table.otherPartyAgentPermanentChannelDid,
+        builder: (column) => column,
+      );
+
   GeneratedColumn<String> get notificationToken => $composableBuilder(
     column: $table.notificationToken,
     builder: (column) => column,
@@ -1994,6 +2309,16 @@ class $$ChannelsTableAnnotationComposer
 
   GeneratedColumn<String> get messageSyncMarker => $composableBuilder(
     column: $table.messageSyncMarker,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get matrixRoomId => $composableBuilder(
+    column: $table.matrixRoomId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get contextKey => $composableBuilder(
+    column: $table.contextKey,
     builder: (column) => column,
   );
 
@@ -2065,12 +2390,17 @@ class $$ChannelsTableTableManager
                 Value<String?> permanentChannelDid = const Value.absent(),
                 Value<String?> otherPartyPermanentChannelDid =
                     const Value.absent(),
+                Value<String?> agentPermanentChannelDid = const Value.absent(),
+                Value<String?> otherPartyAgentPermanentChannelDid =
+                    const Value.absent(),
                 Value<String?> notificationToken = const Value.absent(),
                 Value<String?> otherPartyNotificationToken =
                     const Value.absent(),
                 Value<String?> externalRef = const Value.absent(),
                 Value<int> seqNo = const Value.absent(),
                 Value<String?> messageSyncMarker = const Value.absent(),
+                Value<String?> matrixRoomId = const Value.absent(),
+                Value<String?> contextKey = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ChannelsCompanion(
                 id: id,
@@ -2085,11 +2415,16 @@ class $$ChannelsTableTableManager
                 acceptOfferDid: acceptOfferDid,
                 permanentChannelDid: permanentChannelDid,
                 otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+                agentPermanentChannelDid: agentPermanentChannelDid,
+                otherPartyAgentPermanentChannelDid:
+                    otherPartyAgentPermanentChannelDid,
                 notificationToken: notificationToken,
                 otherPartyNotificationToken: otherPartyNotificationToken,
                 externalRef: externalRef,
                 seqNo: seqNo,
                 messageSyncMarker: messageSyncMarker,
+                matrixRoomId: matrixRoomId,
+                contextKey: contextKey,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -2107,12 +2442,17 @@ class $$ChannelsTableTableManager
                 Value<String?> permanentChannelDid = const Value.absent(),
                 Value<String?> otherPartyPermanentChannelDid =
                     const Value.absent(),
+                Value<String?> agentPermanentChannelDid = const Value.absent(),
+                Value<String?> otherPartyAgentPermanentChannelDid =
+                    const Value.absent(),
                 Value<String?> notificationToken = const Value.absent(),
                 Value<String?> otherPartyNotificationToken =
                     const Value.absent(),
                 Value<String?> externalRef = const Value.absent(),
                 required int seqNo,
                 Value<String?> messageSyncMarker = const Value.absent(),
+                Value<String?> matrixRoomId = const Value.absent(),
+                Value<String?> contextKey = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ChannelsCompanion.insert(
                 id: id,
@@ -2127,11 +2467,16 @@ class $$ChannelsTableTableManager
                 acceptOfferDid: acceptOfferDid,
                 permanentChannelDid: permanentChannelDid,
                 otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+                agentPermanentChannelDid: agentPermanentChannelDid,
+                otherPartyAgentPermanentChannelDid:
+                    otherPartyAgentPermanentChannelDid,
                 notificationToken: notificationToken,
                 otherPartyNotificationToken: otherPartyNotificationToken,
                 externalRef: externalRef,
                 seqNo: seqNo,
                 messageSyncMarker: messageSyncMarker,
+                matrixRoomId: matrixRoomId,
+                contextKey: contextKey,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

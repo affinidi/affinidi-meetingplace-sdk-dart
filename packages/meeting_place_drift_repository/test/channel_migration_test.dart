@@ -230,4 +230,168 @@ void main() {
       },
     );
   });
+
+  group('v4 → v5 schema migration', () {
+    test('produces the correct v5 schema', () async {
+      final connection = await verifier.startAt(4);
+      final db = ChannelDatabase.forTesting(connection);
+      await verifier.migrateAndValidate(db, 5);
+      await db.close();
+    });
+
+    test(
+      'adds agent_permanent_channel_did columns with NULL as default',
+      () async {
+        final schema = await verifier.schemaAt(4);
+
+        schema.rawDatabase.execute('''
+        INSERT INTO channels VALUES (
+          'ch-4',
+          'did:example:publisher',
+          'did:example:mediator',
+          'offer-link-4',
+          1,
+          1,
+          1,
+          0,
+          NULL,
+          NULL,
+          'did:example:permanent4',
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          0,
+          NULL,
+          NULL
+        )
+      ''');
+
+        final db = ChannelDatabase.forTesting(schema.newConnection());
+        await verifier.migrateAndValidate(db, 5);
+
+        final rows = await db
+            .customSelect(
+              'SELECT agent_permanent_channel_did, '
+              'other_party_agent_permanent_channel_did FROM channels '
+              'WHERE id = ?',
+              variables: [const Variable('ch-4')],
+            )
+            .get();
+        expect(
+          rows.single.read<String?>('agent_permanent_channel_did'),
+          isNull,
+        );
+        expect(
+          rows.single.read<String?>('other_party_agent_permanent_channel_did'),
+          isNull,
+        );
+
+        await db.close();
+      },
+    );
+  });
+
+  group('v5 → v6 schema migration', () {
+    test('produces the correct v6 schema', () async {
+      final connection = await verifier.startAt(5);
+      final db = ChannelDatabase.forTesting(connection);
+      await verifier.migrateAndValidate(db, 6);
+      await db.close();
+    });
+
+    test('adds matrix_room_id column with NULL as default', () async {
+      final schema = await verifier.schemaAt(5);
+
+      schema.rawDatabase.execute('''
+        INSERT INTO channels VALUES (
+          'ch-5',
+          'did:example:publisher',
+          'did:example:mediator',
+          'offer-link-5',
+          1,
+          1,
+          1,
+          0,
+          NULL,
+          NULL,
+          'did:example:permanent5',
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          0,
+          NULL,
+          NULL
+        )
+      ''');
+
+      final db = ChannelDatabase.forTesting(schema.newConnection());
+      await verifier.migrateAndValidate(db, 6);
+
+      final rows = await db
+          .customSelect(
+            'SELECT matrix_room_id FROM channels WHERE id = ?',
+            variables: [const Variable('ch-5')],
+          )
+          .get();
+      expect(rows.single.read<String?>('matrix_room_id'), isNull);
+
+      await db.close();
+    });
+  });
+
+  group('v6 → v7 schema migration', () {
+    test('produces the correct v7 schema', () async {
+      final connection = await verifier.startAt(6);
+      final db = ChannelDatabase.forTesting(connection);
+      await verifier.migrateAndValidate(db, 7);
+      await db.close();
+    });
+
+    test('adds context_key column with NULL as default', () async {
+      final schema = await verifier.schemaAt(6);
+
+      schema.rawDatabase.execute('''
+        INSERT INTO channels (
+          id,
+          publish_offer_did,
+          mediator_did,
+          offer_link,
+          status,
+          type,
+          transport,
+          is_connection_initiator,
+          permanent_channel_did,
+          seq_no
+        ) VALUES (
+          'ch-6',
+          'did:example:publisher',
+          'did:example:mediator',
+          'offer-link-6',
+          1,
+          1,
+          1,
+          0,
+          'did:example:permanent6',
+          0
+        )
+      ''');
+
+      final db = ChannelDatabase.forTesting(schema.newConnection());
+      await verifier.migrateAndValidate(db, 7);
+
+      final rows = await db
+          .customSelect(
+            'SELECT context_key FROM channels WHERE id = ?',
+            variables: [const Variable('ch-6')],
+          )
+          .get();
+      expect(rows.single.read<String?>('context_key'), isNull);
+
+      await db.close();
+    });
+  });
 }

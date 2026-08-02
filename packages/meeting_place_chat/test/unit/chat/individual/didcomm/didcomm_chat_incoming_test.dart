@@ -188,6 +188,53 @@ void main() {
       expect((messages.first as Message).status, ChatItemStatus.received);
     });
 
+    test('incoming chat message preserves mentions on emitted item', () async {
+      final chat = await sdk.startChatSession();
+
+      final eventFuture = chat.stream!.stream
+          .where((d) => d.event is ChatMessageEvent)
+          .first;
+
+      incomingController.add(
+        DidCommIncomingMessage(
+          senderDid: _bobDid,
+          timestamp: DateTime.utc(2026),
+          payload: PlainTextMessage(
+            id: 'msg-incoming-mentions',
+            type: Uri.parse(ChatProtocol.chatMessage.value),
+            from: _bobDid,
+            to: [_aliceDid],
+            body: {
+              'text': 'Hello Alice',
+              'seq_no': 1,
+              'timestamp': DateTime.utc(2026).toIso8601String(),
+              'mentions': [
+                {
+                  'target': _aliceDid,
+                  'start': 6,
+                  'length': 5,
+                  'display': 'Alice',
+                },
+              ],
+            },
+            createdTime: DateTime.utc(2026),
+          ),
+        ),
+      );
+
+      final streamData = await eventFuture;
+      final message = streamData.chatItem! as Message;
+
+      expect(message.mentions, const [
+        ChatMention(target: _aliceDid, start: 6, length: 5, display: 'Alice'),
+      ]);
+
+      final messages = await sdk.messages;
+      expect((messages.first as Message).mentions, const [
+        ChatMention(target: _aliceDid, start: 6, length: 5, display: 'Alice'),
+      ]);
+    });
+
     test('delivery notification updates message status to delivered', () async {
       final chatId = Chat.deriveId(did: _aliceDid, otherPartyDid: _bobDid);
       await repo.createMessage(
@@ -231,6 +278,53 @@ void main() {
 
       final messages = await sdk.messages;
       expect((messages.first as Message).status, ChatItemStatus.delivered);
+    });
+
+    test('delivery receipt failure does not block incoming message', () async {
+      when(() => core.sendMessage(any())).thenAnswer((invocation) async {
+        final outgoing =
+            invocation.positionalArguments.single as DidCommOutgoingMessage;
+        if (outgoing.payload.type.toString() ==
+            ChatProtocol.chatDelivered.value) {
+          throw Exception('access_list denied');
+        }
+        return 'ok';
+      });
+
+      final chat = await sdk.startChatSession();
+
+      final eventFuture = chat.stream!.stream
+          .where((d) => d.event is ChatMessageEvent)
+          .first;
+
+      incomingController.add(
+        DidCommIncomingMessage(
+          senderDid: _bobDid,
+          timestamp: DateTime.utc(2026),
+          payload: PlainTextMessage(
+            id: 'msg-incoming-delivery-fails',
+            type: Uri.parse(ChatProtocol.chatMessage.value),
+            from: _bobDid,
+            to: [_aliceDid],
+            body: {
+              'text': 'Hello despite receipt failure',
+              'seq_no': 1,
+              'timestamp': DateTime.utc(2026).toIso8601String(),
+            },
+            createdTime: DateTime.utc(2026),
+          ),
+        ),
+      );
+
+      final streamData = await eventFuture;
+      expect(
+        (streamData.chatItem! as Message).value,
+        'Hello despite receipt failure',
+      );
+
+      await Future<void>.delayed(Duration.zero);
+      final messages = await sdk.messages;
+      expect(messages.length, 1);
     });
 
     test('incoming message with higher seqNo updates channel', () async {
@@ -337,6 +431,40 @@ void main() {
         verify(() => vdip.dispatch(any())).called(1);
       },
     );
+
+    test('incoming suggestion emits ChatSuggestionEvent', () async {
+      final chat = await sdk.startChatSession();
+
+      final eventFuture = chat.stream!.stream
+          .where((d) => d.event is ChatSuggestionEvent)
+          .first;
+
+      incomingController.add(
+        DidCommIncomingMessage(
+          senderDid: 'did:test:agent',
+          timestamp: DateTime.utc(2026),
+          payload: PlainTextMessage(
+            id: 'suggestion-1',
+            type: Uri.parse(ChatProtocol.suggestion.value),
+            from: 'did:test:agent',
+            to: [_aliceDid],
+            body: {
+              'related_message_id': 'msg-incoming-1',
+              'text': 'Suggested reply',
+            },
+            createdTime: DateTime.utc(2026),
+          ),
+        ),
+      );
+
+      final streamData = await eventFuture;
+      final event = streamData.event as ChatSuggestionEvent;
+      expect(event.senderDid, 'did:test:agent');
+      expect(event.relatedMessageId, 'msg-incoming-1');
+      expect(event.text, 'Suggested reply');
+      expect(event.createdTime, DateTime.utc(2026));
+      expect(streamData.chatItem, isNull);
+    });
   });
 
   group('incoming reaction handling', () {

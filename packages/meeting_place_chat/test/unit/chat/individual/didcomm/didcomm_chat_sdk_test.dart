@@ -9,6 +9,7 @@ class _MockChatRepository extends Mock implements ChatRepository {}
 
 const _aliceDid = 'did:test:alice';
 const _bobDid = 'did:test:bob';
+const _agentDid = 'did:test:agent';
 const _mediatorDid = 'did:test:mediator';
 
 IndividualDidcommChatSDK _buildSdk({
@@ -73,6 +74,9 @@ void main() {
     core = _MockCoreSDK();
     repo = _MockChatRepository();
     sdk = _buildSdk(core: core, repo: repo);
+    when(
+      () => core.options,
+    ).thenReturn(const MeetingPlaceCoreSDKOptions(agentDid: _agentDid));
   });
 
   group('deleteMessage', () {
@@ -108,6 +112,50 @@ void main() {
     });
   });
 
+  group('sendSuggestionRequest', () {
+    test('emits DIDComm suggestion request payload', () async {
+      when(() => core.sendMessage(any())).thenAnswer((_) async => r'$ok');
+
+      await sdk.sendSuggestionRequest(
+        messageId: 'msg-1',
+        text: 'Please suggest a reply',
+      );
+
+      final captured =
+          verify(() => core.sendMessage(captureAny())).captured.single
+              as DidCommOutgoingMessage;
+      expect(captured.senderDid, _aliceDid);
+      expect(captured.recipientDid, _agentDid);
+      expect(captured.mediatorDid, _mediatorDid);
+      expect(
+        captured.payload.type.toString(),
+        ChatProtocol.suggestionRequest.value,
+      );
+      expect(captured.payload.to, [_agentDid]);
+      expect(captured.payload.body?['message_id'], 'msg-1');
+      expect(captured.payload.body?['text'], 'Please suggest a reply');
+    });
+
+    test('throws when agentDid is not configured', () {
+      when(() => core.options).thenReturn(const MeetingPlaceCoreSDKOptions());
+
+      expect(
+        () => sdk.sendSuggestionRequest(
+          messageId: 'msg-1',
+          text: 'Please suggest a reply',
+        ),
+        throwsA(
+          isA<StateError>().having(
+            (e) => e.message,
+            'message',
+            contains('agentDid'),
+          ),
+        ),
+      );
+      verifyNever(() => core.sendMessage(any()));
+    });
+  });
+
   group('sendTextMessage', () {
     test('returns sent status even when notification fails', () async {
       when(
@@ -135,6 +183,49 @@ void main() {
       final result = await sdk.sendTextMessage('Sample text message');
       expect(result.status, ChatItemStatus.sent);
     });
+
+    test(
+      'preserves mentions in persisted message and DIDComm payload',
+      () async {
+        when(
+          () => core.getChannelByOtherPartyPermanentDid(any()),
+        ).thenAnswer((_) async => _fakeChannel());
+
+        when(() => core.sendMessage(any())).thenAnswer((_) async => 'ok');
+        when(() => core.updateChannel(any())).thenAnswer((_) async {});
+
+        when(() => repo.createMessage(any())).thenAnswer((inv) async {
+          return inv.positionalArguments.first as ChatItem;
+        });
+
+        when(() => repo.updateMesssage(any())).thenAnswer((inv) async {
+          return inv.positionalArguments.first as ChatItem;
+        });
+
+        const mentions = [
+          ChatMention(target: _bobDid, start: 6, length: 4, display: 'Bob'),
+        ];
+
+        final result = await sdk.sendTextMessage(
+          'Hello Bob',
+          mentions: mentions,
+        );
+
+        expect(result.mentions, mentions);
+
+        final captured =
+            verify(() => core.sendMessage(captureAny())).captured.first
+                as DidCommOutgoingMessage;
+        expect(captured.payload.body?['mentions'], isA<List<dynamic>>());
+        expect((captured.payload.body?['mentions'] as List<dynamic>).single, {
+          'target': _bobDid,
+          'start': 6,
+          'length': 4,
+          'display': 'Bob',
+          'isRoomMention': false,
+        });
+      },
+    );
 
     test('persists message in repository', () async {
       when(

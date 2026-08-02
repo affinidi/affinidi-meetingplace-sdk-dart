@@ -7,30 +7,63 @@ class _MockCoreSDK extends Mock implements MeetingPlaceCoreSDK {}
 
 class _MockChatRepository extends Mock implements ChatRepository {}
 
-IndividualDidcommChatSDK _buildDidcommSdk() => IndividualDidcommChatSDK(
-  coreSDK: _MockCoreSDK(),
-  did: 'did:test:alice',
-  otherPartyDid: 'did:test:bob',
-  mediatorDid: 'did:test:mediator',
-  chatRepository: _MockChatRepository(),
-  options: MeetingPlaceChatSDKOptions(
-    chatPresenceSendInterval: const Duration(hours: 1),
-  ),
-);
+_MockCoreSDK _buildCore({
+  MeetingPlaceCoreSDKOptions options = const MeetingPlaceCoreSDKOptions(),
+}) {
+  final core = _MockCoreSDK();
+  when(() => core.options).thenReturn(options);
+  return core;
+}
+
+IndividualDidcommChatSDK _buildDidcommSdk(_MockCoreSDK core) =>
+    IndividualDidcommChatSDK(
+      coreSDK: core,
+      did: 'did:test:alice',
+      otherPartyDid: 'did:test:bob',
+      mediatorDid: 'did:test:mediator',
+      chatRepository: _MockChatRepository(),
+      options: MeetingPlaceChatSDKOptions(
+        chatPresenceSendInterval: const Duration(hours: 1),
+      ),
+    );
 
 void main() {
   group('Chat transport capabilities', () {
     test('DIDComm supports images but not video attachments', () {
-      final capabilities = _buildDidcommSdk().capabilities;
+      final core = _buildCore();
+      final capabilities = _buildDidcommSdk(core).capabilities;
 
       expect(capabilities.supports(ChatFeature.imageAttachments), isTrue);
       expect(capabilities.supports(ChatFeature.videoAttachments), isFalse);
     });
 
     test('DIDComm does not support audio/video calling', () {
-      final capabilities = _buildDidcommSdk().capabilities;
+      final core = _buildCore();
+      final capabilities = _buildDidcommSdk(core).capabilities;
 
       expect(capabilities.supports(ChatFeature.audioVideoCalling), isFalse);
     });
+
+    test(
+      'individual DIDComm exposes suggestion requests when agentDid exists',
+      () {
+        final core = _buildCore(
+          options: const MeetingPlaceCoreSDKOptions(agentDid: 'did:test:agent'),
+        );
+        final capabilities = _buildDidcommSdk(core).capabilities;
+
+        expect(capabilities.supports(ChatFeature.suggestionRequests), isTrue);
+      },
+    );
+
+    test(
+      'individual DIDComm hides suggestion requests when agentDid is absent',
+      () {
+        final core = _buildCore();
+        final capabilities = _buildDidcommSdk(core).capabilities;
+
+        expect(capabilities.supports(ChatFeature.suggestionRequests), isFalse);
+      },
+    );
   });
 }

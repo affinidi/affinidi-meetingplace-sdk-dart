@@ -30,7 +30,7 @@ class MatrixTransport implements MeetingPlaceTransport {
       _matrixService.loginWithDid(didManager).then((_) {});
 
   @override
-  Future<void> setupChannel({
+  Future<String> setupChannel({
     required Channel channel,
     required DidManager didManager,
     List<String> participantDids = const [],
@@ -39,7 +39,7 @@ class MatrixTransport implements MeetingPlaceTransport {
         ? channel.otherPartyPermanentChannelDid!
         : (await didManager.getDidDocument()).id;
 
-    await _matrixService.createRoom(
+    final roomId = await _matrixService.createRoom(
       didManager: didManager,
       channelDid: channelDid,
       otherPartyChannelDid: channel.isGroup
@@ -47,10 +47,17 @@ class MatrixTransport implements MeetingPlaceTransport {
           : (participantDids.isNotEmpty ? participantDids.first : null),
       inviteUsers: participantDids,
     );
+    return roomId;
   }
 
   @override
-  Future<void> joinChannel({
+  Future<String> joinRoomById({
+    required DidManager didManager,
+    required String roomId,
+  }) => _matrixService.joinRoomById(didManager: didManager, roomId: roomId);
+
+  @override
+  Future<String> joinChannel({
     required Channel channel,
     required DidManager didManager,
   }) async {
@@ -60,11 +67,12 @@ class MatrixTransport implements MeetingPlaceTransport {
     final otherPartyChannelDid = channel.isGroup
         ? null
         : channel.otherPartyPermanentChannelDid;
-    await _matrixService.joinChannelRoom(
+    final roomId = await _matrixService.joinChannelRoom(
       didManager: didManager,
       channelDid: channelDid,
       otherPartyChannelDid: otherPartyChannelDid,
     );
+    return roomId;
   }
 
   @override

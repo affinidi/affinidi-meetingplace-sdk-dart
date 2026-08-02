@@ -17,6 +17,7 @@ import 'event_handler/control_plane_event_stream_manager.dart';
 import 'loggers/logger_adapter.dart';
 import 'sdk/sdk.dart' as sdk;
 import 'sdk/sdk_error_handler.dart';
+import 'service/agent_identity_service.dart';
 import 'service/channel/channel_service.dart';
 import 'service/connection_manager/connection_manager.dart';
 import 'service/connection_offer/connection_offer_service.dart';
@@ -134,6 +135,7 @@ class MeetingPlaceCoreSDK {
   ///   directly using `this`.
   MeetingPlaceCoreSDK._({
     required this.wallet,
+    required this.rootDid,
     required RepositoryConfig repositoryConfig,
     required MeetingPlaceMediatorSDK mediatorSDK,
     required ControlPlaneSDK controlPlaneSDK,
@@ -146,6 +148,8 @@ class MeetingPlaceCoreSDK {
     required OutreachService outreachService,
     required OobService oobService,
     required ChannelService channelService,
+    required IdentityService identityService,
+    required AgentIdentityService agentIdentityService,
     required String mediatorDid,
     required String controlPlaneDid,
     required MeetingPlaceCoreSDKOptions options,
@@ -169,6 +173,8 @@ class MeetingPlaceCoreSDK {
        _outreachService = outreachService,
        _oobService = oobService,
        _channelService = channelService,
+       _identityService = identityService,
+       _agentIdentityService = agentIdentityService,
        _mediatorDid = mediatorDid,
        _controlPlaneDid = controlPlaneDid,
        _options = options,
@@ -186,6 +192,10 @@ class MeetingPlaceCoreSDK {
        _vdipClient = vdipClient;
 
   final Wallet wallet;
+
+  /// The root DID derived from the wallet mnemonic.
+  final String rootDid;
+
   final RepositoryConfig _repositoryConfig;
   final MeetingPlaceMediatorSDK _mediatorSDK;
   final ControlPlaneSDK _controlPlaneSDK;
@@ -198,6 +208,8 @@ class MeetingPlaceCoreSDK {
   final OutreachService _outreachService;
   final OobService _oobService;
   final ChannelService _channelService;
+  final IdentityService _identityService;
+  final AgentIdentityService _agentIdentityService;
   final MeetingPlaceCoreSDKOptions _options;
   final SDKErrorHandler _sdkErrorHandler;
   final StreamController<ChannelAttachmentEvent> _channelAttachmentsController;
@@ -286,6 +298,8 @@ class MeetingPlaceCoreSDK {
     );
 
     final didManager = await connectionManager.generateRootDid(wallet);
+    final rootDidDoc = await didManager.getDidDocument();
+    final rootDid = rootDidDoc.id;
 
     final controlPlaneSDK = ControlPlaneSDK(
       didManager: didManager,
@@ -317,6 +331,29 @@ class MeetingPlaceCoreSDK {
       ),
     );
 
+    final mediatorService = MediatorService(
+      mediatorSDK: mediatorSDK,
+      keyRepository: repositoryConfig.keyRepository,
+      logger: mpxLogger,
+    );
+
+    if (options.agentDid case final agentDid?) {
+      await mediatorService.updateAcl(
+        ownerDidManager: didManager,
+        mediatorDid: mediatorDid,
+        acl: AccessListAdd(ownerDid: rootDid, granteeDids: [agentDid]),
+      );
+    }
+
+    final messageService = MessageService(
+      connectionManager: connectionManager,
+      didResolver: didResolver,
+      mediatorService: mediatorService,
+      channelService: channelService,
+      controlPlaneSDK: controlPlaneSDK,
+      logger: mpxLogger,
+    );
+
     final identityService = IdentityService(
       connectionManager: connectionManager,
       channelTransport: channelTransport,
@@ -326,6 +363,16 @@ class MeetingPlaceCoreSDK {
         audience: controlPlaneDid,
       ),
       didWebBaseHost: _didWebBaseHostFromControlPlaneDid(controlPlaneDid),
+      messageService: messageService,
+      mediatorService: mediatorService,
+      mediatorDid: mediatorDid,
+      agentDid: options.agentDid,
+    );
+
+    final mediatorAclService = MediatorAclService(
+      mediatorSDK: mediatorSDK,
+      connectionManager: connectionManager,
+      logger: mpxLogger,
     );
 
     final connectionService = ConnectionService(
@@ -334,11 +381,7 @@ class MeetingPlaceCoreSDK {
       connectionManager: connectionManager,
       identityService: identityService,
       controlPlaneSDK: controlPlaneSDK,
-      mediatorAclService: MediatorAclService(
-        mediatorSDK: mediatorSDK,
-        connectionManager: connectionManager,
-        logger: mpxLogger,
-      ),
+      mediatorAclService: mediatorAclService,
       mediatorSDK: mediatorSDK,
       offerService: offerService,
       didResolver: didResolver,
@@ -365,21 +408,6 @@ class MeetingPlaceCoreSDK {
       identityService: identityService,
       channelTransport: channelTransport,
       didResolver: didResolver,
-      logger: mpxLogger,
-    );
-
-    final mediatorService = MediatorService(
-      mediatorSDK: mediatorSDK,
-      keyRepository: repositoryConfig.keyRepository,
-      logger: mpxLogger,
-    );
-
-    final messageService = MessageService(
-      connectionManager: connectionManager,
-      didResolver: didResolver,
-      mediatorService: mediatorService,
-      channelService: channelService,
-      controlPlaneSDK: controlPlaneSDK,
       logger: mpxLogger,
     );
 
@@ -419,6 +447,7 @@ class MeetingPlaceCoreSDK {
                 attachments: attachments,
               ),
             ),
+        agentDid: options.agentDid,
       ),
       logger: mpxLogger,
     );
@@ -476,11 +505,24 @@ class MeetingPlaceCoreSDK {
       expectedMessageWrappingTypes: options.expectedMessageWrappingTypes,
     );
 
+    final agentIdentityService = AgentIdentityService(
+      identityService: identityService,
+      mediatorAclService: mediatorAclService,
+      didcommTransport: didcommTransport,
+      channelRepository: repositoryConfig.channelRepository,
+      connectionOfferRepository: repositoryConfig.connectionOfferRepository,
+      groupRepository: repositoryConfig.groupRepository,
+      wallet: wallet,
+      connectionManager: connectionManager,
+      channelTransport: channelTransport,
+    );
+
     Future<DidManager> channelTransportGetDidManager(String did) =>
         connectionManager.getDidManagerForDid(wallet, did);
 
     final init = MeetingPlaceCoreSDK._(
       wallet: wallet,
+      rootDid: rootDid,
       repositoryConfig: repositoryConfig,
       mediatorSDK: mediatorSDK,
       controlPlaneSDK: controlPlaneSDK,
@@ -493,6 +535,8 @@ class MeetingPlaceCoreSDK {
       outreachService: outreachService,
       oobService: oobService,
       channelService: channelService,
+      identityService: identityService,
+      agentIdentityService: agentIdentityService,
       mediatorDid: mediatorDid,
       controlPlaneDid: controlPlaneDid,
       options: options,
@@ -581,6 +625,69 @@ class MeetingPlaceCoreSDK {
   /// Returns a [DidManager] instance
   Future<DidManager> generateDid() async {
     return _connectionManager.generateDid(wallet);
+  }
+
+  /// Generates a new `did:web` identity and registers its DID document with
+  /// the control plane, using the same derivation path as permanent channel
+  /// identities but without performing a Matrix login or an agent handshake.
+  ///
+  /// Returns a [DidManager] instance for the newly created DID.
+  Future<DidManager> generateDidWeb() async {
+    return _identityService.generateDidWeb(wallet);
+  }
+
+  /// Generates a fresh `did:web`, grants [otherPartyPermanentChannelDid]
+  /// access on the mediator, and sends back an
+  /// `agent-create-channel-identity-response` containing the new DID.
+  ///
+  /// - [agentDid]: The agent's own DID, used as the sender of the response.
+  /// - [otherPartyPermanentChannelDid]: The per-channel DID of the party that
+  ///   issued the request. Access is granted to this DID, and the response is
+  ///   sent to it.
+  /// - [mediatorDid]: The mediator through which the response is routed.
+  ///
+  /// Returns the new [DidManager] so the caller can subscribe to messages on
+  /// the freshly created DID.
+  Future<Channel> generateAgentIdentity({
+    required String agentDid,
+    required String otherPartyPermanentChannelDid,
+    required String mediatorDid,
+    required String offerLink,
+    required String publishOfferDid,
+    required ContactCard contactCard,
+    required ChannelTransport transport,
+    required String agentControllerDid,
+  }) {
+    return _agentIdentityService.createChannelIdentity(
+      agentDid: agentDid,
+      otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+      mediatorDid: mediatorDid,
+      offerLink: offerLink,
+      publishOfferDid: publishOfferDid,
+      contactCard: contactCard,
+      transport: transport,
+      agentControllerDid: agentControllerDid,
+    );
+  }
+
+  /// Handles an incoming `agent-channel-inauguration` message by granting
+  /// [otherPartyPermanentChannelDid] access on the mediator, persisting a
+  /// [ChannelStatus.inaugurated] [Channel], and returning it so the caller
+  /// can open a chat session on [Channel.permanentChannelDid].
+  Future<Channel> processAgentChannelInauguration({
+    required String otherPartyPermanentChannelDid,
+    required String otherPartyNotificationToken,
+    required String agentPermanentChannelDid,
+    ContactCard? contactCard,
+    String? matrixRoomId,
+  }) {
+    return _agentIdentityService.processAgentChannelInauguration(
+      otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+      otherPartyNotificationToken: otherPartyNotificationToken,
+      agentPermanentChannelDid: agentPermanentChannelDid,
+      contactCard: contactCard,
+      matrixRoomId: matrixRoomId,
+    );
   }
 
   /// Retrieves an existing [DidManager] for the specified DID string.
@@ -797,6 +904,7 @@ class MeetingPlaceCoreSDK {
     String? mediatorDid,
     String? metadata,
     String? externalRef,
+    String? contextKey,
     ChannelTransport transport = ChannelTransport.didcomm,
     int? score,
   }) async {
@@ -811,6 +919,7 @@ class MeetingPlaceCoreSDK {
             mediatorDid: mediatorDid ?? _mediatorDid,
             externalRef: externalRef,
             metadata: metadata,
+            contextKey: contextKey,
             card: contactCard,
           );
       return sdk.PublishOfferResult(
@@ -833,6 +942,7 @@ class MeetingPlaceCoreSDK {
           maximumUsage: maximumUsage,
           mediatorDid: mediatorDid,
           externalRef: externalRef,
+          contextKey: contextKey,
           contactCard: contactCard,
           transport: transport,
           score: score,
@@ -889,6 +999,7 @@ class MeetingPlaceCoreSDK {
     required ContactCard contactCard,
     required String senderInfo,
     String? externalRef,
+    String? contextKey,
   }) async {
     return _withSdkExceptionHandling(() async {
       if (connectionOffer is GroupConnectionOffer) {
@@ -913,6 +1024,7 @@ class MeetingPlaceCoreSDK {
         contactCard: contactCard,
         senderInfo: senderInfo,
         externalRef: externalRef,
+        contextKey: contextKey,
       );
 
       return sdk.AcceptOfferResult(
@@ -948,6 +1060,7 @@ class MeetingPlaceCoreSDK {
   Future<Channel> approveConnectionRequest({
     required Channel channel,
     List<Attachment>? attachments,
+    String? contextKey,
   }) async {
     return _withSdkExceptionHandling(() async {
       return channel.isGroup
@@ -956,6 +1069,7 @@ class MeetingPlaceCoreSDK {
               wallet: wallet,
               channel: channel,
               attachments: attachments,
+              contextKey: contextKey,
             );
     });
   }

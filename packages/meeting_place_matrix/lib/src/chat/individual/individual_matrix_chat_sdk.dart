@@ -33,10 +33,11 @@ class IndividualMatrixChatSDK extends MeetingPlaceMatrixChatSDK
       IndividualRoomEventRouter(chatSDK: this);
 
   @override
-  TransportCapabilities get capabilities => _capabilities;
+  TransportCapabilities get capabilities =>
+      withSuggestionRequestCapability(_capabilityBaseFeatures);
 
   /// Features supported by an individual chat over the Matrix transport.
-  static const _capabilities = TransportCapabilities({
+  static const _capabilityBaseFeatures = {
     ChatFeature.textMessaging,
     ChatFeature.imageAttachments,
     ChatFeature.videoAttachments,
@@ -50,7 +51,7 @@ class IndividualMatrixChatSDK extends MeetingPlaceMatrixChatSDK
     ChatFeature.effects,
     ChatFeature.contactDetailsUpdate,
     ChatFeature.audioVideoCalling,
-  });
+  };
 
   @override
   Future<Chat> startChatSession() async {

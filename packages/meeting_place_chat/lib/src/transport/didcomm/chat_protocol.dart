@@ -64,6 +64,16 @@ enum ChatProtocol {
   /// Represents a reaction (emoji or similar) to a chat message.
   chatReaction(
     'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/reaction',
+  ),
+
+  /// Represents a request for a suggestion anchored to a message context.
+  suggestionRequest(
+    'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/suggestion-request',
+  ),
+
+  /// Represents a suggestion anchored to a message context.
+  suggestion(
+    'https://affinidi.com/didcomm/protocols/meeting-place-chat/1.0/suggestion',
   );
 
   /// Creates a [ChatProtocol] instance with the given URI [value].

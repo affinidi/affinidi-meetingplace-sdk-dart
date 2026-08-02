@@ -10,6 +10,7 @@ class InvitationAcceptanceGroupBody {
   InvitationAcceptanceGroupBody({
     required this.channelDid,
     required this.publicKey,
+    this.agentDid,
   });
 
   @JsonKey(name: 'channel_did')
@@ -17,6 +18,9 @@ class InvitationAcceptanceGroupBody {
 
   @JsonKey(name: 'public_key')
   final String publicKey;
+
+  @JsonKey(name: 'agent_did')
+  final String? agentDid;
 
   Map<String, dynamic> toJson() => _$InvitationAcceptanceGroupBodyToJson(this);
 }

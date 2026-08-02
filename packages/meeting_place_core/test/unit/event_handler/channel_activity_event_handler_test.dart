@@ -41,6 +41,7 @@ void main() {
       connectionManager: MockConnectionManager(),
       channelService: mockChannelService,
       channelTransport: MockMeetingPlaceTransport(),
+      didResolver: MockDidResolver(),
       connectionOfferRepository: mockConnectionOfferRepository,
       options: const ControlPlaneEventHandlerManagerOptions(),
       logger: mockLogger,

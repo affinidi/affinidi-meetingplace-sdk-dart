@@ -16,8 +16,8 @@ void main() {
     fixture = await GroupChatFixture.create();
   });
 
-  tearDown(() {
-    fixture.disposeSessions();
+  tearDown(() async {
+    await fixture.disposeSessions();
   });
 
   test('group admin sees concierge message for pending approvals', () async {
@@ -42,10 +42,12 @@ void main() {
       channelRepository: fixture.aliceChannelRepository,
     );
 
-    final chat = await newAliceChatSDK.startChatSession();
+    final chat = await fixture.runWithSuppressedStreamClosed(
+      newAliceChatSDK.startChatSession,
+    );
     expect(chat.messages.whereType<ConciergeMessage>().length, equals(1));
 
-    await fixture.bobChatSDK.startChatSession();
+    await fixture.startBobChatSession();
     final bobGroupUpdated =
         ChatTestHarness.awaitEvent<ChatGroupDetailsUpdateEvent>(
           fixture.bobChatSDK,
@@ -70,7 +72,7 @@ void main() {
       }
     });
 
-    await fixture.bobChatSDK.startChatSession();
+    await fixture.startBobChatSession();
 
     await fixture.aliceSDK.processControlPlaneEvents();
     await completer.future;
@@ -84,7 +86,9 @@ void main() {
       channelRepository: fixture.aliceChannelRepository,
     );
 
-    final chat = await newAliceChatSDK.startChatSession();
+    final chat = await fixture.runWithSuppressedStreamClosed(
+      newAliceChatSDK.startChatSession,
+    );
 
     final bobGroupUpdated =
         ChatTestHarness.awaitEvent<ChatGroupDetailsUpdateEvent>(

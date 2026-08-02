@@ -13,17 +13,23 @@ class NopTransport implements MeetingPlaceTransport {
   Future<void> authenticate(DidManager didManager) async {}
 
   @override
-  Future<void> setupChannel({
+  Future<String> setupChannel({
     required Channel channel,
     required DidManager didManager,
     List<String> participantDids = const [],
-  }) async {}
+  }) async => '';
 
   @override
-  Future<void> joinChannel({
+  Future<String> joinRoomById({
+    required DidManager didManager,
+    required String roomId,
+  }) async => roomId;
+
+  @override
+  Future<String> joinChannel({
     required Channel channel,
     required DidManager didManager,
-  }) async {}
+  }) async => channel.matrixRoomId ?? '';
 
   @override
   Future<void> leaveChannel({

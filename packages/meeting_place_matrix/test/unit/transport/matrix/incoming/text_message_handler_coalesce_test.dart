@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_matrix/src/matrix_room_event.dart';
 import 'package:meeting_place_matrix/src/transport/matrix/incoming/message_edit_handler.dart';
@@ -33,6 +35,7 @@ MatrixRoomEvent _imageEvent({
   required String attachmentId,
   String? correlationId,
   String? caption,
+  Map<String, dynamic>? extraContent,
   String senderDid = _aliceDid,
   DateTime? timestamp,
 }) => MatrixRoomEvent(
@@ -47,6 +50,7 @@ MatrixRoomEvent _imageEvent({
     'info': {'mimetype': 'image/jpeg', 'size': 1234},
     MatrixEventField.attachmentId: attachmentId,
     if (correlationId != null) MatrixEventField.correlationId: correlationId,
+    ...?extraContent,
   },
   timestamp: timestamp ?? DateTime.utc(2026, 1, 1, 12),
 );
@@ -120,6 +124,53 @@ void main() {
   });
 
   group('TextMessageHandler coalescing', () {
+    test(
+      '''legacy sign-document request preserves extracted attachments on ConciergeMessage''',
+      () async {
+        final signRequest = jsonEncode({
+          'type': 'cierge/sign-document-request',
+          'document': {
+            'title': 'Contract.pdf',
+            'mediaType': 'application/pdf',
+            'byteCount': 1234,
+          },
+        });
+
+        await handler.handle(
+          MatrixRoomEvent(
+            id: r'$evt-sign-1',
+            type: 'm.room.message',
+            senderDid: _aliceDid,
+            roomId: '!room:server',
+            content: {
+              'msgtype': 'm.file',
+              'body': signRequest,
+              'filename': 'Contract.pdf',
+              'info': {'mimetype': 'application/pdf', 'size': 1234},
+              MatrixEventField.attachmentId: 'attachment-sign-1',
+              MatrixEventField.attachmentFormat: 'cierge/sign-document',
+            },
+            timestamp: DateTime.utc(2026, 1, 1, 12),
+          ),
+        );
+
+        verify(() => repo.createMessage(any())).called(1);
+        final stored = store[r'$evt-sign-1']! as ConciergeMessage;
+        expect(stored.data['document'], isA<Map<String, dynamic>>());
+        expect(
+          (stored.data['document'] as Map<String, dynamic>)['title'],
+          equals('Contract.pdf'),
+        );
+        expect(stored.attachments, hasLength(1));
+        expect(stored.attachments!.single.id, equals('attachment-sign-1'));
+        expect(
+          stored.attachments!.single.format,
+          equals('cierge/sign-document'),
+        );
+        expect(stored.attachments!.single.transportId, equals(r'$evt-sign-1'));
+      },
+    );
+
     test(
       'absent correlationId: legacy one-event-one-Message, keyed on event id',
       () async {
@@ -258,6 +309,45 @@ void main() {
       expect(idMap[r'$evt-1'], 'corr-uuid');
       expect(idMap[r'$evt-2'], 'corr-uuid');
     });
+
+    test(
+      'late caption event backfills value and mentions on correlated media',
+      () async {
+        await handler.handle(
+          _imageEvent(
+            id: r'$evt-2',
+            attachmentId: 'attachment-2',
+            filename: 'b.jpg',
+            correlationId: 'corr-uuid',
+          ),
+        );
+        await handler.handle(
+          _imageEvent(
+            id: r'$evt-1',
+            attachmentId: 'attachment-1',
+            filename: 'a.jpg',
+            correlationId: 'corr-uuid',
+            caption: 'hello @alice',
+            extraContent: {
+              'm.mentions': {
+                'user_ids': ['@alice:example.org'],
+              },
+            },
+          ),
+        );
+
+        final stored = store['corr-uuid']! as Message;
+        expect(stored.value, 'hello @alice');
+        expect(stored.mentions, const [
+          ChatMention(
+            target: '@alice:example.org',
+            start: 6,
+            length: 6,
+            display: '@alice',
+          ),
+        ]);
+      },
+    );
 
     test(
       'm.replace edit events bypass coalescing and reach edit handler',

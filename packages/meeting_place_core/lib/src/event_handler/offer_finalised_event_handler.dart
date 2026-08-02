@@ -123,6 +123,8 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
 
     final otherPartyPermanentChannelDid =
         connectionRequestApprovalMessage.body.channelDid;
+    final otherPartyAgentPermanentChannelDid =
+        connectionRequestApprovalMessage.body.agentDid;
 
     logger.info('''Found ConnectionRequestApproval. Their channel
       is $otherPartyPermanentChannelDid''', name: 'processMessage');
@@ -133,8 +135,10 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
     );
 
     channel.otherPartyPermanentChannelDid ??= otherPartyPermanentChannelDid;
-    if (channel.transport != ChannelTransport.didcomm) {
-      await _channelTransport.joinChannel(
+
+    String? matrixRoomId;
+    if (channel.transport == ChannelTransport.matrix) {
+      matrixRoomId = await _channelTransport.joinChannel(
         channel: channel,
         didManager: permanentChannelIdentity.didManager,
       );
@@ -146,9 +150,25 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
       acceptOfferDidManager: acceptOfferDidManager,
       acceptOfferDid: acceptOfferDid,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+      otherPartyAgentPermanentChannelDid: otherPartyAgentPermanentChannelDid,
       messageFrom: messageFrom,
       mediatorDid: channel.mediatorDid,
     );
+
+    final agentPermanentChannelDid = channel.agentPermanentChannelDid;
+    final agentDid = options.agentDid;
+    if (agentPermanentChannelDid != null && agentDid != null) {
+      await _sendAgentChannelInaugurationMessage(
+        channel: channel,
+        permanentChannelDidManager: permanentChannelIdentity.didManager,
+        permanentChannelDid: permanentChannelIdentity.didDocument.id,
+        agentDid: agentDid,
+        agentPermanentChannelDid: agentPermanentChannelDid,
+        otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+        otherPartyNotificationToken: event.notificationToken,
+        matrixRoomId: matrixRoomId,
+      );
+    }
 
     await _sendChannelInaugurationMessage(
       channel: channel,
@@ -163,6 +183,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
       notificationToken: notificationToken,
       otherPartyNotificationToken: event.notificationToken,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+      otherPartyAgentPermanentChannelDid: otherPartyAgentPermanentChannelDid,
       outboundMessageId: message.id,
       otherPartyContactCard: connectionRequestApprovalMessage.contactCard,
     );
@@ -219,22 +240,60 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
     );
   }
 
+  Future<void> _sendAgentChannelInaugurationMessage({
+    required Channel channel,
+    required DidManager permanentChannelDidManager,
+    required String permanentChannelDid,
+    required String agentDid,
+    required String agentPermanentChannelDid,
+    required String otherPartyPermanentChannelDid,
+    required String otherPartyNotificationToken,
+    String? matrixRoomId,
+  }) async {
+    final agentDidDocument = await _didResolver.resolveDid(agentDid);
+
+    return mediatorService.sendMessage(
+      protocol.AgentChannelInauguration.create(
+        from: permanentChannelDid,
+        to: [agentDid],
+        otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+        otherPartyNotificationToken: otherPartyNotificationToken,
+        offerLink: channel.offerLink,
+        publishOfferDid: channel.publishOfferDid,
+        transport: channel.transport,
+        agentPermanentChannelDid: agentPermanentChannelDid,
+        contactCard: channel.otherPartyContactCard,
+        matrixRoomId: matrixRoomId,
+      ).toPlainTextMessage(),
+      senderDidManager: permanentChannelDidManager,
+      recipientDidDocument: agentDidDocument,
+      mediatorDid: channel.mediatorDid,
+    );
+  }
+
   Future<void> _updateMediatorAcls({
     required DidManager permanentChannelDidManager,
     required String permanentChannelDid,
     required DidManager acceptOfferDidManager,
     required String acceptOfferDid,
     required String otherPartyPermanentChannelDid,
+    String? otherPartyAgentPermanentChannelDid,
     required String messageFrom,
     required String mediatorDid,
   }) {
+    final permanentChannelGranteeDids = [
+      otherPartyPermanentChannelDid,
+      if (otherPartyAgentPermanentChannelDid != null)
+        otherPartyAgentPermanentChannelDid,
+    ];
+
     return Future.wait([
       mediatorService.updateAcl(
         ownerDidManager: permanentChannelDidManager,
         mediatorDid: mediatorDid,
         acl: AccessListAdd(
           ownerDid: permanentChannelDid,
-          granteeDids: [otherPartyPermanentChannelDid],
+          granteeDids: permanentChannelGranteeDids,
         ),
       ),
       mediatorService.updateAcl(

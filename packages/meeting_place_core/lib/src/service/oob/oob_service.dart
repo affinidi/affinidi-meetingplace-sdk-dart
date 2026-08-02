@@ -175,7 +175,10 @@ class OobService {
 
     final permanentIdentity = did != null
         ? await _identityService.getPermanentIdentity(_wallet, did)
-        : await _identityService.createPermanentIdentity(_wallet);
+        : await _identityService.createPermanentIdentity(
+            _wallet,
+            transport: ChannelTransport.didcomm,
+          );
 
     final (invitationMessage, mediatorDid) = await _fetchOobInvitation(
       oobUri: oobUri,
@@ -273,7 +276,10 @@ class OobService {
             _wallet,
             existingPermanentChannelDid,
           )
-        : (await _identityService.createPermanentIdentity(_wallet)).didManager;
+        : (await _identityService.createPermanentIdentity(
+            _wallet,
+            transport: ChannelTransport.didcomm,
+          )).didManager;
 
     final permanentChannelDidDoc = await permanentChannelDidManager
         .getDidDocument();

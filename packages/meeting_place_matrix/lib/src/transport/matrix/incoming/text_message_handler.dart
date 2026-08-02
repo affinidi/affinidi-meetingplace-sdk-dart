@@ -74,6 +74,55 @@ class TextMessageHandler {
       // Legacy / non-correlated event: one event → one Message, keyed on the
       // matrix event id.
       if (correlationId == null) {
+        final textBody = event.content['body'] as String? ?? '';
+        final signRequest = CiergeSignDocumentRequest.fromMessageText(textBody);
+        if (signRequest != null) {
+          final concierge = ConciergeMessage(
+            chatId: _chatId,
+            messageId: event.id,
+            senderDid: senderDid,
+            isFromMe: false,
+            dateCreated: event.timestamp,
+            status: ChatItemStatus.userInput,
+            conciergeType: ConciergeMessageType.fromJson(
+              CiergeSignDocumentRequest.conciergeTypeName,
+            ),
+            data: {
+              'document': signRequest.document,
+              'taskId': signRequest.taskId,
+            },
+            attachments: attachments.isEmpty ? null : attachments,
+          );
+          final chatItem = await _chatRepository.createMessage(concierge);
+          _chatStream.pushData(
+            StreamData(event: event.toChatEvent(), chatItem: chatItem),
+          );
+          return;
+        }
+
+        final stepUpRequest = CiergeStepUpApproveRequest.fromMessageText(
+          textBody,
+        );
+        if (stepUpRequest != null) {
+          final concierge = ConciergeMessage(
+            chatId: _chatId,
+            messageId: event.id,
+            senderDid: senderDid,
+            isFromMe: false,
+            dateCreated: event.timestamp,
+            status: ChatItemStatus.userInput,
+            conciergeType: ConciergeMessageType.fromJson(
+              CiergeStepUpApproveRequest.conciergeTypeName,
+            ),
+            data: {'approveRequest': stepUpRequest.approveRequest},
+          );
+          final chatItem = await _chatRepository.createMessage(concierge);
+          _chatStream.pushData(
+            StreamData(event: event.toChatEvent(), chatItem: chatItem),
+          );
+          return;
+        }
+
         final message = event.toMessage(
           chatId: _chatId,
           senderDid: senderDid,
@@ -111,6 +160,23 @@ class TextMessageHandler {
         for (final attachment in attachments) {
           if (existingAttachmentIds.add(attachment.id)) {
             attachmentsToAdd.add(attachment);
+          }
+        }
+        final caption = MatrixMediaAttachments.extractCaption(event.content);
+        if ((existing.value.isEmpty || existing.mentions.isEmpty) &&
+            caption != null &&
+            caption.isNotEmpty) {
+          final updated = event.toMessage(
+            chatId: _chatId,
+            senderDid: senderDid,
+            isFromMe: false,
+            status: ChatItemStatus.received,
+          );
+          if (existing.value.isEmpty) {
+            existing.value = updated.value;
+          }
+          if (existing.mentions.isEmpty) {
+            existing.mentions = updated.mentions;
           }
         }
         existing.attachments = [...existing.attachments, ...attachmentsToAdd];

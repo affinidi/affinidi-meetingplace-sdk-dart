@@ -56,7 +56,7 @@ class ChannelDatabase extends _$ChannelDatabase {
 
   /// The current schema version of the database.
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 7;
 
   /// Migration strategy to handle database version upgrades.
   @override
@@ -124,6 +124,90 @@ class ChannelDatabase extends _$ChannelDatabase {
           'ALTER TABLE channels ADD COLUMN matrix_sync_marker TEXT NULL',
         );
       }
+      if (from < 5 && to >= 5) {
+        await customStatement('''
+          CREATE TABLE channels_v5_temp (
+            id TEXT NOT NULL,
+            publish_offer_did TEXT NOT NULL,
+            mediator_did TEXT NOT NULL,
+            offer_link TEXT NOT NULL,
+            status INTEGER NOT NULL,
+            type INTEGER NOT NULL,
+            transport INTEGER NOT NULL DEFAULT 1,
+            is_connection_initiator INTEGER NOT NULL DEFAULT 0
+              CHECK (is_connection_initiator IN (0, 1)),
+            outbound_message_id TEXT NULL,
+            accept_offer_did TEXT NULL,
+            permanent_channel_did TEXT NULL,
+            other_party_permanent_channel_did TEXT NULL,
+            agent_permanent_channel_did TEXT NULL,
+            other_party_agent_permanent_channel_did TEXT NULL,
+            notification_token TEXT NULL,
+            other_party_notification_token TEXT NULL,
+            external_ref TEXT NULL,
+            seq_no INTEGER NOT NULL,
+            message_sync_marker TEXT NULL,
+            PRIMARY KEY (id)
+          )
+        ''');
+        await customStatement('''
+          INSERT INTO channels_v5_temp (
+            id,
+            publish_offer_did,
+            mediator_did,
+            offer_link,
+            status,
+            type,
+            transport,
+            is_connection_initiator,
+            outbound_message_id,
+            accept_offer_did,
+            permanent_channel_did,
+            other_party_permanent_channel_did,
+            agent_permanent_channel_did,
+            other_party_agent_permanent_channel_did,
+            notification_token,
+            other_party_notification_token,
+            external_ref,
+            seq_no,
+            message_sync_marker
+          )
+          SELECT
+            id,
+            publish_offer_did,
+            mediator_did,
+            offer_link,
+            status,
+            type,
+            transport,
+            is_connection_initiator,
+            outbound_message_id,
+            accept_offer_did,
+            permanent_channel_did,
+            other_party_permanent_channel_did,
+            NULL,
+            NULL,
+            notification_token,
+            other_party_notification_token,
+            external_ref,
+            seq_no,
+            message_sync_marker
+          FROM channels
+        ''');
+        await customStatement('DROP TABLE channels');
+        await customStatement(
+          'ALTER TABLE channels_v5_temp RENAME TO channels',
+        );
+        await customStatement(
+          'CREATE INDEX offer_link ON channels (offer_link)',
+        );
+      }
+      if (from < 6 && to >= 6) {
+        await migrator.addColumn(channels, channels.matrixRoomId);
+      }
+      if (from < 7 && to >= 7) {
+        await migrator.addColumn(channels, channels.contextKey);
+      }
     },
   );
 }
@@ -153,8 +237,7 @@ class Channels extends Table {
   /// Transport used by the channel.
   ///
   /// Defaults to `didcomm` (value `1`) so existing rows have a sane value when
-  /// the column is added by the v5→v6 migration. The migration then backfills
-  /// rows with a `matrix_room_id` to `matrix` (value `2`).
+  /// the column is added by migration.
   IntColumn get transport => integer()
       .map(const _ChannelTransportConverter())
       .withDefault(const Constant(1))();
@@ -176,6 +259,12 @@ class Channels extends Table {
   /// Permanent DID of the other party in the channel.
   TextColumn get otherPartyPermanentChannelDid => text().nullable()();
 
+  /// Permanent channel DID of the local party's personal AI agent.
+  TextColumn get agentPermanentChannelDid => text().nullable()();
+
+  /// Permanent channel DID of the other party's personal AI agent.
+  TextColumn get otherPartyAgentPermanentChannelDid => text().nullable()();
+
   /// Notification token for the channel.
   TextColumn get notificationToken => text().nullable()();
 
@@ -193,6 +282,12 @@ class Channels extends Table {
   /// is an ISO 8601 UTC timestamp; for Matrix channels this is the Matrix
   /// event ID of the last fetched event.
   TextColumn get messageSyncMarker => text().nullable()();
+
+  /// Matrix room ID for the channel, stored when the channel joins a room.
+  TextColumn get matrixRoomId => text().nullable()();
+
+  /// Personal AI context selected for this channel, e.g. `work` or `personal`.
+  TextColumn get contextKey => text().nullable()();
 
   /// Primary key for the channels table.
   @override

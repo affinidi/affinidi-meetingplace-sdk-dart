@@ -16,6 +16,9 @@ enum ChatFeature {
   /// Plain text message sending and receiving.
   textMessaging,
 
+  /// Structured user or room mentions carried alongside plain text.
+  mentions,
+
   /// Image attachments. Offered on transports with a media server that can
   /// host and serve images content.
   imageAttachments,
@@ -57,6 +60,10 @@ enum ChatFeature {
 
   /// Contact-card proposal and acceptance flow.
   contactDetailsUpdate,
+
+  /// Send a DIDComm suggestion request to the configured personal agent DID
+  /// using a message id and text as context.
+  suggestionRequests,
 
   /// Human liveness zero-knowledge proof
   humanZkp,

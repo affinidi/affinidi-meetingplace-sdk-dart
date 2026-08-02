@@ -17,6 +17,7 @@ import '../matrix_room_event.dart';
 import '../matrix_room_history_query.dart';
 import '../matrix_room_subscription.dart';
 import '../transport/matrix/incoming/incoming_room_event_router.dart';
+import '../transport/matrix/matrix_mentions.dart';
 import '../transport/matrix/outgoing/outgoing.dart';
 import 'group/group_matrix_chat_sdk.dart';
 import 'individual/individual_matrix_chat_sdk.dart';
@@ -52,7 +53,10 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   final Map<String, String> _reactionServerEventIds = {};
   final MeetingPlaceMatrixSDKLogger _logger;
   StreamSubscription<MatrixRoomEvent>? _matrixRoomSubscription;
+  StreamSubscription<IncomingMessage>? _didcommSubscription;
   IncomingMessageHandle? _matrixSubscriptionHandle;
+  IncomingMessageHandle? _didcommSubscriptionHandle;
+  DidcommIncomingMessageHandler? _didcommIncomingMessageHandler;
 
   late IncomingRoomEventRouter _incomingRouter = buildRoomEventRouter();
 
@@ -137,11 +141,35 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   ChannelNotification buildChannelNotification(String type) =>
       IndividualChannelNotification(recipientDid: otherPartyDid, type: type);
 
+  @protected
+  TransportCapabilities withSuggestionRequestCapability(
+    Set<ChatFeature> baseFeatures,
+  ) {
+    if (coreSDK.options.agentDid == null) {
+      return TransportCapabilities(baseFeatures);
+    }
+    return TransportCapabilities({
+      ...baseFeatures,
+      ChatFeature.suggestionRequests,
+    });
+  }
+
   @override
   Future<Chat> startChatSession() async {
     chatStream = ChatStream();
     await attachLocalChatEventListener();
     _incomingRouter = buildRoomEventRouter();
+    _didcommIncomingMessageHandler = DidcommIncomingMessageHandler(
+      coreSDK: coreSDK,
+      chatRepository: chatRepository,
+      chatStream: chatStream,
+      chatId: chatId,
+      did: did,
+      otherPartyDid: otherPartyDid,
+      mediatorDid: mediatorDid,
+      logger: logger,
+      getChannel: getChannel,
+    );
 
     // Snapshot the sync cursor before the live subscription starts.
     // Once subscribeToMatrixRoom() is awaited, newly-arriving Matrix events
@@ -268,6 +296,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
       ),
     );
     _matrixSubscriptionHandle = handle;
+    await _subscribeToMediatorDidcomm();
     return handle.stream
         .where((m) => m is MatrixIncomingMessage)
         .cast<MatrixIncomingMessage>()
@@ -279,6 +308,51 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
             await sendChatDeliveredMessage(event.id);
           }
         });
+  }
+
+  Future<void> _subscribeToMediatorDidcomm() async {
+    final handle = await coreSDK.subscribe(
+      DidCommSubscription(receiverDid: did, mediatorDid: mediatorDid),
+    );
+    _didcommSubscriptionHandle = handle;
+    _didcommSubscription = handle.stream
+        .where((m) => m is DidCommIncomingMessage)
+        .cast<DidCommIncomingMessage>()
+        .listen(
+          _handleMediatorDidcommIncoming,
+          onError: (Object error, StackTrace stackTrace) {
+            logger.error(
+              'Error handling mediator DIDComm message',
+              error: error,
+              stackTrace: stackTrace,
+              name: _matrixLogkey,
+            );
+          },
+          cancelOnError: false,
+        );
+  }
+
+  Future<void> _handleMediatorDidcommIncoming(
+    DidCommIncomingMessage incoming,
+  ) async {
+    final messageType = incoming.payload.type.toString();
+    final protocol = ChatProtocol.byValue(messageType);
+    if (protocol == ChatProtocol.chatMessage) {
+      final existing = await chatRepository.getMessage(
+        chatId: chatId,
+        messageId: incoming.payload.id,
+      );
+      if (existing is Message && existing.transportId != existing.messageId) {
+        logger.info(
+          'Skipping mediator DIDComm message ${incoming.payload.id} because '
+          'a Matrix-backed message already exists',
+          name: _matrixLogkey,
+        );
+        return;
+      }
+    }
+
+    await _didcommIncomingMessageHandler!.handle(incoming);
   }
 
   Future<void> _handleIncomingRoomEvent(MatrixRoomEvent event) =>
@@ -320,6 +394,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   Future<Message> sendTextMessage(
     String text, {
     List<ChatAttachment> attachments = const [],
+    List<ChatMention> mentions = const [],
   }) async {
     assertCanSend();
 
@@ -330,6 +405,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
         senderDid: did,
         text: text,
         notification: notification,
+        mentions: mentions,
       );
       message = await _sendRoomEventMessage(outgoing);
       logger.info(
@@ -347,16 +423,22 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
         name: _matrixLogkey,
       );
     } else {
-      message = await MediaTextMessageSender(
-        coreSDK: coreSDK,
-        did: did,
-        chatId: chatId,
-        chatRepository: chatRepository,
-        chatStream: chatStream,
-        serverEventIdToMessageId: _serverEventIdToMessageId,
-        getChannel: getChannel,
-        logger: logger,
-      ).send(text: text, attachments: attachments, notification: notification);
+      message =
+          await MediaTextMessageSender(
+            coreSDK: coreSDK,
+            did: did,
+            chatId: chatId,
+            chatRepository: chatRepository,
+            chatStream: chatStream,
+            serverEventIdToMessageId: _serverEventIdToMessageId,
+            getChannel: getChannel,
+            logger: logger,
+          ).send(
+            text: text,
+            attachments: attachments,
+            mentions: mentions,
+            notification: notification,
+          );
     }
 
     await coreSDK.sendMessage(
@@ -458,7 +540,11 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   }
 
   @override
-  Future<void> editTextMessage(Message message, String newText) async {
+  Future<void> editTextMessage(
+    Message message,
+    String newText, {
+    List<ChatMention>? mentions,
+  }) async {
     assertCanSend();
     final methodName = 'editTextMessage';
 
@@ -478,9 +564,12 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     }
 
     final previousValue = message.value;
+    final previousMentions = List<ChatMention>.from(message.mentions);
     final previousEditedAt = message.editedAt;
+    final nextMentions = mentions ?? previousMentions;
 
     message.value = trimmed;
+    message.mentions = nextMentions;
     message.editedAt = DateTime.now().toUtc();
     await chatRepository.updateMesssage(message);
     chatStream.pushData(StreamData(chatItem: message));
@@ -491,6 +580,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
           senderDid: did,
           targetEventId: transportId,
           newText: trimmed,
+          mentions: message.mentions,
         ),
       );
     } catch (e, stackTrace) {
@@ -501,6 +591,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
         name: methodName,
       );
       message.value = previousValue;
+      message.mentions = previousMentions;
       message.editedAt = previousEditedAt;
       await chatRepository.updateMesssage(message);
       chatStream.pushData(StreamData(chatItem: message));
@@ -607,6 +698,36 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   }
 
   @override
+  Future<void> sendSuggestionRequest({
+    required String messageId,
+    required String text,
+  }) async {
+    assertCanSend();
+    final recipientDid = coreSDK.options.agentDid;
+    if (recipientDid == null) {
+      throw StateError(
+        'Cannot send suggestion request: MeetingPlaceCoreSDK.options.agentDid '
+        'is not configured',
+      );
+    }
+
+    await coreSDK.sendMessage(
+      ChatSuggestionRequestMessage(
+        senderDid: did,
+        recipientDid: recipientDid,
+        mediatorDid: mediatorDid,
+        messageId: messageId,
+        text: text,
+      ),
+    );
+
+    logger.info(
+      'Sent suggestion request for message $messageId to $recipientDid',
+      name: _matrixLogkey,
+    );
+  }
+
+  @override
   Future<void> sendEffect(Effect effect) async {
     assertCanSend();
     final roomEvent = EffectRoomEvent(senderDid: did, effect: effect.name);
@@ -680,6 +801,11 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     _typingManager.stop();
     await _matrixSubscriptionHandle?.dispose();
     _matrixSubscriptionHandle = null;
+    await _didcommSubscriptionHandle?.dispose();
+    _didcommSubscriptionHandle = null;
+    await _didcommSubscription?.cancel();
+    _didcommSubscription = null;
+
     // cancel() propagates to the Matrix long-poll and may never resolve if
     // the SDK waits for the in-flight HTTP request to complete. Fire and
     // forget: the subscription stops delivering events immediately.
@@ -704,6 +830,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
         messageId: messageId,
         senderDid: did,
         value: outgoing.content['body'] as String? ?? '',
+        mentions: extractMatrixMentions(outgoing.content),
         isFromMe: true,
         dateCreated: timestamp,
         status: ChatItemStatus.sent,

@@ -35,14 +35,20 @@ abstract interface class MeetingPlaceTransport {
   /// Creates an encrypted room and invites [participantDids].
   /// For DIDComm this is a no-op (the mediator access list is managed
   /// separately).
-  Future<void> setupChannel({
+  Future<String> setupChannel({
     required Channel channel,
     required DidManager didManager,
     List<String> participantDids = const [],
   });
 
+  /// Joins a room by its room ID.
+  Future<String> joinRoomById({
+    required DidManager didManager,
+    required String roomId,
+  });
+
   /// Joins [channel]'s underlying resource when it already exists.
-  Future<void> joinChannel({
+  Future<String> joinChannel({
     required Channel channel,
     required DidManager didManager,
   });

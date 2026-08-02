@@ -117,6 +117,7 @@ class InvitationGroupAcceptedEventHandler
       mediatorDid: connection.mediatorDid,
       permanentChannelDid: group.did,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+      otherPartyAgentPermanentChannelDid: invitationAcceptance.body.agentDid,
       status: ChannelStatus.waitingForApproval,
       type: ChannelType.group,
       transport: ChannelTransport.matrix,

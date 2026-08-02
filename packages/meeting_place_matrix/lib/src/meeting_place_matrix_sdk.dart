@@ -281,6 +281,9 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   Wallet get wallet => _coreSDK.wallet;
 
   @override
+  String get rootDid => _coreSDK.rootDid;
+
+  @override
   VdipClient get vdip => _coreSDK.vdip;
 
   @override
@@ -313,7 +316,46 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   Future<DidManager> generateDid() => _coreSDK.generateDid();
 
   @override
+  Future<DidManager> generateDidWeb() => _coreSDK.generateDidWeb();
+
+  @override
   Future<DidManager> getDidManager(String did) => _coreSDK.getDidManager(did);
+
+  @override
+  Future<Channel> generateAgentIdentity({
+    required String agentDid,
+    required String otherPartyPermanentChannelDid,
+    required String mediatorDid,
+    required String offerLink,
+    required String publishOfferDid,
+    required ContactCard contactCard,
+    required ChannelTransport transport,
+    required String agentControllerDid,
+  }) => _coreSDK.generateAgentIdentity(
+    agentDid: agentDid,
+    otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+    mediatorDid: mediatorDid,
+    offerLink: offerLink,
+    publishOfferDid: publishOfferDid,
+    contactCard: contactCard,
+    transport: transport,
+    agentControllerDid: agentControllerDid,
+  );
+
+  @override
+  Future<Channel> processAgentChannelInauguration({
+    required String otherPartyPermanentChannelDid,
+    required String otherPartyNotificationToken,
+    required String agentPermanentChannelDid,
+    ContactCard? contactCard,
+    String? matrixRoomId,
+  }) => _coreSDK.processAgentChannelInauguration(
+    otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+    otherPartyNotificationToken: otherPartyNotificationToken,
+    agentPermanentChannelDid: agentPermanentChannelDid,
+    contactCard: contactCard,
+    matrixRoomId: matrixRoomId,
+  );
 
   @override
   Future<OobOfferSession> createOobFlow({
@@ -377,6 +419,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     String? mediatorDid,
     String? metadata,
     String? externalRef,
+    String? contextKey,
     ChannelTransport transport = ChannelTransport.didcomm,
     int? score,
   }) => _coreSDK.publishOffer(
@@ -390,6 +433,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     mediatorDid: mediatorDid,
     metadata: metadata,
     externalRef: externalRef,
+    contextKey: contextKey,
     transport: transport,
     score: score,
   );
@@ -403,11 +447,13 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     required T connectionOffer,
     required ContactCard contactCard,
     required String senderInfo,
+    String? contextKey,
     String? externalRef,
   }) => _coreSDK.acceptOffer(
     connectionOffer: connectionOffer,
     contactCard: contactCard,
     senderInfo: senderInfo,
+    contextKey: contextKey,
     externalRef: externalRef,
   );
 
@@ -415,9 +461,11 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   Future<Channel> approveConnectionRequest({
     required Channel channel,
     List<Attachment>? attachments,
+    String? contextKey,
   }) => _coreSDK.approveConnectionRequest(
     channel: channel,
     attachments: attachments,
+    contextKey: contextKey,
   );
 
   @override

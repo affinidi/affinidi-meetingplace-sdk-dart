@@ -2,6 +2,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 class MeetingPlaceMatrixSdkOptions extends MeetingPlaceCoreSDKOptions {
   const MeetingPlaceMatrixSdkOptions({
+    super.agentDid,
     super.secondsBeforeExpiryReauthenticate,
     super.debounceControlPlaneEvents,
     super.didResolverAddress,

@@ -9,6 +9,12 @@ class _MockCoreSDK extends Mock implements MeetingPlaceCoreSDK {}
 
 class _MockChatRepository extends Mock implements ChatRepository {}
 
+_MockCoreSDK _buildCoreSdk() {
+  final coreSdk = _MockCoreSDK();
+  when(() => coreSdk.options).thenReturn(const MeetingPlaceCoreSDKOptions());
+  return coreSdk;
+}
+
 ContactCard _card(String did) =>
     ContactCard(did: did, type: 'human', contactInfo: {'n': did});
 
@@ -30,7 +36,7 @@ Group _group() => Group(
 );
 
 IndividualMatrixChatSDK _buildMatrixSdk() => IndividualMatrixChatSDK(
-  coreSDK: _MockCoreSDK(),
+  coreSDK: _buildCoreSdk(),
   did: 'did:test:alice',
   otherPartyDid: 'did:test:bob',
   mediatorDid: 'did:test:mediator',
@@ -41,7 +47,7 @@ IndividualMatrixChatSDK _buildMatrixSdk() => IndividualMatrixChatSDK(
 );
 
 GroupMatrixChatSDK _buildGroupMatrixSdk() => GroupMatrixChatSDK(
-  coreSDK: _MockCoreSDK(),
+  coreSDK: _buildCoreSdk(),
   did: 'did:test:alice',
   otherPartyDid: 'did:test:group',
   mediatorDid: 'did:test:mediator',

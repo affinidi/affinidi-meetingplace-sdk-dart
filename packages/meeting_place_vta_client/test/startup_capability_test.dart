@@ -120,9 +120,7 @@ void main() {
     });
 
     test('maps storage read failures to cache exception', () async {
-      final capability = VtaStartupCapability(
-        secureStore: _ThrowingStore(),
-      );
+      final capability = VtaStartupCapability(secureStore: _ThrowingStore());
 
       await expectLater(
         capability.restore(),

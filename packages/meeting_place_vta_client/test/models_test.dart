@@ -54,10 +54,7 @@ void main() {
 
     test('throws parse exception on malformed payload', () {
       expect(
-        () => AuthTokens.fromJson({
-          'token_type': 'Bearer',
-          'expires_in': 900,
-        }),
+        () => AuthTokens.fromJson({'token_type': 'Bearer', 'expires_in': 900}),
         _modelDecodeFailure,
       );
     });
@@ -101,8 +98,8 @@ void main() {
           {
             'key_id': 'holder-ed25519-1',
             'key_type': 'Ed25519',
-            'private_key_multibase': 'z3u2...'
-          }
+            'private_key_multibase': 'z3u2...',
+          },
         ],
       });
 

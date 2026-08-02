@@ -39,7 +39,7 @@ void main() {
       wallet: MockWallet(),
       mediatorService: MockMediatorService(),
       connectionManager: MockConnectionManager(),
-      channelService: MockChannelService(),
+      channelService: mockChannelService,
       channelTransport: MockMeetingPlaceTransport(),
       didResolver: MockDidResolver(),
       connectionOfferRepository: mockConnectionOfferRepository,

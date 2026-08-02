@@ -172,14 +172,6 @@ class Channels extends Table with TableInfo {
         requiredDuringInsert: false,
         $customConstraints: 'NULL',
       );
-  late final GeneratedColumn<String> matrixSyncMarker = GeneratedColumn<String>(
-    'matrix_sync_marker',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: 'NULL',
-  );
   late final GeneratedColumn<String> matrixRoomId = GeneratedColumn<String>(
     'matrix_room_id',
     aliasedName,
@@ -217,7 +209,6 @@ class Channels extends Table with TableInfo {
     externalRef,
     seqNo,
     messageSyncMarker,
-    matrixSyncMarker,
     matrixRoomId,
     contextKey,
   ];

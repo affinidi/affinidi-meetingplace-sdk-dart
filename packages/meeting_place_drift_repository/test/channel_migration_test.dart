@@ -245,7 +245,26 @@ void main() {
         final schema = await verifier.schemaAt(4);
 
         schema.rawDatabase.execute('''
-        INSERT INTO channels VALUES (
+        INSERT INTO channels (
+          id,
+          publish_offer_did,
+          mediator_did,
+          offer_link,
+          status,
+          type,
+          transport,
+          is_connection_initiator,
+          outbound_message_id,
+          accept_offer_did,
+          permanent_channel_did,
+          other_party_permanent_channel_did,
+          notification_token,
+          other_party_notification_token,
+          external_ref,
+          seq_no,
+          message_sync_marker,
+          matrix_sync_marker
+        ) VALUES (
           'ch-4',
           'did:example:publisher',
           'did:example:mediator',
@@ -304,7 +323,27 @@ void main() {
       final schema = await verifier.schemaAt(5);
 
       schema.rawDatabase.execute('''
-        INSERT INTO channels VALUES (
+        INSERT INTO channels (
+          id,
+          publish_offer_did,
+          mediator_did,
+          offer_link,
+          status,
+          type,
+          transport,
+          is_connection_initiator,
+          outbound_message_id,
+          accept_offer_did,
+          permanent_channel_did,
+          other_party_permanent_channel_did,
+          agent_permanent_channel_did,
+          other_party_agent_permanent_channel_did,
+          notification_token,
+          other_party_notification_token,
+          external_ref,
+          seq_no,
+          message_sync_marker
+        ) VALUES (
           'ch-5',
           'did:example:publisher',
           'did:example:mediator',
@@ -323,7 +362,6 @@ void main() {
           NULL,
           NULL,
           0,
-          NULL,
           NULL
         )
       ''');

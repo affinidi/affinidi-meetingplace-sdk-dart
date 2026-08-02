@@ -125,10 +125,81 @@ class ChannelDatabase extends _$ChannelDatabase {
         );
       }
       if (from < 5 && to >= 5) {
-        await migrator.addColumn(channels, channels.agentPermanentChannelDid);
-        await migrator.addColumn(
-          channels,
-          channels.otherPartyAgentPermanentChannelDid,
+        await customStatement('''
+          CREATE TABLE channels_v5_temp (
+            id TEXT NOT NULL,
+            publish_offer_did TEXT NOT NULL,
+            mediator_did TEXT NOT NULL,
+            offer_link TEXT NOT NULL,
+            status INTEGER NOT NULL,
+            type INTEGER NOT NULL,
+            transport INTEGER NOT NULL DEFAULT 1,
+            is_connection_initiator INTEGER NOT NULL DEFAULT 0
+              CHECK (is_connection_initiator IN (0, 1)),
+            outbound_message_id TEXT NULL,
+            accept_offer_did TEXT NULL,
+            permanent_channel_did TEXT NULL,
+            other_party_permanent_channel_did TEXT NULL,
+            agent_permanent_channel_did TEXT NULL,
+            other_party_agent_permanent_channel_did TEXT NULL,
+            notification_token TEXT NULL,
+            other_party_notification_token TEXT NULL,
+            external_ref TEXT NULL,
+            seq_no INTEGER NOT NULL,
+            message_sync_marker TEXT NULL,
+            PRIMARY KEY (id)
+          )
+        ''');
+        await customStatement('''
+          INSERT INTO channels_v5_temp (
+            id,
+            publish_offer_did,
+            mediator_did,
+            offer_link,
+            status,
+            type,
+            transport,
+            is_connection_initiator,
+            outbound_message_id,
+            accept_offer_did,
+            permanent_channel_did,
+            other_party_permanent_channel_did,
+            agent_permanent_channel_did,
+            other_party_agent_permanent_channel_did,
+            notification_token,
+            other_party_notification_token,
+            external_ref,
+            seq_no,
+            message_sync_marker
+          )
+          SELECT
+            id,
+            publish_offer_did,
+            mediator_did,
+            offer_link,
+            status,
+            type,
+            transport,
+            is_connection_initiator,
+            outbound_message_id,
+            accept_offer_did,
+            permanent_channel_did,
+            other_party_permanent_channel_did,
+            NULL,
+            NULL,
+            notification_token,
+            other_party_notification_token,
+            external_ref,
+            seq_no,
+            message_sync_marker
+          FROM channels
+        ''');
+        await customStatement('DROP TABLE channels');
+        await customStatement(
+          'ALTER TABLE channels_v5_temp RENAME TO channels',
+        );
+        await customStatement(
+          'CREATE INDEX offer_link ON channels (offer_link)',
         );
       }
       if (from < 6 && to >= 6) {

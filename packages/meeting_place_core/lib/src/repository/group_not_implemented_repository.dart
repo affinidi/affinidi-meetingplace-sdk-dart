@@ -41,4 +41,9 @@ class GroupNotImplementedRepository implements GroupRepository {
   ) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> removeMember(String groupId, String memberDid) {
+    throw UnimplementedError();
+  }
 }

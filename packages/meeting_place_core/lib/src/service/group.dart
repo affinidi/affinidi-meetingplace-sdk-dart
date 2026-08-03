@@ -765,11 +765,11 @@ class GroupService {
       throw GroupException.notFoundError();
     }
 
-    group.members.removeWhere(
-      (member) => member.did == channel.otherPartyPermanentChannelDid,
-    );
-
-    await _groupRepository.updateGroup(group);
+    final memberDid = channel.otherPartyPermanentChannelDid;
+    if (memberDid != null) {
+      await _groupRepository.removeMember(group.id, memberDid);
+      group.members.removeWhere((member) => member.did == memberDid);
+    }
 
     _logger.info(
       'Successfully rejected membership request for offer: '
@@ -814,8 +814,7 @@ class GroupService {
 
     await _deregisterMember(group: group, memberDid: memberDid);
 
-    group.members.removeWhere((m) => m.did == memberDid);
-    await _groupRepository.updateGroup(group);
+    await _groupRepository.removeMember(groupId, memberDid);
 
     _logger.info(
       'Removed member ${memberDid.topAndTail()} from group $groupId',

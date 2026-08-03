@@ -255,6 +255,16 @@ class GroupsRepositoryDrift implements model.GroupRepository {
         ))
         .write(db.GroupMembersCompanion(status: Value(status)));
   }
+
+  /// Deletes the single member row identified by `(groupId, memberDid)`.
+  /// Only that row is touched; a no-op when it does not exist.
+  @override
+  Future<void> removeMember(String groupId, String memberDid) async {
+    await (_database.delete(_database.groupMembers)..where(
+          (gm) => gm.groupId.equals(groupId) & gm.memberDid.equals(memberDid),
+        ))
+        .go();
+  }
 }
 
 class _GroupMapper {

@@ -536,6 +536,46 @@ void main() {
         model.GroupMemberStatus.pendingApproval,
       );
     });
+
+    test('removeMember deletes only the targeted member row', () async {
+      final database = GroupsDatabase(
+        databaseName: 'groups.sqlite',
+        passphrase: 'test-passphrase',
+        directory: tempDirectory,
+        inMemory: true,
+      );
+      addTearDown(database.close);
+
+      final repository = GroupsRepositoryDrift(database: database);
+      model.GroupMember pending(String did) => model.GroupMember.pendingMember(
+        did: did,
+        publicKey: 'pk-$did',
+        contactCard: model.ContactCard(
+          did: did,
+          type: 'Person',
+          contactInfo: const {},
+        ),
+      );
+      final group = model.Group(
+        id: 'group-id',
+        did: 'did:example:group',
+        offerLink: 'group-offer-link',
+        created: DateTime.utc(2026, 1, 1),
+        members: [pending('did:example:alice'), pending('did:example:bob')],
+      );
+      await repository.createGroup(group);
+
+      await repository.removeMember(group.id, 'did:example:alice');
+
+      final stored = await repository.getGroupById(group.id);
+      expect(stored!.members.length, 1);
+      expect(stored.members.single.did, 'did:example:bob');
+
+      // Removing an absent member is a no-op, not an error.
+      await repository.removeMember(group.id, 'did:example:ghost');
+      final after = await repository.getGroupById(group.id);
+      expect(after!.members.length, 1);
+    });
   });
 
   group('RCardRepositoryDrift', () {

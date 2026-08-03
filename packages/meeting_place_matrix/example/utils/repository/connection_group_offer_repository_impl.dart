@@ -73,6 +73,14 @@ class GroupRepositoryImpl implements GroupRepository {
     await updateGroup(group);
   }
 
+  @override
+  Future<void> removeMember(String groupId, String memberDid) async {
+    final group = await getGroupById(groupId);
+    if (group == null) return;
+    group.members.removeWhere((m) => m.did == memberDid);
+    await updateGroup(group);
+  }
+
   Future<void> _saveGroupToOfferLink(
     String groupId,
     String groupDid,

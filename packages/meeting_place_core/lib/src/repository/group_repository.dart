@@ -26,4 +26,12 @@ abstract interface class GroupRepository {
     String memberDid,
     GroupMemberStatus status,
   );
+
+  /// Atomically deletes the single member row identified by
+  /// `(groupId, memberDid)`. A no-op when no such row exists. Other member
+  /// rows are untouched.
+  ///
+  /// Unlike [updateGroup], which replaces the entire member list, this method
+  /// is safe to call concurrently with other single-row mutations.
+  Future<void> removeMember(String groupId, String memberDid);
 }

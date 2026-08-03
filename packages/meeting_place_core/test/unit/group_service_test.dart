@@ -616,4 +616,68 @@ void main() {
       ).called(2);
     });
   });
+
+  group('GroupService.rejectMembershipRequest — atomic remove', () {
+    late _MockGroupRepository groupRepository;
+    late GroupService service;
+
+    const rejectOfferLink = 'offer://reject-test';
+    const rejectMemberDid = 'did:test:bob-reject';
+    const rejectGroupId = 'group-reject-1';
+
+    setUp(() {
+      groupRepository = _MockGroupRepository();
+      service = GroupService(
+        wallet: _MockWallet(),
+        connectionManager: _MockConnectionManager(),
+        connectionOfferRepository: _MockConnectionOfferRepository(),
+        groupRepository: groupRepository,
+        keyRepository: _MockKeyRepository(),
+        channelService: _MockChannelService(),
+        offerService: _MockConnectionOfferService(),
+        connectionService: _MockConnectionService(),
+        identityService: _MockIdentityService(),
+        controlPlaneSDK: _MockControlPlaneSDK(),
+        mediatorSDK: _MockMediatorSDK(),
+        channelTransport: _MockMeetingPlaceTransport(),
+        didResolver: _MockDidResolver(),
+      );
+    });
+
+    test('removes the member via removeMember (not updateGroup)', () async {
+      final group = _group(
+        members: [_ownerMember('did:test:alice'), _member(rejectMemberDid)],
+      ).copyWith(id: rejectGroupId, offerLink: rejectOfferLink);
+
+      when(
+        () => groupRepository.getGroupByOfferLink(rejectOfferLink),
+      ).thenAnswer((_) async => group);
+      when(
+        () => groupRepository.removeMember(any(), any()),
+      ).thenAnswer((_) async {});
+
+      final channel = Channel(
+        offerLink: rejectOfferLink,
+        publishOfferDid: 'did:test:publish',
+        mediatorDid: 'did:test:mediator',
+        status: ChannelStatus.waitingForApproval,
+        contactCard: ContactCardFixture.getContactCardFixture(),
+        type: ChannelType.group,
+        isConnectionInitiator: true,
+        permanentChannelDid: 'did:test:alice',
+        otherPartyPermanentChannelDid: rejectMemberDid,
+      );
+
+      final result = await service.rejectMembershipRequest(channel);
+
+      // KEY ASSERTION: atomic single-row delete, never a full-list replace.
+      verify(
+        () => groupRepository.removeMember(rejectGroupId, rejectMemberDid),
+      ).called(1);
+      verifyNever(() => groupRepository.updateGroup(any()));
+
+      // The returned group no longer contains the rejected member.
+      expect(result.members.any((m) => m.did == rejectMemberDid), isFalse);
+    });
+  });
 }

@@ -1,0 +1,39 @@
+packages/meeting_place_core/lib/src/service/identity/identity_service.dart
+  s_c8ae0c9f1434f5::t_36a62cd59d3393 179
+packages/meeting_place_core/lib/src/service/group.dart
+  s_c8ae0c9f1434f5::t_7f053c509cccef 580
+  s_c8ae0c9f1434f5::t_7c0391ff2abfc3 978
+  s_c8ae0c9f1434f5::t_9bc03a138bd73d 993
+  s_c8ae0c9f1434f5::t_70b8d5a350d7c1 579
+packages/meeting_place_core/lib/src/meeting_place_core_sdk.dart
+  s_c8ae0c9f1434f5::t_202a10effce5ca 340,346
+  s_c8ae0c9f1434f5::t_f2026681de614a 341-342
+packages/meeting_place_core/lib/src/service/notification_service/notification_service.dart
+  s_c8ae0c9f1434f5::t_be5b8e83c939b5 132-135
+packages/meeting_place_core/lib/src/event_handler/group_membership_finalised_event_handler.dart
+  s_c8ae0c9f1434f5::t_4fba8d84b8e82f 316,346
+  s_c8ae0c9f1434f5::t_c5c24659556bb7 317
+  s_c8ae0c9f1434f5::t_dfebfe53271ecf 347
+packages/meeting_place_core/lib/src/service/oob/oob_service.dart
+  s_c8ae0c9f1434f5::t_6c43e7a7d598c5 355
+packages/meeting_place_core/lib/src/service/mediator/mediator_acl_service.dart
+  s_c8ae0c9f1434f5::t_a693be90c61c9a 42-46
+packages/meeting_place_core/lib/src/event_handler/offer_finalised_event_handler.dart
+  s_c8ae0c9f1434f5::t_8596d47ec4ab68 284-288,293,298
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "b883497458312e17fe1b5f695789028c9f598dbb",
+  "prompts": {},
+  "sessions": {
+    "s_c8ae0c9f1434f5": {
+      "agent_id": {
+        "tool": "github-copilot-cli",
+        "id": "03cceaf2-2226-4f23-9949-03cf2c21cfa0",
+        "model": "claude-opus-4.8"
+      },
+      "human_author": "raghavendrra.m <raghavendrra.m@affinidi.com>"
+    }
+  }
+}

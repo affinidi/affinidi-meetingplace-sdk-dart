@@ -1,0 +1,21 @@
+packages/meeting_place_matrix/lib/src/transport/matrix/matrix_media_attachment.dart
+  s_c8ae0c9f1434f5::t_dc4e9bab43e416 77-78,80-85,89-90
+packages/meeting_place_matrix/test/unit/transport/matrix/matrix_media_attachment_test.dart
+  s_c8ae0c9f1434f5::t_97fcbf76ab8fc3 161-174
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "8fd6b2a6f601cea65ac40575ac5f2549c86d7902",
+  "prompts": {},
+  "sessions": {
+    "s_c8ae0c9f1434f5": {
+      "agent_id": {
+        "tool": "github-copilot-cli",
+        "id": "03cceaf2-2226-4f23-9949-03cf2c21cfa0",
+        "model": "claude-opus-4.8"
+      },
+      "human_author": "raghavendrra.m <raghavendrra.m@affinidi.com>"
+    }
+  }
+}

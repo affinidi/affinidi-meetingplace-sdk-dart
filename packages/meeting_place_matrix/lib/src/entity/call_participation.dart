@@ -9,7 +9,9 @@ class CallParticipation {
     required this.didSelfJoin,
     required this.selfLeftBeforeEnd,
     this.initiatorDid,
-  }) : participantCount = _validateParticipantCount(participantCount);
+    List<String> participantDids = const [],
+  }) : participantCount = _validateParticipantCount(participantCount),
+       participantDids = List.unmodifiable(participantDids);
 
   /// Reads a participation block from a nested metadata [map], or `null` when
   /// the map is absent or malformed.
@@ -34,11 +36,22 @@ class CallParticipation {
       return null;
     }
 
+    // Absent entirely (records persisted before this field existed) reads as
+    // an empty list rather than failing the whole block.
+    final participantDids = _readOptionalStringList(
+      typedMap,
+      _participantDidsKey,
+    );
+    if (typedMap[_participantDidsKey] != null && participantDids == null) {
+      return null;
+    }
+
     return CallParticipation(
       participantCount: count,
       didSelfJoin: didSelfJoin,
       selfLeftBeforeEnd: selfLeftBeforeEnd,
       initiatorDid: initiatorDid,
+      participantDids: participantDids!,
     );
   }
 
@@ -46,9 +59,16 @@ class CallParticipation {
   static const _didSelfJoinKey = 'did_self_join';
   static const _selfLeftBeforeEndKey = 'self_left_before_end';
   static const _initiatorDidKey = 'initiator_did';
+  static const _participantDidsKey = 'participant_dids';
 
   /// Distinct peers in the call, excluding the local party. Drives the "n
   /// joined" wording.
+  ///
+  /// Kept independently of [participantDids] rather than derived from its
+  /// length: a peer's DID may be unresolved at the moment the call record is
+  /// finalized (see [participantDids]), in which case the count can still
+  /// reflect the true number of distinct peers while the name list only
+  /// carries the subset that were identifiable.
   final int participantCount;
 
   /// Whether the local party joined the call.
@@ -60,12 +80,21 @@ class CallParticipation {
   /// DID of the party that started the call, when known.
   final String? initiatorDid;
 
+  /// Permanent channel DIDs of the peers known to have participated in the
+  /// call, excluding the local party.
+  ///
+  /// May be empty even when [participantCount] is positive: a peer's DID can
+  /// be unresolved at finalization time, and records persisted before this
+  /// field existed carry no DIDs at all. Unmodifiable.
+  final List<String> participantDids;
+
   /// Serializes this participation block into a nested metadata map.
   Map<String, dynamic> toMap() => {
     _participantCountKey: participantCount,
     _didSelfJoinKey: didSelfJoin,
     _selfLeftBeforeEndKey: selfLeftBeforeEnd,
     if (initiatorDid != null) _initiatorDidKey: initiatorDid,
+    if (participantDids.isNotEmpty) _participantDidsKey: participantDids,
   };
 
   /// Returns a copy with the given fields replaced.
@@ -74,11 +103,13 @@ class CallParticipation {
     bool? didSelfJoin,
     bool? selfLeftBeforeEnd,
     String? initiatorDid,
+    List<String>? participantDids,
   }) => CallParticipation(
     participantCount: participantCount ?? this.participantCount,
     didSelfJoin: didSelfJoin ?? this.didSelfJoin,
     selfLeftBeforeEnd: selfLeftBeforeEnd ?? this.selfLeftBeforeEnd,
     initiatorDid: initiatorDid ?? this.initiatorDid,
+    participantDids: participantDids ?? this.participantDids,
   );
 
   static int _validateParticipantCount(int count) {
@@ -111,4 +142,16 @@ bool? _readRequiredBool(Map<Object?, Object?> map, String key) {
   final value = map[key];
   if (value is! bool) return null;
   return value;
+}
+
+List<String>? _readOptionalStringList(Map<Object?, Object?> map, String key) {
+  final value = map[key];
+  if (value == null) return const [];
+  if (value is! List) return null;
+  final result = <String>[];
+  for (final element in value) {
+    if (element is! String) return null;
+    result.add(element);
+  }
+  return result;
 }

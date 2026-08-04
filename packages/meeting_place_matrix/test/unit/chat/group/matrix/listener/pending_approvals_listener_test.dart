@@ -162,64 +162,47 @@ void main() {
   );
 
   // -------------------------------------------------------------------------
-  // (a) Single-subscription invariant (Fix A)
+  // (a) Stacked-subscription bug at the listener level
   //
-  // Two PendingApprovalsListener subscriptions stacked on the same stream —
-  // one per un-cancelled startChatSession() call — each bound to their own
-  // empty Chat object both pass the in-memory dedup check independently →
-  // two concierge cards (the intermittent bug).
+  // Demonstrates what happens when two PendingApprovalsListener subscriptions
+  // are live simultaneously on the same control-plane stream — each bound to
+  // its own Chat object so both pass the in-memory dedup check independently.
+  // This is the underlying bug that Fix A (cancel before re-arm in
+  // startChatSession) prevents.
   //
-  // Fix A: await _controlPlaneSubscription?.cancel() before re-arming ensures
-  // only one listener is live at any time → one card per event.
+  // For a test that guards Fix A by driving the REAL startChatSession() code
+  // path, see group_matrix_chat_sdk_start_session_test.dart.
   // -------------------------------------------------------------------------
 
-  group('startChatSession called twice: subscription behaviour', () {
-    test(
-      'two stacked subscriptions produce two concierges (pre-fix repro)',
-      () async {
-        // Two distinct Chat objects — each starts with no messages,
-        // mirroring the separate Chat instances two startChatSession()
-        // calls would return.
-        final chat1 = Chat(id: 'chat-1', stream: ChatStream(), messages: []);
-        final chat2 = Chat(id: 'chat-1', stream: ChatStream(), messages: []);
+  group(
+    'PendingApprovalsListener: stacked subscriptions produce duplicates',
+    () {
+      test(
+        'two live listeners on the same stream each fire independently',
+        () async {
+          // Two distinct Chat objects — each starts with no messages,
+          // mirroring the separate Chat instances two un-cancelled
+          // startChatSession() calls would return.
+          final chat1 = Chat(id: 'chat-1', stream: ChatStream(), messages: []);
+          final chat2 = Chat(id: 'chat-1', stream: ChatStream(), messages: []);
 
-        // Bug: no cancellation between first and second startChatSession.
-        // Each listener has its own chat object; both pass the dedup check.
-        final sub1 = PendingApprovalsListener(buildStub()).listen(chat1);
-        final sub2 = PendingApprovalsListener(buildStub()).listen(chat2);
+          // Both listeners armed with no cancellation between them, mirroring
+          // the pre-fix startChatSession() re-entry bug.
+          final sub1 = PendingApprovalsListener(buildStub()).listen(chat1);
+          final sub2 = PendingApprovalsListener(buildStub()).listen(chat2);
 
-        streamController.add(_acceptEvent(groupDid));
-        await Future<void>.delayed(const Duration(milliseconds: 20));
+          streamController.add(_acceptEvent(groupDid));
+          await Future<void>.delayed(const Duration(milliseconds: 20));
 
-        // Both callbacks fire independently → two createMessage calls.
-        verify(() => chatRepository.createMessage(any())).called(2);
+          // Both callbacks fire independently → two createMessage calls.
+          verify(() => chatRepository.createMessage(any())).called(2);
 
-        await sub1.cancel();
-        await sub2.cancel();
-      },
-    );
-
-    test(
-      'cancelling first subscription before second (Fix A): one concierge',
-      () async {
-        final stub = buildStub();
-        final chat = Chat(id: 'chat-1', stream: chatStream, messages: []);
-
-        final sub1 = PendingApprovalsListener(stub).listen(chat);
-        // Fix A: await cancel before reassigning _controlPlaneSubscription.
-        await sub1.cancel();
-        final sub2 = PendingApprovalsListener(stub).listen(chat);
-
-        streamController.add(_acceptEvent(groupDid));
-        await Future<void>.delayed(const Duration(milliseconds: 20));
-
-        // Only the live subscription fires: exactly one concierge.
-        verify(() => chatRepository.createMessage(any())).called(1);
-
-        await sub2.cancel();
-      },
-    );
-  });
+          await sub1.cancel();
+          await sub2.cancel();
+        },
+      );
+    },
+  );
 
   // -------------------------------------------------------------------------
   // (b) Concurrent InvitationGroupAccept events serialised by mutex (Fix B)

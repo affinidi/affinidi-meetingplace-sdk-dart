@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:meeting_place_control_plane/src/api/auth_credentials.dart';
 import 'package:meeting_place_control_plane/src/api/control_plane_api_client.dart';
@@ -143,4 +144,97 @@ void main() {
       }),
     );
   });
+
+  test(
+    'uploadDidDocument preserves raw error response body on HTTP 400',
+    () async {
+      final mockControlPlaneSDK = MockControlPlaneSDK();
+      when(
+        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+      ).thenAnswer(
+        (_) async => AuthenticateCommandOutput(
+          credentials: AuthCredentials(
+            accessToken: 'access-token',
+            refreshToken: 'refresh-token',
+            accessExpiresAt: DateTime.now().toUtc().add(
+              const Duration(hours: 1),
+            ),
+            refreshExpiresAt: DateTime.now().toUtc().add(
+              const Duration(days: 1),
+            ),
+          ),
+        ),
+      );
+
+      final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      addTearDown(() async {
+        await server.close(force: true);
+      });
+
+      server.listen((request) async {
+        expect(request.method, 'POST');
+        expect(request.uri.path, '/v1/did-document/upload');
+        await utf8.decoder.bind(request).join();
+
+        request.response
+          ..statusCode = HttpStatus.badRequest
+          ..headers.contentType = ContentType.json
+          ..write(
+            jsonEncode({
+              'code': 'invalid_proof',
+              'errors': [
+                {'field': 'proof', 'message': 'Signature verification failed'},
+              ],
+            }),
+          );
+        await request.response.close();
+      });
+
+      final apiBaseUri = Uri.parse(
+        'http://${server.address.address}:${server.port}/v1',
+      );
+
+      final client = await ControlPlaneApiClient.init(
+        options: ControlPlaneApiClientOptions(controlPlaneDid: controlPlaneDid),
+        controlPlaneSDK: mockControlPlaneSDK,
+        didResolver: FakeDidResolver({
+          controlPlaneDid: _didDocument(controlPlaneDid, apiBaseUri),
+        }),
+      );
+
+      final controlProof = DidWebProof(
+        type: 'JsonWebSignature2020',
+        created: '2026-01-01T00:00:00Z',
+        verificationMethod: 'did:key:zAlice123#control-1',
+        proofPurpose: 'authentication',
+        jws: 'control-jws',
+      );
+      final proof = DidWebProof(
+        type: 'JsonWebSignature2020',
+        created: '2026-01-01T00:00:00Z',
+        verificationMethod: 'did:web:example.com:user:alice#auth',
+        proofPurpose: 'authentication',
+        jws: 'proof-jws',
+      );
+
+      await expectLater(
+        () => DidWebDocumentApi(dio: client.dio).uploadDidDocument(
+          {'id': 'did:web:example.com:user:alice'},
+          controlProof: controlProof,
+          proof: proof,
+        ),
+        throwsA(
+          isA<DioException>().having(
+            (e) => e.error?.toString(),
+            'error',
+            allOf(
+              contains('HTTP 400 Error'),
+              contains('Response Body: {"code":"invalid_proof"'),
+              contains('Signature verification failed'),
+            ),
+          ),
+        ),
+      );
+    },
+  );
 }

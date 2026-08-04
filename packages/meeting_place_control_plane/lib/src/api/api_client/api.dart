@@ -2,6 +2,8 @@
 // AUTO-GENERATED FILE, DO NOT MODIFY!
 //
 
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:built_value/serializer.dart';
 import 'serializers.dart';
@@ -10,6 +12,32 @@ import 'auth/basic_auth.dart';
 import 'auth/bearer_auth.dart';
 import 'auth/oauth.dart';
 import 'api/default_api.dart';
+
+String _formatResponseError(int? statusCode, Object? errorData) {
+  final buffer = StringBuffer('HTTP $statusCode Error\n');
+
+  if (errorData is Map) {
+    final errorMap = Map<String, dynamic>.from(errorData);
+    final errorName = errorMap['name'] ?? 'Unknown Error';
+    final traceId = errorMap['traceId']?.toString().isNotEmpty == true
+        ? errorMap['traceId']
+        : 'N/A';
+    final errorMessage = errorMap['message'] ?? 'No error message provided';
+    final details = errorMap['details'] != null
+        ? errorMap['details'].toString()
+        : 'No details available';
+
+    buffer.write('- Error Type: $errorName\n');
+    buffer.write('- Trace ID: $traceId\n');
+    buffer.write('- Message: $errorMessage\n');
+    buffer.write('- Details: $details\n');
+    buffer.write('Response Body: ${jsonEncode(errorMap)}');
+    return buffer.toString();
+  }
+
+  buffer.write('Response Body: ${errorData?.toString() ?? "No response body"}');
+  return buffer.toString();
+}
 
 class ControlPlaneApi {
   final Dio dio;
@@ -69,29 +97,7 @@ class ControlPlaneApi {
           if (e.response != null) {
             final statusCode = e.response?.statusCode;
             final errorData = e.response?.data;
-
-            String formattedError = 'HTTP $statusCode Error\n';
-
-            if (errorData is Map<String, dynamic>) {
-              final errorName = errorData['name'] ?? 'Unknown Error';
-              final traceId =
-                  errorData['traceId']?.toString().isNotEmpty == true
-                  ? errorData['traceId']
-                  : 'N/A';
-              final errorMessage =
-                  errorData['message'] ?? 'No error message provided';
-              final details = errorData['details'] != null
-                  ? errorData['details'].toString()
-                  : 'No details available';
-
-              formattedError += '- Error Type: $errorName\n';
-              formattedError += '- Trace ID: $traceId\n';
-              formattedError += '- Message: $errorMessage\n';
-              formattedError += '- Details: $details\n';
-            } else {
-              formattedError +=
-                  'Response Body: ${e.response?.data?.toString() ?? "No response body"}';
-            }
+            final formattedError = _formatResponseError(statusCode, errorData);
 
             handler.reject(
               DioException(

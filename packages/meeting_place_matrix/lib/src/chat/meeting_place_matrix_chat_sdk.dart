@@ -301,13 +301,24 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
         .where((m) => m is MatrixIncomingMessage)
         .cast<MatrixIncomingMessage>()
         .map(_toRoomEvent)
-        .listen((event) async {
-          await _handleIncomingRoomEvent(event);
-          await _advanceSyncMarker(event);
-          if (_isReceiptWorthy(event)) {
-            await sendChatDeliveredMessage(event.id);
-          }
-        });
+        .listen(
+          (event) async {
+            await _handleIncomingRoomEvent(event);
+            await _advanceSyncMarker(event);
+            if (_isReceiptWorthy(event)) {
+              await sendChatDeliveredMessage(event.id);
+            }
+          },
+          onError: (Object error, StackTrace stackTrace) {
+            logger.error(
+              'Error on Matrix room subscription stream',
+              error: error,
+              stackTrace: stackTrace,
+              name: _matrixLogkey,
+            );
+          },
+          cancelOnError: false,
+        );
   }
 
   Future<void> _subscribeToMediatorDidcomm() async {

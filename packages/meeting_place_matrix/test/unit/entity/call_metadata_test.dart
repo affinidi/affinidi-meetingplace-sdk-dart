@@ -276,6 +276,37 @@ void main() {
       });
     });
 
+    test('toMetadata nests the participant DIDs when present', () {
+      final metadata = CallMetadata(
+        mediaType: testMediaType,
+        status: testStatus,
+        callId: testCallId,
+        participation: CallParticipation(
+          participantCount: 2,
+          didSelfJoin: true,
+          selfLeftBeforeEnd: true,
+          participantDids: const ['did:peer:alice', 'did:peer:bob'],
+        ),
+      );
+      final block = metadata.toMetadata()['call_participation'];
+      expect(block, {
+        'participant_count': 2,
+        'did_self_join': true,
+        'self_left_before_end': true,
+        'participant_dids': ['did:peer:alice', 'did:peer:bob'],
+      });
+    });
+
+    test('participantDids defaults to empty when omitted', () {
+      final participation = CallParticipation(
+        participantCount: 2,
+        didSelfJoin: true,
+        selfLeftBeforeEnd: true,
+      );
+      expect(participation.participantDids, isEmpty);
+      expect(participation.toMap().containsKey('participant_dids'), isFalse);
+    });
+
     test('maybeOf round-trips the participation block', () {
       final attachment = CallMetadata.buildAttachment(
         mediaType: testMediaType,
@@ -296,6 +327,58 @@ void main() {
       expect(participation.didSelfJoin, isFalse);
       expect(participation.selfLeftBeforeEnd, isFalse);
       expect(participation.initiatorDid, isNull);
+      expect(participation.participantDids, isEmpty);
+    });
+
+    test('maybeOf round-trips the participant DIDs list', () {
+      final attachment = CallMetadata.buildAttachment(
+        mediaType: testMediaType,
+        status: testStatus,
+        id: 'msg-group',
+        callId: testCallId,
+        participation: CallParticipation(
+          participantCount: 2,
+          didSelfJoin: false,
+          selfLeftBeforeEnd: false,
+          participantDids: const ['did:peer:alice', 'did:peer:bob'],
+        ),
+      );
+      final result = CallMetadata.maybeOf(attachment);
+      final participation = result!.participation;
+      expect(participation!.participantDids, [
+        'did:peer:alice',
+        'did:peer:bob',
+      ]);
+    });
+
+    test('fromMap treats a missing participant_dids key as empty', () {
+      final participation = CallParticipation.fromMap({
+        'participant_count': 1,
+        'did_self_join': true,
+        'self_left_before_end': false,
+      });
+      expect(participation, isNotNull);
+      expect(participation!.participantDids, isEmpty);
+    });
+
+    test('fromMap rejects a malformed participant_dids value', () {
+      final participation = CallParticipation.fromMap({
+        'participant_count': 1,
+        'did_self_join': true,
+        'self_left_before_end': false,
+        'participant_dids': 'not-a-list',
+      });
+      expect(participation, isNull);
+    });
+
+    test('fromMap rejects participant_dids with a non-String element', () {
+      final participation = CallParticipation.fromMap({
+        'participant_count': 1,
+        'did_self_join': true,
+        'self_left_before_end': false,
+        'participant_dids': ['ok', 42],
+      });
+      expect(participation, isNull);
     });
 
     test('maybeOf yields null participation for a 1:1 call', () {
@@ -343,6 +426,19 @@ void main() {
       );
       expect(copied.participation!.participantCount, 4);
       expect(copied.participation!.didSelfJoin, isTrue);
+    });
+
+    test('CallParticipation.copyWith replaces the participant DIDs', () {
+      final original = CallParticipation(
+        participantCount: 1,
+        didSelfJoin: true,
+        selfLeftBeforeEnd: false,
+      );
+      final copied = original.copyWith(
+        participantDids: const ['did:peer:alice'],
+      );
+      expect(copied.participantDids, ['did:peer:alice']);
+      expect(original.participantDids, isEmpty);
     });
 
     test('participantCount validation rejects negative values', () {

@@ -26,15 +26,25 @@ class GroupRoomEventRouter extends IncomingRoomEventRouter {
   final GroupMatrixChatSDK _chatSDK;
 
   /// Resolves the affected user's DID for `m.room.member` events by reverse
-  /// lookup against the group's known members. Returns `null` for other event
-  /// types or when the state key doesn't match any current member.
+  /// lookup against the group's known members. Falls back to the persisted
+  /// group when the in-memory snapshot doesn't contain a match, since it may
+  /// be stale relative to the joining member. Returns `null` for other event
+  /// types or when the state key doesn't match any member in either source.
   @override
-  String? resolveTargetDid(MatrixRoomEvent event) {
+  Future<String?> resolveTargetDid(MatrixRoomEvent event) async {
     if (event.type != matrix.EventTypes.RoomMember) return null;
     final stateKey = event.stateKey;
     if (stateKey == null) return null;
     final serverName = stateKey.split(':').last;
     for (final m in _chatSDK.group.members) {
+      if (deriveMatrixUserId(m.did, serverName) == stateKey) return m.did;
+    }
+
+    final persistedGroup = await _chatSDK.coreSDK.getGroupById(
+      _chatSDK.group.id,
+    );
+    if (persistedGroup == null) return null;
+    for (final m in persistedGroup.members) {
       if (deriveMatrixUserId(m.did, serverName) == stateKey) return m.did;
     }
     return null;

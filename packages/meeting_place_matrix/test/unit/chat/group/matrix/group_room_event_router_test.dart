@@ -41,8 +41,11 @@ Group _group() => Group(
   ],
 );
 
-GroupMatrixChatSDK _buildSdk(Group group) => GroupMatrixChatSDK(
-  coreSDK: _MockCoreSDK(),
+GroupMatrixChatSDK _buildSdk(
+  Group group, {
+  required MeetingPlaceCoreSDK coreSDK,
+}) => GroupMatrixChatSDK(
+  coreSDK: coreSDK,
   did: 'did:test:alice',
   otherPartyDid: group.did,
   mediatorDid: 'did:test:mediator',
@@ -55,28 +58,61 @@ GroupMatrixChatSDK _buildSdk(Group group) => GroupMatrixChatSDK(
 
 void main() {
   group('GroupRoomEventRouter', () {
-    test('resolves kicked member DID from Matrix membership state key', () {
+    test(
+      'resolves kicked member DID from Matrix membership state key',
+      () async {
+        const serverName = 'server';
+        final coreSDK = _MockCoreSDK();
+        final router = GroupRoomEventRouter(
+          chatSDK: _buildSdk(_group(), coreSDK: coreSDK),
+        );
+        final event = MatrixRoomEvent(
+          id: 'evt-1',
+          type: matrix.EventTypes.RoomMember,
+          senderDid: 'did:test:alice',
+          roomId: '!room:$serverName',
+          content: const {'membership': 'leave'},
+          timestamp: DateTime.utc(2026, 1, 1),
+          isReplay: true,
+          stateKey: deriveMatrixUserId('did:test:bob', serverName),
+        );
+
+        expect(await router.resolveTargetDid(event), 'did:test:bob');
+        verifyNever(() => coreSDK.getGroupById(any()));
+      },
+    );
+
+    test('returns null when the state key matches no member in-memory or '
+        'persisted', () async {
       const serverName = 'server';
-      final router = GroupRoomEventRouter(chatSDK: _buildSdk(_group()));
+      final group = _group();
+      final coreSDK = _MockCoreSDK();
+      when(() => coreSDK.getGroupById(any())).thenAnswer((_) async => group);
+      final router = GroupRoomEventRouter(
+        chatSDK: _buildSdk(group, coreSDK: coreSDK),
+      );
       final event = MatrixRoomEvent(
-        id: 'evt-1',
+        id: 'evt-2',
         type: matrix.EventTypes.RoomMember,
         senderDid: 'did:test:alice',
         roomId: '!room:$serverName',
-        content: const {'membership': 'leave'},
+        content: const {'membership': 'join'},
         timestamp: DateTime.utc(2026, 1, 1),
-        isReplay: true,
-        stateKey: deriveMatrixUserId('did:test:bob', serverName),
+        stateKey: deriveMatrixUserId('did:test:eve', serverName),
       );
 
-      expect(router.resolveTargetDid(event), 'did:test:bob');
+      expect(await router.resolveTargetDid(event), isNull);
     });
 
-    test('returns null when membership state key does not match a member', () {
+    test('does not query the persisted store for a non-join event that '
+        'misses in-memory', () async {
       const serverName = 'server';
-      final router = GroupRoomEventRouter(chatSDK: _buildSdk(_group()));
+      final coreSDK = _MockCoreSDK();
+      final router = GroupRoomEventRouter(
+        chatSDK: _buildSdk(_group(), coreSDK: coreSDK),
+      );
       final event = MatrixRoomEvent(
-        id: 'evt-2',
+        id: 'evt-4',
         type: matrix.EventTypes.RoomMember,
         senderDid: 'did:test:alice',
         roomId: '!room:$serverName',
@@ -85,7 +121,52 @@ void main() {
         stateKey: deriveMatrixUserId('did:test:eve', serverName),
       );
 
-      expect(router.resolveTargetDid(event), isNull);
+      expect(await router.resolveTargetDid(event), isNull);
+      verifyNever(() => coreSDK.getGroupById(any()));
+    });
+
+    test('falls back to the persisted group when the in-memory snapshot is '
+        'stale', () async {
+      const serverName = 'server';
+      final staleGroup = _group();
+      final persistedGroup = Group(
+        id: staleGroup.id,
+        did: staleGroup.did,
+        offerLink: staleGroup.offerLink,
+        created: staleGroup.created,
+        ownerDid: staleGroup.ownerDid,
+        publicKey: staleGroup.publicKey,
+        members: [
+          ...staleGroup.members,
+          GroupMember(
+            did: 'did:test:charlie',
+            publicKey: 'pk-charlie',
+            dateAdded: DateTime.utc(2026, 1, 1),
+            status: GroupMemberStatus.approved,
+            membershipType: GroupMembershipType.member,
+            contactCard: _card('did:test:charlie'),
+          ),
+        ],
+      );
+      final coreSDK = _MockCoreSDK();
+      when(
+        () => coreSDK.getGroupById(staleGroup.id),
+      ).thenAnswer((_) async => persistedGroup);
+      final router = GroupRoomEventRouter(
+        chatSDK: _buildSdk(staleGroup, coreSDK: coreSDK),
+      );
+      final event = MatrixRoomEvent(
+        id: 'evt-3',
+        type: matrix.EventTypes.RoomMember,
+        senderDid: 'did:test:alice',
+        roomId: '!room:$serverName',
+        content: const {'membership': 'join'},
+        timestamp: DateTime.utc(2026, 1, 1),
+        stateKey: deriveMatrixUserId('did:test:charlie', serverName),
+      );
+
+      expect(await router.resolveTargetDid(event), 'did:test:charlie');
+      verify(() => coreSDK.getGroupById(staleGroup.id)).called(1);
     });
   });
 }

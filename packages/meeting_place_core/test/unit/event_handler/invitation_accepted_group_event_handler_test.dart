@@ -2,7 +2,6 @@ import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     as cp;
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_core/src/event_handler/invitation_accepted_group_event_handler.dart';
-import 'package:meeting_place_core/src/service/mediator/fetch_messages_options.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
@@ -14,14 +13,6 @@ import 'mocks/mocks.dart';
 // ---------------------------------------------------------------------------
 
 class _MockGroupRepository extends Mock implements GroupRepository {}
-
-class _FakeChannel extends Fake implements Channel {}
-
-class _FakeDidManager extends Fake implements DidManager {}
-
-class _FakeGroup extends Fake implements Group {}
-
-class _FakeFetchMessagesOptions extends Fake implements FetchMessagesOptions {}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -101,10 +92,10 @@ void main() {
   const messageHash = 'hash-abc';
 
   setUpAll(() {
-    registerFallbackValue(_FakeChannel());
-    registerFallbackValue(_FakeDidManager());
-    registerFallbackValue(_FakeGroup());
-    registerFallbackValue(_FakeFetchMessagesOptions());
+    registerFallbackValue(FakeChannel());
+    registerFallbackValue(FakeDidManager());
+    registerFallbackValue(FakeGroup());
+    registerFallbackValue(FakeFetchMessagesOptions());
     // addMemberIfAbsent takes a GroupMember; any() requires a
     // registered fallback.
     registerFallbackValue(

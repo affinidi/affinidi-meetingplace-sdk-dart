@@ -18,6 +18,7 @@ import 'package:ssi/ssi.dart' hide KeyPair;
 import 'package:test/test.dart';
 
 import '../fixtures/contact_card_fixture.dart';
+import 'event_handler/mocks/mocks.dart';
 
 class _MockWallet extends Mock implements Wallet {}
 
@@ -51,18 +52,6 @@ class _MockDidResolver extends Mock implements DidResolver {}
 class _MockDidManager extends Mock implements DidManager {}
 
 class _FakeAclBody extends Fake implements AclBody {}
-
-class _FakeChannel extends Fake implements Channel {}
-
-class _FakePlainTextMessage extends Fake implements PlainTextMessage {}
-
-class _FakeGroupAddMemberCommandOutput extends Fake
-    implements cp.GroupAddMemberCommandOutput {}
-
-class _FakeDidDocument extends Fake implements DidDocument {
-  @override
-  String get id => 'did:fake';
-}
 
 class _MockDidDocument extends Mock implements DidDocument {
   _MockDidDocument(this._id);
@@ -106,9 +95,9 @@ void main() {
     registerFallbackValue(_MockWallet());
     registerFallbackValue(_MockDidManager());
     registerFallbackValue(_FakeAclBody());
-    registerFallbackValue(_FakeChannel());
-    registerFallbackValue(_FakePlainTextMessage());
-    registerFallbackValue(_FakeDidDocument());
+    registerFallbackValue(FakeChannel());
+    registerFallbackValue(FakePlainTextMessage());
+    registerFallbackValue(FakeDidDocument());
     registerFallbackValue(_group());
     registerFallbackValue(
       cp.GroupAddMemberCommand(
@@ -587,7 +576,7 @@ void main() {
 
       when(
         () => controlPlaneSDK.execute<cp.GroupAddMemberCommandOutput>(any()),
-      ).thenAnswer((_) async => _FakeGroupAddMemberCommandOutput());
+      ).thenAnswer((_) async => FakeGroupAddMemberCommandOutput());
 
       final result = await service.approveMembershipRequest(channel: channel);
 

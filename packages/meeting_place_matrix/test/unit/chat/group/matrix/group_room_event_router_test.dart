@@ -96,12 +96,33 @@ void main() {
         type: matrix.EventTypes.RoomMember,
         senderDid: 'did:test:alice',
         roomId: '!room:$serverName',
+        content: const {'membership': 'join'},
+        timestamp: DateTime.utc(2026, 1, 1),
+        stateKey: deriveMatrixUserId('did:test:eve', serverName),
+      );
+
+      expect(await router.resolveTargetDid(event), isNull);
+    });
+
+    test('does not query the persisted store for a non-join event that '
+        'misses in-memory', () async {
+      const serverName = 'server';
+      final coreSDK = _MockCoreSDK();
+      final router = GroupRoomEventRouter(
+        chatSDK: _buildSdk(_group(), coreSDK: coreSDK),
+      );
+      final event = MatrixRoomEvent(
+        id: 'evt-4',
+        type: matrix.EventTypes.RoomMember,
+        senderDid: 'did:test:alice',
+        roomId: '!room:$serverName',
         content: const {'membership': 'leave'},
         timestamp: DateTime.utc(2026, 1, 1),
         stateKey: deriveMatrixUserId('did:test:eve', serverName),
       );
 
       expect(await router.resolveTargetDid(event), isNull);
+      verifyNever(() => coreSDK.getGroupById(any()));
     });
 
     test('falls back to the persisted group when the in-memory snapshot is '

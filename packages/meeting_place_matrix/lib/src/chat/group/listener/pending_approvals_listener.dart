@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:mutex/mutex.dart';
 
 import '../factory/pending_approval_concierge_factory.dart';
 import '../group_matrix_chat_sdk.dart';
@@ -13,10 +14,16 @@ import '../group_matrix_chat_sdk.dart';
 ///
 /// Intended for use by group owners; the SDK gates the subscription on
 /// [GroupMatrixChatSDK.isGroupOwner].
+///
+/// A [Mutex] serializes concurrent event callbacks so that two
+/// near-simultaneous [ControlPlaneEventType.InvitationGroupAccept] events for
+/// the same member cannot both pass the in-memory dedup check before either
+/// persists its result, preventing duplicate concierge cards.
 class PendingApprovalsListener {
   PendingApprovalsListener(this._chatSDK);
 
   final GroupMatrixChatSDK _chatSDK;
+  final Mutex _mutex = Mutex();
 
   StreamSubscription<ControlPlaneStreamEvent> listen(Chat chat) {
     return _chatSDK.coreSDK.controlPlaneEventsStream.listen((event) async {
@@ -25,18 +32,20 @@ class PendingApprovalsListener {
       final group = _chatSDK.group;
       if (group.did != event.channel.otherPartyPermanentChannelDid) return;
 
-      final updatedGroup = (await _chatSDK.coreSDK.getGroupById(group.id))!;
+      await _mutex.protect(() async {
+        final updatedGroup = (await _chatSDK.coreSDK.getGroupById(group.id))!;
 
-      final conciergeMessages = await PendingApprovalConciergeFactory(
-        chatRepository: _chatSDK.chatRepository,
-        logger: _chatSDK.logger,
-      ).create(group: updatedGroup, chat: chat);
+        final conciergeMessages = await PendingApprovalConciergeFactory(
+          chatRepository: _chatSDK.chatRepository,
+          logger: _chatSDK.logger,
+        ).create(group: updatedGroup, chat: chat);
 
-      for (final message in conciergeMessages) {
-        _chatSDK.chatStream.pushData(StreamData(chatItem: message));
-      }
+        for (final message in conciergeMessages) {
+          _chatSDK.chatStream.pushData(StreamData(chatItem: message));
+        }
 
-      _chatSDK.group = updatedGroup;
+        _chatSDK.group = updatedGroup;
+      });
     });
   }
 }

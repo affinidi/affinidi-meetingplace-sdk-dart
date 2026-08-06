@@ -676,18 +676,29 @@ class GroupService {
       member: member,
     );
 
-    group.approveMember(member);
-    await _groupRepository.updateGroup(group);
+    // Approve by updating only this member's row. A full-list updateGroup here
+    // could drop members that a concurrent InvitationGroupAccept added between
+    // the read above and this write — the lost-update that caused the bug.
+    await _groupRepository.updateMemberStatus(
+      group.id,
+      memberDid,
+      GroupMemberStatus.approved,
+    );
+
+    // Re-read so the inauguration payload reflects the just-approved status and
+    // any members added concurrently since the initial read.
+    final freshGroup =
+        await _groupRepository.getGroupByOfferLink(channel.offerLink) ?? group;
 
     final groupMemberInauguration = GroupMemberInauguration.create(
       from: channel.publishOfferDid,
       to: [memberDid],
       memberDid: memberDid,
-      groupDid: group.did,
-      groupId: group.id,
-      adminDids: [group.ownerDid!],
-      groupPublicKey: group.publicKey!,
-      members: group.members
+      groupDid: freshGroup.did,
+      groupId: freshGroup.id,
+      adminDids: [freshGroup.ownerDid!],
+      groupPublicKey: freshGroup.publicKey!,
+      members: freshGroup.members
           .where((member) => member.status == GroupMemberStatus.approved)
           .map(
             (member) => GroupMemberInaugurationMember(
@@ -754,11 +765,11 @@ class GroupService {
       throw GroupException.notFoundError();
     }
 
-    group.members.removeWhere(
-      (member) => member.did == channel.otherPartyPermanentChannelDid,
-    );
-
-    await _groupRepository.updateGroup(group);
+    final memberDid = channel.otherPartyPermanentChannelDid;
+    if (memberDid != null) {
+      await _groupRepository.removeMember(group.id, memberDid);
+      group.members.removeWhere((member) => member.did == memberDid);
+    }
 
     _logger.info(
       'Successfully rejected membership request for offer: '
@@ -803,8 +814,7 @@ class GroupService {
 
     await _deregisterMember(group: group, memberDid: memberDid);
 
-    group.members.removeWhere((m) => m.did == memberDid);
-    await _groupRepository.updateGroup(group);
+    await _groupRepository.removeMember(groupId, memberDid);
 
     _logger.info(
       'Removed member ${memberDid.topAndTail()} from group $groupId',

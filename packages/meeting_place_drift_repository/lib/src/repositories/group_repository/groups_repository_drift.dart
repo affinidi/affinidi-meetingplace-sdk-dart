@@ -198,6 +198,73 @@ class GroupsRepositoryDrift implements model.GroupRepository {
       });
     });
   }
+
+  /// Inserts [member] into [groupId] only if no row with the same
+  /// `(groupId, member.did)` pair already exists.
+  ///
+  /// The check-and-insert runs inside a single SQLite transaction, which
+  /// serializes it against every other write, making it safe to call
+  /// concurrently without schema changes.
+  @override
+  Future<void> addMemberIfAbsent(
+    String groupId,
+    model.GroupMember member,
+  ) async {
+    await _database.transaction(() async {
+      final existing =
+          await (_database.select(_database.groupMembers)..where(
+                (gm) =>
+                    gm.groupId.equals(groupId) &
+                    gm.memberDid.equals(member.did),
+              ))
+              .getSingleOrNull();
+
+      if (existing != null) return; // already present — idempotent
+
+      final contactCard = member.contactCard;
+      await _database
+          .into(_database.groupMembers)
+          .insert(
+            db.GroupMembersCompanion.insert(
+              groupId: groupId,
+              memberDid: member.did,
+              dateAdded: Value(member.dateAdded),
+              publicKey: member.publicKey,
+              membershipType: member.membershipType,
+              status: member.status,
+              identityDid: contactCard.did,
+              type: contactCard.type,
+              contactInfoJson: Value(encodeContactInfoJson(contactCard)),
+              profilePic: Value(extractProfilePic(contactCard)),
+            ),
+          );
+    });
+  }
+
+  /// Updates the [status] column of the single member row identified by
+  /// `(groupId, memberDid)`. Only that row is touched; all other member rows
+  /// are unaffected.
+  @override
+  Future<void> updateMemberStatus(
+    String groupId,
+    String memberDid,
+    model.GroupMemberStatus status,
+  ) async {
+    await (_database.update(_database.groupMembers)..where(
+          (gm) => gm.groupId.equals(groupId) & gm.memberDid.equals(memberDid),
+        ))
+        .write(db.GroupMembersCompanion(status: Value(status)));
+  }
+
+  /// Deletes the single member row identified by `(groupId, memberDid)`.
+  /// Only that row is touched; a no-op when it does not exist.
+  @override
+  Future<void> removeMember(String groupId, String memberDid) async {
+    await (_database.delete(_database.groupMembers)..where(
+          (gm) => gm.groupId.equals(groupId) & gm.memberDid.equals(memberDid),
+        ))
+        .go();
+  }
 }
 
 class _GroupMapper {

@@ -424,6 +424,304 @@ void main() {
         equals('mxc://server/casey-pic'),
       );
     });
+
+    test('addMemberIfAbsent inserts a new member and is a no-op when the '
+        'member DID already exists', () async {
+      final database = GroupsDatabase(
+        databaseName: 'groups.sqlite',
+        passphrase: 'test-passphrase',
+        directory: tempDirectory,
+        inMemory: true,
+      );
+      addTearDown(database.close);
+
+      final repository = GroupsRepositoryDrift(database: database);
+      final group = model.Group(
+        id: 'group-id',
+        did: 'did:example:group',
+        offerLink: 'group-offer-link',
+        created: DateTime.utc(2026, 1, 1),
+        members: [
+          model.GroupMember.admin(
+            did: 'did:example:owner',
+            publicKey: 'pk-owner',
+            contactCard: model.ContactCard(
+              did: 'did:example:owner',
+              type: 'Person',
+              contactInfo: const {},
+            ),
+          ),
+        ],
+      );
+      await repository.createGroup(group);
+
+      final joiner = model.GroupMember.pendingMember(
+        did: 'did:example:joiner',
+        publicKey: 'pk-joiner',
+        contactCard: model.ContactCard(
+          did: 'did:example:joiner',
+          type: 'Person',
+          contactInfo: const {},
+        ),
+      );
+
+      await repository.addMemberIfAbsent(group.id, joiner);
+
+      final afterFirst = await repository.getGroupById(group.id);
+      expect(afterFirst!.members.length, 2);
+      final storedJoiner = afterFirst.members.firstWhere(
+        (m) => m.did == 'did:example:joiner',
+      );
+      expect(storedJoiner.status, model.GroupMemberStatus.pendingApproval);
+
+      // Second call with the same DID must not insert a duplicate row, even
+      // when the incoming member carries a different status.
+      await repository.addMemberIfAbsent(
+        group.id,
+        joiner.copyWith(status: model.GroupMemberStatus.approved),
+      );
+
+      final afterSecond = await repository.getGroupById(group.id);
+      expect(afterSecond!.members.length, 2);
+      expect(
+        afterSecond.members
+            .firstWhere((m) => m.did == 'did:example:joiner')
+            .status,
+        model.GroupMemberStatus.pendingApproval,
+      );
+    });
+
+    test('updateMemberStatus changes only the targeted member row', () async {
+      final database = GroupsDatabase(
+        databaseName: 'groups.sqlite',
+        passphrase: 'test-passphrase',
+        directory: tempDirectory,
+        inMemory: true,
+      );
+      addTearDown(database.close);
+
+      final repository = GroupsRepositoryDrift(database: database);
+      model.GroupMember pending(String did) => model.GroupMember.pendingMember(
+        did: did,
+        publicKey: 'pk-$did',
+        contactCard: model.ContactCard(
+          did: did,
+          type: 'Person',
+          contactInfo: const {},
+        ),
+      );
+      final group = model.Group(
+        id: 'group-id',
+        did: 'did:example:group',
+        offerLink: 'group-offer-link',
+        created: DateTime.utc(2026, 1, 1),
+        members: [pending('did:example:alice'), pending('did:example:bob')],
+      );
+      await repository.createGroup(group);
+
+      await repository.updateMemberStatus(
+        group.id,
+        'did:example:alice',
+        model.GroupMemberStatus.approved,
+      );
+
+      final stored = await repository.getGroupById(group.id);
+      expect(
+        stored!.members.firstWhere((m) => m.did == 'did:example:alice').status,
+        model.GroupMemberStatus.approved,
+      );
+      // The other member is untouched.
+      expect(
+        stored.members.firstWhere((m) => m.did == 'did:example:bob').status,
+        model.GroupMemberStatus.pendingApproval,
+      );
+    });
+
+    test('removeMember deletes only the targeted member row', () async {
+      final database = GroupsDatabase(
+        databaseName: 'groups.sqlite',
+        passphrase: 'test-passphrase',
+        directory: tempDirectory,
+        inMemory: true,
+      );
+      addTearDown(database.close);
+
+      final repository = GroupsRepositoryDrift(database: database);
+      model.GroupMember pending(String did) => model.GroupMember.pendingMember(
+        did: did,
+        publicKey: 'pk-$did',
+        contactCard: model.ContactCard(
+          did: did,
+          type: 'Person',
+          contactInfo: const {},
+        ),
+      );
+      final group = model.Group(
+        id: 'group-id',
+        did: 'did:example:group',
+        offerLink: 'group-offer-link',
+        created: DateTime.utc(2026, 1, 1),
+        members: [pending('did:example:alice'), pending('did:example:bob')],
+      );
+      await repository.createGroup(group);
+
+      await repository.removeMember(group.id, 'did:example:alice');
+
+      final stored = await repository.getGroupById(group.id);
+      expect(stored!.members.length, 1);
+      expect(stored.members.single.did, 'did:example:bob');
+
+      // Removing an absent member is a no-op, not an error.
+      await repository.removeMember(group.id, 'did:example:ghost');
+      final after = await repository.getGroupById(group.id);
+      expect(after!.members.length, 1);
+    });
+
+    // ── Regression: lost-update race ────────────────────────────────────────
+
+    test('full-replace updateGroup drops a concurrent member '
+        '(documents the hazard the atomic ops fix)', () async {
+      // This test characterises the OLD behaviour: two writers each read the
+      // same stale member list, append their own member in memory, then each
+      // call updateGroup(fullList). Whoever writes last wins; the member
+      // added by the first writer is silently dropped.
+      final database = GroupsDatabase(
+        databaseName: 'groups.sqlite',
+        passphrase: 'test-passphrase',
+        directory: tempDirectory,
+        inMemory: true,
+      );
+      addTearDown(database.close);
+
+      final repository = GroupsRepositoryDrift(database: database);
+
+      model.GroupMember pending(String did) => model.GroupMember.pendingMember(
+        did: did,
+        publicKey: 'pk-$did',
+        contactCard: model.ContactCard(
+          did: did,
+          type: 'Person',
+          contactInfo: const {},
+        ),
+      );
+
+      final existingMember = pending('did:example:existing');
+      final group = model.Group(
+        id: 'group-id',
+        did: 'did:example:group',
+        offerLink: 'group-offer-link',
+        created: DateTime.utc(2026, 1, 1),
+        members: [existingMember],
+      );
+      await repository.createGroup(group);
+
+      // Both writers read the SAME stale snapshot.
+      final staleSnapshot = (await repository.getGroupById(group.id))!.members;
+
+      // Writer A (admin approve): reads stale list, appends memberA.
+      final memberA = pending('did:example:writer-a-member');
+      final listA = [...staleSnapshot, memberA];
+
+      // Writer B (background handler): reads same stale list, appends memberB.
+      final memberB = pending('did:example:writer-b-member');
+      final listB = [...staleSnapshot, memberB];
+
+      // Sequential writes simulate the race: A writes first, then B
+      // overwrites with its own stale-based list (B never saw A's member).
+      await repository.updateGroup(group.copyWith(members: listA));
+      await repository.updateGroup(group.copyWith(members: listB));
+
+      final result = await repository.getGroupById(group.id);
+      final dids = result!.members.map((m) => m.did).toSet();
+
+      // Document the hazard: memberA written by writer A is LOST because
+      // writer B's full-replace wiped it out.
+      expect(
+        dids.contains('did:example:writer-a-member'),
+        isFalse,
+        reason:
+            'full-replace updateGroup loses the member written by writer A '
+            'when writer B overwrites with a stale-based list',
+      );
+    });
+
+    test('atomic single-row ops survive a concurrent approve + addMember '
+        '(regression: lost-update race)', () async {
+      // Writer A = admin approve  -> updateMemberStatus(existing, approved)
+      // Writer B = background handler -> addMemberIfAbsent(newPending)
+      //
+      // Both ops target different rows / conditions; neither can lose the
+      // other's change regardless of scheduling order.
+      final database = GroupsDatabase(
+        databaseName: 'groups.sqlite',
+        passphrase: 'test-passphrase',
+        directory: tempDirectory,
+        inMemory: true,
+      );
+      addTearDown(database.close);
+
+      final repository = GroupsRepositoryDrift(database: database);
+
+      model.GroupMember pending(String did) => model.GroupMember.pendingMember(
+        did: did,
+        publicKey: 'pk-$did',
+        contactCard: model.ContactCard(
+          did: did,
+          type: 'Person',
+          contactInfo: const {},
+        ),
+      );
+
+      // Seed: one existing pending member.
+      final existingMember = pending('did:example:existing');
+      final group = model.Group(
+        id: 'group-id',
+        did: 'did:example:group',
+        offerLink: 'group-offer-link',
+        created: DateTime.utc(2026, 1, 1),
+        members: [existingMember],
+      );
+      await repository.createGroup(group);
+
+      // Interleave both ops deterministically via Future.wait.
+      // The single-row ops are independent so any ordering is correct;
+      // Future.wait drives both without wall-clock dependency.
+      final newMember = pending('did:example:new-joiner');
+      await Future.wait([
+        // Writer A: approve the existing member.
+        repository.updateMemberStatus(
+          group.id,
+          'did:example:existing',
+          model.GroupMemberStatus.approved,
+        ),
+        // Writer B: add the new pending member.
+        repository.addMemberIfAbsent(group.id, newMember),
+      ]);
+
+      final result = await repository.getGroupById(group.id);
+      expect(result, isNotNull);
+      final members = result!.members;
+
+      // Both writes survived: neither clobbered the other.
+      expect(
+        members.firstWhere((m) => m.did == 'did:example:existing').status,
+        model.GroupMemberStatus.approved,
+        reason: 'writer A approval must persist after concurrent addMember',
+      );
+      expect(
+        members.any((m) => m.did == 'did:example:new-joiner'),
+        isTrue,
+        reason:
+            'writer B new member must be present after concurrent '
+            'approve',
+      );
+      expect(
+        members.firstWhere((m) => m.did == 'did:example:new-joiner').status,
+        model.GroupMemberStatus.pendingApproval,
+        reason: 'new joiner status must remain pendingApproval',
+      );
+      expect(members.length, 2);
+    });
   });
 
   group('RCardRepositoryDrift', () {

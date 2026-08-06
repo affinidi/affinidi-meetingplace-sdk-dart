@@ -37,11 +37,11 @@ class CallParticipation {
     }
 
     // Absent entirely (records persisted before this field existed) reads as
-    // an empty list rather than failing the whole block.
-    final participantDids = _readOptionalStringList(
-      typedMap,
-      _participantDidsKey,
-    );
+    // an empty list rather than failing the whole block. Invalid individual
+    // entries are dropped rather than failing the whole block too (see
+    // _readParticipantDids) so a single bad entry cannot force a group call
+    // to lose its participation summary.
+    final participantDids = _readParticipantDids(typedMap, _participantDidsKey);
     if (typedMap[_participantDidsKey] != null && participantDids == null) {
       return null;
     }
@@ -87,10 +87,13 @@ class CallParticipation {
   /// be unresolved at finalization time, and records persisted before this
   /// field existed carry no DIDs at all. Unmodifiable.
   ///
-  /// When deserialized via [fromMap], every entry is validated as a
-  /// DID-shaped string within a length/count bound (see
-  /// [_readOptionalStringList]) so external metadata cannot spoof arbitrary
-  /// identity strings or exhaust client resources.
+  /// When deserialized via [fromMap], each entry is validated as a
+  /// DID-shaped string within a length bound (see [_readParticipantDids]);
+  /// invalid or oversized entries are dropped rather than failing the whole
+  /// block, and at most [_maxParticipantDidCount] entries are kept. This way
+  /// external metadata cannot spoof arbitrary identity strings, exhaust
+  /// client resources, or force a group call to lose its participation
+  /// summary over one bad entry.
   final List<String> participantDids;
 
   /// Serializes this participation block into a nested metadata map.
@@ -166,16 +169,26 @@ final RegExp _participantDidPattern = RegExp(
   r'^did:[a-z0-9]+:[A-Za-z0-9._:%-]+$',
 );
 
-List<String>? _readOptionalStringList(Map<Object?, Object?> map, String key) {
+/// Reads the `participant_dids` list, or `null` when [key]'s value is
+/// present but not a `List` at all (a structurally wrong payload, same
+/// contract as every other field in this class: fail the whole block).
+///
+/// Once it's known to be a list, bad individual entries (wrong type,
+/// oversized, not DID-shaped) are dropped rather than failing the whole
+/// block: [CallParticipation.participantCount] must stay independent of how
+/// many DIDs resolve, and a single attacker-controlled entry from Matrix
+/// event metadata must not be able to downgrade a group call's rendering.
+/// At most [_maxParticipantDidCount] raw entries are examined, bounding
+/// parse cost regardless of payload size.
+List<String>? _readParticipantDids(Map<Object?, Object?> map, String key) {
   final value = map[key];
   if (value == null) return const [];
   if (value is! List) return null;
-  if (value.length > _maxParticipantDidCount) return null;
   final result = <String>[];
-  for (final element in value) {
-    if (element is! String) return null;
-    if (element.length > _maxParticipantDidLength) return null;
-    if (!_participantDidPattern.hasMatch(element)) return null;
+  for (final element in value.take(_maxParticipantDidCount)) {
+    if (element is! String) continue;
+    if (element.length > _maxParticipantDidLength) continue;
+    if (!_participantDidPattern.hasMatch(element)) continue;
     result.add(element);
   }
   return result;

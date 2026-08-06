@@ -371,24 +371,31 @@ void main() {
       expect(participation, isNull);
     });
 
-    test('fromMap rejects participant_dids with a non-String element', () {
+    test('fromMap drops a non-String participant_dids element and keeps the '
+        'rest', () {
       final participation = CallParticipation.fromMap({
-        'participant_count': 1,
+        'participant_count': 2,
         'did_self_join': true,
         'self_left_before_end': false,
-        'participant_dids': ['ok', 42],
+        'participant_dids': ['did:peer:alice', 42],
       });
-      expect(participation, isNull);
+      expect(participation, isNotNull);
+      expect(participation!.participantDids, ['did:peer:alice']);
+      expect(participation.participantCount, 2);
     });
 
-    test('fromMap rejects participant_dids exceeding the max list length', () {
+    test('fromMap caps participant_dids at the max list length, keeping the '
+        'first entries', () {
       final participation = CallParticipation.fromMap({
         'participant_count': 1,
         'did_self_join': true,
         'self_left_before_end': false,
         'participant_dids': List.generate(257, (i) => 'did:peer:$i'),
       });
-      expect(participation, isNull);
+      expect(participation, isNotNull);
+      expect(participation!.participantDids, hasLength(256));
+      expect(participation.participantDids.first, 'did:peer:0');
+      expect(participation.participantDids.last, 'did:peer:255');
     });
 
     test('fromMap accepts participant_dids at the max list length', () {
@@ -402,25 +409,71 @@ void main() {
       expect(participation!.participantDids, hasLength(256));
     });
 
-    test('fromMap rejects a participant DID exceeding the max length', () {
+    test('fromMap drops a participant DID exceeding the max length but '
+        'keeps the call\'s count', () {
       final oversizedDid = 'did:peer:${'a' * 512}';
       final participation = CallParticipation.fromMap({
-        'participant_count': 1,
+        'participant_count': 3,
         'did_self_join': true,
         'self_left_before_end': false,
         'participant_dids': [oversizedDid],
       });
-      expect(participation, isNull);
+      expect(participation, isNotNull);
+      expect(participation!.participantDids, isEmpty);
+      expect(participation.participantCount, 3);
     });
 
-    test('fromMap rejects a participant DID with an invalid DID shape', () {
+    test('fromMap drops a participant DID with an invalid DID shape', () {
       final participation = CallParticipation.fromMap({
         'participant_count': 1,
         'did_self_join': true,
         'self_left_before_end': false,
         'participant_dids': ['not-a-did'],
       });
-      expect(participation, isNull);
+      expect(participation, isNotNull);
+      expect(participation!.participantDids, isEmpty);
+    });
+
+    test('fromMap keeps valid participant_dids and the count when a '
+        'mid-list entry is a bad DID', () {
+      final participation = CallParticipation.fromMap({
+        'participant_count': 3,
+        'did_self_join': true,
+        'self_left_before_end': false,
+        'participant_dids': ['did:peer:alice', 'not-a-did', 'did:peer:bob'],
+      });
+      expect(participation, isNotNull);
+      expect(participation!.participantDids, [
+        'did:peer:alice',
+        'did:peer:bob',
+      ]);
+      expect(participation.participantCount, 3);
+      expect(participation.didSelfJoin, isTrue);
+      expect(participation.selfLeftBeforeEnd, isFalse);
+    });
+
+    test('fromMap accepts a did:key entry (base58btc method-specific-id)', () {
+      const didKey = 'did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK';
+      final participation = CallParticipation.fromMap({
+        'participant_count': 1,
+        'did_self_join': true,
+        'self_left_before_end': false,
+        'participant_dids': [didKey],
+      });
+      expect(participation, isNotNull);
+      expect(participation!.participantDids, [didKey]);
+    });
+
+    test('fromMap accepts a did:web entry with dots and colons', () {
+      const didWeb = 'did:web:example.com:user';
+      final participation = CallParticipation.fromMap({
+        'participant_count': 1,
+        'did_self_join': true,
+        'self_left_before_end': false,
+        'participant_dids': [didWeb],
+      });
+      expect(participation, isNotNull);
+      expect(participation!.participantDids, [didWeb]);
     });
 
     test('maybeOf yields null participation for a 1:1 call', () {

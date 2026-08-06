@@ -381,6 +381,48 @@ void main() {
       expect(participation, isNull);
     });
 
+    test('fromMap rejects participant_dids exceeding the max list length', () {
+      final participation = CallParticipation.fromMap({
+        'participant_count': 1,
+        'did_self_join': true,
+        'self_left_before_end': false,
+        'participant_dids': List.generate(257, (i) => 'did:peer:$i'),
+      });
+      expect(participation, isNull);
+    });
+
+    test('fromMap accepts participant_dids at the max list length', () {
+      final participation = CallParticipation.fromMap({
+        'participant_count': 1,
+        'did_self_join': true,
+        'self_left_before_end': false,
+        'participant_dids': List.generate(256, (i) => 'did:peer:$i'),
+      });
+      expect(participation, isNotNull);
+      expect(participation!.participantDids, hasLength(256));
+    });
+
+    test('fromMap rejects a participant DID exceeding the max length', () {
+      final oversizedDid = 'did:peer:${'a' * 512}';
+      final participation = CallParticipation.fromMap({
+        'participant_count': 1,
+        'did_self_join': true,
+        'self_left_before_end': false,
+        'participant_dids': [oversizedDid],
+      });
+      expect(participation, isNull);
+    });
+
+    test('fromMap rejects a participant DID with an invalid DID shape', () {
+      final participation = CallParticipation.fromMap({
+        'participant_count': 1,
+        'did_self_join': true,
+        'self_left_before_end': false,
+        'participant_dids': ['not-a-did'],
+      });
+      expect(participation, isNull);
+    });
+
     test('maybeOf yields null participation for a 1:1 call', () {
       final attachment = ChatAttachment(
         id: 'msg-1',

@@ -86,6 +86,11 @@ class CallParticipation {
   /// May be empty even when [participantCount] is positive: a peer's DID can
   /// be unresolved at finalization time, and records persisted before this
   /// field existed carry no DIDs at all. Unmodifiable.
+  ///
+  /// When deserialized via [fromMap], every entry is validated as a
+  /// DID-shaped string within a length/count bound (see
+  /// [_readOptionalStringList]) so external metadata cannot spoof arbitrary
+  /// identity strings or exhaust client resources.
   final List<String> participantDids;
 
   /// Serializes this participation block into a nested metadata map.
@@ -144,13 +149,33 @@ bool? _readRequiredBool(Map<Object?, Object?> map, String key) {
   return value;
 }
 
+/// Upper bound on the number of participant DIDs accepted from external
+/// (Matrix event) metadata, so a maliciously oversized list cannot exhaust
+/// client memory/CPU during parsing.
+const _maxParticipantDidCount = 256;
+
+/// Upper bound on the length of a single participant DID string accepted
+/// from external metadata, for the same reason as [_maxParticipantDidCount].
+const _maxParticipantDidLength = 512;
+
+/// Minimal DID URI shape check (`did:<method>:<method-specific-id>`), per
+/// the W3C DID Core ABNF. Deliberately permissive on the method-specific-id
+/// charset: this rejects obviously spoofed/malformed input, not a full
+/// per-method conformance check.
+final RegExp _participantDidPattern = RegExp(
+  r'^did:[a-z0-9]+:[A-Za-z0-9._:%-]+$',
+);
+
 List<String>? _readOptionalStringList(Map<Object?, Object?> map, String key) {
   final value = map[key];
   if (value == null) return const [];
   if (value is! List) return null;
+  if (value.length > _maxParticipantDidCount) return null;
   final result = <String>[];
   for (final element in value) {
     if (element is! String) return null;
+    if (element.length > _maxParticipantDidLength) return null;
+    if (!_participantDidPattern.hasMatch(element)) return null;
     result.add(element);
   }
   return result;

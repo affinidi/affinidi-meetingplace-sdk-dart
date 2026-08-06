@@ -20,8 +20,10 @@ class _MockLogger extends Mock implements MeetingPlaceChatSDKLogger {}
 /// Minimal hand-rolled stub that gives [PendingApprovalsListener] exactly what
 /// it needs from [GroupMatrixChatSDK] without pulling in the full Matrix stack.
 ///
-/// [group] is a real mutable field so the listener's `_chatSDK.group =` write
-/// works naturally without any setter-stub gymnastics.
+/// The `_chatSDK.group =` write is the terminal step of every
+/// mutex-protected callback (both the create and the dedup-skip path), so
+/// [onGroupUpdated] gives tests a deterministic "callback finished" signal
+/// to await instead of a fixed wall-clock delay.
 class _StubGroupSDK implements GroupMatrixChatSDK {
   _StubGroupSDK({
     required this.coreSDK,
@@ -29,7 +31,8 @@ class _StubGroupSDK implements GroupMatrixChatSDK {
     required this.logger,
     required Group initialGroup,
     required this.chatStream,
-  }) : group = initialGroup;
+    this.onGroupUpdated,
+  }) : _group = initialGroup;
 
   @override
   final MeetingPlaceCoreSDK coreSDK;
@@ -41,10 +44,20 @@ class _StubGroupSDK implements GroupMatrixChatSDK {
   final MeetingPlaceChatSDKLogger logger;
 
   @override
-  Group group;
+  final ChatStream chatStream;
+
+  final void Function()? onGroupUpdated;
+
+  Group _group;
 
   @override
-  final ChatStream chatStream;
+  Group get group => _group;
+
+  @override
+  set group(Group value) {
+    _group = value;
+    onGroupUpdated?.call();
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -153,12 +166,16 @@ void main() {
     await streamController.close();
   });
 
-  _StubGroupSDK buildStub({ChatStream? stream}) => _StubGroupSDK(
+  _StubGroupSDK buildStub({
+    ChatStream? stream,
+    void Function()? onGroupUpdated,
+  }) => _StubGroupSDK(
     coreSDK: coreSDK,
     chatRepository: chatRepository,
     logger: logger,
     initialGroup: grp,
     chatStream: stream ?? chatStream,
+    onGroupUpdated: onGroupUpdated,
   );
 
   // -------------------------------------------------------------------------
@@ -186,13 +203,27 @@ void main() {
           final chat1 = Chat(id: 'chat-1', stream: ChatStream(), messages: []);
           final chat2 = Chat(id: 'chat-1', stream: ChatStream(), messages: []);
 
+          // Both callbacks write back the refreshed group as their terminal
+          // step; waiting for both writes is a deterministic completion
+          // signal instead of a fixed wall-clock delay.
+          var groupUpdates = 0;
+          final bothProcessed = Completer<void>();
+          void onGroupUpdated() {
+            groupUpdates++;
+            if (groupUpdates == 2) bothProcessed.complete();
+          }
+
           // Both listeners armed with no cancellation between them, mirroring
           // the pre-fix startChatSession() re-entry bug.
-          final sub1 = PendingApprovalsListener(buildStub()).listen(chat1);
-          final sub2 = PendingApprovalsListener(buildStub()).listen(chat2);
+          final sub1 = PendingApprovalsListener(
+            buildStub(onGroupUpdated: onGroupUpdated),
+          ).listen(chat1);
+          final sub2 = PendingApprovalsListener(
+            buildStub(onGroupUpdated: onGroupUpdated),
+          ).listen(chat2);
 
           streamController.add(_acceptEvent(groupDid));
-          await Future<void>.delayed(const Duration(milliseconds: 20));
+          await bothProcessed.future.timeout(const Duration(seconds: 5));
 
           // Both callbacks fire independently → two createMessage calls.
           verify(() => chatRepository.createMessage(any())).called(2);
@@ -225,7 +256,17 @@ void main() {
         ),
       );
 
-      final stub = buildStub();
+      // The group write-back is the terminal step of each mutex-protected
+      // callback; waiting for both gives a deterministic completion signal
+      // instead of guessing a wall-clock delay long enough for both.
+      var groupUpdates = 0;
+      final bothProcessed = Completer<void>();
+      void onGroupUpdated() {
+        groupUpdates++;
+        if (groupUpdates == 2) bothProcessed.complete();
+      }
+
+      final stub = buildStub(onGroupUpdated: onGroupUpdated);
       final chat = Chat(id: 'chat-1', stream: chatStream, messages: []);
       final sub = PendingApprovalsListener(stub).listen(chat);
 
@@ -234,8 +275,7 @@ void main() {
       streamController.add(_acceptEvent(groupDid));
       streamController.add(_acceptEvent(groupDid));
 
-      // Wait long enough for both mutex-serialised callbacks to finish.
-      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await bothProcessed.future.timeout(const Duration(seconds: 5));
 
       // With Fix B: the second callback waits for the first to complete
       // (chat.messages.add already done) → it skips → one createMessage call.

@@ -227,9 +227,15 @@ void main() {
 
         // One InvitationGroupAccept event arrives.
         controlPlaneController.add(_acceptEvent());
-        // Wait enough time for the mutex-protected listener callback to
-        // complete (the delay matches the Fix B test tolerance).
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        // Wait for the listener's createMessage call, then flush the event
+        // queue so a second, unserialised call from a stale un-cancelled
+        // subscription — were Fix A missing — would also complete before
+        // the assertion below runs. Deterministic: no wall-clock guess.
+        await untilCalled(() => chatRepository.createMessage(any()));
+        for (var i = 0; i < 5; i++) {
+          await Future<void>.delayed(Duration.zero);
+        }
 
         // Exactly one live subscription → exactly one createMessage call.
         // Remove `await _controlPlaneSubscription?.cancel();` from

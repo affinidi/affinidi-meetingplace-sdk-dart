@@ -39,10 +39,7 @@ class MatrixSenderDidResolver {
     final peerAgent =
         channel.otherPartyAgentPermanentChannelDid ??
         await _resolvePeerAgentDid(channel.permanentChannelDid);
-    return [
-      if (peer != null) peer,
-      if (peerAgent != null) peerAgent,
-    ];
+    return [if (peer != null) peer, if (peerAgent != null) peerAgent];
   }
 
   /// Looks up the peer's agent DID when it wasn't stored on the channel.

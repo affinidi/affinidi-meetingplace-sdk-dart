@@ -36,7 +36,23 @@ class MatrixSenderDidResolver {
       return group.members.map((m) => m.did).toList();
     }
     final peer = channel.otherPartyPermanentChannelDid;
-    if (peer != null) return [peer];
-    return [];
+    final peerAgent =
+        channel.otherPartyAgentPermanentChannelDid ??
+        await _resolvePeerAgentDid(channel.permanentChannelDid);
+    return [
+      if (peer != null) peer,
+      if (peerAgent != null) peerAgent,
+    ];
+  }
+
+  /// Looks up the peer's agent DID when it wasn't stored on the channel.
+  /// Finds a channel where the peer is the other party and reads its own
+  /// agent DID, which is the counterpart's agent on that connection.
+  Future<String?> _resolvePeerAgentDid(String? ourChannelDid) async {
+    if (ourChannelDid == null) return null;
+    final mirror = await _coreSDK.getChannelByOtherPartyPermanentDid(
+      ourChannelDid,
+    );
+    return mirror?.agentPermanentChannelDid;
   }
 }

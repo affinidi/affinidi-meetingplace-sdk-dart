@@ -662,6 +662,7 @@ class MatrixRoomService {
       id: event.eventId,
       type: typeStr,
       userId: event.senderId,
+      senderDid: content['mp_member_did'] as String?,
       roomId: event.room.id,
       content: content,
       timestamp: event.originServerTs,

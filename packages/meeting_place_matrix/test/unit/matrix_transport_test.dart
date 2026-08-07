@@ -7,6 +7,7 @@ import 'package:meeting_place_core/meeting_place_core.dart'
         ChannelTransport,
         ChannelType,
         ContactCard,
+        MeetingPlaceCoreSDKLogger,
         TransportEvent;
 import 'package:meeting_place_matrix/src/matrix_media_exception.dart';
 import 'package:meeting_place_matrix/src/matrix_room_event.dart';
@@ -23,6 +24,9 @@ class _MockMatrixService extends Mock implements MatrixService {}
 class _MockDidManager extends Mock implements DidManager {}
 
 class _MockDidDocument extends Mock implements DidDocument {}
+
+class _MockMeetingPlaceCoreSDKLogger extends Mock
+    implements MeetingPlaceCoreSDKLogger {}
 
 class _FakeChannel extends Fake implements Channel {}
 
@@ -62,6 +66,7 @@ Channel _groupMatrixChannel() => Channel(
 void main() {
   late _MockMatrixService matrixService;
   late _MockDidManager didManager;
+  late _MockMeetingPlaceCoreSDKLogger logger;
   late MatrixTransport transport;
 
   setUpAll(() {
@@ -74,7 +79,8 @@ void main() {
   setUp(() {
     matrixService = _MockMatrixService();
     didManager = _MockDidManager();
-    transport = MatrixTransport(matrixService: matrixService);
+    logger = _MockMeetingPlaceCoreSDKLogger();
+    transport = MatrixTransport(matrixService: matrixService, logger: logger);
   });
 
   group('subscribe', () {

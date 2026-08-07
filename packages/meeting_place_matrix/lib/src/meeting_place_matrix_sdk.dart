@@ -216,6 +216,11 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     LiveKitRoomFactory? roomFactory,
   }) async {
     MatrixService? matrixServiceRef;
+    final matrixLogger = switch (logger) {
+      MeetingPlaceMatrixSDKLogger l => l,
+      MeetingPlaceCoreSDKLogger l => _CoreToMatrixLoggerAdapter(l),
+      null => DefaultMeetingPlaceMatrixSDKLogger(className: 'MatrixService'),
+    };
 
     final coreSDK = await MeetingPlaceCoreSDK.create(
       wallet: wallet,
@@ -227,13 +232,10 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
         final svc = MatrixService(
           config: config,
           controlPlaneSDK: controlPlaneSDK,
-          // TODO(SR): Inject correct logger instance.
-          logger: DefaultMeetingPlaceMatrixSDKLogger(
-            className: 'MatrixService',
-          ),
+          logger: matrixLogger,
         );
         matrixServiceRef = svc;
-        return MatrixTransport(matrixService: svc);
+        return MatrixTransport(matrixService: svc, logger: matrixLogger);
       },
     );
 
@@ -748,6 +750,33 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     if (channel == null) return;
     await _coreSDK.updateMessageSyncMarker(channel, eventId);
   }
+}
+
+class _CoreToMatrixLoggerAdapter implements MeetingPlaceMatrixSDKLogger {
+  _CoreToMatrixLoggerAdapter(this._logger);
+
+  final MeetingPlaceCoreSDKLogger _logger;
+
+  @override
+  void info(String message, {String name = ''}) =>
+      _logger.info(message, name: name);
+
+  @override
+  void warning(String message, {String name = ''}) =>
+      _logger.warning(message, name: name);
+
+  @override
+  void error(
+    String message, {
+    Object? error,
+    StackTrace? stackTrace,
+    String name = '',
+  }) =>
+      _logger.error(message, error: error, stackTrace: stackTrace, name: name);
+
+  @override
+  void debug(String message, {String name = ''}) =>
+      _logger.debug(message, name: name);
 }
 
 class _MatrixIncomingMessageHandle implements IncomingMessageHandle {

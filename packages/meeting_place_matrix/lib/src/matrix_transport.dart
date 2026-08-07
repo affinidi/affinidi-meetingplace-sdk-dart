@@ -4,11 +4,13 @@ import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_core/meeting_place_core.dart'
     show
         Channel,
+        MeetingPlaceCoreSDKLogger,
         MeetingPlaceTransport,
         TransportEvent,
         TransportSubscriptionOptions;
 import 'package:ssi/ssi.dart';
 
+import 'logger/top_and_tail_extension.dart';
 import 'matrix_media_exception.dart';
 import 'matrix_service.dart';
 import 'matrix_subscription_options.dart';
@@ -20,10 +22,14 @@ import 'transport/matrix/matrix_media_attachment.dart';
 /// Maps each interface method to the corresponding [MatrixService] operation,
 /// resolving room IDs from [Channel] internally.
 class MatrixTransport implements MeetingPlaceTransport {
-  MatrixTransport({required MatrixService matrixService})
-    : _matrixService = matrixService;
+  MatrixTransport({
+    required MatrixService matrixService,
+    required MeetingPlaceCoreSDKLogger logger,
+  }) : _matrixService = matrixService,
+       _logger = logger;
 
   final MatrixService _matrixService;
+  final MeetingPlaceCoreSDKLogger _logger;
 
   @override
   Future<void> authenticate(DidManager didManager) =>
@@ -128,10 +134,25 @@ class MatrixTransport implements MeetingPlaceTransport {
     TransportSubscriptionOptions? options,
     List<String> participantDids = const [],
   }) async* {
-    final roomId = await _matrixService.resolveRoomIdForChannel(
-      didManager: didManager,
-      channel: channel,
-    );
+    String roomId;
+    try {
+      roomId = await _matrixService.resolveRoomIdForChannel(
+        didManager: didManager,
+        channel: channel,
+      );
+    } on matrix.MatrixException catch (e) {
+      if (e.errcode != 'M_NOT_FOUND') rethrow;
+      // The channel's Matrix room does not exist — an orphaned channel whose
+      // room was never provisioned during inauguration. The agent joins a room
+      // the counterparty created, so it must not create one here. Skip this
+      // channel's subscription instead of crashing the client.
+      _logger.warning(
+        'Skipping subscription for channel '
+        '${channel.permanentChannelDid?.topAndTail()}: Matrix room not found',
+        name: 'MatrixTransport',
+      );
+      return;
+    }
 
     final matrixOptions = options == null
         ? null

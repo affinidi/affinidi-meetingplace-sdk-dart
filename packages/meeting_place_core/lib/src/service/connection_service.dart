@@ -663,7 +663,7 @@ class ConnectionService {
           );
 
     if (channel.transport == ChannelTransport.matrix) {
-      await _channelTransport.setupChannel(
+      channel.matrixRoomId = await _channelTransport.setupChannel(
         channel: channel,
         didManager: permanentIdentity.didManager,
         participantDids: [

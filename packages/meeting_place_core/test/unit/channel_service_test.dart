@@ -1,6 +1,5 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_core/src/service/channel/channel_service.dart';
-import 'package:meeting_place_core/src/service/channel/channel_service_exception.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 

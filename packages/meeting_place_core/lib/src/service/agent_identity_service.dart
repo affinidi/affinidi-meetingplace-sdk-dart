@@ -95,13 +95,6 @@ class AgentIdentityService {
     final resolvedChannelType =
         channelType ??
         await _deriveChannelType(offerLink: offerLink, transport: transport);
-    stderr.writeln(
-      '[agent-identity] createChannelIdentity '
-      'offerLink=$offerLink transport=${transport.name} '
-      'otherPartyPermanentChannelDid=$otherPartyPermanentChannelDid '
-      'requestedType=${channelType?.name ?? '(null)'} '
-      'derivedType=${resolvedChannelType.name}',
-    );
 
     final channel = Channel(
       offerLink: offerLink,
@@ -116,11 +109,6 @@ class AgentIdentityService {
     );
 
     await _channelRepository.createChannel(channel);
-    stderr.writeln(
-      '[agent-identity] persisted channel '
-      'channelDid=$permanentChannelDid offerLink=$offerLink '
-      'type=${channel.type.name} transport=${channel.transport.name}',
-    );
     return channel;
   }
 

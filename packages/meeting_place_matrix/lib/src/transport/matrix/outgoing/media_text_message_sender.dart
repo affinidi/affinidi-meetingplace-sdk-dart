@@ -112,7 +112,10 @@ class MediaTextMessageSender {
             correlationId: messageId,
             textContent: caption == null
                 ? null
-                : buildMatrixTextContent(text: caption, mentions: mentions),
+                : buildMatrixMediaCaptionContent(
+                    text: caption,
+                    mentions: mentions,
+                  ),
           ),
           notification: isLast ? notification : null,
         );

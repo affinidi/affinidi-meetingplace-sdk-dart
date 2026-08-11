@@ -166,6 +166,7 @@ void main() {
 
     test('caption is only passed on the first sendMediaMessage', () async {
       final captions = <String?>[];
+      final extraContents = <Map<String, dynamic>?>[];
       when(
         () => core.sendMediaMessage(
           any(),
@@ -178,6 +179,9 @@ void main() {
         ),
       ).thenAnswer((inv) async {
         captions.add(inv.namedArguments[#caption] as String?);
+        extraContents.add(
+          inv.namedArguments[#extraContent] as Map<String, dynamic>?,
+        );
         return '\$event-${captions.length}';
       });
 
@@ -201,6 +205,8 @@ void main() {
       expect(captions, hasLength(2));
       expect(captions[0], 'My caption');
       expect(captions[1], isNull);
+      expect(extraContents[0]?['body'], 'My caption');
+      expect(extraContents[0]?['msgtype'], isNull);
     });
 
     test(
@@ -488,6 +494,55 @@ void main() {
         expect(callItemEvent.notification, isNull);
         expect(message.attachments, hasLength(1));
         expect(message.attachments.first.metadata, callMetadata);
+      },
+    );
+
+    test(
+      'sign-document attachment with bytes is sent as media, not call metadata',
+      () async {
+        final capturedMessages = <MatrixOutgoingMessage>[];
+        var sendMediaCount = 0;
+
+        when(() => core.sendMessage(any())).thenAnswer((inv) async {
+          capturedMessages.add(
+            inv.positionalArguments.first as MatrixOutgoingMessage,
+          );
+          return r'4event-id';
+        });
+        when(
+          () => core.sendMediaMessage(
+            any(),
+            any(),
+            contentType: any(named: 'contentType'),
+            filename: any(named: 'filename'),
+            caption: any(named: 'caption'),
+            extraContent: any(named: 'extraContent'),
+            notification: any(named: 'notification'),
+          ),
+        ).thenAnswer((_) async {
+          sendMediaCount += 1;
+          return '4media-event-$sendMediaCount';
+        });
+
+        await sdk.sendTextMessage(
+          '{"type":"cierge/sign-document-request","document":{"title":"doc-to-sign.md","mediaType":"application/octet-stream","byteCount":4}}',
+          attachments: [
+            ChatAttachment(
+              id: 'sign-attachment-1',
+              filename: 'doc-to-sign.md',
+              mediaType: 'application/octet-stream',
+              format: 'cierge/sign-document',
+              data: ChatAttachmentData(base64: 'AAAA'),
+              metadata: {'document_role': 'sign-request'},
+            ),
+          ],
+        );
+
+        expect(sendMediaCount, 1);
+        expect(
+          capturedMessages.where((m) => m.type == MpxCallEventType.callItem),
+          isEmpty,
+        );
       },
     );
 

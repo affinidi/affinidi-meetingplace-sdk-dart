@@ -12,6 +12,17 @@ Map<String, dynamic> buildMatrixTextContent({
   };
 }
 
+Map<String, dynamic> buildMatrixMediaCaptionContent({
+  required String text,
+  List<ChatMention> mentions = const [],
+}) {
+  return {
+    'body': text,
+    ..._formattedBody(text, mentions),
+    ..._mentionsContent(mentions),
+  };
+}
+
 List<ChatMention> extractMatrixMentions(
   Map<String, dynamic> content, {
   String? text,

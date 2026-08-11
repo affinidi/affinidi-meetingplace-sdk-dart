@@ -161,6 +161,7 @@ class GroupService {
         offerLink: result.offerLink,
         publishOfferDid: oobDidDoc.id,
         contactCard: card,
+        channelType: ChannelType.group,
         contextKey: contextKey,
       );
 
@@ -333,6 +334,7 @@ class GroupService {
       offerLink: connectionOffer.offerLink,
       publishOfferDid: connectionOffer.publishOfferDid,
       contactCard: card,
+      channelType: ChannelType.group,
       contextKey: connectionOffer.contextKey,
       skipAgentIdentity: skipAgentIdentity,
     );

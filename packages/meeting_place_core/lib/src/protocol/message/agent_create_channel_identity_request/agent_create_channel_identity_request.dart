@@ -15,6 +15,7 @@ class AgentCreateChannelIdentityRequest {
     required String publishOfferDid,
     required ContactCard contactCard,
     required ChannelTransport transport,
+    ChannelType? channelType,
     String? contextKey,
   }) {
     return AgentCreateChannelIdentityRequest(
@@ -27,6 +28,7 @@ class AgentCreateChannelIdentityRequest {
         publishOfferDid: publishOfferDid,
         contactCard: contactCard,
         transport: transport,
+        channelType: channelType,
         contextKey: contextKey,
       ),
     );

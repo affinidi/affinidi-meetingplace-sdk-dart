@@ -17,6 +17,7 @@ class AgentCreateChannelIdentityRequestBody {
     required this.publishOfferDid,
     required this.contactCard,
     required this.transport,
+    this.channelType,
     this.contextKey,
   });
 
@@ -34,6 +35,9 @@ class AgentCreateChannelIdentityRequestBody {
 
   @JsonKey(name: 'transport')
   final ChannelTransport transport;
+
+  @JsonKey(name: 'channelType')
+  final ChannelType? channelType;
 
   @JsonKey(name: 'context_key')
   final String? contextKey;

@@ -16,6 +16,10 @@ _$AgentCreateChannelIdentityRequestBodyFromJson(Map<String, dynamic> json) =>
         json['contactCard'] as Map<String, dynamic>,
       ),
       transport: $enumDecode(_$ChannelTransportEnumMap, json['transport']),
+      channelType: $enumDecodeNullable(
+        _$ChannelTypeEnumMap,
+        json['channelType'],
+      ),
       contextKey: json['context_key'] as String?,
     );
 
@@ -27,7 +31,14 @@ Map<String, dynamic> _$AgentCreateChannelIdentityRequestBodyToJson(
   'publishOfferDid': instance.publishOfferDid,
   'contactCard': instance.contactCard.toJson(),
   'transport': _$ChannelTransportEnumMap[instance.transport]!,
+  'channelType': ?_$ChannelTypeEnumMap[instance.channelType],
   'context_key': ?instance.contextKey,
+};
+
+const _$ChannelTypeEnumMap = {
+  ChannelType.individual: 'individual',
+  ChannelType.group: 'group',
+  ChannelType.oob: 'oob',
 };
 
 const _$ChannelTransportEnumMap = {

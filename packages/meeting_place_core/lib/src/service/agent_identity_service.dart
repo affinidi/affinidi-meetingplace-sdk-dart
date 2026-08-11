@@ -53,6 +53,7 @@ class AgentIdentityService {
     required ContactCard contactCard,
     required ChannelTransport transport,
     required String agentControllerDid,
+    ChannelType? channelType,
   }) async {
     final didManager = await _identityService.generateDidWeb(_wallet);
     final didDocument = await didManager.getDidDocument();
@@ -91,9 +92,15 @@ class AgentIdentityService {
       mediatorDid: mediatorDid,
     );
 
-    final channelType = await _deriveChannelType(
-      offerLink: offerLink,
-      transport: transport,
+    final resolvedChannelType =
+        channelType ??
+        await _deriveChannelType(offerLink: offerLink, transport: transport);
+    stderr.writeln(
+      '[agent-identity] createChannelIdentity '
+      'offerLink=$offerLink transport=${transport.name} '
+      'otherPartyPermanentChannelDid=$otherPartyPermanentChannelDid '
+      'requestedType=${channelType?.name ?? '(null)'} '
+      'derivedType=${resolvedChannelType.name}',
     );
 
     final channel = Channel(
@@ -103,12 +110,17 @@ class AgentIdentityService {
       status: ChannelStatus.waitingForApproval,
       isConnectionInitiator: false,
       contactCard: contactCard,
-      type: channelType,
+      type: resolvedChannelType,
       transport: transport,
       permanentChannelDid: permanentChannelDid,
     );
 
     await _channelRepository.createChannel(channel);
+    stderr.writeln(
+      '[agent-identity] persisted channel '
+      'channelDid=$permanentChannelDid offerLink=$offerLink '
+      'type=${channel.type.name} transport=${channel.transport.name}',
+    );
     return channel;
   }
 
@@ -127,7 +139,10 @@ class AgentIdentityService {
     }
 
     final group = await _groupRepository.getGroupByOfferLink(offerLink);
-    return group == null ? ChannelType.individual : ChannelType.group;
+    final resolvedType = group == null
+        ? ChannelType.individual
+        : ChannelType.group;
+    return resolvedType;
   }
 
   /// Handles an incoming `agent-channel-inauguration` message by granting

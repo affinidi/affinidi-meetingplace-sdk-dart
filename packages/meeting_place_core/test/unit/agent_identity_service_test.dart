@@ -312,5 +312,102 @@ void main() {
         expect(channel.transport, equals(ChannelTransport.matrix));
       },
     );
+
+    test(
+      'prefers explicit channel type over connector-side repository inference',
+      () async {
+        await service.createChannelIdentity(
+          agentDid: _agentDid,
+          otherPartyPermanentChannelDid: _channelDid,
+          mediatorDid: _mediatorDid,
+          agentControllerDid: _agentControllerDid,
+          offerLink: 'https://example.com/group-offer',
+          publishOfferDid: 'did:test:group-publish',
+          contactCard: contactCard,
+          transport: ChannelTransport.matrix,
+          channelType: ChannelType.group,
+        );
+
+        final captured = verify(
+          () => mockChannelRepository.createChannel(captureAny()),
+        ).captured;
+
+        final channel = captured.single as Channel;
+        expect(channel.type, equals(ChannelType.group));
+        verifyNever(
+          () => mockConnectionOfferRepository.getConnectionOfferByOfferLink(
+            any(),
+          ),
+        );
+        verifyNever(() => mockGroupRepository.getGroupByOfferLink(any()));
+      },
+    );
+  });
+
+  group('processAgentChannelInauguration', () {
+    const matrixRoomId = '!room:matrix.test';
+    late Channel channel;
+
+    setUp(() {
+      channel = Channel(
+        offerLink: 'https://example.com/offer',
+        publishOfferDid: 'did:test:publish',
+        mediatorDid: _mediatorDid,
+        status: ChannelStatus.waitingForApproval,
+        isConnectionInitiator: false,
+        contactCard: ContactCardFixture.getContactCardFixture(),
+        type: ChannelType.individual,
+        transport: ChannelTransport.matrix,
+        permanentChannelDid: _newPermanentChannelDid,
+      );
+
+      when(
+        () => mockChannelRepository.findChannelByDid(_agentDid),
+      ).thenAnswer((_) async => channel);
+      when(
+        () => mockConnectionManager.getDidManagerForDid(mockWallet, _agentDid),
+      ).thenAnswer((_) async => mockAgentDidManager);
+      when(
+        () => mockMeetingPlaceTransport.joinRoomById(
+          didManager: any(named: 'didManager'),
+          roomId: any(named: 'roomId'),
+        ),
+      ).thenAnswer((_) async => matrixRoomId);
+      when(
+        () => mockChannelRepository.updateChannel(any()),
+      ).thenAnswer((_) async {});
+    });
+
+    test(
+      'joins the matrix room by matrixRoomId before persisting channel',
+      () async {
+        await service.processAgentChannelInauguration(
+          otherPartyPermanentChannelDid: _channelDid,
+          otherPartyNotificationToken: 'notification-token',
+          agentPermanentChannelDid: _agentDid,
+          matrixRoomId: matrixRoomId,
+        );
+
+        verify(
+          () => mockMeetingPlaceTransport.joinRoomById(
+            didManager: mockAgentDidManager,
+            roomId: matrixRoomId,
+          ),
+        ).called(1);
+
+        final persisted =
+            verify(
+                  () => mockChannelRepository.updateChannel(captureAny()),
+                ).captured.single
+                as Channel;
+        expect(persisted.otherPartyPermanentChannelDid, equals(_channelDid));
+        expect(
+          persisted.otherPartyNotificationToken,
+          equals('notification-token'),
+        );
+        expect(persisted.matrixRoomId, equals(matrixRoomId));
+        expect(persisted.status, equals(ChannelStatus.inaugurated));
+      },
+    );
   });
 }

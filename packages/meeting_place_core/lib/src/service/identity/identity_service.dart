@@ -84,6 +84,7 @@ class IdentityService {
     String? offerLink,
     String? publishOfferDid,
     ContactCard? contactCard,
+    ChannelType? channelType,
     bool? skipAgentIdentity = false,
     String? contextKey,
   }) async {
@@ -96,6 +97,7 @@ class IdentityService {
       offerLink: offerLink,
       publishOfferDid: publishOfferDid,
       contactCard: contactCard,
+      channelType: channelType,
       skipAgentIdentity: skipAgentIdentity,
       contextKey: contextKey,
     );
@@ -108,6 +110,7 @@ class IdentityService {
     String? offerLink,
     String? publishOfferDid,
     ContactCard? contactCard,
+    ChannelType? channelType,
     bool? skipAgentIdentity = false,
     String? contextKey,
   }) async {
@@ -126,6 +129,7 @@ class IdentityService {
         offerLink: offerLink,
         publishOfferDid: publishOfferDid,
         contactCard: contactCard,
+        channelType: channelType,
         contextKey: contextKey,
       );
     }
@@ -171,6 +175,7 @@ class IdentityService {
     String? offerLink,
     String? publishOfferDid,
     ContactCard? contactCard,
+    ChannelType? channelType,
     String? contextKey,
   }) async {
     await _mediatorService.updateAcl(
@@ -208,6 +213,7 @@ class IdentityService {
         publishOfferDid: publishOfferDid!,
         contactCard: contactCard!,
         transport: transport,
+        channelType: channelType,
         contextKey: contextKey,
       );
 

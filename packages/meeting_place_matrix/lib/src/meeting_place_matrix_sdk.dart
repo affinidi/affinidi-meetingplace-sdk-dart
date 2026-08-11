@@ -333,6 +333,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     required ContactCard contactCard,
     required ChannelTransport transport,
     required String agentControllerDid,
+    ChannelType? channelType,
   }) => _coreSDK.generateAgentIdentity(
     agentDid: agentDid,
     otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
@@ -342,6 +343,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     contactCard: contactCard,
     transport: transport,
     agentControllerDid: agentControllerDid,
+    channelType: channelType,
   );
 
   @override
@@ -727,7 +729,8 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
         await _senderDidResolver.resolve(
           receiverDid: receiverDid,
           matrixUserId: e.metadata?['sender_id'] as String,
-        );
+        ) ??
+        e.metadata?['sender_id'] as String?;
     if (resolved == null) return null;
 
     return MatrixIncomingMessage(

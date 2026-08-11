@@ -657,6 +657,7 @@ class MeetingPlaceCoreSDK {
     required ContactCard contactCard,
     required ChannelTransport transport,
     required String agentControllerDid,
+    ChannelType? channelType,
   }) {
     return _agentIdentityService.createChannelIdentity(
       agentDid: agentDid,
@@ -667,6 +668,7 @@ class MeetingPlaceCoreSDK {
       contactCard: contactCard,
       transport: transport,
       agentControllerDid: agentControllerDid,
+      channelType: channelType,
     );
   }
 

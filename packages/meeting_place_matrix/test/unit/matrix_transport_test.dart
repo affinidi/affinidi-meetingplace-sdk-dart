@@ -102,6 +102,7 @@ void main() {
           channel: any(named: 'channel'),
         ),
       ).thenAnswer((_) async => roomId);
+      when(() => matrixService.serverName).thenReturn('matrix.example.com');
       when(
         () => matrixService.homeserver,
       ).thenReturn(Uri.parse('https://matrix.example.com'));
@@ -141,37 +142,38 @@ void main() {
       expect(events.first.content['membership'], 'join');
     });
 
-    test(
-      'non-membership timeline event from unknown sender is dropped',
-      () async {
-        final messageEvent = MatrixRoomEvent(
-          id: 'evt-msg',
-          type: 'm.room.message',
-          userId: charlieUserId,
-          roomId: roomId,
-          content: const {'msgtype': 'm.text', 'body': 'hello'},
-          timestamp: DateTime.now().toUtc().add(const Duration(seconds: 1)),
-        );
+    test('non-membership timeline event from unknown sender is preserved for '
+        'downstream fallback resolution', () async {
+      final messageEvent = MatrixRoomEvent(
+        id: 'evt-msg',
+        type: 'm.room.message',
+        userId: charlieUserId,
+        roomId: roomId,
+        content: const {'msgtype': 'm.text', 'body': 'hello'},
+        timestamp: DateTime.now().toUtc().add(const Duration(seconds: 1)),
+      );
 
-        when(
-          () => matrixService.subscribeToRoom(
-            any(),
-            didManager: any(named: 'didManager'),
-            options: any(named: 'options'),
-          ),
-        ).thenAnswer((_) => Stream.fromIterable([messageEvent]));
+      when(
+        () => matrixService.subscribeToRoom(
+          any(),
+          didManager: any(named: 'didManager'),
+          options: any(named: 'options'),
+        ),
+      ).thenAnswer((_) => Stream.fromIterable([messageEvent]));
 
-        final events = await transport
-            .subscribe(
-              channel: _matrixChannel(),
-              didManager: didManager,
-              participantDids: [aliceDid, bobDid],
-            )
-            .toList();
+      final events = await transport
+          .subscribe(
+            channel: _matrixChannel(),
+            didManager: didManager,
+            participantDids: [aliceDid, bobDid],
+          )
+          .toList();
 
-        expect(events, isEmpty);
-      },
-    );
+      expect(events, hasLength(1));
+      expect(events.first.type, 'm.room.message');
+      expect(events.first.senderDid, isNull);
+      expect(events.first.metadata?['sender_id'], charlieUserId);
+    });
   });
 
   group('setupChannel', () {

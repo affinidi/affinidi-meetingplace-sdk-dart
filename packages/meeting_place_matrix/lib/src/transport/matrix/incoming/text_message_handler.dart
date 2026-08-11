@@ -70,36 +70,87 @@ class TextMessageHandler {
 
       final correlationId =
           event.content[MatrixEventField.correlationId] as String?;
+      final textBody = event.content['body'] as String? ?? '';
+      final signRequest = CiergeSignDocumentRequest.fromMessageText(textBody);
+
+      _logger.info(
+        'Incoming text event '
+        'eventId=${event.id} '
+        'correlationId=${correlationId ?? '-'} '
+        'senderDid=$senderDid '
+        'attachmentCount=${attachments.length} '
+        'isSignRequest=${signRequest != null}',
+        name: _logkey,
+      );
+
+      final logicalMessageId = correlationId ?? event.id;
+      final existing = await _chatRepository.getMessage(
+        chatId: _chatId,
+        messageId: logicalMessageId,
+      );
+
+      if (signRequest != null) {
+        _logger.info(
+          'Routing sign request as ConciergeMessage '
+          'eventId=${event.id} logicalMessageId=$logicalMessageId '
+          'attachmentCount=${attachments.length}',
+          name: _logkey,
+        );
+        final concierge = ConciergeMessage(
+          chatId: _chatId,
+          messageId: logicalMessageId,
+          senderDid: senderDid,
+          isFromMe: false,
+          dateCreated: event.timestamp,
+          status: ChatItemStatus.userInput,
+          conciergeType: ConciergeMessageType.fromJson(
+            CiergeSignDocumentRequest.conciergeTypeName,
+          ),
+          data: {
+            'document': signRequest.document,
+            'taskId': signRequest.taskId,
+          },
+          attachments: _mergeAttachments(
+            existing is ConciergeMessage ? existing.attachments : null,
+            attachments,
+          ),
+        );
+
+        if (correlationId != null) {
+          _serverEventIdToMessageId[event.id] = correlationId;
+        }
+
+        final chatItem = switch (existing) {
+          ConciergeMessage _ => await _chatRepository.updateMesssage(concierge),
+          Message message => await _chatRepository.updateMesssage(
+            ConciergeMessage(
+              chatId: message.chatId,
+              messageId: logicalMessageId,
+              senderDid: senderDid,
+              isFromMe: false,
+              dateCreated: message.dateCreated,
+              status: message.status,
+              conciergeType: ConciergeMessageType.fromJson(
+                CiergeSignDocumentRequest.conciergeTypeName,
+              ),
+              data: {
+                'document': signRequest.document,
+                'taskId': signRequest.taskId,
+              },
+              attachments: _mergeAttachments(message.attachments, attachments),
+            ),
+          ),
+          _ => await _chatRepository.createMessage(concierge),
+        };
+        _chatStream.pushData(
+          StreamData(event: event.toChatEvent(), chatItem: chatItem),
+        );
+        return;
+      }
 
       // Legacy / non-correlated event: one event → one Message, keyed on the
       // matrix event id.
       if (correlationId == null) {
-        final textBody = event.content['body'] as String? ?? '';
-        final signRequest = CiergeSignDocumentRequest.fromMessageText(textBody);
-        if (signRequest != null) {
-          final concierge = ConciergeMessage(
-            chatId: _chatId,
-            messageId: event.id,
-            senderDid: senderDid,
-            isFromMe: false,
-            dateCreated: event.timestamp,
-            status: ChatItemStatus.userInput,
-            conciergeType: ConciergeMessageType.fromJson(
-              CiergeSignDocumentRequest.conciergeTypeName,
-            ),
-            data: {
-              'document': signRequest.document,
-              'taskId': signRequest.taskId,
-            },
-            attachments: attachments.isEmpty ? null : attachments,
-          );
-          final chatItem = await _chatRepository.createMessage(concierge);
-          _chatStream.pushData(
-            StreamData(event: event.toChatEvent(), chatItem: chatItem),
-          );
-          return;
-        }
-
         final stepUpRequest = CiergeStepUpApproveRequest.fromMessageText(
           textBody,
         );
@@ -142,17 +193,45 @@ class TextMessageHandler {
       // arrive (which may not be the first event sent — events can be
       // reordered by the homeserver) creates the Message; later events
       // append their attachments.
-      final existing = await _chatRepository.getMessage(
-        chatId: _chatId,
-        messageId: correlationId,
-      );
-
       // Map each matrix event id back to the logical Message id so peer
       // edits/reactions/redactions targeting any one of the file events
       // resolve to this coalesced Message.
       _serverEventIdToMessageId[event.id] = correlationId;
 
+      if (existing is ConciergeMessage) {
+        _logger.info(
+          'Coalescing correlated text event into existing ConciergeMessage '
+          'eventId=${event.id} correlationId=$correlationId '
+          'existingAttachmentCount=${existing.attachments?.length ?? 0} '
+          'newAttachmentCount=${attachments.length}',
+          name: _logkey,
+        );
+        final updated = ConciergeMessage(
+          chatId: existing.chatId,
+          messageId: existing.messageId,
+          senderDid: existing.senderDid,
+          isFromMe: existing.isFromMe,
+          dateCreated: existing.dateCreated,
+          status: existing.status,
+          data: existing.data,
+          conciergeType: existing.conciergeType,
+          attachments: _mergeAttachments(existing.attachments, attachments),
+        );
+        final chatItem = await _chatRepository.updateMesssage(updated);
+        _chatStream.pushData(
+          StreamData(event: event.toChatEvent(), chatItem: chatItem),
+        );
+        return;
+      }
+
       if (existing is Message) {
+        _logger.info(
+          'Coalescing correlated text event into existing Message '
+          'eventId=${event.id} correlationId=$correlationId '
+          'existingAttachmentCount=${existing.attachments.length} '
+          'newAttachmentCount=${attachments.length}',
+          name: _logkey,
+        );
         final existingAttachmentIds = existing.attachments
             .map((attachment) => attachment.id)
             .toSet();
@@ -195,6 +274,12 @@ class TextMessageHandler {
         isFromMe: false,
         status: ChatItemStatus.received,
       );
+      _logger.info(
+        'Creating correlated Message '
+        'eventId=${event.id} correlationId=$correlationId '
+        'attachmentCount=${attachments.length}',
+        name: _logkey,
+      );
       final chatItem = await _chatRepository.createMessage(message);
       _chatStream.pushData(
         StreamData(event: event.toChatEvent(), chatItem: chatItem),
@@ -208,5 +293,23 @@ class TextMessageHandler {
         name: _logkey,
       );
     }
+  }
+
+  List<ChatAttachment>? _mergeAttachments(
+    List<ChatAttachment>? existing,
+    List<ChatAttachment> incoming,
+  ) {
+    if ((existing == null || existing.isEmpty) && incoming.isEmpty) {
+      return null;
+    }
+
+    final merged = <ChatAttachment>[...?existing];
+    final seenIds = merged.map((attachment) => attachment.id).toSet();
+    for (final attachment in incoming) {
+      if (seenIds.add(attachment.id)) {
+        merged.add(attachment);
+      }
+    }
+    return merged;
   }
 }

@@ -423,7 +423,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
         'Text message sent, message id: ${message.messageId}',
         name: _matrixLogkey,
       );
-    } else if (attachments.every((a) => a.data == null && a.metadata != null)) {
+    } else if (attachments.every(_isCallMetadataOnlyAttachment)) {
       final outgoing = CallItemRoomEvent(
         senderDid: did,
         metadata: attachments.first.metadata ?? {},
@@ -910,6 +910,10 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
       );
       return null;
     }
+  }
+
+  static bool _isCallMetadataOnlyAttachment(ChatAttachment attachment) {
+    return attachment.data == null && CallMetadata.isCall(attachment);
   }
 
   Future<Message> _updateMessageStatus({

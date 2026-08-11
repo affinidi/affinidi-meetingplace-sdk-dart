@@ -168,5 +168,29 @@ void main() {
       expect(await router.resolveTargetDid(event), 'did:test:charlie');
       verify(() => coreSDK.getGroupById(staleGroup.id)).called(1);
     });
+
+    test('returns null instead of throwing when the persisted-store lookup '
+        'fails for a join event', () async {
+      const serverName = 'server';
+      final group = _group();
+      final coreSDK = _MockCoreSDK();
+      when(
+        () => coreSDK.getGroupById(any()),
+      ).thenThrow(Exception('store unavailable'));
+      final router = GroupRoomEventRouter(
+        chatSDK: _buildSdk(group, coreSDK: coreSDK),
+      );
+      final event = MatrixRoomEvent(
+        id: 'evt-5',
+        type: matrix.EventTypes.RoomMember,
+        senderDid: 'did:test:alice',
+        roomId: '!room:$serverName',
+        content: const {'membership': 'join'},
+        timestamp: DateTime.utc(2026, 1, 1),
+        stateKey: deriveMatrixUserId('did:test:eve', serverName),
+      );
+
+      expect(await router.resolveTargetDid(event), isNull);
+    });
   });
 }

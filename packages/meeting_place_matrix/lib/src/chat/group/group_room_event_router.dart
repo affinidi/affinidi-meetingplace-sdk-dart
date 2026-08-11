@@ -25,6 +25,8 @@ class GroupRoomEventRouter extends IncomingRoomEventRouter {
 
   final GroupMatrixChatSDK _chatSDK;
 
+  static const String _logkey = 'GroupRoomEventRouter';
+
   /// Resolves the affected user's DID for `m.room.member` events by reverse
   /// lookup against the group's known members. For a `join` whose state key
   /// doesn't match the in-memory snapshot, falls back to the persisted group,
@@ -47,9 +49,18 @@ class GroupRoomEventRouter extends IncomingRoomEventRouter {
     final membership = event.content['membership'] as String?;
     if (membership != matrix.Membership.join.name) return null;
 
-    final persistedGroup = await _chatSDK.coreSDK.getGroupById(
-      _chatSDK.group.id,
-    );
+    final Group? persistedGroup;
+    try {
+      persistedGroup = await _chatSDK.coreSDK.getGroupById(_chatSDK.group.id);
+    } catch (e, stackTrace) {
+      _chatSDK.logger.error(
+        'Failed to look up persisted group for join event',
+        error: e,
+        stackTrace: stackTrace,
+        name: _logkey,
+      );
+      return null;
+    }
     if (persistedGroup == null) return null;
     for (final m in persistedGroup.members) {
       if (deriveMatrixUserId(m.did, serverName) == stateKey) return m.did;

@@ -191,8 +191,6 @@ class MatrixTransport implements MeetingPlaceTransport {
           resolvedDid ??
           (e.type == matrix.EventTypes.RoomMember ? e.userId : null);
 
-      if (senderDid == null && isTimeline) continue;
-
       yield TransportEvent(
         id: e.id,
         type: e.type,

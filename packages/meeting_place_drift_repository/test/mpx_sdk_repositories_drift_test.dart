@@ -722,6 +722,85 @@ void main() {
       );
       expect(members.length, 2);
     });
+
+    test('addMemberIfAbsent produces exactly one row for the same member '
+        'DID under concurrent and repeated delivery', () async {
+      // Simulates duplicate delivery of the same accept/invite message for
+      // one member DID — e.g. a mediator retry racing the original handler
+      // run. Every caller passes an identical (groupId, memberDid) pair, and
+      // there is still no unique constraint on (group_id, member_did) at the
+      // storage level: the guarantee comes from the check-then-insert
+      // running inside a transaction on the single underlying connection.
+      final database = GroupsDatabase(
+        databaseName: 'groups.sqlite',
+        passphrase: 'test-passphrase',
+        directory: tempDirectory,
+        inMemory: true,
+      );
+      addTearDown(database.close);
+
+      final repository = GroupsRepositoryDrift(database: database);
+
+      final existingMember = model.GroupMember.admin(
+        did: 'did:example:owner',
+        publicKey: 'pk-owner',
+        contactCard: model.ContactCard(
+          did: 'did:example:owner',
+          type: 'Person',
+          contactInfo: const {},
+        ),
+      );
+      final group = model.Group(
+        id: 'group-id',
+        did: 'did:example:group',
+        offerLink: 'group-offer-link',
+        created: DateTime.utc(2026, 1, 1),
+        members: [existingMember],
+      );
+      await repository.createGroup(group);
+
+      final duplicateJoiner = model.GroupMember.pendingMember(
+        did: 'did:example:duplicate-joiner',
+        publicKey: 'pk-duplicate-joiner',
+        contactCard: model.ContactCard(
+          did: 'did:example:duplicate-joiner',
+          type: 'Person',
+          contactInfo: const {},
+        ),
+      );
+
+      // Five concurrent callers race to add the SAME member DID. Future.wait
+      // starts every call before any of them yields, so they genuinely
+      // interleave at every await point inside addMemberIfAbsent.
+      await Future.wait(
+        List.generate(
+          5,
+          (_) => repository.addMemberIfAbsent(group.id, duplicateJoiner),
+        ),
+      );
+
+      final afterConcurrent = await repository.getGroupById(group.id);
+      expect(
+        afterConcurrent!.members
+            .where((m) => m.did == duplicateJoiner.did)
+            .length,
+        1,
+        reason:
+            'concurrent addMemberIfAbsent calls for the same DID must '
+            'insert exactly one row',
+      );
+
+      // A further repeated call after the concurrent race must still be a
+      // no-op.
+      await repository.addMemberIfAbsent(group.id, duplicateJoiner);
+
+      final afterRepeat = await repository.getGroupById(group.id);
+      expect(
+        afterRepeat!.members.where((m) => m.did == duplicateJoiner.did).length,
+        1,
+        reason: 'a later repeated call must not insert a second row',
+      );
+    });
   });
 
   group('RCardRepositoryDrift', () {

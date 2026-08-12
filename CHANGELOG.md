@@ -15,6 +15,27 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`meeting_place_matrix` - `v0.0.1-dev.14`](#meeting_place_matrix---v001-dev14)
+
+---
+
+#### `meeting_place_matrix` - `v0.0.1-dev.14`
+
+ - **FEAT**: persist named group-call participants (#309).
+
+
+## 2026-08-12
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`meeting_place_matrix` - `v0.0.1-dev.13`](#meeting_place_matrix---v001-dev13)
 
 ---

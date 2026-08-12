@@ -276,6 +276,37 @@ void main() {
       });
     });
 
+    test('toMetadata nests the participant DIDs when present', () {
+      final metadata = CallMetadata(
+        mediaType: testMediaType,
+        status: testStatus,
+        callId: testCallId,
+        participation: CallParticipation(
+          participantCount: 2,
+          didSelfJoin: true,
+          selfLeftBeforeEnd: true,
+          participantDids: const ['did:peer:alice', 'did:peer:bob'],
+        ),
+      );
+      final block = metadata.toMetadata()['call_participation'];
+      expect(block, {
+        'participant_count': 2,
+        'did_self_join': true,
+        'self_left_before_end': true,
+        'participant_dids': ['did:peer:alice', 'did:peer:bob'],
+      });
+    });
+
+    test('participantDids defaults to empty when omitted', () {
+      final participation = CallParticipation(
+        participantCount: 2,
+        didSelfJoin: true,
+        selfLeftBeforeEnd: true,
+      );
+      expect(participation.participantDids, isEmpty);
+      expect(participation.toMap().containsKey('participant_dids'), isFalse);
+    });
+
     test('maybeOf round-trips the participation block', () {
       final attachment = CallMetadata.buildAttachment(
         mediaType: testMediaType,
@@ -296,6 +327,153 @@ void main() {
       expect(participation.didSelfJoin, isFalse);
       expect(participation.selfLeftBeforeEnd, isFalse);
       expect(participation.initiatorDid, isNull);
+      expect(participation.participantDids, isEmpty);
+    });
+
+    test('maybeOf round-trips the participant DIDs list', () {
+      final attachment = CallMetadata.buildAttachment(
+        mediaType: testMediaType,
+        status: testStatus,
+        id: 'msg-group',
+        callId: testCallId,
+        participation: CallParticipation(
+          participantCount: 2,
+          didSelfJoin: false,
+          selfLeftBeforeEnd: false,
+          participantDids: const ['did:peer:alice', 'did:peer:bob'],
+        ),
+      );
+      final result = CallMetadata.maybeOf(attachment);
+      final participation = result!.participation;
+      expect(participation!.participantDids, [
+        'did:peer:alice',
+        'did:peer:bob',
+      ]);
+    });
+
+    test('fromMap treats a missing participant_dids key as empty', () {
+      final participation = CallParticipation.fromMap({
+        'participant_count': 1,
+        'did_self_join': true,
+        'self_left_before_end': false,
+      });
+      expect(participation, isNotNull);
+      expect(participation!.participantDids, isEmpty);
+    });
+
+    test('fromMap rejects a malformed participant_dids value', () {
+      final participation = CallParticipation.fromMap({
+        'participant_count': 1,
+        'did_self_join': true,
+        'self_left_before_end': false,
+        'participant_dids': 'not-a-list',
+      });
+      expect(participation, isNull);
+    });
+
+    test('fromMap drops a non-String participant_dids element and keeps the '
+        'rest', () {
+      final participation = CallParticipation.fromMap({
+        'participant_count': 2,
+        'did_self_join': true,
+        'self_left_before_end': false,
+        'participant_dids': ['did:peer:alice', 42],
+      });
+      expect(participation, isNotNull);
+      expect(participation!.participantDids, ['did:peer:alice']);
+      expect(participation.participantCount, 2);
+    });
+
+    test('fromMap caps participant_dids at the max list length, keeping the '
+        'first entries', () {
+      final participation = CallParticipation.fromMap({
+        'participant_count': 1,
+        'did_self_join': true,
+        'self_left_before_end': false,
+        'participant_dids': List.generate(257, (i) => 'did:peer:$i'),
+      });
+      expect(participation, isNotNull);
+      expect(participation!.participantDids, hasLength(256));
+      expect(participation.participantDids.first, 'did:peer:0');
+      expect(participation.participantDids.last, 'did:peer:255');
+    });
+
+    test('fromMap accepts participant_dids at the max list length', () {
+      final participation = CallParticipation.fromMap({
+        'participant_count': 1,
+        'did_self_join': true,
+        'self_left_before_end': false,
+        'participant_dids': List.generate(256, (i) => 'did:peer:$i'),
+      });
+      expect(participation, isNotNull);
+      expect(participation!.participantDids, hasLength(256));
+    });
+
+    test('fromMap drops a participant DID exceeding the max length but '
+        'keeps the call\'s count', () {
+      final oversizedDid = 'did:peer:${'a' * 512}';
+      final participation = CallParticipation.fromMap({
+        'participant_count': 3,
+        'did_self_join': true,
+        'self_left_before_end': false,
+        'participant_dids': [oversizedDid],
+      });
+      expect(participation, isNotNull);
+      expect(participation!.participantDids, isEmpty);
+      expect(participation.participantCount, 3);
+    });
+
+    test('fromMap drops a participant DID with an invalid DID shape', () {
+      final participation = CallParticipation.fromMap({
+        'participant_count': 1,
+        'did_self_join': true,
+        'self_left_before_end': false,
+        'participant_dids': ['not-a-did'],
+      });
+      expect(participation, isNotNull);
+      expect(participation!.participantDids, isEmpty);
+    });
+
+    test('fromMap keeps valid participant_dids and the count when a '
+        'mid-list entry is a bad DID', () {
+      final participation = CallParticipation.fromMap({
+        'participant_count': 3,
+        'did_self_join': true,
+        'self_left_before_end': false,
+        'participant_dids': ['did:peer:alice', 'not-a-did', 'did:peer:bob'],
+      });
+      expect(participation, isNotNull);
+      expect(participation!.participantDids, [
+        'did:peer:alice',
+        'did:peer:bob',
+      ]);
+      expect(participation.participantCount, 3);
+      expect(participation.didSelfJoin, isTrue);
+      expect(participation.selfLeftBeforeEnd, isFalse);
+    });
+
+    test('fromMap accepts a did:key entry (base58btc method-specific-id)', () {
+      const didKey = 'did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK';
+      final participation = CallParticipation.fromMap({
+        'participant_count': 1,
+        'did_self_join': true,
+        'self_left_before_end': false,
+        'participant_dids': [didKey],
+      });
+      expect(participation, isNotNull);
+      expect(participation!.participantDids, [didKey]);
+    });
+
+    test('fromMap accepts a did:web entry with dots and colons', () {
+      const didWeb = 'did:web:example.com:user';
+      final participation = CallParticipation.fromMap({
+        'participant_count': 1,
+        'did_self_join': true,
+        'self_left_before_end': false,
+        'participant_dids': [didWeb],
+      });
+      expect(participation, isNotNull);
+      expect(participation!.participantDids, [didWeb]);
     });
 
     test('maybeOf yields null participation for a 1:1 call', () {
@@ -343,6 +521,19 @@ void main() {
       );
       expect(copied.participation!.participantCount, 4);
       expect(copied.participation!.didSelfJoin, isTrue);
+    });
+
+    test('CallParticipation.copyWith replaces the participant DIDs', () {
+      final original = CallParticipation(
+        participantCount: 1,
+        didSelfJoin: true,
+        selfLeftBeforeEnd: false,
+      );
+      final copied = original.copyWith(
+        participantDids: const ['did:peer:alice'],
+      );
+      expect(copied.participantDids, ['did:peer:alice']);
+      expect(original.participantDids, isEmpty);
     });
 
     test('participantCount validation rejects negative values', () {

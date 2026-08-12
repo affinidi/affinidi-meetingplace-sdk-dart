@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-08-12
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_matrix` - `v0.0.1-dev.13`](#meeting_place_matrix---v001-dev13)
+
+---
+
+#### `meeting_place_matrix` - `v0.0.1-dev.13`
+
+ - **FIX**: prevent duplicate group join-request cards (#307).
+
+
 ## 2026-07-31
 
 ### Changes

@@ -1,3 +1,7 @@
+## 0.0.1-dev.13
+
+ - **FIX**: prevent duplicate group join-request cards (#307).
+
 ## 0.0.1-dev.12
 
  - **FIX**: allow any room member to start and join calls (#302).

@@ -1,3 +1,7 @@
+## 0.0.1-dev.14
+
+ - **FEAT**: persist named group-call participants (#309).
+
 ## 0.0.1-dev.13
 
  - **FIX**: prevent duplicate group join-request cards (#307).

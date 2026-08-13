@@ -598,7 +598,9 @@ class AudioVideoCallService {
         unawaited(_room.ratchetKey(ownParticipantId, 0));
       }
     }
-    _setState(_state.copyWith(participants: _room.participants));
+    unawaited(
+      _dispatch(CallParticipantsUpdated(participants: _room.participants)),
+    );
   }
 
   void _onPeerKeyed(String participantId) {

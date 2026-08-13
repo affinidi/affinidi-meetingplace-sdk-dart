@@ -645,9 +645,6 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
         );
         final mapped = stream
             .asyncMap((e) async {
-              if (_isTimelineEvent(e)) {
-                await _advanceMatrixSyncMarker(s.receiverDid, e.id);
-              }
               return _toMatrixIncoming(e, s.receiverDid);
             })
             .where((e) => e != null)
@@ -716,10 +713,6 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     }
   }
 
-  bool _isTimelineEvent(TransportEvent event) {
-    return event.type != 'm.typing' && event.type != 'm.receipt';
-  }
-
   Future<MatrixIncomingMessage?> _toMatrixIncoming(
     TransportEvent e,
     String receiverDid,
@@ -743,15 +736,6 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
       isFromMe: e.isFromMe,
       stateKey: e.metadata?['state_key'] as String?,
     );
-  }
-
-  Future<void> _advanceMatrixSyncMarker(
-    String receiverDid,
-    String eventId,
-  ) async {
-    final channel = await _coreSDK.findChannelByDidOrNull(receiverDid);
-    if (channel == null) return;
-    await _coreSDK.updateMessageSyncMarker(channel, eventId);
   }
 }
 

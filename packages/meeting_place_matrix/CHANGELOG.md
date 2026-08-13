@@ -1,3 +1,7 @@
+## 0.0.1-dev.15
+
+ - **FIX**: stop live Matrix subscription from advancing channel sync marker (#311).
+
 ## 0.0.1-dev.14
 
  - **FEAT**: persist named group-call participants (#309).

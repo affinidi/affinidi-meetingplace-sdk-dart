@@ -15,6 +15,27 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`meeting_place_matrix` - `v0.0.1-dev.18`](#meeting_place_matrix---v001-dev18)
+
+---
+
+#### `meeting_place_matrix` - `v0.0.1-dev.18`
+
+ - **FIX**: resolve joined member DID from persisted group on lookup miss (#310).
+
+
+## 2026-08-14
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`meeting_place_matrix` - `v0.0.1-dev.17`](#meeting_place_matrix---v001-dev17)
 
 ---

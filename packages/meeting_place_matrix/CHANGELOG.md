@@ -1,3 +1,7 @@
+## 0.0.1-dev.17
+
+ - **FIX**: arm outgoing call watchdog at start so stalled setup cannot hang (#316).
+
 ## 0.0.1-dev.16
 
  - **FIX**: stop group approval failing when member updates overlap (#301).

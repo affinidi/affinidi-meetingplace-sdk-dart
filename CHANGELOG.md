@@ -15,6 +15,27 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`meeting_place_matrix` - `v0.0.1-dev.17`](#meeting_place_matrix---v001-dev17)
+
+---
+
+#### `meeting_place_matrix` - `v0.0.1-dev.17`
+
+ - **FIX**: arm outgoing call watchdog at start so stalled setup cannot hang (#316).
+
+
+## 2026-08-14
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`meeting_place_chat` - `v0.0.1-dev.59`](#meeting_place_chat---v001-dev59)
  - [`meeting_place_core` - `v0.0.1-dev.49`](#meeting_place_core---v001-dev49)
  - [`meeting_place_credentials` - `v0.0.1-dev.14`](#meeting_place_credentials---v001-dev14)

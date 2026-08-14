@@ -194,6 +194,10 @@ class AudioVideoCallService {
         clearErrorCode: true,
       ),
     );
+    if (!isRecipient) {
+      _outgoingCallTimer?.cancel();
+      _outgoingCallTimer = Timer(_outgoingCallTimeout, _onOutgoingCallTimeout);
+    }
 
     var errorCode = AudioVideoCallErrorCode.unexpected;
     var succeeded = false;
@@ -338,7 +342,10 @@ class AudioVideoCallService {
         ),
       );
     } finally {
-      if (!succeeded) unawaited(_room.disconnect());
+      if (!succeeded) {
+        _outgoingCallTimer?.cancel();
+        unawaited(_room.disconnect());
+      }
     }
   }
 
@@ -492,9 +499,17 @@ class AudioVideoCallService {
     required CallRole ownRole,
   }) async {
     await _coordinator.sendCallInvite(channel: channel, mediaType: mediaType);
+    if (_isTearingDown) {
+      _logger.info(
+        'joinCall: Call torn down while invite was in flight, skipping ring '
+        'state',
+        name: _logKey,
+      );
+      return;
+    }
     _logger.info(
-      'joinCall: Caller ringing, invite sent, starting outgoing ring '
-      'timer (${_outgoingCallTimeout.inSeconds}s)',
+      'joinCall: Caller ringing, invite sent, outgoing timeout '
+      '(${_outgoingCallTimeout.inSeconds}s) already armed',
       name: _logKey,
     );
     _setState(
@@ -504,7 +519,6 @@ class AudioVideoCallService {
         ownRole: ownRole,
       ),
     );
-    _outgoingCallTimer = Timer(_outgoingCallTimeout, _onOutgoingCallTimeout);
   }
 
   Future<void> _enableLocalMedia({
@@ -534,6 +548,8 @@ class AudioVideoCallService {
   Future<void> _setupRecipientCall({
     CallRole ownRole = CallRole.recipient,
   }) async {
+    _outgoingCallTimer?.cancel();
+    _outgoingCallTimer = null;
     if (_hasPeer) {
       _setState(
         _state.copyWith(
@@ -627,6 +643,7 @@ class AudioVideoCallService {
       'leaving room and emitting missed',
       name: _logKey,
     );
+    _isTearingDown = true;
     unawaited(_dispatch(CallOutgoingTimeoutFired()));
   }
 

@@ -230,9 +230,14 @@ CallTransitionResult _onDeclineReceived(AudioVideoCallState current) {
   );
 }
 
-/// Handles no-answer timeout while the caller is ringing.
+/// Handles no-answer timeout while the caller is ringing, or while call setup
+/// is still connecting and the outgoing watchdog fires first.
 CallTransitionResult _onOutgoingTimeout(AudioVideoCallState current) {
-  if (current.status != AudioVideoCallStatus.outgoingRinging) {
+  final validStatuses = {
+    AudioVideoCallStatus.connecting,
+    AudioVideoCallStatus.outgoingRinging,
+  };
+  if (!validStatuses.contains(current.status)) {
     return CallTransitionResult.ignored(current);
   }
   return CallTransitionResult(

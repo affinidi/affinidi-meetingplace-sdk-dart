@@ -1,3 +1,7 @@
+## 0.0.1-dev.18
+
+ - **FIX**: resolve joined member DID from persisted group on lookup miss (#310).
+
 ## 0.0.1-dev.17
 
  - **FIX**: arm outgoing call watchdog at start so stalled setup cannot hang (#316).

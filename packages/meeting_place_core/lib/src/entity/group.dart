@@ -44,11 +44,6 @@ class Group {
     return _$GroupToJson(this);
   }
 
-  void approveMember(GroupMember member) {
-    members.firstWhere((m) => m.did == member.did).status =
-        GroupMemberStatus.approved;
-  }
-
   Group copyWith({
     String? id,
     String? did,

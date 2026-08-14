@@ -104,6 +104,94 @@ void main() {
       });
     });
 
+    group('CallParticipantsUpdated', () {
+      const self = AudioVideoCallParticipant(
+        participantId: 'self-1',
+        isSelf: true,
+      );
+      const peer = AudioVideoCallParticipant(participantId: 'peer-1');
+
+      for (final status in [
+        AudioVideoCallStatus.connected,
+        AudioVideoCallStatus.active,
+      ]) {
+        test(
+          'from $status, only remote peer leaves → ended + cleanup + outcome',
+          () {
+            final state = _idle().copyWith(
+              status: status,
+              participants: const [self, peer],
+              callId: 'call-1',
+              callStartedAt: DateTime(2024),
+            );
+            final result = callTransition(
+              state,
+              CallParticipantsUpdated(participants: const [self]),
+            );
+            expect(result.state.status, AudioVideoCallStatus.ended);
+            expect(result.commands, contains(isA<CancelOutgoingTimeout>()));
+            expect(result.commands, contains(isA<CancelE2eeTimeout>()));
+            expect(result.commands, contains(isA<LeaveMatrixCall>()));
+            expect(result.commands, contains(isA<DisconnectRoom>()));
+            expect(
+              result.commands,
+              contains(
+                predicate<CallCommand>(
+                  (c) => c is SendCallOutcome && c.callId == 'call-1',
+                ),
+              ),
+            );
+          },
+        );
+      }
+
+      test(
+        'only remote peer leaves but callId/callStartedAt unresolved → ended, '
+        'no outcome command',
+        () {
+          final state = _idle().copyWith(
+            status: AudioVideoCallStatus.connected,
+            participants: const [self, peer],
+          );
+          final result = callTransition(
+            state,
+            CallParticipantsUpdated(participants: const [self]),
+          );
+          expect(result.state.status, AudioVideoCallStatus.ended);
+          expect(result.commands, isNot(contains(isA<SendCallOutcome>())));
+        },
+      );
+
+      test('a remote peer remains → still connected, no cleanup commands', () {
+        const otherPeer = AudioVideoCallParticipant(participantId: 'peer-2');
+        final state = _idle().copyWith(
+          status: AudioVideoCallStatus.connected,
+          participants: const [self, peer, otherPeer],
+          callId: 'call-1',
+          callStartedAt: DateTime(2024),
+        );
+        final result = callTransition(
+          state,
+          CallParticipantsUpdated(participants: const [self, otherPeer]),
+        );
+        expect(result.state.status, AudioVideoCallStatus.connected);
+        expect(result.commands, isEmpty);
+      });
+
+      test('from outgoingRinging → participants updated, no status change', () {
+        final state = _idle().copyWith(
+          status: AudioVideoCallStatus.outgoingRinging,
+          participants: const [self, peer],
+        );
+        final result = callTransition(
+          state,
+          CallParticipantsUpdated(participants: const [self]),
+        );
+        expect(result.state.status, AudioVideoCallStatus.outgoingRinging);
+        expect(result.commands, isEmpty);
+      });
+    });
+
     group('CallPeerKeyed', () {
       for (final status in [
         AudioVideoCallStatus.outgoingRinging,

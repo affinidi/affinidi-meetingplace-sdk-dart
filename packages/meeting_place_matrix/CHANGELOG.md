@@ -1,3 +1,8 @@
+## 0.0.1-dev.16
+
+ - **FIX**: stop group approval failing when member updates overlap (#301).
+ - **FIX**: end 1:1 call and send outcome when remote peer disconnects (#317).
+
 ## 0.0.1-dev.15
 
  - **FIX**: stop live Matrix subscription from advancing channel sync marker (#311).

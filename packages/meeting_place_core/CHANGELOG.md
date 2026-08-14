@@ -1,3 +1,7 @@
+## 0.0.1-dev.49
+
+ - **FIX**: stop group approval failing when member updates overlap (#301).
+
 ## 0.0.1-dev.48
 
  - **FIX**: advance matrix sync markers to newest event to stop unread badge recount (#279).

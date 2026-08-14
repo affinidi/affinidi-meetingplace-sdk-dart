@@ -3,6 +3,48 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-08-14
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_chat` - `v0.0.1-dev.59`](#meeting_place_chat---v001-dev59)
+ - [`meeting_place_core` - `v0.0.1-dev.49`](#meeting_place_core---v001-dev49)
+ - [`meeting_place_credentials` - `v0.0.1-dev.14`](#meeting_place_credentials---v001-dev14)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.59`](#meeting_place_drift_repository---v001-dev59)
+ - [`meeting_place_matrix` - `v0.0.1-dev.16`](#meeting_place_matrix---v001-dev16)
+
+---
+
+#### `meeting_place_chat` - `v0.0.1-dev.59`
+
+ - **FIX**: stop group approval failing when member updates overlap (#301).
+
+#### `meeting_place_core` - `v0.0.1-dev.49`
+
+ - **FIX**: stop group approval failing when member updates overlap (#301).
+
+#### `meeting_place_credentials` - `v0.0.1-dev.14`
+
+ - **FIX**: stop group approval failing when member updates overlap (#301).
+
+#### `meeting_place_drift_repository` - `v0.0.1-dev.59`
+
+ - **FIX**: stop group approval failing when member updates overlap (#301).
+
+#### `meeting_place_matrix` - `v0.0.1-dev.16`
+
+ - **FIX**: stop group approval failing when member updates overlap (#301).
+ - **FIX**: end 1:1 call and send outcome when remote peer disconnects (#317).
+
+
 ## 2026-08-13
 
 ### Changes

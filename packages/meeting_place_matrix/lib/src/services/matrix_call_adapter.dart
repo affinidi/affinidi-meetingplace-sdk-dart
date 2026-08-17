@@ -92,7 +92,9 @@ class MatrixCallAdapter {
   ///
   /// Throws [MeetingPlaceLiveKitCallOperationException] when the channel or its
   /// permanentChannelDid cannot be resolved.
-  Future<({Channel channel, String ownChannelDid, String roomName})>
+  Future<
+    ({Channel channel, String ownChannelDid, String roomName, bool isGroupCall})
+  >
   resolveChannel() async {
     final existingResolution = _cancelTargetResolution;
     if (existingResolution != null) {
@@ -121,7 +123,12 @@ class MatrixCallAdapter {
             channelDid: ownChannelDid,
             otherPartyChannelDid: _otherPartyChannelDid,
           );
-    return (channel: channel, ownChannelDid: ownChannelDid, roomName: roomName);
+    return (
+      channel: channel,
+      ownChannelDid: ownChannelDid,
+      roomName: roomName,
+      isGroupCall: isGroupCall,
+    );
   }
 
   /// Prepares the call-cancel routing by resolving the channel group status

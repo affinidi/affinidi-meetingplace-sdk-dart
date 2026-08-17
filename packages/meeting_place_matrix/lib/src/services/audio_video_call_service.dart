@@ -203,8 +203,9 @@ class AudioVideoCallService {
     var succeeded = false;
     try {
       errorCode = AudioVideoCallErrorCode.channelNotFound;
-      final (:channel, :ownChannelDid, :roomName) = await _coordinator
-          .resolveChannel();
+      final (:channel, :ownChannelDid, :roomName, :isGroupCall) =
+          await _coordinator.resolveChannel();
+      _setState(_state.copyWith(isGroupCall: isGroupCall));
 
       errorCode = AudioVideoCallErrorCode.tokenFetchFailed;
       final credentials = await _coordinator.fetchCallCredentials(

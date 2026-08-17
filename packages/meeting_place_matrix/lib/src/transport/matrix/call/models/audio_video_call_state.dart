@@ -19,6 +19,7 @@ class AudioVideoCallState {
     this.ownRole,
     this.callId,
     this.callStartedAt,
+    this.isGroupCall = false,
   });
 
   final AudioVideoCallStatus status;
@@ -54,6 +55,15 @@ class AudioVideoCallState {
   /// is resolved.
   final DateTime? callStartedAt;
 
+  /// Whether this call is a group call (more than two members) as opposed to
+  /// a 1:1 call.
+  ///
+  /// Resolved once when the call session is prepared and held for the
+  /// lifetime of the call. Consumers use this to distinguish group-call
+  /// semantics (e.g. the call survives a single remote peer leaving) from
+  /// 1:1 semantics (the call ends when the only remote peer leaves).
+  final bool isGroupCall;
+
   /// The default initial state: idle, no participants, no error.
   static const initial = AudioVideoCallState();
 
@@ -66,6 +76,7 @@ class AudioVideoCallState {
     CallRole? ownRole,
     String? callId,
     DateTime? callStartedAt,
+    bool? isGroupCall,
   }) {
     return AudioVideoCallState(
       status: status ?? this.status,
@@ -76,6 +87,7 @@ class AudioVideoCallState {
       ownRole: ownRole ?? this.ownRole,
       callId: callId ?? this.callId,
       callStartedAt: callStartedAt ?? this.callStartedAt,
+      isGroupCall: isGroupCall ?? this.isGroupCall,
     );
   }
 }

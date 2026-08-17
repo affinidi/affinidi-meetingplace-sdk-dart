@@ -5,6 +5,7 @@ import '../errors/vta_client_exception.dart';
 import '../transport/http_transport.dart';
 import 'audit_api.dart';
 import 'step_up_policy_api.dart';
+import 'vault_api.dart';
 
 class VtaClient {
   VtaClient({
@@ -17,6 +18,7 @@ class VtaClient {
     auth = VtaAuthApi(transport: authTransport ?? VtaRestAuthTransport(this));
     stepUpPolicy = VtaStepUpPolicyApi(client: this);
     auditLog = VtaAuditApi(client: this);
+    vault = VtaVaultApi(client: this);
   }
 
   final Uri _baseUri;
@@ -24,6 +26,7 @@ class VtaClient {
   late final VtaAuthApi auth;
   late final VtaStepUpPolicyApi stepUpPolicy;
   late final VtaAuditApi auditLog;
+  late final VtaVaultApi vault;
 
   String? authToken;
 

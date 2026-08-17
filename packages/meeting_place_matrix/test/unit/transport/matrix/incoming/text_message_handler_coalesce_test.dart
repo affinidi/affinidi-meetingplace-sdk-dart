@@ -171,89 +171,85 @@ void main() {
       },
     );
 
-    test(
-      'correlated sign-document request creates a ConciergeMessage keyed on the correlation id',
-      () async {
-        final signRequest = jsonEncode({
-          'type': 'cierge/sign-document-request',
-          'document': {
-            'title': 'doc-to-sign.md',
-            'mediaType': 'application/octet-stream',
-            'byteCount': 19,
+    test('correlated sign-document request creates a ConciergeMessage '
+        'keyed on the correlation id', () async {
+      final signRequest = jsonEncode({
+        'type': 'cierge/sign-document-request',
+        'document': {
+          'title': 'doc-to-sign.md',
+          'mediaType': 'application/octet-stream',
+          'byteCount': 19,
+        },
+      });
+
+      await handler.handle(
+        MatrixRoomEvent(
+          id: r'$evt-sign-corr-1',
+          type: 'm.room.message',
+          senderDid: _aliceDid,
+          roomId: '!room:server',
+          content: {
+            'msgtype': 'm.text',
+            'body': signRequest,
+            MatrixEventField.correlationId: 'corr-sign-1',
           },
-        });
+          timestamp: DateTime.utc(2026, 1, 1, 12),
+        ),
+      );
 
-        await handler.handle(
-          MatrixRoomEvent(
-            id: r'$evt-sign-corr-1',
-            type: 'm.room.message',
-            senderDid: _aliceDid,
-            roomId: '!room:server',
-            content: {
-              'msgtype': 'm.text',
-              'body': signRequest,
-              MatrixEventField.correlationId: 'corr-sign-1',
-            },
-            timestamp: DateTime.utc(2026, 1, 1, 12),
-          ),
-        );
+      verify(() => repo.createMessage(any())).called(1);
+      final stored = store['corr-sign-1']! as ConciergeMessage;
+      expect(stored.messageId, equals('corr-sign-1'));
+      expect(stored.attachments, isNull);
+      expect(idMap[r'$evt-sign-corr-1'], equals('corr-sign-1'));
+    });
 
-        verify(() => repo.createMessage(any())).called(1);
-        final stored = store['corr-sign-1']! as ConciergeMessage;
-        expect(stored.messageId, equals('corr-sign-1'));
-        expect(stored.attachments, isNull);
-        expect(idMap[r'$evt-sign-corr-1'], equals('corr-sign-1'));
-      },
-    );
+    test('correlated follow-up attachment coalesces into an existing '
+        'sign-document ConciergeMessage', () async {
+      final signRequest = jsonEncode({
+        'type': 'cierge/sign-document-request',
+        'document': {
+          'title': 'doc-to-sign.md',
+          'mediaType': 'application/octet-stream',
+          'byteCount': 19,
+        },
+      });
 
-    test(
-      'correlated follow-up attachment coalesces into an existing sign-document ConciergeMessage',
-      () async {
-        final signRequest = jsonEncode({
-          'type': 'cierge/sign-document-request',
-          'document': {
-            'title': 'doc-to-sign.md',
-            'mediaType': 'application/octet-stream',
-            'byteCount': 19,
+      await handler.handle(
+        MatrixRoomEvent(
+          id: r'$evt-sign-corr-1',
+          type: 'm.room.message',
+          senderDid: _aliceDid,
+          roomId: '!room:server',
+          content: {
+            'msgtype': 'm.text',
+            'body': signRequest,
+            MatrixEventField.correlationId: 'corr-sign-1',
           },
-        });
+          timestamp: DateTime.utc(2026, 1, 1, 12),
+        ),
+      );
 
-        await handler.handle(
-          MatrixRoomEvent(
-            id: r'$evt-sign-corr-1',
-            type: 'm.room.message',
-            senderDid: _aliceDid,
-            roomId: '!room:server',
-            content: {
-              'msgtype': 'm.text',
-              'body': signRequest,
-              MatrixEventField.correlationId: 'corr-sign-1',
-            },
-            timestamp: DateTime.utc(2026, 1, 1, 12),
-          ),
-        );
+      await handler.handle(
+        _imageEvent(
+          id: r'$evt-sign-corr-2',
+          attachmentId: 'attachment-sign-2',
+          filename: 'doc-to-sign.md',
+          correlationId: 'corr-sign-1',
+        ),
+      );
 
-        await handler.handle(
-          _imageEvent(
-            id: r'$evt-sign-corr-2',
-            attachmentId: 'attachment-sign-2',
-            filename: 'doc-to-sign.md',
-            correlationId: 'corr-sign-1',
-          ),
-        );
-
-        verify(() => repo.createMessage(any())).called(1);
-        verify(() => repo.updateMesssage(any())).called(1);
-        final stored = store['corr-sign-1']! as ConciergeMessage;
-        expect(stored.attachments, hasLength(1));
-        expect(stored.attachments!.single.id, equals('attachment-sign-2'));
-        expect(
-          stored.attachments!.single.transportId,
-          equals(r'$evt-sign-corr-2'),
-        );
-        expect(idMap[r'$evt-sign-corr-2'], equals('corr-sign-1'));
-      },
-    );
+      verify(() => repo.createMessage(any())).called(1);
+      verify(() => repo.updateMesssage(any())).called(1);
+      final stored = store['corr-sign-1']! as ConciergeMessage;
+      expect(stored.attachments, hasLength(1));
+      expect(stored.attachments!.single.id, equals('attachment-sign-2'));
+      expect(
+        stored.attachments!.single.transportId,
+        equals(r'$evt-sign-corr-2'),
+      );
+      expect(idMap[r'$evt-sign-corr-2'], equals('corr-sign-1'));
+    });
 
     test(
       'absent correlationId: legacy one-event-one-Message, keyed on event id',

@@ -227,23 +227,6 @@ class MatrixCallAdapter {
     return CallSessionPreparation(callId: callId, isRejoin: isRejoin);
   }
 
-  /// Generates a fresh callId for [matrixRoomId] and stores it as the
-  /// active call.
-  ///
-  /// Used when a caller discovered a stale in-progress membership but no live
-  /// peer is present, so the call must not reuse the ghost call's id. Replaces
-  /// the identifiers set by [prepareCallSession].
-  String assignFreshCallId(String matrixRoomId) {
-    final callId = _createCallId(matrixRoomId);
-    _matrixRoomId = matrixRoomId;
-    _matrixCallId = callId;
-    _logger.info(
-      'Assigned fresh call session: callId=$callId for room $matrixRoomId',
-      name: _logKey,
-    );
-    return callId;
-  }
-
   /// Signals the Matrix homeserver that a video call has started.
   ///
   /// Called after [prepareCallSession] once the LiveKit room is connected.

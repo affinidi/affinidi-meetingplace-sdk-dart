@@ -127,14 +127,27 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
         );
         final previousSession = _activeCallSessionManager.activeSession;
         _activeCallSessionManager.clearActiveSession();
-        _pendingCallManager.registerIncomingCall(
+        // Surface the losing session's own callId so consumers can resolve
+        // and redact that device's own stuck outgoing call item, keyed by
+        // its own callId rather than the new incoming event's callId.
+        final restartedEvent = IncomingAudioVideoCallEvent(
           callId: event.callId,
-          otherPartyChannelDid: event.otherPartyPermanentChannelDid,
+          callerPermanentChannelDid: event.callerPermanentChannelDid,
+          otherPartyPermanentChannelDid: event.otherPartyPermanentChannelDid,
           mediaType: event.mediaType,
+          invitedAt: event.invitedAt,
+          ownPermanentChannelDid: event.ownPermanentChannelDid,
+          roomId: event.roomId,
+          restartedOwnCallId: previousSession?.callId,
         );
-        _pendingIncomingCallWatchManager.watchPendingCall(_sdk, event);
+        _pendingCallManager.registerIncomingCall(
+          callId: restartedEvent.callId,
+          otherPartyChannelDid: restartedEvent.otherPartyPermanentChannelDid,
+          mediaType: restartedEvent.mediaType,
+        );
+        _pendingIncomingCallWatchManager.watchPendingCall(_sdk, restartedEvent);
         if (!_incomingCallsController.isClosed) {
-          _incomingCallsController.add(event);
+          _incomingCallsController.add(restartedEvent);
         }
         if (previousSession != null) {
           _activeCallSessionManager.disposeSessionAfterPeerRestart(

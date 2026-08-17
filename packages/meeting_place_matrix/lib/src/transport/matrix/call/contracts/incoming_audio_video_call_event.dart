@@ -11,6 +11,7 @@ class IncomingAudioVideoCallEvent {
     required this.invitedAt,
     this.ownPermanentChannelDid,
     this.roomId,
+    this.restartedOwnCallId,
   });
 
   /// Identifier for this call.
@@ -39,4 +40,14 @@ class IncomingAudioVideoCallEvent {
   /// Matrix room ID when known; enables lifecycle observation in group calls
   /// before full transport metadata is stable.
   final String? roomId;
+
+  /// This device's own callId for the outgoing call that this incoming call
+  /// superseded, set only when this event is a call glare restart (both
+  /// peers dialled each other simultaneously and this device lost the
+  /// tie-break). Null for a genuinely fresh incoming call.
+  ///
+  /// The loser's outgoing call is a separate, already-synced chat message
+  /// keyed by this callId; consumers use it to resolve and redact that
+  /// device's own stuck outgoing item rather than the new incoming [callId].
+  final String? restartedOwnCallId;
 }

@@ -284,38 +284,6 @@ void main() {
     });
   });
 
-  group('assignFreshCallId', () {
-    test('mints a fresh call id and replaces the reused identifier', () async {
-      final didManager = MockDidManager();
-      when(
-        () => matrixService.initializeVoIPWithDelegate(
-          didManager: didManager,
-          delegate: any(named: 'delegate'),
-        ),
-      ).thenAnswer((_) async {});
-      when(
-        () => matrixService.activeCallId(
-          didManager: didManager,
-          roomId: _matrixRoomId,
-        ),
-      ).thenAnswer((_) async => 'ghost-call-id');
-
-      final prepared = await adapter.prepareCallSession(
-        didManager: didManager,
-        matrixRoomId: _matrixRoomId,
-        isRecipient: false,
-      );
-      expect(prepared.callId, 'ghost-call-id');
-
-      final fresh = adapter.assignFreshCallId(_matrixRoomId);
-
-      expect(fresh, isNot('ghost-call-id'));
-      expect(fresh, startsWith('$_matrixRoomId@'));
-      expect(adapter.matrixCallId, fresh);
-      expect(adapter.matrixRoomId, _matrixRoomId);
-    });
-  });
-
   group('registerMatrixCall and leaveCall', () {
     test('stores identifiers and leaves Matrix call once', () async {
       final didManager = MockDidManager();

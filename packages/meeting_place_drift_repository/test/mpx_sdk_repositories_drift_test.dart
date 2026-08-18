@@ -239,6 +239,133 @@ void main() {
         },
       );
     });
+
+    group('listMessagesByMediaKind', () {
+      // Builds a call-marker attachment inline (mirroring
+      // `CallMetadata.toMetadata` from `meeting_place_matrix`) rather than
+      // depending on that package from this test.
+      ChatAttachment buildCallAttachment(String id) => ChatAttachment(
+        id: id,
+        metadata: const {
+          'media_kind': 'call',
+          'call_media_type': 'audio',
+          'call_status': 'ended',
+          'call_id': 'call-session-id',
+        },
+      );
+
+      Future<void> seedChat1() async {
+        await repository.createMessage(
+          Message(
+            chatId: 'chat-1',
+            messageId: 'text-1',
+            senderDid: 'did:example:alice',
+            isFromMe: false,
+            dateCreated: DateTime.utc(2026, 1, 1),
+            status: ChatItemStatus.received,
+            value: 'hello',
+          ),
+        );
+        await repository.createMessage(
+          Message(
+            chatId: 'chat-1',
+            messageId: 'text-2',
+            senderDid: 'did:example:alice',
+            isFromMe: false,
+            dateCreated: DateTime.utc(2026, 1, 2),
+            status: ChatItemStatus.received,
+            value: 'world',
+          ),
+        );
+        await repository.createMessage(
+          Message(
+            chatId: 'chat-1',
+            messageId: 'voice-1',
+            senderDid: 'did:example:alice',
+            isFromMe: false,
+            dateCreated: DateTime.utc(2026, 1, 3),
+            status: ChatItemStatus.received,
+            value: '',
+            attachments: [
+              VoiceMessageMetadata.buildAttachment(
+                id: 'attachment-voice-1',
+                base64: 'AAAA',
+                durationMs: 1000,
+              ),
+            ],
+          ),
+        );
+        await repository.createMessage(
+          Message(
+            chatId: 'chat-1',
+            messageId: 'call-1',
+            senderDid: 'did:example:alice',
+            isFromMe: false,
+            dateCreated: DateTime.utc(2026, 1, 4),
+            status: ChatItemStatus.received,
+            value: '',
+            attachments: [buildCallAttachment('attachment-call-1')],
+          ),
+        );
+        await repository.createMessage(
+          Message(
+            chatId: 'chat-1',
+            messageId: 'call-2',
+            senderDid: 'did:example:alice',
+            isFromMe: false,
+            dateCreated: DateTime.utc(2026, 1, 5),
+            status: ChatItemStatus.received,
+            value: '',
+            attachments: [buildCallAttachment('attachment-call-2')],
+          ),
+        );
+        await repository.createMessage(
+          Message(
+            chatId: 'chat-1',
+            messageId: 'call-3',
+            senderDid: 'did:example:alice',
+            isFromMe: false,
+            dateCreated: DateTime.utc(2026, 1, 6),
+            status: ChatItemStatus.received,
+            value: '',
+            attachments: [buildCallAttachment('attachment-call-3')],
+          ),
+        );
+      }
+
+      test('returns only call messages, most recent first, with empty '
+          'reactions and call metadata intact', () async {
+        await seedChat1();
+
+        final calls = await repository.listMessagesByMediaKind(
+          'chat-1',
+          mediaKind: 'call',
+        );
+
+        expect(
+          calls.map((m) => m.messageId),
+          equals(['call-3', 'call-2', 'call-1']),
+        );
+        for (final call in calls) {
+          final message = call as Message;
+          expect(message.reactions, isEmpty);
+          final attachment = message.attachments.single;
+          expect(attachment.metadata?['media_kind'], equals('call'));
+        }
+      });
+
+      test('limit returns only the most recent call messages', () async {
+        await seedChat1();
+
+        final calls = await repository.listMessagesByMediaKind(
+          'chat-1',
+          mediaKind: 'call',
+          limit: 2,
+        );
+
+        expect(calls.map((m) => m.messageId), equals(['call-3', 'call-2']));
+      });
+    });
   });
 
   group('contactInfoJson persistence', () {

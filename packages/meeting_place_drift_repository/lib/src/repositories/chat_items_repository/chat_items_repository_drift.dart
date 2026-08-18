@@ -364,11 +364,11 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
       Variable.withString(pattern),
     ];
 
-    final sql = StringBuffer('''
+    final sql = StringBuffer(r'''
 SELECT ci.* FROM chat_items ci
 INNER JOIN attachments a ON a.message_id = ci.message_id
 WHERE ci.chat_id = ?
-  AND a.metadata LIKE ?
+  AND a.metadata LIKE ? ESCAPE '\'
 GROUP BY ci.message_id
 ORDER BY ci.date_created DESC
 ''');
@@ -702,7 +702,10 @@ ORDER BY ci.date_created DESC
         await (_database.select(_database.attachments)..where(
               (a) =>
                   a.messageId.isIn(messageIds) &
-                  a.metadata.like(_mediaKindLikePattern(mediaKind)),
+                  a.metadata.like(
+                    _mediaKindLikePattern(mediaKind),
+                    escapeChar: _likeEscapeChar,
+                  ),
             ))
             .get();
 
@@ -820,7 +823,22 @@ Map<String, dynamic>? _decodeMetadata(String? value) {
   return decoded is Map<String, dynamic> ? decoded : null;
 }
 
+/// Escape character used in the `LIKE` patterns built by
+/// [_mediaKindLikePattern]. Every query using such a pattern must pass this
+/// same character as its `ESCAPE` clause (raw SQL: `ESCAPE '\'`; Drift's
+/// `.like(...)`: `escapeChar: _likeEscapeChar`).
+const _likeEscapeChar = r'\';
+
 /// Builds the `LIKE` pattern matching a persisted attachment `metadata`
 /// column whose `media_kind` marker equals [mediaKind].
-String _mediaKindLikePattern(String mediaKind) =>
-    '%"${model.VoiceMessageMetadata.mediaKindKey}":"$mediaKind"%';
+///
+/// Escapes `%`/`_` wildcards and the escape character itself in [mediaKind]
+/// so the pattern always matches an exact `media_kind` value rather than
+/// treating caller-supplied wildcard characters as glob syntax.
+String _mediaKindLikePattern(String mediaKind) {
+  final escapedMediaKind = mediaKind
+      .replaceAll(_likeEscapeChar, _likeEscapeChar * 2)
+      .replaceAll('%', '$_likeEscapeChar%')
+      .replaceAll('_', '${_likeEscapeChar}_');
+  return '%"${model.VoiceMessageMetadata.mediaKindKey}":"$escapedMediaKind"%';
+}

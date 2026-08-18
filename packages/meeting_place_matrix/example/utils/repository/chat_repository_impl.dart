@@ -114,7 +114,8 @@ class ChatRepositoryImpl implements ChatRepository {
             (a) => a.metadata?[VoiceMessageMetadata.mediaKindKey] == mediaKind,
           ),
         )
-        .toList();
+        .toList()
+      ..sort((a, b) => b.dateCreated.compareTo(a.dateCreated));
     return limit != null && filtered.length > limit
         ? filtered.sublist(0, limit)
         : filtered;

@@ -131,6 +131,7 @@ class GroupMatrixChatSDK extends MeetingPlaceMatrixChatSDK
 
     if (isGroupOwner) {
       await _createConciergeMessagesForPendingApprovals(chat);
+      await _controlPlaneSubscription?.cancel();
       _controlPlaneSubscription = PendingApprovalsListener(this).listen(chat);
     }
 

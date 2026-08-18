@@ -1,3 +1,7 @@
+## 0.0.1-dev.14
+
+ - **FIX**: stop group approval failing when member updates overlap (#301).
+
 ## 0.0.1-dev.13
 
  - Update a dependency to the latest release.

@@ -132,7 +132,7 @@ class IncomingRoomEventRouter {
         IncomingChatEvent(
           type: dispatchKey,
           senderDid: event.senderDid,
-          targetDid: resolveTargetDid(event),
+          targetDid: await resolveTargetDid(event),
           content: event.content,
         ),
       );
@@ -183,5 +183,5 @@ class IncomingRoomEventRouter {
   /// context-specific resolution (e.g., resolving the affected user in
   /// a membership change from the group's member list).
   @protected
-  String? resolveTargetDid(MatrixRoomEvent event) => null;
+  Future<String?> resolveTargetDid(MatrixRoomEvent event) async => null;
 }

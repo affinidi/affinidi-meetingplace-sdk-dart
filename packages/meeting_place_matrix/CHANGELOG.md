@@ -1,3 +1,28 @@
+## 0.0.1-dev.18
+
+ - **FIX**: resolve joined member DID from persisted group on lookup miss (#310).
+
+## 0.0.1-dev.17
+
+ - **FIX**: arm outgoing call watchdog at start so stalled setup cannot hang (#316).
+
+## 0.0.1-dev.16
+
+ - **FIX**: stop group approval failing when member updates overlap (#301).
+ - **FIX**: end 1:1 call and send outcome when remote peer disconnects (#317).
+
+## 0.0.1-dev.15
+
+ - **FIX**: stop live Matrix subscription from advancing channel sync marker (#311).
+
+## 0.0.1-dev.14
+
+ - **FEAT**: persist named group-call participants (#309).
+
+## 0.0.1-dev.13
+
+ - **FIX**: prevent duplicate group join-request cards (#307).
+
 ## 0.0.1-dev.12
 
  - **FIX**: allow any room member to start and join calls (#302).

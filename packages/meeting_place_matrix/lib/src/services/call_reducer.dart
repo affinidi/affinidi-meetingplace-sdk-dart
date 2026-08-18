@@ -62,8 +62,9 @@ CallTransitionResult callTransition(
       callStartedAt: callStartedAt,
     ),
 
-    CallParticipantsUpdated(:final participants) => CallTransitionResult(
-      state: current.copyWith(participants: participants),
+    CallParticipantsUpdated(:final participants) => _onParticipantsUpdated(
+      current,
+      participants: participants,
     ),
 
     CallPeerKeyed(:final participants) => _onPeerKeyed(
@@ -151,6 +152,44 @@ CallTransitionResult _onPeerJoined(
   );
 }
 
+/// Ends the call when the only remote peer leaves a connected 1:1 call.
+CallTransitionResult _onParticipantsUpdated(
+  AudioVideoCallState current, {
+  required List<AudioVideoCallParticipant> participants,
+}) {
+  final validStatuses = {
+    AudioVideoCallStatus.connected,
+    AudioVideoCallStatus.active,
+  };
+  final hadRemotePeer = current.participants.any((p) => !p.isSelf);
+  final hasRemotePeer = participants.any((p) => !p.isSelf);
+  if (!hadRemotePeer ||
+      hasRemotePeer ||
+      !validStatuses.contains(current.status)) {
+    return CallTransitionResult(
+      state: current.copyWith(participants: participants),
+    );
+  }
+  final commands = <CallCommand>[
+    CancelOutgoingTimeout(),
+    CancelE2eeTimeout(),
+    LeaveMatrixCall(),
+    DisconnectRoom(),
+  ];
+  final callId = current.callId;
+  final startedAt = current.callStartedAt;
+  if (callId != null && startedAt != null) {
+    commands.add(SendCallOutcome(callId: callId, startedAt: startedAt));
+  }
+  return CallTransitionResult(
+    state: current.copyWith(
+      status: AudioVideoCallStatus.ended,
+      participants: participants,
+    ),
+    commands: commands,
+  );
+}
+
 /// Promotes to active once a peer's E2EE key is ready.
 CallTransitionResult _onPeerKeyed(
   AudioVideoCallState current, {
@@ -191,9 +230,14 @@ CallTransitionResult _onDeclineReceived(AudioVideoCallState current) {
   );
 }
 
-/// Handles no-answer timeout while the caller is ringing.
+/// Handles no-answer timeout while the caller is ringing, or while call setup
+/// is still connecting and the outgoing watchdog fires first.
 CallTransitionResult _onOutgoingTimeout(AudioVideoCallState current) {
-  if (current.status != AudioVideoCallStatus.outgoingRinging) {
+  final validStatuses = {
+    AudioVideoCallStatus.connecting,
+    AudioVideoCallStatus.outgoingRinging,
+  };
+  if (!validStatuses.contains(current.status)) {
     return CallTransitionResult.ignored(current);
   }
   return CallTransitionResult(

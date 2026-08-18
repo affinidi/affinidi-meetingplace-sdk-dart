@@ -365,6 +365,59 @@ void main() {
 
         expect(calls.map((m) => m.messageId), equals(['call-3', 'call-2']));
       });
+
+      test('skips the reaction and attachment-link joins even though both are '
+          'genuinely persisted on the call message', () async {
+        const reaction = MessageReaction(
+          emoji: '👍',
+          senderDid: 'did:example:bob',
+        );
+        final link = Uri.parse('https://example.com/call-recording');
+
+        await repository.createMessage(
+          Message(
+            chatId: 'chat-reactions',
+            messageId: 'call-with-reaction',
+            senderDid: 'did:example:alice',
+            isFromMe: false,
+            dateCreated: DateTime.utc(2026, 1, 1),
+            status: ChatItemStatus.received,
+            value: '',
+            attachments: [
+              ChatAttachment(
+                id: 'attachment-call-with-reaction',
+                metadata: const {
+                  'media_kind': 'call',
+                  'call_media_type': 'audio',
+                  'call_status': 'ended',
+                  'call_id': 'call-session-id',
+                },
+                data: ChatAttachmentData(links: [link]),
+              ),
+            ],
+            reactions: const [reaction],
+          ),
+        );
+
+        // Baseline: the reaction and link are genuinely stored, and the
+        // normal `listMessages` path loads both.
+        final baseline =
+            (await repository.listMessages('chat-reactions')).single as Message;
+        expect(baseline.reactions, equals(const [reaction]));
+        expect(baseline.attachments.single.data?.links, equals([link]));
+
+        // The call-only path skips the reaction and attachment-link
+        // joins, so the same genuinely-persisted reaction and link are
+        // NOT returned. This would fail if either join were re-added.
+        final callResult =
+            (await repository.listMessagesByMediaKind(
+                  'chat-reactions',
+                  mediaKind: 'call',
+                )).single
+                as Message;
+        expect(callResult.reactions, isEmpty);
+        expect(callResult.attachments.single.data?.links, isEmpty);
+      });
     });
   });
 

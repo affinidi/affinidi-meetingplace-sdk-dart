@@ -46,12 +46,21 @@ class DefaultHttpTransport implements VtaHttpTransport {
   DefaultHttpTransport({http.Client? client})
     : _client = client ?? http.Client();
 
+  static const bool _persistentConnection = false;
+
   final http.Client _client;
 
   @override
   Future<VtaHttpResponse> get(Uri uri, {Map<String, String>? headers}) async {
     try {
-      final response = await _client.get(uri, headers: headers);
+      final request = http.Request('GET', uri)
+        ..persistentConnection = _persistentConnection;
+      if (headers != null && headers.isNotEmpty) {
+        request.headers.addAll(headers);
+      }
+
+      final streamed = await _client.send(request);
+      final response = await http.Response.fromStream(streamed);
       return VtaHttpResponse(
         statusCode: response.statusCode,
         body: response.body,
@@ -79,7 +88,15 @@ class DefaultHttpTransport implements VtaHttpTransport {
     Object? body,
   }) async {
     try {
-      final response = await _client.post(uri, headers: headers, body: body);
+      final request = http.Request('POST', uri)
+        ..persistentConnection = _persistentConnection;
+      if (headers != null && headers.isNotEmpty) {
+        request.headers.addAll(headers);
+      }
+      _applyRequestBody(request, body);
+
+      final streamed = await _client.send(request);
+      final response = await http.Response.fromStream(streamed);
       return VtaHttpResponse(
         statusCode: response.statusCode,
         body: response.body,
@@ -100,6 +117,29 @@ class DefaultHttpTransport implements VtaHttpTransport {
     }
   }
 
+  void _applyRequestBody(http.Request request, Object? body) {
+    if (body == null) {
+      return;
+    }
+    if (body is String) {
+      request.body = body;
+      return;
+    }
+    if (body is List<int>) {
+      request.bodyBytes = body;
+      return;
+    }
+    if (body is Map<String, String>) {
+      request.bodyFields = body;
+      return;
+    }
+    throw ArgumentError.value(
+      body,
+      'body',
+      'POST body must be a String, List<int>, or Map<String, String>.',
+    );
+  }
+
   @override
   Future<VtaHttpResponse> put(
     Uri uri, {
@@ -107,7 +147,15 @@ class DefaultHttpTransport implements VtaHttpTransport {
     Object? body,
   }) async {
     try {
-      final response = await _client.put(uri, headers: headers, body: body);
+      final request = http.Request('PUT', uri)
+        ..persistentConnection = _persistentConnection;
+      if (headers != null && headers.isNotEmpty) {
+        request.headers.addAll(headers);
+      }
+      _applyRequestBody(request, body);
+
+      final streamed = await _client.send(request);
+      final response = await http.Response.fromStream(streamed);
       return VtaHttpResponse(
         statusCode: response.statusCode,
         body: response.body,

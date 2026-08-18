@@ -38,6 +38,26 @@ void main() {
         throwsA(isA<VtaAuthException>()),
       );
     });
+
+    test('POST requests still decode JSON responses', () async {
+      final transport = _FakeTransport(
+        postHandler: (uri, headers, body) async {
+          expect(uri.toString(), 'https://example.com/api/trust-tasks');
+          return VtaHttpResponse(statusCode: 200, body: '{"status":"ok"}');
+        },
+      );
+
+      final client = VtaClient(
+        baseUrl: 'https://example.com',
+        transport: transport,
+      );
+
+      final data = await client.postJson(
+        '/api/trust-tasks',
+        body: {'foo': 'bar'},
+      );
+      expect(data['status'], 'ok');
+    });
   });
 }
 

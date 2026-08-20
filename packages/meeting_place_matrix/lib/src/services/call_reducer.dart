@@ -165,6 +165,7 @@ CallTransitionResult _onParticipantsUpdated(
   final hasRemotePeer = participants.any((p) => !p.isSelf);
   if (!hadRemotePeer ||
       hasRemotePeer ||
+      current.isGroupCall ||
       !validStatuses.contains(current.status)) {
     return CallTransitionResult(
       state: current.copyWith(participants: participants),
@@ -213,12 +214,16 @@ CallTransitionResult _onPeerKeyed(
 }
 
 /// Handles a recipient decline signal before the call is answered.
+///
+/// Ignored for group calls: a single invitee declining should not tear down
+/// the call while other members may still answer. The outgoing watchdog
+/// timeout still ends the call if nobody ever joins.
 CallTransitionResult _onDeclineReceived(AudioVideoCallState current) {
   final validStatuses = {
     AudioVideoCallStatus.connecting,
     AudioVideoCallStatus.outgoingRinging,
   };
-  if (!validStatuses.contains(current.status)) {
+  if (current.isGroupCall || !validStatuses.contains(current.status)) {
     return CallTransitionResult.ignored(current);
   }
   return CallTransitionResult(

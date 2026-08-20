@@ -178,6 +178,24 @@ void main() {
         expect(result.commands, isEmpty);
       });
 
+      test(
+        'group call, only remote peer leaves → stays connected, no cleanup',
+        () {
+          final state = _idle().copyWith(
+            status: AudioVideoCallStatus.connected,
+            participants: const [self, peer],
+            isGroupCall: true,
+          );
+          final result = callTransition(
+            state,
+            CallParticipantsUpdated(participants: const [self]),
+          );
+          expect(result.state.status, AudioVideoCallStatus.connected);
+          expect(result.state.participants, const [self]);
+          expect(result.commands, isEmpty);
+        },
+      );
+
       test('from outgoingRinging → participants updated, no status change', () {
         final state = _idle().copyWith(
           status: AudioVideoCallStatus.outgoingRinging,
@@ -243,6 +261,20 @@ void main() {
         );
         expect(result.accepted, isFalse);
       });
+
+      test(
+        'group call, from outgoingRinging → ignored, no cleanup commands',
+        () {
+          final state = _idle().copyWith(
+            status: AudioVideoCallStatus.outgoingRinging,
+            isGroupCall: true,
+          );
+          final result = callTransition(state, CallDeclineReceived());
+          expect(result.accepted, isFalse);
+          expect(result.state.status, AudioVideoCallStatus.outgoingRinging);
+          expect(result.commands, isEmpty);
+        },
+      );
     });
 
     group('CallOutgoingTimeoutFired', () {

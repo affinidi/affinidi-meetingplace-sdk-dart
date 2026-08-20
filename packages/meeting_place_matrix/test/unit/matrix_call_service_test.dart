@@ -110,6 +110,30 @@ class _MatrixCallServiceWithVoipFactory extends MatrixCallService {
   ) => voipFactory(client, delegate);
 }
 
+/// Captures calls to the `removeOwnCallMembership` seam instead of executing
+/// the real `matrix.Room.removeFamedlyCallMemberEvent` extension method,
+/// which cannot be stubbed via a `matrix.Room` mock.
+class _MatrixCallServiceCapturingMembershipClear extends MatrixCallService {
+  _MatrixCallServiceCapturingMembershipClear({
+    required super.ensureSession,
+    required super.logger,
+  });
+
+  final List<(matrix.Room, String, matrix.VoIP)> clearedCalls = [];
+  Exception? throwOnClear;
+
+  @override
+  Future<void> removeOwnCallMembership(
+    matrix.Room room,
+    String callId,
+    matrix.VoIP voip,
+  ) async {
+    clearedCalls.add((room, callId, voip));
+    final error = throwOnClear;
+    if (error != null) throw error;
+  }
+}
+
 void main() {
   late MockMatrixClient client;
   late MockMatrixClient secondClient;
@@ -167,6 +191,115 @@ void main() {
         service.leaveCall(roomId: _roomId, callId: _callId),
         completes,
       );
+    });
+
+    test('calls session.leave() when a local session is found', () async {
+      final voip = MockVoIP();
+      final session = MockGroupCallSession();
+      when(() => voip.client).thenReturn(client);
+      when(() => voip.getGroupCallById(_roomId, _callId)).thenReturn(session);
+      when(session.leave).thenAnswer((_) async {});
+      service.initializeVoIP(voip);
+
+      await service.leaveCall(roomId: _roomId, callId: _callId);
+
+      verify(session.leave).called(1);
+    });
+
+    test('clears own membership directly when no local session exists for the '
+        'callId', () async {
+      final voip = MockVoIP();
+      final room = MockMatrixRoom();
+      when(() => voip.client).thenReturn(client);
+      when(() => client.getRoomById(_roomId)).thenReturn(room);
+      final capturingService = _MatrixCallServiceCapturingMembershipClear(
+        ensureSession:
+            (DidManager _, {bool keepSyncActiveAfterLogin = false}) async =>
+                client,
+        logger: _NoOpLogger(),
+      )..initializeVoIP(voip);
+
+      await capturingService.leaveCall(roomId: _roomId, callId: _callId);
+
+      expect(capturingService.clearedCalls, hasLength(1));
+      final (clearedRoom, clearedCallId, clearedVoip) =
+          capturingService.clearedCalls.single;
+      expect(clearedRoom, same(room));
+      expect(clearedCallId, _callId);
+      expect(clearedVoip, same(voip));
+    });
+
+    test('falls back to clearing membership directly when session.leave() '
+        'throws', () async {
+      final voip = MockVoIP();
+      final session = MockGroupCallSession();
+      final room = MockMatrixRoom();
+      when(() => voip.client).thenReturn(client);
+      when(() => voip.getGroupCallById(_roomId, _callId)).thenReturn(session);
+      when(session.leave).thenThrow(Exception('leave failed'));
+      when(() => client.getRoomById(_roomId)).thenReturn(room);
+      final capturingService = _MatrixCallServiceCapturingMembershipClear(
+        ensureSession:
+            (DidManager _, {bool keepSyncActiveAfterLogin = false}) async =>
+                client,
+        logger: _NoOpLogger(),
+      )..initializeVoIP(voip);
+
+      await expectLater(
+        capturingService.leaveCall(roomId: _roomId, callId: _callId),
+        completes,
+      );
+
+      verify(session.leave).called(1);
+      expect(capturingService.clearedCalls, hasLength(1));
+    });
+
+    test(
+      'completes without clearing when no VoIP has the room loaded',
+      () async {
+        final voip = MockVoIP();
+        when(() => voip.client).thenReturn(client);
+        when(() => client.getRoomById(_roomId)).thenReturn(null);
+        final capturingService = _MatrixCallServiceCapturingMembershipClear(
+          ensureSession:
+              (DidManager _, {bool keepSyncActiveAfterLogin = false}) async =>
+                  client,
+          logger: _NoOpLogger(),
+        )..initializeVoIP(voip);
+
+        await expectLater(
+          capturingService.leaveCall(roomId: _roomId, callId: _callId),
+          completes,
+        );
+
+        expect(capturingService.clearedCalls, isEmpty);
+      },
+    );
+
+    test('completes without throwing when clearing the membership directly '
+        'fails', () async {
+      final voip = MockVoIP();
+      final room = MockMatrixRoom();
+      when(() => voip.client).thenReturn(client);
+      when(() => client.getRoomById(_roomId)).thenReturn(room);
+      final capturingService =
+          _MatrixCallServiceCapturingMembershipClear(
+              ensureSession:
+                  (
+                    DidManager _, {
+                    bool keepSyncActiveAfterLogin = false,
+                  }) async => client,
+              logger: _NoOpLogger(),
+            )
+            ..initializeVoIP(voip)
+            ..throwOnClear = Exception('state write failed');
+
+      await expectLater(
+        capturingService.leaveCall(roomId: _roomId, callId: _callId),
+        completes,
+      );
+
+      expect(capturingService.clearedCalls, hasLength(1));
     });
   });
 

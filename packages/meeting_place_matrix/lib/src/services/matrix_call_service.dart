@@ -372,13 +372,78 @@ class MatrixCallService {
   }
 
   /// Leaves the active MatrixRTC group call in [roomId] with [callId].
+  ///
+  /// Always clears this device's own `m.call.member` membership, even when no
+  /// local [matrix.GroupCallSession] is held for the call (for example
+  /// because it was never (re)created this session) or when
+  /// [matrix.GroupCallSession.leave] itself fails. Without this, a departed
+  /// device's membership state event can stay non-expired on the homeserver,
+  /// so every peer's snapshot keeps showing it as an active participant (a
+  /// stale "ongoing call" banner) until the membership's normal expiry
+  /// window elapses.
   Future<void> leaveCall({
     required String roomId,
     required String callId,
   }) async {
     final session = _findGroupCallById(roomId, callId);
-    if (session == null) return;
-    await session.leave();
+    if (session != null) {
+      try {
+        await session.leave();
+        return;
+      } catch (e, stackTrace) {
+        _logger.error(
+          'GroupCallSession.leave() failed for call $callId in room '
+          '$roomId; falling back to clearing the membership directly',
+          error: e,
+          stackTrace: stackTrace,
+          name: _logKey,
+        );
+      }
+    } else {
+      _logger.warning(
+        'No local group call session for call $callId in room $roomId on '
+        'leave; clearing own membership directly',
+        name: _logKey,
+      );
+    }
+    await _clearOwnMembership(roomId: roomId, callId: callId);
+  }
+
+  /// Removes this device's own `m.call.member` membership for [callId] in
+  /// [roomId] directly, without requiring a local [matrix.GroupCallSession].
+  ///
+  /// Used by [leaveCall] as a fallback so a leave is never a silent no-op.
+  /// Iterates every registered VoIP looking for the one whose client has
+  /// [roomId] loaded; safe to call even when the membership was already
+  /// cleared, since the underlying state write is idempotent.
+  Future<void> _clearOwnMembership({
+    required String roomId,
+    required String callId,
+  }) async {
+    var foundRoom = false;
+    for (final entry in _voips.entries) {
+      final room = entry.key.getRoomById(roomId);
+      if (room == null) continue;
+      foundRoom = true;
+      try {
+        await removeOwnCallMembership(room, callId, entry.value);
+      } catch (e, stackTrace) {
+        _logger.error(
+          'Failed to clear own m.call.member membership for call $callId '
+          'in room $roomId',
+          error: e,
+          stackTrace: stackTrace,
+          name: _logKey,
+        );
+      }
+    }
+    if (!foundRoom) {
+      _logger.warning(
+        'No Matrix client has room $roomId loaded; cannot clear own '
+        'membership for call $callId',
+        name: _logKey,
+      );
+    }
   }
 
   /// Returns a stream of [matrix.MatrixRTCCallEvent]s for the given call.
@@ -561,4 +626,22 @@ class MatrixCallService {
     matrix.Client client,
     matrix.WebRTCDelegate delegate,
   ) => matrix.VoIP(client, delegate);
+
+  /// Removes [callId]'s `m.call.member` membership for this device from
+  /// [room]'s state, without going through a [matrix.GroupCallSession].
+  ///
+  /// Extracted to allow test subclasses to observe or fake this call, since
+  /// `removeFamedlyCallMemberEvent` is an extension method on [matrix.Room]
+  /// and cannot be stubbed via mocks of the [matrix.Room] interface.
+  @visibleForTesting
+  Future<void> removeOwnCallMembership(
+    matrix.Room room,
+    String callId,
+    matrix.VoIP voip,
+  ) => room.removeFamedlyCallMemberEvent(
+    callId,
+    voip,
+    application: MatrixRtcCallType.call.value,
+    scope: MatrixRtcCallScope.room.value,
+  );
 }

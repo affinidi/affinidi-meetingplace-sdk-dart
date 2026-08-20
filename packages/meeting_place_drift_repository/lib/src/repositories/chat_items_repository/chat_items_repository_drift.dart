@@ -349,15 +349,23 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
   /// media-kind map stored in that column, so only rows whose `media_kind`
   /// equals the requested value match.
   ///
-  /// Unlike [listMessages], this skips the attachment-links join and only
-  /// hydrates the matching call attachment(s) with empty reactions, since
-  /// call items carry no reactions or linked bytes.
+  /// Fast path for byte-less kinds like `call`: unlike [listMessages] it skips
+  /// both the reactions query and the attachment-links join. Call items carry
+  /// neither, so nothing is lost. It must NOT be used for a media kind whose
+  /// attachments carry linked bytes or reactions (e.g. voice notes), which
+  /// would come back stripped of both; use [listMessages] for those.
   @override
   Future<List<model.ChatItem>> listMessagesByMediaKind(
     String chatId, {
     required String mediaKind,
     int? limit,
   }) async {
+    assert(
+      mediaKind != model.VoiceMessageMetadata.voiceKind,
+      'listMessagesByMediaKind skips reactions and attachment links; voice '
+      'attachments carry linked bytes and reactions and would return stripped '
+      'of both. Use listMessages for voice.',
+    );
     final pattern = _mediaKindLikePattern(mediaKind);
     final variables = <Variable>[
       Variable.withString(chatId),

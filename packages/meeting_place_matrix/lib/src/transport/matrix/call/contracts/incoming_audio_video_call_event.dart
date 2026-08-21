@@ -11,6 +11,7 @@ class IncomingAudioVideoCallEvent {
     required this.invitedAt,
     this.ownPermanentChannelDid,
     this.roomId,
+    this.restartedOwnCallId,
   });
 
   /// Identifier for this call.
@@ -39,4 +40,7 @@ class IncomingAudioVideoCallEvent {
   /// Matrix room ID when known; enables lifecycle observation in group calls
   /// before full transport metadata is stable.
   final String? roomId;
+
+  /// Own outgoing callId superseded by this glare restart; null if fresh.
+  final String? restartedOwnCallId;
 }

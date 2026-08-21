@@ -613,7 +613,7 @@ void main() {
 
         expect(room.callOrder, isNot(contains('nudge')));
         expect(svc.state.status, AudioVideoCallStatus.connected);
-        expect(svc.state.ownRole, CallRole.caller);
+        expect(svc.state.ownRole, CallRole.recipient);
       },
     );
 
@@ -639,8 +639,8 @@ void main() {
       expect(svc.state.status, AudioVideoCallStatus.outgoingRinging);
     });
 
-    test('stale call membership with no live peer still sends the invite and '
-        'rings', () async {
+    test('stale call membership with no live peer joins the discovered call '
+        'instead of minting a fresh one and ringing', () async {
       final room = FakeLiveKitRoom();
       room.fakeOwnParticipantId = 'self';
       room.fakeParticipants = const [
@@ -668,30 +668,30 @@ void main() {
 
       await svc.joinCall(mediaType: CallMediaType.video);
 
-      expect(room.callOrder, contains('nudge'));
+      // A discovered (even if stale) membership must never be raced with a
+      // fresh outgoing invite: joining always wins over minting+ringing.
+      expect(room.callOrder, isNot(contains('nudge')));
       expect(room.connectCalls, 1);
       expect(room.disconnectCalls, 0);
-      expect(svc.state.status, AudioVideoCallStatus.outgoingRinging);
-      expect(svc.state.callId, isNot('ghost-membership-call'));
-      expect(svc.state.callId, startsWith(_matrixRoomId));
-      final startCallIds = verify(
+      expect(svc.state.status, AudioVideoCallStatus.waitingForKeys);
+      expect(svc.state.callId, 'ghost-membership-call');
+      expect(svc.state.ownRole, CallRole.recipient);
+      verify(
         () => mockMatrixService.startCall(
           didManager: any(named: 'didManager'),
           roomId: any(named: 'roomId'),
-          callId: captureAny(named: 'callId'),
+          callId: 'ghost-membership-call',
           livekitServiceUrl: any(named: 'livekitServiceUrl'),
           livekitAlias: any(named: 'livekitAlias'),
         ),
-      ).captured.cast<String>();
-      expect(startCallIds, hasLength(1));
-      expect(startCallIds.single, isNot('ghost-membership-call'));
-      verify(
-        () => mockMatrixService.leaveCall(
-          roomId: _matrixRoomId,
-          callId: 'ghost-membership-call',
-        ),
       ).called(1);
-      verify(() => mockSdk.notifyChannel(any())).called(1);
+      verifyNever(
+        () => mockMatrixService.leaveCall(
+          roomId: any(named: 'roomId'),
+          callId: any(named: 'callId'),
+        ),
+      );
+      verifyNever(() => mockSdk.notifyChannel(any()));
       verify(
         () => mockMatrixService.activeCallId(
           didManager: any(named: 'didManager'),

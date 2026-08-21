@@ -246,27 +246,18 @@ class AudioVideoCallService {
         onParticipantsChanged: _onParticipantsChanged,
       );
 
-      final ownRole = isRecipient ? CallRole.recipient : CallRole.caller;
+      // A dial-path join of a peer's live call is a recipient, not a caller.
+      final ownRole = isRecipient || isRejoin
+          ? CallRole.recipient
+          : CallRole.caller;
 
-      final isGhostRejoin = ownRole == CallRole.caller && isRejoin && !_hasPeer;
-      var effectiveCallId = callId;
-      if (isGhostRejoin) {
-        _logger.info(
-          'joinCall: Discovered a stale call membership with no live peer, '
-          'minting a fresh callId',
-          name: _logKey,
-        );
-        await _coordinator.leaveCall();
-        effectiveCallId = _coordinator.assignFreshCallId(matrixRoomId);
-      }
-
-      _setState(_state.copyWith(ownRole: ownRole, callId: effectiveCallId));
+      _setState(_state.copyWith(ownRole: ownRole, callId: callId));
 
       await _enableLocalMedia(mediaType: mediaType);
       await _coordinator.registerMatrixCall(
         didManager: didManager,
         matrixRoomId: matrixRoomId,
-        callId: effectiveCallId,
+        callId: callId,
         sfuUrl: sfuUrl,
         roomName: roomName,
       );
@@ -284,14 +275,7 @@ class AudioVideoCallService {
         return;
       }
 
-      if (ownRole == CallRole.caller && isRejoin && _hasPeer) {
-        _logger.info(
-          'joinCall: Joining in-progress call with a live peer, skipping '
-          'invite and ring',
-          name: _logKey,
-        );
-        await _setupRecipientCall(ownRole: ownRole);
-      } else if (ownRole == CallRole.caller) {
+      if (ownRole == CallRole.caller) {
         errorCode = AudioVideoCallErrorCode.callInviteFailed;
         await _startOutgoingRinging(
           channel: channel,
@@ -299,7 +283,13 @@ class AudioVideoCallService {
           ownRole: ownRole,
         );
       } else {
-        await _setupRecipientCall();
+        if (isRejoin) {
+          _logger.info(
+            'joinCall: Joining in-progress call, skipping invite and ring',
+            name: _logKey,
+          );
+        }
+        await _setupRecipientCall(ownRole: ownRole);
       }
       succeeded = true;
     } on MeetingPlaceLiveKitCallOperationException catch (e, stackTrace) {

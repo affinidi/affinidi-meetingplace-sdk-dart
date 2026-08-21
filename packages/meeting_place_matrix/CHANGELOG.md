@@ -1,3 +1,7 @@
+## 0.0.1-dev.20
+
+ - **FIX**: correct group call role, media type, duration and leave handling (#321).
+
 ## 0.0.1-dev.19
 
  - **FEAT**: add media-kind-filtered chat repository query (#323).

@@ -27,7 +27,7 @@ class CallMetadata {
   /// Reads call metadata from [attachment], or `null` when it is not a call.
   static CallMetadata? maybeOf(ChatAttachment attachment) {
     final metadata = attachment.metadata;
-    if (metadata == null || metadata[_mediaKindKey] != _callKind) return null;
+    if (metadata == null || metadata[_mediaKindKey] != callKind) return null;
     final mediaType = _mediaTypeFromMetadata(metadata[_callMediaTypeKey]);
     if (mediaType == null) return null;
     final status = _statusFromMetadata(metadata[_statusKey]);
@@ -45,7 +45,7 @@ class CallMetadata {
 
   /// Whether [attachment] is a call.
   static bool isCall(ChatAttachment attachment) =>
-      attachment.metadata?[_mediaKindKey] == _callKind;
+      attachment.metadata?[_mediaKindKey] == callKind;
 
   /// Builds a call [ChatAttachment] carrying only call metadata (no bytes).
   static ChatAttachment buildAttachment({
@@ -69,8 +69,8 @@ class CallMetadata {
   /// Metadata key marking the attachment media kind.
   static const _mediaKindKey = 'media_kind';
 
-  /// Identifies an attachment as a call.
-  static const _callKind = 'call';
+  /// [_mediaKindKey] value identifying an attachment as a call.
+  static const callKind = 'call';
 
   /// Metadata key for the call media type.
   static const _callMediaTypeKey = 'call_media_type';
@@ -108,7 +108,7 @@ class CallMetadata {
   /// Serializes this call metadata into a generic [ChatAttachment.metadata]
   /// map.
   Map<String, dynamic> toMetadata() => {
-    _mediaKindKey: _callKind,
+    _mediaKindKey: callKind,
     _callMediaTypeKey: mediaType.name,
     _statusKey: status.name,
     _callIdKey: callId,

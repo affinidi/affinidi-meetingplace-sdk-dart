@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:meeting_place_chat/src/entity/chat_item.dart';
 import 'package:meeting_place_chat/src/entity/concierge_message.dart';
 import 'package:meeting_place_chat/src/entity/message.dart';
+import 'package:meeting_place_chat/src/entity/voice_message_metadata.dart';
 import 'package:meeting_place_chat/src/repository/chat_repository.dart';
 
 import '../storage.dart';
@@ -94,6 +95,30 @@ class ChatRepositoryImpl implements ChatRepository {
     }
 
     return list;
+  }
+
+  /// Lists messages in [chatId] whose attachment metadata carries the given
+  /// [mediaKind]. Example-only in-memory equivalent of the Drift
+  /// repository's `LIKE`-filtered query.
+  @override
+  Future<List<ChatItem>> listMessagesByMediaKind(
+    String chatId, {
+    required String mediaKind,
+    int? limit,
+  }) async {
+    final messages = await listMessages(chatId);
+    final filtered = messages
+        .whereType<Message>()
+        .where(
+          (m) => m.attachments.any(
+            (a) => a.metadata?[VoiceMessageMetadata.mediaKindKey] == mediaKind,
+          ),
+        )
+        .toList()
+      ..sort((a, b) => b.dateCreated.compareTo(a.dateCreated));
+    return limit != null && filtered.length > limit
+        ? filtered.sublist(0, limit)
+        : filtered;
   }
 
   /// Retrieves a single message by its identifiers.

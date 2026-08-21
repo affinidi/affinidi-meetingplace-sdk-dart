@@ -336,6 +336,85 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
         .toList();
   }
 
+  /// Lists chat items in the given [chatId] whose attachment metadata
+  /// carries the given [mediaKind] (e.g. `call`), most recent first.
+  ///
+  /// Filters on the existing `attachments.metadata` column with a `LIKE`
+  /// pattern rather than `json_extract`, since production runs
+  /// `sqlcipher_flutter_libs` — a different SQLite build than the Dart-VM
+  /// SQLite used by unit tests — and JSON1 availability can't be verified
+  /// here. `LIKE` is safe here: the SDK controls serialization (compact
+  /// `jsonEncode`, no space after the colon), and the pattern matches the
+  /// full `"media_kind":"<mediaKind>"` key+value fragment against the single
+  /// media-kind map stored in that column, so only rows whose `media_kind`
+  /// equals the requested value match.
+  ///
+  /// Fast path for byte-less kinds like `call`: unlike [listMessages] it skips
+  /// both the reactions query and the attachment-links join. Call items carry
+  /// neither, so nothing is lost. It must NOT be used for a media kind whose
+  /// attachments carry linked bytes or reactions (e.g. voice notes), which
+  /// would come back stripped of both; use [listMessages] for those.
+  @override
+  Future<List<model.ChatItem>> listMessagesByMediaKind(
+    String chatId, {
+    required String mediaKind,
+    int? limit,
+  }) async {
+    if (mediaKind == model.VoiceMessageMetadata.voiceKind) {
+      throw ArgumentError.value(
+        mediaKind,
+        'mediaKind',
+        'listMessagesByMediaKind skips reactions and attachment links; voice '
+            'attachments carry linked bytes and reactions and would come back '
+            'stripped of both. Use listMessages for voice.',
+      );
+    }
+    final pattern = _mediaKindLikePattern(mediaKind);
+    final variables = <Variable>[
+      Variable.withString(chatId),
+      Variable.withString(pattern),
+    ];
+
+    final sql = StringBuffer(r'''
+SELECT ci.* FROM chat_items ci
+INNER JOIN attachments a ON a.message_id = ci.message_id
+WHERE ci.chat_id = ?
+  AND a.metadata LIKE ? ESCAPE '\'
+GROUP BY ci.message_id
+ORDER BY ci.date_created DESC
+''');
+    if (limit != null) {
+      sql.write('LIMIT ?');
+      variables.add(Variable.withInt(limit));
+    }
+
+    final rows = await _database
+        .customSelect(
+          sql.toString(),
+          variables: variables,
+          readsFrom: {_database.chatItems, _database.attachments},
+        )
+        .get();
+    final chatItems = rows
+        .map((row) => _database.chatItems.map(row.data))
+        .toList();
+
+    final attachmentsByMessage = await _groupAttachmentsByMediaKind(
+      chatItems.map((c) => c.messageId).toList(),
+      mediaKind: mediaKind,
+    );
+
+    return chatItems
+        .map(
+          (m) => _ChatItemMapper.fromDatabaseRecords(
+            m,
+            const [],
+            attachmentsByMessage[m.messageId] ?? {},
+          ),
+        )
+        .toList();
+  }
+
   /// Updates an existing [model.Message], replacing its
   /// reactions and attachments with the latest state.
   Future<model.Message> _updateMessage(model.Message message) async {
@@ -616,6 +695,39 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
 
     return attachmentsWithLinksByMessage;
   }
+
+  /// Groups attachments carrying [mediaKind] by message ID, for the given
+  /// [messageIds].
+  ///
+  /// Skips the attachment-links join performed by
+  /// [_groupAttachmentsWithLinksByChatItem]: call attachments carry no bytes
+  /// or links, so every attachment maps to an empty link list.
+  Future<Map<String, Map<db.Attachment, List<db.AttachmentLink>>>>
+  _groupAttachmentsByMediaKind(
+    List<String> messageIds, {
+    required String mediaKind,
+  }) async {
+    if (messageIds.isEmpty) return {};
+
+    final attachments =
+        await (_database.select(_database.attachments)..where(
+              (a) =>
+                  a.messageId.isIn(messageIds) &
+                  a.metadata.like(
+                    _mediaKindLikePattern(mediaKind),
+                    escapeChar: _likeEscapeChar,
+                  ),
+            ))
+            .get();
+
+    final attachmentsByMessage =
+        <String, Map<db.Attachment, List<db.AttachmentLink>>>{};
+    for (final a in attachments) {
+      attachmentsByMessage.putIfAbsent(a.messageId, () => {})[a] = const [];
+    }
+
+    return attachmentsByMessage;
+  }
 }
 
 /// [_ChatItemMapper] provides mapping utilities between
@@ -720,4 +832,24 @@ Map<String, dynamic>? _decodeMetadata(String? value) {
   if (value == null || value.isEmpty) return null;
   final decoded = jsonDecode(value);
   return decoded is Map<String, dynamic> ? decoded : null;
+}
+
+/// Escape character used in the `LIKE` patterns built by
+/// [_mediaKindLikePattern]. Every query using such a pattern must pass this
+/// same character as its `ESCAPE` clause (raw SQL: `ESCAPE '\'`; Drift's
+/// `.like(...)`: `escapeChar: _likeEscapeChar`).
+const _likeEscapeChar = r'\';
+
+/// Builds the `LIKE` pattern matching a persisted attachment `metadata`
+/// column whose `media_kind` marker equals [mediaKind].
+///
+/// Escapes `%`/`_` wildcards and the escape character itself in [mediaKind]
+/// so the pattern always matches an exact `media_kind` value rather than
+/// treating caller-supplied wildcard characters as glob syntax.
+String _mediaKindLikePattern(String mediaKind) {
+  final escapedMediaKind = mediaKind
+      .replaceAll(_likeEscapeChar, _likeEscapeChar * 2)
+      .replaceAll('%', '$_likeEscapeChar%')
+      .replaceAll('_', '${_likeEscapeChar}_');
+  return '%"${model.VoiceMessageMetadata.mediaKindKey}":"$escapedMediaKind"%';
 }

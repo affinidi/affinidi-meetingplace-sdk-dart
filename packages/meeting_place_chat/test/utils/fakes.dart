@@ -18,6 +18,13 @@ class FakeChatRepository implements ChatRepository {
   Future<List<ChatItem>> listMessages(String chatId) async => [];
 
   @override
+  Future<List<ChatItem>> listMessagesByMediaKind(
+    String chatId, {
+    required String mediaKind,
+    int? limit,
+  }) async => [];
+
+  @override
   Future<ChatItem> updateMesssage(ChatItem message) async => message;
 
   @override

@@ -360,12 +360,15 @@ class ChatItemsRepositoryDrift implements model.ChatRepository {
     required String mediaKind,
     int? limit,
   }) async {
-    assert(
-      mediaKind != model.VoiceMessageMetadata.voiceKind,
-      'listMessagesByMediaKind skips reactions and attachment links; voice '
-      'attachments carry linked bytes and reactions and would return stripped '
-      'of both. Use listMessages for voice.',
-    );
+    if (mediaKind == model.VoiceMessageMetadata.voiceKind) {
+      throw ArgumentError.value(
+        mediaKind,
+        'mediaKind',
+        'listMessagesByMediaKind skips reactions and attachment links; voice '
+            'attachments carry linked bytes and reactions and would come back '
+            'stripped of both. Use listMessages for voice.',
+      );
+    }
     final pattern = _mediaKindLikePattern(mediaKind);
     final variables = <Variable>[
       Variable.withString(chatId),

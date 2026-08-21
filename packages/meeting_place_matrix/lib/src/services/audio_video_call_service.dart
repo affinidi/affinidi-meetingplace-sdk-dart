@@ -246,12 +246,7 @@ class AudioVideoCallService {
         onParticipantsChanged: _onParticipantsChanged,
       );
 
-      // A device that discovers another participant's non-expired call
-      // membership is joining an in-progress call, not initiating one — even
-      // when it entered via the dial path (isRecipient: false). Re-ringing is
-      // only correct for a genuinely fresh caller; a rejoin must always reuse
-      // the discovered callId and skip straight to the join path so it never
-      // races a live peer into a duplicate invite.
+      // A dial-path join of a peer's live call is a recipient, not a caller.
       final ownRole = isRecipient || isRejoin
           ? CallRole.recipient
           : CallRole.caller;

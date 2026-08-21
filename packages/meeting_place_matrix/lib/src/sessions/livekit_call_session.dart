@@ -122,10 +122,7 @@ class LiveKitCallSession implements AudioVideoCallSession {
   /// The peer channel DID used to key this call session.
   String get otherPartyChannelDid => _otherPartyChannelDid;
 
-  /// This session's own transport call id, once the call session has been
-  /// prepared. Used by `MeetingPlaceLiveKitCallPlugin` to surface a losing
-  /// session's own callId when a call glare (both peers dialling
-  /// simultaneously) restarts it as an incoming call.
+  /// This session's own transport call id, once the session is prepared.
   String? get callId => _latestState.callId;
 
   /// The LiveKit room backing this session.

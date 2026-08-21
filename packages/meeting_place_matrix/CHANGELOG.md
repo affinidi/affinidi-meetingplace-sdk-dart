@@ -1,3 +1,7 @@
+## 0.0.1-dev.19
+
+ - **FEAT**: add media-kind-filtered chat repository query (#323).
+
 ## 0.0.1-dev.18
 
  - **FIX**: resolve joined member DID from persisted group on lookup miss (#310).

@@ -3,6 +3,37 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-08-21
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_chat` - `v0.0.1-dev.60`](#meeting_place_chat---v001-dev60)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.60`](#meeting_place_drift_repository---v001-dev60)
+ - [`meeting_place_matrix` - `v0.0.1-dev.19`](#meeting_place_matrix---v001-dev19)
+
+---
+
+#### `meeting_place_chat` - `v0.0.1-dev.60`
+
+ - **FEAT**: add media-kind-filtered chat repository query (#323).
+
+#### `meeting_place_drift_repository` - `v0.0.1-dev.60`
+
+ - **FEAT**: add media-kind-filtered chat repository query (#323).
+
+#### `meeting_place_matrix` - `v0.0.1-dev.19`
+
+ - **FEAT**: add media-kind-filtered chat repository query (#323).
+
+
 ## 2026-08-14
 
 ### Changes

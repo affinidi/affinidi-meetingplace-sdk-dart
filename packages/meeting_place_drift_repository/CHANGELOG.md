@@ -1,3 +1,7 @@
+## 0.0.1-dev.60
+
+ - **FEAT**: add media-kind-filtered chat repository query (#323).
+
 ## 0.0.1-dev.59
 
  - **FIX**: stop group approval failing when member updates overlap (#301).

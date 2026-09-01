@@ -7,6 +7,15 @@ import 'r_card_constants.dart';
 ///
 /// This is the persistence/view model for an incoming R-Card. It stores the
 /// raw VC blob alongside parsed metadata fields to avoid repeated decoding.
+///
+/// Every instance reaching `MeetingPlaceCredentialsSDK.receivedRCards`,
+/// `.receivedRCardsOnChannel`, or `.consumePendingRCard` has already passed
+/// full proof verification (signature, expiry, revocation) via `RCardParser`
+/// and been checked against the expected issuer/counterparty binding
+/// (message sender for the VDIP path, channel counterparty for the channel
+/// path) — see `MeetingPlaceCredentialsSDK.rCardRejections` for visibility
+/// into R-Cards that failed those checks. [RCard.fromVcBlob] is the one
+/// exception: it performs no verification at all.
 class RCard {
   /// Creates an [RCard] with all required persistence fields.
   const RCard({
@@ -23,6 +32,13 @@ class RCard {
   ///
   /// Returns `null` if the blob cannot be decoded or required fields
   /// are missing.
+  ///
+  /// **Performs no cryptographic verification** — unlike the R-Cards
+  /// emitted by `MeetingPlaceCredentialsSDK`'s streams, the signature,
+  /// expiry, revocation status, and issuer binding of [vcBlob] are never
+  /// checked. Do not use the result of this method for trust decisions;
+  /// prefer parsing via `MeetingPlaceCredentialsSDK.parseRCard` or the
+  /// SDK's `receivedRCards` stream instead.
   static RCard? fromVcBlob(
     String subjectDid,
     String vcBlob, {

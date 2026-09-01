@@ -198,6 +198,11 @@ class MeetingPlaceCredentialsSDK {
   /// signature-verified R-Card is received over any channel — either via
   /// the DIDComm attachment path (OOB / inauguration) or the VDIP
   /// issued-credential path (chat-time update).
+  ///
+  /// Every [RCard] emitted here has passed full proof verification
+  /// (signature, expiry, revocation) and issuer/counterparty binding — see
+  /// the guarantee documented on [RCard]. Anything that failed those checks
+  /// is surfaced on [rCardRejections] instead of on this stream.
   Stream<RCard> get receivedRCards => _receivedRCardsStream;
 
   /// A broadcast stream that emits a [ChannelRCardEvent] for every R-Card
@@ -209,8 +214,9 @@ class MeetingPlaceCredentialsSDK {
   /// [Channel.otherPartyPermanentChannelDid] to correlate the R-Card to the
   /// originating conversation (e.g. to create an auto-exchange chat message).
   ///
-  /// VDIP-path R-Cards are NOT emitted on this stream; use [receivedRCards]
-  /// for those.
+  /// Carries the same verification guarantee as [receivedRCards] (see
+  /// [RCard]). VDIP-path R-Cards are NOT emitted on this stream; use
+  /// [receivedRCards] for those.
   Stream<ChannelRCardEvent> get receivedRCardsOnChannel =>
       _attachmentManager.stream;
 
@@ -271,6 +277,9 @@ class MeetingPlaceCredentialsSDK {
 
   /// Returns and removes the last [RCard] from [senderDid] that arrived
   /// while no listener was attached.
+  ///
+  /// Carries the same verification guarantee as [receivedRCards] (see
+  /// [RCard]).
   RCard? consumePendingRCard(String senderDid) =>
       _rCardVdipStreamManager.consumePendingRCard(senderDid);
 

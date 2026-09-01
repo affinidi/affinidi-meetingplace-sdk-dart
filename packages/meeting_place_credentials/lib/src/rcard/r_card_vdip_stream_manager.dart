@@ -5,6 +5,7 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../shared/credential_sdk_constants.dart';
 import 'model/r_card.dart';
+import 'model/r_card_rejection.dart';
 import 'parser/r_card_parser.dart';
 
 /// Manages the [RCard] broadcast stream sourced from
@@ -12,7 +13,9 @@ import 'parser/r_card_parser.dart';
 ///
 /// Filters for [VdipIssuedCredentialMessage] messages, validates the
 /// credential format, delegates parsing and signature verification to
-/// [RCardParser], and forwards valid results to [stream].
+/// [RCardParser], and forwards valid results to [stream]. Messages that fail
+/// parsing, verification, or issuer/sender binding are surfaced on
+/// [rejections] instead.
 class RCardVdipStreamManager {
   /// Creates an [RCardVdipStreamManager] that subscribes to
   /// [incomingVdipMessages] and forwards valid R-Cards to [stream].
@@ -24,6 +27,8 @@ class RCardVdipStreamManager {
        _logger = logger {
     _controller = StreamController.broadcast();
     _stream = _controller.stream;
+    _rejectionController = StreamController.broadcast();
+    _rejectionStream = _rejectionController.stream;
     _subscription = incomingVdipMessages
         .asyncExpand(_parseVdipMessage)
         .listen(_onStreamRCard, onError: _controller.addError);
@@ -34,6 +39,8 @@ class RCardVdipStreamManager {
   late final StreamController<RCard> _controller;
   late final StreamSubscription<RCard> _subscription;
   late final Stream<RCard> _stream;
+  late final StreamController<RCardRejection> _rejectionController;
+  late final Stream<RCardRejection> _rejectionStream;
 
   // Pending cache: R-Cards dispatched before any listener was attached are
   // stored here so a late-subscribing chat session can replay them.
@@ -41,6 +48,11 @@ class RCardVdipStreamManager {
 
   /// Emits incoming, parsed R-Cards routed from VDIP issued credentials.
   Stream<RCard> get stream => _stream;
+
+  /// Emits an [RCardRejection] for every VDIP issued-credential message that
+  /// was received but rejected — malformed payload, failed verification, or
+  /// a sender that did not match the R-Card's issuer.
+  Stream<RCardRejection> get rejections => _rejectionStream;
 
   /// Returns and removes the cached R-Card from [senderDid], or null.
   RCard? consumePendingRCard(String senderDid) =>
@@ -57,11 +69,13 @@ class RCardVdipStreamManager {
     _controller.add(rCard);
   }
 
-  /// Cancels the internal subscription and closes the R-Card output stream.
+  /// Cancels the internal subscription and closes the R-Card output stream
+  /// and [rejections].
   Future<void> close() async {
     if (_controller.isClosed) return;
     await _subscription.cancel();
     await _controller.close();
+    await _rejectionController.close();
   }
 
   /// Processes a single [message] using the same parse logic as [stream].
@@ -86,6 +100,12 @@ class RCardVdipStreamManager {
     final body = message.body;
     if (body == null) {
       _logger.warning('VDIP issued-credential body is missing');
+      _rejectionController.add(
+        RCardRejection(
+          reason: RCardRejectionReason.malformedAttachment,
+          source: RCardRejectionSource.vdip,
+        ),
+      );
       return;
     }
 
@@ -93,6 +113,12 @@ class RCardVdipStreamManager {
     if (credential is! String) {
       _logger.warning(
         'VDIP issued-credential body has no String credential field',
+      );
+      _rejectionController.add(
+        RCardRejection(
+          reason: RCardRejectionReason.malformedAttachment,
+          source: RCardRejectionSource.vdip,
+        ),
       );
       return;
     }
@@ -102,11 +128,23 @@ class RCardVdipStreamManager {
     if (format != null &&
         !CredentialsSDKConstants.supportedFormats.contains(format)) {
       _logger.warning('Unsupported VDIP credential format: $format');
+      _rejectionController.add(
+        RCardRejection(
+          reason: RCardRejectionReason.malformedAttachment,
+          source: RCardRejectionSource.vdip,
+        ),
+      );
       return;
     }
 
     final from = message.from;
     if (from == null || from.isEmpty) {
+      _rejectionController.add(
+        RCardRejection(
+          reason: RCardRejectionReason.missingSender,
+          source: RCardRejectionSource.vdip,
+        ),
+      );
       yield* Stream.error(
         const FormatException(
           'Received VDIP R-Card with missing sender DID (from)',
@@ -117,6 +155,14 @@ class RCardVdipStreamManager {
 
     final result = await _parser.parse(vcBlob: credential);
     if (result is! RCardParseSuccess) {
+      _rejectionController.add(
+        RCardRejection(
+          reason: result is RCardParseFailure
+              ? result.reason
+              : RCardRejectionReason.verificationError,
+          source: RCardRejectionSource.vdip,
+        ),
+      );
       yield* Stream.error(
         const FormatException(
           'Failed to parse VDIP R-Card from credential blob',
@@ -130,6 +176,14 @@ class RCardVdipStreamManager {
       _logger.warning(
         'R-Card issuerDid (${rCard.issuerDid}) does not match message '
         'sender ($from) — discarding to prevent relay/replay.',
+      );
+      _rejectionController.add(
+        RCardRejection(
+          reason: RCardRejectionReason.issuerMismatch,
+          source: RCardRejectionSource.vdip,
+          rCardIssuerDid: rCard.issuerDid,
+          expectedDid: from,
+        ),
       );
       return;
     }

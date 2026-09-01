@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_credentials/meeting_place_credentials.dart';
+import 'package:meeting_place_credentials/src/rcard/model/r_card_rejection.dart';
 import 'package:meeting_place_credentials/src/rcard/parser/r_card_parser.dart';
 import 'package:meeting_place_credentials/src/rcard/r_card_channel_stream_manager.dart';
 import 'package:mocktail/mocktail.dart';
@@ -296,7 +297,9 @@ void main() {
         ).thenReturn('did:key:relay-attacker');
         final manager = makeManager();
         final emitted = <ChannelRCardEvent>[];
+        final rejections = <RCardRejection>[];
         final sub = manager.stream.listen(emitted.add);
+        final rejectionSub = manager.rejections.listen(rejections.add);
 
         channelAttachmentsCtrl.add(
           ChannelAttachmentEvent(
@@ -307,6 +310,63 @@ void main() {
         await Future<void>.delayed(const Duration(milliseconds: 100));
 
         expect(emitted, isEmpty);
+        expect(rejections, hasLength(1));
+        expect(rejections.first.reason, RCardRejectionReason.issuerMismatch);
+        expect(rejections.first.source, RCardRejectionSource.channel);
+        expect(rejections.first.rCardIssuerDid, issuerDid);
+        expect(rejections.first.expectedDid, 'did:key:relay-attacker');
+        await rejectionSub.cancel();
+        await sub.cancel();
+        await manager.close();
+      },
+    );
+  });
+
+  group('RCardChannelStreamManager — rejections', () {
+    setUp(() {
+      when(
+        () => channel.otherPartyPermanentChannelDid,
+      ).thenReturn('did:example:other');
+    });
+
+    test('malformed attachment payload is surfaced as a rejection', () async {
+      final manager = makeManager();
+      final rejections = <RCardRejection>[];
+      final sub = manager.rejections.listen(rejections.add);
+
+      channelAttachmentsCtrl.add(
+        ChannelAttachmentEvent(
+          channel: channel,
+          attachments: [rCardAttachment(overrideDataJson: 'not-json')],
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(rejections, hasLength(1));
+      expect(rejections.first.reason, RCardRejectionReason.malformedAttachment);
+      expect(rejections.first.source, RCardRejectionSource.channel);
+      await sub.cancel();
+      await manager.close();
+    });
+
+    test(
+      'unsigned R-Card is surfaced as a rejection carrying the parser reason',
+      () async {
+        final manager = makeManager();
+        final rejections = <RCardRejection>[];
+        final sub = manager.rejections.listen(rejections.add);
+
+        channelAttachmentsCtrl.add(
+          ChannelAttachmentEvent(
+            channel: channel,
+            attachments: [rCardAttachment()],
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
+
+        expect(rejections, hasLength(1));
+        expect(rejections.first.reason, RCardRejectionReason.malformedJson);
+        expect(rejections.first.source, RCardRejectionSource.channel);
         await sub.cancel();
         await manager.close();
       },

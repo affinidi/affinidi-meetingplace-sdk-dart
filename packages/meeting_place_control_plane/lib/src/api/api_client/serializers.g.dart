@@ -56,8 +56,6 @@ Serializers _$serializers =
           ..add(GroupMemberDeregisterOK.serializer)
           ..add(GroupNotifyChannelInput.serializer)
           ..add(GroupNotifyChannelOK.serializer)
-          ..add(GroupSendMessage.serializer)
-          ..add(GroupSendMessageOK.serializer)
           ..add(InvalidAcceptanceError.serializer)
           ..add(InvalidAcceptanceErrorHttpStatusCodeEnum.serializer)
           ..add(InvalidAcceptanceErrorMessageEnum.serializer)

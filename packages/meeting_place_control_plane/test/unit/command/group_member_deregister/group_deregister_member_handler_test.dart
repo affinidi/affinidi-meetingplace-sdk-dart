@@ -59,7 +59,6 @@ void main() {
   GroupDeregisterMemberCommand newCommand() => GroupDeregisterMemberCommand(
     groupId: 'group-1',
     memberId: 'did:test:bob',
-    messageBase64: 'msg',
   );
 
   group('GroupDeregisterMemberHandler.handle', () {

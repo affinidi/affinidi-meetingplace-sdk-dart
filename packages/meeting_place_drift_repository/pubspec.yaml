@@ -26,6 +26,5 @@ dev_dependencies:
   drift_dev: ^2.28.0
   meeting_place_control_plane: ^0.0.1-dev.24
   mocktail: ^1.0.4
-  proxy_recrypt: ^1.1.3
   ssi: ^3.9.4
   test: ^1.25.6

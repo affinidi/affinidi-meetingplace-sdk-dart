@@ -16,7 +16,6 @@ class ChatGroupDetailsUpdate {
     required List<ChatGroupDetailsUpdateBodyMember> members,
     required List<String> adminDids,
     required DateTime dateCreated,
-    required String groupPublicKey,
     String? groupKeyPair,
   }) {
     return ChatGroupDetailsUpdate(
@@ -30,7 +29,6 @@ class ChatGroupDetailsUpdate {
         members: members,
         adminDids: adminDids,
         dateCreated: dateCreated,
-        groupPublicKey: groupPublicKey,
         groupKeyPair: groupKeyPair,
       ),
     );
@@ -88,7 +86,6 @@ class ChatGroupDetailsUpdate {
       members: group.members.map(_fromGroupMember).toList(),
       adminDids: [group.ownerDid!],
       dateCreated: group.created,
-      groupPublicKey: group.publicKey!,
     );
   }
 
@@ -104,7 +101,6 @@ class ChatGroupDetailsUpdate {
       ),
       dateAdded: groupMember.dateAdded,
       status: groupMember.status.name,
-      publicKey: groupMember.publicKey,
       membershipType: groupMember.membershipType.name,
     );
   }

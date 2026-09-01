@@ -21,7 +21,6 @@ class Group {
     required this.created,
     this.status = GroupStatus.created,
     this.ownerDid,
-    this.publicKey,
     this.externalRef,
   });
 
@@ -31,8 +30,6 @@ class Group {
   final DateTime created;
   final String? externalRef;
 
-  // For members added later
-  final String? publicKey;
   final String? ownerDid;
 
   GroupStatus status;
@@ -51,8 +48,6 @@ class Group {
     List<GroupMember>? members,
     DateTime? created,
     String? ownerDid,
-    String? groupKeyPair,
-    String? publicKey,
     String? externalRef,
   }) {
     return Group(
@@ -63,7 +58,6 @@ class Group {
       members: members ?? this.members,
       created: created ?? this.created,
       ownerDid: ownerDid ?? this.ownerDid,
-      publicKey: publicKey ?? this.publicKey,
       externalRef: externalRef ?? this.externalRef,
     );
   }

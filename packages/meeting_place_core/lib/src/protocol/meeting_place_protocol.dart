@@ -17,20 +17,8 @@ enum MeetingPlaceProtocol {
     'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/invitation-acceptance-group',
   ),
 
-  groupDeletion(
-    'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/group-deletion',
-  ),
-
-  groupMemberDeregistration(
-    'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/group-member-deregistration',
-  ),
-
   groupMemberInauguration(
     'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/group-member-inauguration',
-  ),
-
-  groupMessage(
-    'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/group-message',
   ),
 
   outreachInvitation(

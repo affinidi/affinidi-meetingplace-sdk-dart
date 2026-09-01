@@ -60,12 +60,10 @@ Group _groupNoMembers() => Group(
   offerLink: 'offer://test',
   created: DateTime.utc(2026, 1, 1),
   ownerDid: 'did:test:alice',
-  publicKey: 'pk',
   status: GroupStatus.created,
   members: [
     GroupMember.admin(
       did: 'did:test:alice',
-      publicKey: 'pk-alice',
       contactCard: _card('did:test:alice'),
     ),
   ],
@@ -80,17 +78,14 @@ Group _groupWithPendingMember() => Group(
   offerLink: 'offer://test',
   created: DateTime.utc(2026, 1, 1),
   ownerDid: 'did:test:alice',
-  publicKey: 'pk',
   status: GroupStatus.created,
   members: [
     GroupMember.admin(
       did: 'did:test:alice',
-      publicKey: 'pk-alice',
       contactCard: _card('did:test:alice'),
     ),
     GroupMember(
       did: 'did:test:bob',
-      publicKey: 'pk-bob',
       dateAdded: DateTime.utc(2026, 1, 2),
       status: GroupMemberStatus.pendingApproval,
       membershipType: GroupMembershipType.member,

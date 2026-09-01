@@ -11,8 +11,6 @@ class _$GroupDeregisterMemberInput extends GroupDeregisterMemberInput {
   final String memberDid;
   @override
   final String groupId;
-  @override
-  final String? messageToRelay;
 
   factory _$GroupDeregisterMemberInput([
     void Function(GroupDeregisterMemberInputBuilder)? updates,
@@ -21,7 +19,6 @@ class _$GroupDeregisterMemberInput extends GroupDeregisterMemberInput {
   _$GroupDeregisterMemberInput._({
     required this.memberDid,
     required this.groupId,
-    this.messageToRelay,
   }) : super._();
   @override
   GroupDeregisterMemberInput rebuild(
@@ -37,8 +34,7 @@ class _$GroupDeregisterMemberInput extends GroupDeregisterMemberInput {
     if (identical(other, this)) return true;
     return other is GroupDeregisterMemberInput &&
         memberDid == other.memberDid &&
-        groupId == other.groupId &&
-        messageToRelay == other.messageToRelay;
+        groupId == other.groupId;
   }
 
   @override
@@ -46,7 +42,6 @@ class _$GroupDeregisterMemberInput extends GroupDeregisterMemberInput {
     var _$hash = 0;
     _$hash = $jc(_$hash, memberDid.hashCode);
     _$hash = $jc(_$hash, groupId.hashCode);
-    _$hash = $jc(_$hash, messageToRelay.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -55,8 +50,7 @@ class _$GroupDeregisterMemberInput extends GroupDeregisterMemberInput {
   String toString() {
     return (newBuiltValueToStringHelper(r'GroupDeregisterMemberInput')
           ..add('memberDid', memberDid)
-          ..add('groupId', groupId)
-          ..add('messageToRelay', messageToRelay))
+          ..add('groupId', groupId))
         .toString();
   }
 }
@@ -74,11 +68,6 @@ class GroupDeregisterMemberInputBuilder
   String? get groupId => _$this._groupId;
   set groupId(String? groupId) => _$this._groupId = groupId;
 
-  String? _messageToRelay;
-  String? get messageToRelay => _$this._messageToRelay;
-  set messageToRelay(String? messageToRelay) =>
-      _$this._messageToRelay = messageToRelay;
-
   GroupDeregisterMemberInputBuilder() {
     GroupDeregisterMemberInput._defaults(this);
   }
@@ -88,7 +77,6 @@ class GroupDeregisterMemberInputBuilder
     if ($v != null) {
       _memberDid = $v.memberDid;
       _groupId = $v.groupId;
-      _messageToRelay = $v.messageToRelay;
       _$v = null;
     }
     return this;
@@ -121,7 +109,6 @@ class GroupDeregisterMemberInputBuilder
             r'GroupDeregisterMemberInput',
             'groupId',
           ),
-          messageToRelay: messageToRelay,
         );
     replace(_$result);
     return _$result;

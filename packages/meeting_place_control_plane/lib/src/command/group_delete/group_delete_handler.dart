@@ -58,9 +58,7 @@ class GroupDeleteHandler
     final methodName = 'handle';
     _logger.info('Started handling group delete', name: methodName);
 
-    final builder = GroupDeleteInputBuilder()
-      ..groupId = command.groupId
-      ..messageToRelay = command.messageBase64;
+    final builder = GroupDeleteInputBuilder()..groupId = command.groupId;
 
     try {
       _logger.info(

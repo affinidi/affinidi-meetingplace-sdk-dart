@@ -58,28 +58,6 @@ class $MeetingPlaceGroupsTable extends MeetingPlaceGroups
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _groupKeyPairMeta = const VerificationMeta(
-    'groupKeyPair',
-  );
-  @override
-  late final GeneratedColumn<String> groupKeyPair = GeneratedColumn<String>(
-    'group_key_pair',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _publicKeyMeta = const VerificationMeta(
-    'publicKey',
-  );
-  @override
-  late final GeneratedColumn<String> publicKey = GeneratedColumn<String>(
-    'public_key',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
   static const VerificationMeta _ownerDidMeta = const VerificationMeta(
     'ownerDid',
   );
@@ -98,8 +76,6 @@ class $MeetingPlaceGroupsTable extends MeetingPlaceGroups
     offerLink,
     status,
     created,
-    groupKeyPair,
-    publicKey,
     ownerDid,
   ];
   @override
@@ -143,21 +119,6 @@ class $MeetingPlaceGroupsTable extends MeetingPlaceGroups
     } else if (isInserting) {
       context.missing(_createdMeta);
     }
-    if (data.containsKey('group_key_pair')) {
-      context.handle(
-        _groupKeyPairMeta,
-        groupKeyPair.isAcceptableOrUnknown(
-          data['group_key_pair']!,
-          _groupKeyPairMeta,
-        ),
-      );
-    }
-    if (data.containsKey('public_key')) {
-      context.handle(
-        _publicKeyMeta,
-        publicKey.isAcceptableOrUnknown(data['public_key']!, _publicKeyMeta),
-      );
-    }
     if (data.containsKey('owner_did')) {
       context.handle(
         _ownerDidMeta,
@@ -195,14 +156,6 @@ class $MeetingPlaceGroupsTable extends MeetingPlaceGroups
         DriftSqlType.dateTime,
         data['${effectivePrefix}created'],
       )!,
-      groupKeyPair: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}group_key_pair'],
-      ),
-      publicKey: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}public_key'],
-      ),
       ownerDid: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}owner_did'],
@@ -236,12 +189,6 @@ class MeetingPlaceGroup extends DataClass
   /// The date and time when the group was created.
   final DateTime created;
 
-  /// The key pair associated with the group.
-  final String? groupKeyPair;
-
-  /// The public key of the group.
-  final String? publicKey;
-
   /// The DID of the owner of the group.
   final String? ownerDid;
   const MeetingPlaceGroup({
@@ -250,8 +197,6 @@ class MeetingPlaceGroup extends DataClass
     required this.offerLink,
     required this.status,
     required this.created,
-    this.groupKeyPair,
-    this.publicKey,
     this.ownerDid,
   });
   @override
@@ -266,12 +211,6 @@ class MeetingPlaceGroup extends DataClass
       );
     }
     map['created'] = Variable<DateTime>(created);
-    if (!nullToAbsent || groupKeyPair != null) {
-      map['group_key_pair'] = Variable<String>(groupKeyPair);
-    }
-    if (!nullToAbsent || publicKey != null) {
-      map['public_key'] = Variable<String>(publicKey);
-    }
     if (!nullToAbsent || ownerDid != null) {
       map['owner_did'] = Variable<String>(ownerDid);
     }
@@ -285,12 +224,6 @@ class MeetingPlaceGroup extends DataClass
       offerLink: Value(offerLink),
       status: Value(status),
       created: Value(created),
-      groupKeyPair: groupKeyPair == null && nullToAbsent
-          ? const Value.absent()
-          : Value(groupKeyPair),
-      publicKey: publicKey == null && nullToAbsent
-          ? const Value.absent()
-          : Value(publicKey),
       ownerDid: ownerDid == null && nullToAbsent
           ? const Value.absent()
           : Value(ownerDid),
@@ -308,8 +241,6 @@ class MeetingPlaceGroup extends DataClass
       offerLink: serializer.fromJson<String>(json['offerLink']),
       status: serializer.fromJson<GroupStatus>(json['status']),
       created: serializer.fromJson<DateTime>(json['created']),
-      groupKeyPair: serializer.fromJson<String?>(json['groupKeyPair']),
-      publicKey: serializer.fromJson<String?>(json['publicKey']),
       ownerDid: serializer.fromJson<String?>(json['ownerDid']),
     );
   }
@@ -322,8 +253,6 @@ class MeetingPlaceGroup extends DataClass
       'offerLink': serializer.toJson<String>(offerLink),
       'status': serializer.toJson<GroupStatus>(status),
       'created': serializer.toJson<DateTime>(created),
-      'groupKeyPair': serializer.toJson<String?>(groupKeyPair),
-      'publicKey': serializer.toJson<String?>(publicKey),
       'ownerDid': serializer.toJson<String?>(ownerDid),
     };
   }
@@ -334,8 +263,6 @@ class MeetingPlaceGroup extends DataClass
     String? offerLink,
     GroupStatus? status,
     DateTime? created,
-    Value<String?> groupKeyPair = const Value.absent(),
-    Value<String?> publicKey = const Value.absent(),
     Value<String?> ownerDid = const Value.absent(),
   }) => MeetingPlaceGroup(
     id: id ?? this.id,
@@ -343,8 +270,6 @@ class MeetingPlaceGroup extends DataClass
     offerLink: offerLink ?? this.offerLink,
     status: status ?? this.status,
     created: created ?? this.created,
-    groupKeyPair: groupKeyPair.present ? groupKeyPair.value : this.groupKeyPair,
-    publicKey: publicKey.present ? publicKey.value : this.publicKey,
     ownerDid: ownerDid.present ? ownerDid.value : this.ownerDid,
   );
   MeetingPlaceGroup copyWithCompanion(MeetingPlaceGroupsCompanion data) {
@@ -354,10 +279,6 @@ class MeetingPlaceGroup extends DataClass
       offerLink: data.offerLink.present ? data.offerLink.value : this.offerLink,
       status: data.status.present ? data.status.value : this.status,
       created: data.created.present ? data.created.value : this.created,
-      groupKeyPair: data.groupKeyPair.present
-          ? data.groupKeyPair.value
-          : this.groupKeyPair,
-      publicKey: data.publicKey.present ? data.publicKey.value : this.publicKey,
       ownerDid: data.ownerDid.present ? data.ownerDid.value : this.ownerDid,
     );
   }
@@ -370,24 +291,14 @@ class MeetingPlaceGroup extends DataClass
           ..write('offerLink: $offerLink, ')
           ..write('status: $status, ')
           ..write('created: $created, ')
-          ..write('groupKeyPair: $groupKeyPair, ')
-          ..write('publicKey: $publicKey, ')
           ..write('ownerDid: $ownerDid')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-    id,
-    did,
-    offerLink,
-    status,
-    created,
-    groupKeyPair,
-    publicKey,
-    ownerDid,
-  );
+  int get hashCode =>
+      Object.hash(id, did, offerLink, status, created, ownerDid);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -397,8 +308,6 @@ class MeetingPlaceGroup extends DataClass
           other.offerLink == this.offerLink &&
           other.status == this.status &&
           other.created == this.created &&
-          other.groupKeyPair == this.groupKeyPair &&
-          other.publicKey == this.publicKey &&
           other.ownerDid == this.ownerDid);
 }
 
@@ -408,8 +317,6 @@ class MeetingPlaceGroupsCompanion extends UpdateCompanion<MeetingPlaceGroup> {
   final Value<String> offerLink;
   final Value<GroupStatus> status;
   final Value<DateTime> created;
-  final Value<String?> groupKeyPair;
-  final Value<String?> publicKey;
   final Value<String?> ownerDid;
   final Value<int> rowid;
   const MeetingPlaceGroupsCompanion({
@@ -418,8 +325,6 @@ class MeetingPlaceGroupsCompanion extends UpdateCompanion<MeetingPlaceGroup> {
     this.offerLink = const Value.absent(),
     this.status = const Value.absent(),
     this.created = const Value.absent(),
-    this.groupKeyPair = const Value.absent(),
-    this.publicKey = const Value.absent(),
     this.ownerDid = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -429,8 +334,6 @@ class MeetingPlaceGroupsCompanion extends UpdateCompanion<MeetingPlaceGroup> {
     required String offerLink,
     required GroupStatus status,
     required DateTime created,
-    this.groupKeyPair = const Value.absent(),
-    this.publicKey = const Value.absent(),
     this.ownerDid = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -444,8 +347,6 @@ class MeetingPlaceGroupsCompanion extends UpdateCompanion<MeetingPlaceGroup> {
     Expression<String>? offerLink,
     Expression<int>? status,
     Expression<DateTime>? created,
-    Expression<String>? groupKeyPair,
-    Expression<String>? publicKey,
     Expression<String>? ownerDid,
     Expression<int>? rowid,
   }) {
@@ -455,8 +356,6 @@ class MeetingPlaceGroupsCompanion extends UpdateCompanion<MeetingPlaceGroup> {
       if (offerLink != null) 'offer_link': offerLink,
       if (status != null) 'status': status,
       if (created != null) 'created': created,
-      if (groupKeyPair != null) 'group_key_pair': groupKeyPair,
-      if (publicKey != null) 'public_key': publicKey,
       if (ownerDid != null) 'owner_did': ownerDid,
       if (rowid != null) 'rowid': rowid,
     });
@@ -468,8 +367,6 @@ class MeetingPlaceGroupsCompanion extends UpdateCompanion<MeetingPlaceGroup> {
     Value<String>? offerLink,
     Value<GroupStatus>? status,
     Value<DateTime>? created,
-    Value<String?>? groupKeyPair,
-    Value<String?>? publicKey,
     Value<String?>? ownerDid,
     Value<int>? rowid,
   }) {
@@ -479,8 +376,6 @@ class MeetingPlaceGroupsCompanion extends UpdateCompanion<MeetingPlaceGroup> {
       offerLink: offerLink ?? this.offerLink,
       status: status ?? this.status,
       created: created ?? this.created,
-      groupKeyPair: groupKeyPair ?? this.groupKeyPair,
-      publicKey: publicKey ?? this.publicKey,
       ownerDid: ownerDid ?? this.ownerDid,
       rowid: rowid ?? this.rowid,
     );
@@ -506,12 +401,6 @@ class MeetingPlaceGroupsCompanion extends UpdateCompanion<MeetingPlaceGroup> {
     if (created.present) {
       map['created'] = Variable<DateTime>(created.value);
     }
-    if (groupKeyPair.present) {
-      map['group_key_pair'] = Variable<String>(groupKeyPair.value);
-    }
-    if (publicKey.present) {
-      map['public_key'] = Variable<String>(publicKey.value);
-    }
     if (ownerDid.present) {
       map['owner_did'] = Variable<String>(ownerDid.value);
     }
@@ -529,8 +418,6 @@ class MeetingPlaceGroupsCompanion extends UpdateCompanion<MeetingPlaceGroup> {
           ..write('offerLink: $offerLink, ')
           ..write('status: $status, ')
           ..write('created: $created, ')
-          ..write('groupKeyPair: $groupKeyPair, ')
-          ..write('publicKey: $publicKey, ')
           ..write('ownerDid: $ownerDid, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -624,17 +511,6 @@ class $GroupMembersTable extends GroupMembers
     requiredDuringInsert: false,
     clientDefault: clock.now,
   );
-  static const VerificationMeta _publicKeyMeta = const VerificationMeta(
-    'publicKey',
-  );
-  @override
-  late final GeneratedColumn<String> publicKey = GeneratedColumn<String>(
-    'public_key',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
   @override
   late final GeneratedColumnWithTypeConverter<GroupMembershipType, int>
   membershipType =
@@ -719,7 +595,6 @@ class $GroupMembersTable extends GroupMembers
     metadata,
     acceptOfferAsDid,
     dateAdded,
-    publicKey,
     membershipType,
     peerProfileHash,
     status,
@@ -791,14 +666,6 @@ class $GroupMembersTable extends GroupMembers
         _dateAddedMeta,
         dateAdded.isAcceptableOrUnknown(data['date_added']!, _dateAddedMeta),
       );
-    }
-    if (data.containsKey('public_key')) {
-      context.handle(
-        _publicKeyMeta,
-        publicKey.isAcceptableOrUnknown(data['public_key']!, _publicKeyMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_publicKeyMeta);
     }
     if (data.containsKey('peer_profile_hash')) {
       context.handle(
@@ -880,10 +747,6 @@ class $GroupMembersTable extends GroupMembers
         DriftSqlType.dateTime,
         data['${effectivePrefix}date_added'],
       )!,
-      publicKey: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}public_key'],
-      )!,
       membershipType: $GroupMembersTable.$convertermembershipType.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.int,
@@ -952,9 +815,6 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
   /// The date and time when the member was added to the group.
   final DateTime dateAdded;
 
-  /// The public key of the group member.
-  final String publicKey;
-
   /// The membership type of the group member.
   final GroupMembershipType membershipType;
 
@@ -983,7 +843,6 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
     this.metadata,
     this.acceptOfferAsDid,
     required this.dateAdded,
-    required this.publicKey,
     required this.membershipType,
     this.peerProfileHash,
     required this.status,
@@ -1010,7 +869,6 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       map['accept_offer_as_did'] = Variable<String>(acceptOfferAsDid);
     }
     map['date_added'] = Variable<DateTime>(dateAdded);
-    map['public_key'] = Variable<String>(publicKey);
     {
       map['membership_type'] = Variable<int>(
         $GroupMembersTable.$convertermembershipType.toSql(membershipType),
@@ -1050,7 +908,6 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           ? const Value.absent()
           : Value(acceptOfferAsDid),
       dateAdded: Value(dateAdded),
-      publicKey: Value(publicKey),
       membershipType: Value(membershipType),
       peerProfileHash: peerProfileHash == null && nullToAbsent
           ? const Value.absent()
@@ -1078,7 +935,6 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       metadata: serializer.fromJson<String?>(json['metadata']),
       acceptOfferAsDid: serializer.fromJson<String?>(json['acceptOfferAsDid']),
       dateAdded: serializer.fromJson<DateTime>(json['dateAdded']),
-      publicKey: serializer.fromJson<String>(json['publicKey']),
       membershipType: serializer.fromJson<GroupMembershipType>(
         json['membershipType'],
       ),
@@ -1101,7 +957,6 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
       'metadata': serializer.toJson<String?>(metadata),
       'acceptOfferAsDid': serializer.toJson<String?>(acceptOfferAsDid),
       'dateAdded': serializer.toJson<DateTime>(dateAdded),
-      'publicKey': serializer.toJson<String>(publicKey),
       'membershipType': serializer.toJson<GroupMembershipType>(membershipType),
       'peerProfileHash': serializer.toJson<String?>(peerProfileHash),
       'status': serializer.toJson<GroupMemberStatus>(status),
@@ -1120,7 +975,6 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
     Value<String?> metadata = const Value.absent(),
     Value<String?> acceptOfferAsDid = const Value.absent(),
     DateTime? dateAdded,
-    String? publicKey,
     GroupMembershipType? membershipType,
     Value<String?> peerProfileHash = const Value.absent(),
     GroupMemberStatus? status,
@@ -1140,7 +994,6 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
         ? acceptOfferAsDid.value
         : this.acceptOfferAsDid,
     dateAdded: dateAdded ?? this.dateAdded,
-    publicKey: publicKey ?? this.publicKey,
     membershipType: membershipType ?? this.membershipType,
     peerProfileHash: peerProfileHash.present
         ? peerProfileHash.value
@@ -1164,7 +1017,6 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           ? data.acceptOfferAsDid.value
           : this.acceptOfferAsDid,
       dateAdded: data.dateAdded.present ? data.dateAdded.value : this.dateAdded,
-      publicKey: data.publicKey.present ? data.publicKey.value : this.publicKey,
       membershipType: data.membershipType.present
           ? data.membershipType.value
           : this.membershipType,
@@ -1195,7 +1047,6 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           ..write('metadata: $metadata, ')
           ..write('acceptOfferAsDid: $acceptOfferAsDid, ')
           ..write('dateAdded: $dateAdded, ')
-          ..write('publicKey: $publicKey, ')
           ..write('membershipType: $membershipType, ')
           ..write('peerProfileHash: $peerProfileHash, ')
           ..write('status: $status, ')
@@ -1216,7 +1067,6 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
     metadata,
     acceptOfferAsDid,
     dateAdded,
-    publicKey,
     membershipType,
     peerProfileHash,
     status,
@@ -1236,7 +1086,6 @@ class GroupMember extends DataClass implements Insertable<GroupMember> {
           other.metadata == this.metadata &&
           other.acceptOfferAsDid == this.acceptOfferAsDid &&
           other.dateAdded == this.dateAdded &&
-          other.publicKey == this.publicKey &&
           other.membershipType == this.membershipType &&
           other.peerProfileHash == this.peerProfileHash &&
           other.status == this.status &&
@@ -1254,7 +1103,6 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
   final Value<String?> metadata;
   final Value<String?> acceptOfferAsDid;
   final Value<DateTime> dateAdded;
-  final Value<String> publicKey;
   final Value<GroupMembershipType> membershipType;
   final Value<String?> peerProfileHash;
   final Value<GroupMemberStatus> status;
@@ -1271,7 +1119,6 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     this.metadata = const Value.absent(),
     this.acceptOfferAsDid = const Value.absent(),
     this.dateAdded = const Value.absent(),
-    this.publicKey = const Value.absent(),
     this.membershipType = const Value.absent(),
     this.peerProfileHash = const Value.absent(),
     this.status = const Value.absent(),
@@ -1289,7 +1136,6 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     this.metadata = const Value.absent(),
     this.acceptOfferAsDid = const Value.absent(),
     this.dateAdded = const Value.absent(),
-    required String publicKey,
     required GroupMembershipType membershipType,
     this.peerProfileHash = const Value.absent(),
     required GroupMemberStatus status,
@@ -1300,7 +1146,6 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     this.rowid = const Value.absent(),
   }) : groupId = Value(groupId),
        memberDid = Value(memberDid),
-       publicKey = Value(publicKey),
        membershipType = Value(membershipType),
        status = Value(status),
        identityDid = Value(identityDid),
@@ -1313,7 +1158,6 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     Expression<String>? metadata,
     Expression<String>? acceptOfferAsDid,
     Expression<DateTime>? dateAdded,
-    Expression<String>? publicKey,
     Expression<int>? membershipType,
     Expression<String>? peerProfileHash,
     Expression<int>? status,
@@ -1331,7 +1175,6 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
       if (metadata != null) 'metadata': metadata,
       if (acceptOfferAsDid != null) 'accept_offer_as_did': acceptOfferAsDid,
       if (dateAdded != null) 'date_added': dateAdded,
-      if (publicKey != null) 'public_key': publicKey,
       if (membershipType != null) 'membership_type': membershipType,
       if (peerProfileHash != null) 'peer_profile_hash': peerProfileHash,
       if (status != null) 'status': status,
@@ -1351,7 +1194,6 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     Value<String?>? metadata,
     Value<String?>? acceptOfferAsDid,
     Value<DateTime>? dateAdded,
-    Value<String>? publicKey,
     Value<GroupMembershipType>? membershipType,
     Value<String?>? peerProfileHash,
     Value<GroupMemberStatus>? status,
@@ -1369,7 +1211,6 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
       metadata: metadata ?? this.metadata,
       acceptOfferAsDid: acceptOfferAsDid ?? this.acceptOfferAsDid,
       dateAdded: dateAdded ?? this.dateAdded,
-      publicKey: publicKey ?? this.publicKey,
       membershipType: membershipType ?? this.membershipType,
       peerProfileHash: peerProfileHash ?? this.peerProfileHash,
       status: status ?? this.status,
@@ -1404,9 +1245,6 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
     }
     if (dateAdded.present) {
       map['date_added'] = Variable<DateTime>(dateAdded.value);
-    }
-    if (publicKey.present) {
-      map['public_key'] = Variable<String>(publicKey.value);
     }
     if (membershipType.present) {
       map['membership_type'] = Variable<int>(
@@ -1449,7 +1287,6 @@ class GroupMembersCompanion extends UpdateCompanion<GroupMember> {
           ..write('metadata: $metadata, ')
           ..write('acceptOfferAsDid: $acceptOfferAsDid, ')
           ..write('dateAdded: $dateAdded, ')
-          ..write('publicKey: $publicKey, ')
           ..write('membershipType: $membershipType, ')
           ..write('peerProfileHash: $peerProfileHash, ')
           ..write('status: $status, ')
@@ -1499,8 +1336,6 @@ typedef $$MeetingPlaceGroupsTableCreateCompanionBuilder =
       required String offerLink,
       required GroupStatus status,
       required DateTime created,
-      Value<String?> groupKeyPair,
-      Value<String?> publicKey,
       Value<String?> ownerDid,
       Value<int> rowid,
     });
@@ -1511,8 +1346,6 @@ typedef $$MeetingPlaceGroupsTableUpdateCompanionBuilder =
       Value<String> offerLink,
       Value<GroupStatus> status,
       Value<DateTime> created,
-      Value<String?> groupKeyPair,
-      Value<String?> publicKey,
       Value<String?> ownerDid,
       Value<int> rowid,
     });
@@ -1587,16 +1420,6 @@ class $$MeetingPlaceGroupsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get groupKeyPair => $composableBuilder(
-    column: $table.groupKeyPair,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get publicKey => $composableBuilder(
-    column: $table.publicKey,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<String> get ownerDid => $composableBuilder(
     column: $table.ownerDid,
     builder: (column) => ColumnFilters(column),
@@ -1662,16 +1485,6 @@ class $$MeetingPlaceGroupsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get groupKeyPair => $composableBuilder(
-    column: $table.groupKeyPair,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get publicKey => $composableBuilder(
-    column: $table.publicKey,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get ownerDid => $composableBuilder(
     column: $table.ownerDid,
     builder: (column) => ColumnOrderings(column),
@@ -1701,14 +1514,6 @@ class $$MeetingPlaceGroupsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get created =>
       $composableBuilder(column: $table.created, builder: (column) => column);
-
-  GeneratedColumn<String> get groupKeyPair => $composableBuilder(
-    column: $table.groupKeyPair,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get publicKey =>
-      $composableBuilder(column: $table.publicKey, builder: (column) => column);
 
   GeneratedColumn<String> get ownerDid =>
       $composableBuilder(column: $table.ownerDid, builder: (column) => column);
@@ -1777,8 +1582,6 @@ class $$MeetingPlaceGroupsTableTableManager
                 Value<String> offerLink = const Value.absent(),
                 Value<GroupStatus> status = const Value.absent(),
                 Value<DateTime> created = const Value.absent(),
-                Value<String?> groupKeyPair = const Value.absent(),
-                Value<String?> publicKey = const Value.absent(),
                 Value<String?> ownerDid = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MeetingPlaceGroupsCompanion(
@@ -1787,8 +1590,6 @@ class $$MeetingPlaceGroupsTableTableManager
                 offerLink: offerLink,
                 status: status,
                 created: created,
-                groupKeyPair: groupKeyPair,
-                publicKey: publicKey,
                 ownerDid: ownerDid,
                 rowid: rowid,
               ),
@@ -1799,8 +1600,6 @@ class $$MeetingPlaceGroupsTableTableManager
                 required String offerLink,
                 required GroupStatus status,
                 required DateTime created,
-                Value<String?> groupKeyPair = const Value.absent(),
-                Value<String?> publicKey = const Value.absent(),
                 Value<String?> ownerDid = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MeetingPlaceGroupsCompanion.insert(
@@ -1809,8 +1608,6 @@ class $$MeetingPlaceGroupsTableTableManager
                 offerLink: offerLink,
                 status: status,
                 created: created,
-                groupKeyPair: groupKeyPair,
-                publicKey: publicKey,
                 ownerDid: ownerDid,
                 rowid: rowid,
               ),
@@ -1879,7 +1676,6 @@ typedef $$GroupMembersTableCreateCompanionBuilder =
       Value<String?> metadata,
       Value<String?> acceptOfferAsDid,
       Value<DateTime> dateAdded,
-      required String publicKey,
       required GroupMembershipType membershipType,
       Value<String?> peerProfileHash,
       required GroupMemberStatus status,
@@ -1898,7 +1694,6 @@ typedef $$GroupMembersTableUpdateCompanionBuilder =
       Value<String?> metadata,
       Value<String?> acceptOfferAsDid,
       Value<DateTime> dateAdded,
-      Value<String> publicKey,
       Value<GroupMembershipType> membershipType,
       Value<String?> peerProfileHash,
       Value<GroupMemberStatus> status,
@@ -1969,11 +1764,6 @@ class $$GroupMembersTableFilterComposer
 
   ColumnFilters<DateTime> get dateAdded => $composableBuilder(
     column: $table.dateAdded,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get publicKey => $composableBuilder(
-    column: $table.publicKey,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2077,11 +1867,6 @@ class $$GroupMembersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get publicKey => $composableBuilder(
-    column: $table.publicKey,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<int> get membershipType => $composableBuilder(
     column: $table.membershipType,
     builder: (column) => ColumnOrderings(column),
@@ -2171,9 +1956,6 @@ class $$GroupMembersTableAnnotationComposer
 
   GeneratedColumn<DateTime> get dateAdded =>
       $composableBuilder(column: $table.dateAdded, builder: (column) => column);
-
-  GeneratedColumn<String> get publicKey =>
-      $composableBuilder(column: $table.publicKey, builder: (column) => column);
 
   GeneratedColumnWithTypeConverter<GroupMembershipType, int>
   get membershipType => $composableBuilder(
@@ -2267,7 +2049,6 @@ class $$GroupMembersTableTableManager
                 Value<String?> metadata = const Value.absent(),
                 Value<String?> acceptOfferAsDid = const Value.absent(),
                 Value<DateTime> dateAdded = const Value.absent(),
-                Value<String> publicKey = const Value.absent(),
                 Value<GroupMembershipType> membershipType =
                     const Value.absent(),
                 Value<String?> peerProfileHash = const Value.absent(),
@@ -2285,7 +2066,6 @@ class $$GroupMembersTableTableManager
                 metadata: metadata,
                 acceptOfferAsDid: acceptOfferAsDid,
                 dateAdded: dateAdded,
-                publicKey: publicKey,
                 membershipType: membershipType,
                 peerProfileHash: peerProfileHash,
                 status: status,
@@ -2304,7 +2084,6 @@ class $$GroupMembersTableTableManager
                 Value<String?> metadata = const Value.absent(),
                 Value<String?> acceptOfferAsDid = const Value.absent(),
                 Value<DateTime> dateAdded = const Value.absent(),
-                required String publicKey,
                 required GroupMembershipType membershipType,
                 Value<String?> peerProfileHash = const Value.absent(),
                 required GroupMemberStatus status,
@@ -2321,7 +2100,6 @@ class $$GroupMembersTableTableManager
                 metadata: metadata,
                 acceptOfferAsDid: acceptOfferAsDid,
                 dateAdded: dateAdded,
-                publicKey: publicKey,
                 membershipType: membershipType,
                 peerProfileHash: peerProfileHash,
                 status: status,

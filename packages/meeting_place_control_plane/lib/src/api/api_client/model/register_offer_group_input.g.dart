@@ -111,11 +111,7 @@ class _$RegisterOfferGroupInput extends RegisterOfferGroupInput {
   @override
   final String? metadata;
   @override
-  final String adminReencryptionKey;
-  @override
   final String adminDid;
-  @override
-  final String adminPublicKey;
   @override
   final String memberContactCard;
 
@@ -138,9 +134,7 @@ class _$RegisterOfferGroupInput extends RegisterOfferGroupInput {
     this.customPhrase,
     this.isSearchable,
     this.metadata,
-    required this.adminReencryptionKey,
     required this.adminDid,
-    required this.adminPublicKey,
     required this.memberContactCard,
   }) : super._();
   @override
@@ -170,9 +164,7 @@ class _$RegisterOfferGroupInput extends RegisterOfferGroupInput {
         customPhrase == other.customPhrase &&
         isSearchable == other.isSearchable &&
         metadata == other.metadata &&
-        adminReencryptionKey == other.adminReencryptionKey &&
         adminDid == other.adminDid &&
-        adminPublicKey == other.adminPublicKey &&
         memberContactCard == other.memberContactCard;
   }
 
@@ -193,9 +185,7 @@ class _$RegisterOfferGroupInput extends RegisterOfferGroupInput {
     _$hash = $jc(_$hash, customPhrase.hashCode);
     _$hash = $jc(_$hash, isSearchable.hashCode);
     _$hash = $jc(_$hash, metadata.hashCode);
-    _$hash = $jc(_$hash, adminReencryptionKey.hashCode);
     _$hash = $jc(_$hash, adminDid.hashCode);
-    _$hash = $jc(_$hash, adminPublicKey.hashCode);
     _$hash = $jc(_$hash, memberContactCard.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
@@ -218,9 +208,7 @@ class _$RegisterOfferGroupInput extends RegisterOfferGroupInput {
           ..add('customPhrase', customPhrase)
           ..add('isSearchable', isSearchable)
           ..add('metadata', metadata)
-          ..add('adminReencryptionKey', adminReencryptionKey)
           ..add('adminDid', adminDid)
-          ..add('adminPublicKey', adminPublicKey)
           ..add('memberContactCard', memberContactCard))
         .toString();
   }
@@ -293,19 +281,9 @@ class RegisterOfferGroupInputBuilder
   String? get metadata => _$this._metadata;
   set metadata(String? metadata) => _$this._metadata = metadata;
 
-  String? _adminReencryptionKey;
-  String? get adminReencryptionKey => _$this._adminReencryptionKey;
-  set adminReencryptionKey(String? adminReencryptionKey) =>
-      _$this._adminReencryptionKey = adminReencryptionKey;
-
   String? _adminDid;
   String? get adminDid => _$this._adminDid;
   set adminDid(String? adminDid) => _$this._adminDid = adminDid;
-
-  String? _adminPublicKey;
-  String? get adminPublicKey => _$this._adminPublicKey;
-  set adminPublicKey(String? adminPublicKey) =>
-      _$this._adminPublicKey = adminPublicKey;
 
   String? _memberContactCard;
   String? get memberContactCard => _$this._memberContactCard;
@@ -333,9 +311,7 @@ class RegisterOfferGroupInputBuilder
       _customPhrase = $v.customPhrase;
       _isSearchable = $v.isSearchable;
       _metadata = $v.metadata;
-      _adminReencryptionKey = $v.adminReencryptionKey;
       _adminDid = $v.adminDid;
-      _adminPublicKey = $v.adminPublicKey;
       _memberContactCard = $v.memberContactCard;
       _$v = null;
     }
@@ -409,20 +385,10 @@ class RegisterOfferGroupInputBuilder
           customPhrase: customPhrase,
           isSearchable: isSearchable,
           metadata: metadata,
-          adminReencryptionKey: BuiltValueNullFieldError.checkNotNull(
-            adminReencryptionKey,
-            r'RegisterOfferGroupInput',
-            'adminReencryptionKey',
-          ),
           adminDid: BuiltValueNullFieldError.checkNotNull(
             adminDid,
             r'RegisterOfferGroupInput',
             'adminDid',
-          ),
-          adminPublicKey: BuiltValueNullFieldError.checkNotNull(
-            adminPublicKey,
-            r'RegisterOfferGroupInput',
-            'adminPublicKey',
           ),
           memberContactCard: BuiltValueNullFieldError.checkNotNull(
             memberContactCard,

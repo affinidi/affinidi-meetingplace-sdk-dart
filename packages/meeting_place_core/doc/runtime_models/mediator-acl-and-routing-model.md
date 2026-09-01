@@ -310,6 +310,6 @@ In practice, the ACL state itself is not mirrored into a dedicated local entity.
 ## Caveats
 
 - This document describes the current SDK implementation, not an idealized mediator policy model.
-- Group traffic uses a control-plane-backed send path for encrypted group payloads, so the routing path is not identical to direct pairwise messaging.
+- Group chat traffic is carried over Matrix rather than this DIDComm/mediator routing path, so the routing path described here does not apply to steady-state group messaging.
 - ACL updates are targeted to the relevant owner DID; there is no single global grant for an entire connection or group.
 - Because ACLs are updated incrementally, partial handshake state can temporarily expose both a temporary DID and a permanent DID as valid ingress paths until the final cleanup step runs.

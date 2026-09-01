@@ -23,7 +23,6 @@ ChatGroupDetailsUpdateBody _$ChatGroupDetailsUpdateBodyFromJson(
       .map((e) => e as String)
       .toList(),
   dateCreated: DateTime.parse(json['date_created'] as String),
-  groupPublicKey: json['group_public_key'] as String,
   groupKeyPair: json['group_key_pair'] as String?,
 );
 
@@ -36,7 +35,6 @@ Map<String, dynamic> _$ChatGroupDetailsUpdateBodyToJson(
   'members': instance.members.map((e) => e.toJson()).toList(),
   'admin_dids': instance.adminDids,
   'date_created': instance.dateCreated.toIso8601String(),
-  'group_public_key': instance.groupPublicKey,
   'group_key_pair': ?instance.groupKeyPair,
 };
 
@@ -49,7 +47,6 @@ ChatGroupDetailsUpdateBodyMember _$ChatGroupDetailsUpdateBodyMemberFromJson(
   ),
   dateAdded: DateTime.parse(json['date_added'] as String),
   status: json['status'] as String,
-  publicKey: json['public_key'] as String,
   membershipType: json['membership_type'] as String,
 );
 
@@ -60,6 +57,5 @@ Map<String, dynamic> _$ChatGroupDetailsUpdateBodyMemberToJson(
   'contact_card': instance.contactCard.toJson(),
   'date_added': instance.dateAdded.toIso8601String(),
   'status': instance.status,
-  'public_key': instance.publicKey,
   'membership_type': instance.membershipType,
 };

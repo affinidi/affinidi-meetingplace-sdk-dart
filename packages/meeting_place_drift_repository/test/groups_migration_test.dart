@@ -113,4 +113,81 @@ void main() {
       await db.close();
     });
   });
+
+  group('v2 → v3 schema migration', () {
+    test('produces the correct v3 schema', () async {
+      final connection = await verifier.startAt(2);
+      final db = GroupsDatabase.forTesting(connection);
+      await verifier.migrateAndValidate(db, 3);
+      await db.close();
+    });
+
+    test(
+      'drops public_key and group_key_pair, preserving other data',
+      () async {
+        final schema = await verifier.schemaAt(2);
+
+        schema.rawDatabase.execute('''
+        INSERT INTO meeting_place_groups VALUES (
+          'grp-2',
+          'did:example:group2',
+          'offer-link-2',
+          1,
+          '2026-01-01T00:00:00.000',
+          'stale-group-key-pair',
+          'stale-public-key',
+          'did:example:owner'
+        )
+      ''');
+        schema.rawDatabase.execute('''
+        INSERT INTO group_members VALUES (
+          'grp-2',
+          'did:example:bob',
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          '2026-01-02T00:00:00.000',
+          'stale-member-key',
+          1,
+          NULL,
+          1,
+          'did:example:identity',
+          'Person',
+          '{}',
+          NULL
+        )
+      ''');
+
+        final db = GroupsDatabase.forTesting(schema.newConnection());
+        await verifier.migrateAndValidate(db, 3);
+
+        // The dropped columns must be gone — querying them should throw.
+        await expectLater(
+          () => db
+              .customSelect('SELECT public_key FROM meeting_place_groups')
+              .get(),
+          throwsA(anything),
+        );
+        await expectLater(
+          () => db.customSelect('SELECT public_key FROM group_members').get(),
+          throwsA(anything),
+        );
+
+        // Unrelated data must survive the migration.
+        final ownerDid = await db
+            .customSelect(
+              'SELECT owner_did FROM meeting_place_groups WHERE id = ?',
+              variables: [const Variable('grp-2')],
+            )
+            .get();
+        expect(
+          ownerDid.single.read<String?>('owner_did'),
+          equals('did:example:owner'),
+        );
+
+        await db.close();
+      },
+    );
+  });
 }

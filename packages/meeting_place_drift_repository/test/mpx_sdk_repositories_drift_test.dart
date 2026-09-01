@@ -576,7 +576,6 @@ void main() {
             dateAdded: DateTime.utc(2026, 1, 2),
             status: model.GroupMemberStatus.approved,
             membershipType: model.GroupMembershipType.admin,
-            publicKey: 'public-key',
             contactCard: model.ContactCard(
               did: 'did:example:identity',
               type: 'Person',
@@ -624,7 +623,6 @@ void main() {
         members: [
           model.GroupMember.admin(
             did: 'did:example:owner',
-            publicKey: 'pk-owner',
             contactCard: model.ContactCard(
               did: 'did:example:owner',
               type: 'Person',
@@ -637,7 +635,6 @@ void main() {
 
       final joiner = model.GroupMember.pendingMember(
         did: 'did:example:joiner',
-        publicKey: 'pk-joiner',
         contactCard: model.ContactCard(
           did: 'did:example:joiner',
           type: 'Person',
@@ -683,7 +680,6 @@ void main() {
       final repository = GroupsRepositoryDrift(database: database);
       model.GroupMember pending(String did) => model.GroupMember.pendingMember(
         did: did,
-        publicKey: 'pk-$did',
         contactCard: model.ContactCard(
           did: did,
           type: 'Person',
@@ -729,7 +725,6 @@ void main() {
       final repository = GroupsRepositoryDrift(database: database);
       model.GroupMember pending(String did) => model.GroupMember.pendingMember(
         did: did,
-        publicKey: 'pk-$did',
         contactCard: model.ContactCard(
           did: did,
           type: 'Person',
@@ -777,7 +772,6 @@ void main() {
 
       model.GroupMember pending(String did) => model.GroupMember.pendingMember(
         did: did,
-        publicKey: 'pk-$did',
         contactCard: model.ContactCard(
           did: did,
           type: 'Person',
@@ -844,7 +838,6 @@ void main() {
 
       model.GroupMember pending(String did) => model.GroupMember.pendingMember(
         did: did,
-        publicKey: 'pk-$did',
         contactCard: model.ContactCard(
           did: did,
           type: 'Person',
@@ -923,7 +916,6 @@ void main() {
 
       final existingMember = model.GroupMember.admin(
         did: 'did:example:owner',
-        publicKey: 'pk-owner',
         contactCard: model.ContactCard(
           did: 'did:example:owner',
           type: 'Person',
@@ -941,7 +933,6 @@ void main() {
 
       final duplicateJoiner = model.GroupMember.pendingMember(
         did: 'did:example:duplicate-joiner',
-        publicKey: 'pk-duplicate-joiner',
         contactCard: model.ContactCard(
           did: 'did:example:duplicate-joiner',
           type: 'Person',

@@ -32,8 +32,8 @@ sequenceDiagram
     participant M as Mediator
     participant Member as Candidate Member
 
-    Admin->>CP: RegisterOfferGroup(OOB invitation, admin DID, admin key material)
-    Note over Admin,CP: Admin creates an OOB DID, a Group Owner DID, and group cryptographic material.
+    Admin->>CP: RegisterOfferGroup(OOB invitation, admin DID)
+    Note over Admin,CP: Admin creates an OOB DID and a Group Owner DID.
 
     CP-->>Admin: groupId, groupDid, mnemonic, routing data
     Note over Admin: Admin stores the new group locally and starts with an inaugurated admin-to-group channel.
@@ -42,24 +42,24 @@ sequenceDiagram
     Note over Member: Member creates Accept-Offer DID and Member Permanent DID.
 
     Member->>M: InvitationAcceptanceGroup
-    Note over Member,M: Includes member permanent DID, member public key, and contact card.
+    Note over Member,M: Includes member permanent DID and contact card.
 
     Member->>CP: NotifyAcceptanceGroup
     Note over CP,Admin: Control plane signals that a new membership request exists.
 
     Admin->>M: Fetch InvitationAcceptanceGroup after InvitationGroupAccept event
     M-->>Admin: InvitationAcceptanceGroup delivered
-    Note over Admin: Admin learns candidate Accept-Offer DID, member DID, and member public key.
+    Note over Admin: Admin learns candidate Accept-Offer DID and member DID.
 
     Admin->>M: GroupMemberInauguration
-    Note over Admin,M: Includes group DID, group ID, group public key, admin DID list, and approved members list.
+    Note over Admin,M: Includes group DID, group ID, admin DID list, and approved members list.
 
-    Admin->>CP: GroupAddMember(re-encryption key, member details)
+    Admin->>CP: GroupAddMember(member details)
     Note over CP,Member: Control plane emits GroupMembershipFinalised to the member side.
 
     Member->>M: Fetch GroupMemberInauguration after GroupMembershipFinalised event
     M-->>Member: GroupMemberInauguration delivered
-    Note over Member: Member learns the real group DID, group public key, and approved membership snapshot.
+    Note over Member: Member learns the real group DID and approved membership snapshot.
 
     Member->>CP: RegisterNotification(myDid=member DID, theirDid=group DID)
     Member->>M: Update ACLs for group and admin traffic
@@ -74,7 +74,6 @@ The group admin creates the group before any other member joins. This includes:
 
 - a fresh OOB DID for the invitation
 - a group owner DID for administration
-- group cryptographic material
 - a group offer registered through the control plane
 - the admin OOB DID is set to public in the mediator ACL so candidates can send the first DIDComm membership request
 
@@ -104,7 +103,7 @@ The candidate member discovers the group offer and creates two DIDs:
 - Accept-Offer DID for the join request
 - Member Permanent DID for ongoing participation in the group
 
-The candidate also creates member key material and sends `InvitationAcceptanceGroup` through the mediator.
+The candidate sends `InvitationAcceptanceGroup` through the mediator.
 
 Example `InvitationAcceptanceGroup` payload:
 
@@ -116,8 +115,7 @@ Example `InvitationAcceptanceGroup` payload:
     "to": ["did:key:group-admin-oob-did"],
     "parentThreadId": "group-invitation-id",
     "body": {
-        "channel_did": "did:key:candidate-member-permanent-did",
-        "public_key": "<candidate-member-public-key-base64>"
+        "channel_did": "did:key:candidate-member-permanent-did"
     },
     "attachments": [
         {
@@ -143,7 +141,6 @@ If the admin approves the request, it:
 
 - resolves the candidate member DID
 - allows the candidate to message the group admin where needed
-- generates the re-encryption material required for group messaging
 - sends `GroupMemberInauguration` to the candidate member DID
 - finalises the membership in the control plane with `GroupAddMember`
 
@@ -159,7 +156,6 @@ Example `GroupMemberInauguration` payload:
         "member_did": "did:key:candidate-member-permanent-did",
         "group_did": "did:key:group-did",
         "group_id": "group-id",
-        "group_public_key": "<group-public-key-base64>",
         "admin_dids": ["did:key:group-admin-owner-did"],
         "members": [
             {
@@ -170,8 +166,7 @@ Example `GroupMemberInauguration` payload:
                     "contactInfo": {"displayName": "Group Admin"}
                 },
                 "membershipType": "admin",
-                "status": "approved",
-                "publicKey": "<admin-public-key-base64>"
+                "status": "approved"
             },
             {
                 "did": "did:key:candidate-member-permanent-did",
@@ -181,8 +176,7 @@ Example `GroupMemberInauguration` payload:
                     "contactInfo": {"displayName": "Candidate Member"}
                 },
                 "membershipType": "member",
-                "status": "approved",
-                "publicKey": "<candidate-member-public-key-base64>"
+                "status": "approved"
             }
         ]
     }
@@ -290,39 +284,38 @@ For local channel state, the joining member follows the familiar transition from
 | Stage | Protocol message | Purpose |
 | --- | --- | --- |
 | Discovery | Out-of-band invitation | Advertises a joinable group and mediator routing context |
-| Join request | `InvitationAcceptanceGroup` | Candidate requests membership and shares member DID and member public key |
-| Approval | `GroupMemberInauguration` | Admin shares group DID, group public key, admin list, and approved members |
-| Steady state | `GroupMessage` | Sends encrypted group traffic addressed to the group DID |
+| Join request | `InvitationAcceptanceGroup` | Candidate requests membership and shares member DID |
+| Approval | `GroupMemberInauguration` | Admin shares group DID, admin list, and approved members |
+| Steady state | Matrix room events | Group chat messaging, membership, and profile updates over the Matrix room bound to the group |
 
 ## After Membership Finalisation
 
 ```mermaid
 flowchart LR
     Member[Member Permanent DID]
-    Group[Group DID]
+    Room[Matrix Room]
     Admin[Admin DID]
-    GM[Encrypted GroupMessage]
+    Chat[Group chat messages]
     Updates[Membership and group detail updates]
 
-    Member <--> Group
+    Member <--> Room
     Admin <--> Member
-    Group --> GM
-    Group --> Updates
+    Room --> Chat
+    Room --> Updates
 ```
 
 Once membership is finalised, the main communication path becomes:
 
-- member DID to group DID for normal group traffic
-- admin DID to member DID for certain direct administrative interactions such as profile-related requests
+- the member's Matrix client to the group's Matrix room for normal group chat traffic and membership/profile updates
+- admin DID to member DID (DIDComm) for certain direct administrative interactions such as profile-related requests
 
-Group traffic uses `GroupMessage`, which carries encrypted group payload data and sequence information rather than plain peer-to-peer chat content.
+Group chat messaging, membership changes, and profile updates are carried as Matrix room events rather than DIDComm payloads once a member is finalised into the group.
 
 ## Group-Specific Design Notes
 
-The group protocol adds cryptographic membership data on top of the basic invitation workflow.
+The group protocol adds group membership data on top of the basic invitation workflow.
 
-- The candidate member contributes a member public key when requesting access.
-- The admin finalises membership with group-level public data and re-encryption setup.
+- The admin finalises membership with group-level DID and admin/member list data.
 - The member receives a full group membership snapshot during inauguration.
 
 This is why the group flow is structurally different from the individual flow even though both start with an invitation and use the same control-plane-plus-mediator architecture.

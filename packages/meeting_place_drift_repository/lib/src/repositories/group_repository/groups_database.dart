@@ -56,7 +56,7 @@ class GroupsDatabase extends _$GroupsDatabase {
   GroupsDatabase.forTesting(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -113,6 +113,21 @@ class GroupsDatabase extends _$GroupsDatabase {
           'ALTER TABLE group_members_temp RENAME TO group_members',
         );
       }
+
+      if (from < 3 && to >= 3) {
+        // publicKey (both tables) and groupKeyPair (meeting_place_groups)
+        // backed a proxy-recrypt group messaging scheme that has been fully
+        // retired in favor of Matrix-native group messaging.
+        await customStatement(
+          'ALTER TABLE meeting_place_groups DROP COLUMN public_key',
+        );
+        await customStatement(
+          'ALTER TABLE meeting_place_groups DROP COLUMN group_key_pair',
+        );
+        await customStatement(
+          'ALTER TABLE group_members DROP COLUMN public_key',
+        );
+      }
     },
   );
 }
@@ -134,12 +149,6 @@ class MeetingPlaceGroups extends Table {
 
   /// The date and time when the group was created.
   DateTimeColumn get created => dateTime()();
-
-  /// The key pair associated with the group.
-  TextColumn get groupKeyPair => text().nullable()();
-
-  /// The public key of the group.
-  TextColumn get publicKey => text().nullable()();
 
   /// The DID of the owner of the group.
   TextColumn get ownerDid => text().nullable()();
@@ -173,9 +182,6 @@ class GroupMembers extends Table {
 
   /// The date and time when the member was added to the group.
   DateTimeColumn get dateAdded => dateTime().clientDefault(clock.now)();
-
-  /// The public key of the group member.
-  TextColumn get publicKey => text()();
 
   /// The membership type of the group member.
   IntColumn get membershipType =>

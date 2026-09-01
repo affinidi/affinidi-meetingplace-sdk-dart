@@ -17,12 +17,10 @@ Group _group({GroupStatus status = GroupStatus.created}) => Group(
   offerLink: 'offer://test',
   created: DateTime.utc(2026, 1, 1),
   ownerDid: 'did:test:alice',
-  publicKey: 'pk',
   status: status,
   members: [
     GroupMember.admin(
       did: 'did:test:alice',
-      publicKey: 'pk-alice',
       contactCard: _card('did:test:alice'),
     ),
   ],

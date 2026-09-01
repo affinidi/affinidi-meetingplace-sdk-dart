@@ -19,8 +19,6 @@ part 'group_add_member_input.g.dart';
 ///   group chat.
 /// * [acceptOfferAsDid] - Decentralised Identifier (DID) of when the member
 ///   accepted the offer.
-/// * [reencryptionKey] - The reencryption key for the group chat member.
-/// * [publicKey] - The public key information of the group chat member.
 /// * [contactCard] - The ContactCard of the member to add to the group chat.
 @BuiltValue()
 abstract class GroupAddMemberInput
@@ -44,14 +42,6 @@ abstract class GroupAddMemberInput
   /// Decentralised Identifier (DID) of when the member accepted the offer.
   @BuiltValueField(wireName: r'acceptOfferAsDid')
   String get acceptOfferAsDid;
-
-  /// The reencryption key for the group chat member.
-  @BuiltValueField(wireName: r'reencryptionKey')
-  String get reencryptionKey;
-
-  /// The public key information of the group chat member.
-  @BuiltValueField(wireName: r'publicKey')
-  String get publicKey;
 
   /// The ContactCard of the member to add to the group chat.
   @BuiltValueField(wireName: r'contactCard')
@@ -109,16 +99,6 @@ class _$GroupAddMemberInputSerializer
     yield r'acceptOfferAsDid';
     yield serializers.serialize(
       object.acceptOfferAsDid,
-      specifiedType: const FullType(String),
-    );
-    yield r'reencryptionKey';
-    yield serializers.serialize(
-      object.reencryptionKey,
-      specifiedType: const FullType(String),
-    );
-    yield r'publicKey';
-    yield serializers.serialize(
-      object.publicKey,
       specifiedType: const FullType(String),
     );
     yield r'contactCard';
@@ -197,24 +177,6 @@ class _$GroupAddMemberInputSerializer
                   )
                   as String;
           result.acceptOfferAsDid = valueDes;
-          break;
-        case r'reencryptionKey':
-          final valueDes =
-              serializers.deserialize(
-                    value,
-                    specifiedType: const FullType(String),
-                  )
-                  as String;
-          result.reencryptionKey = valueDes;
-          break;
-        case r'publicKey':
-          final valueDes =
-              serializers.deserialize(
-                    value,
-                    specifiedType: const FullType(String),
-                  )
-                  as String;
-          result.publicKey = valueDes;
           break;
         case r'contactCard':
           final valueDes =

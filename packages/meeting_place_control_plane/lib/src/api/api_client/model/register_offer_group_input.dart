@@ -34,9 +34,7 @@ part 'register_offer_group_input.g.dart';
 ///   user.
 /// * [isSearchable] - Indicates whether the offer is searchable by other users.
 /// * [metadata] - Metadata containing additional information about the offer.
-/// * [adminReencryptionKey] - Reencryption key for the group chat admin.
 /// * [adminDid] - The Decentralised Identifier (DUD) of the group chat admin.
-/// * [adminPublicKey] - The public key information of the group chat admin.
 /// * [memberContactCard] - A ContactCard of the group chat member encoded in
 ///   base64 format.
 @BuiltValue()
@@ -103,17 +101,9 @@ abstract class RegisterOfferGroupInput
   @BuiltValueField(wireName: r'metadata')
   String? get metadata;
 
-  /// Reencryption key for the group chat admin.
-  @BuiltValueField(wireName: r'adminReencryptionKey')
-  String get adminReencryptionKey;
-
   /// The Decentralised Identifier (DUD) of the group chat admin.
   @BuiltValueField(wireName: r'adminDid')
   String get adminDid;
-
-  /// The public key information of the group chat admin.
-  @BuiltValueField(wireName: r'adminPublicKey')
-  String get adminPublicKey;
 
   /// A ContactCard of the group chat member encoded in base64 format.
   @BuiltValueField(wireName: r'memberContactCard')
@@ -229,19 +219,9 @@ class _$RegisterOfferGroupInputSerializer
         specifiedType: const FullType(String),
       );
     }
-    yield r'adminReencryptionKey';
-    yield serializers.serialize(
-      object.adminReencryptionKey,
-      specifiedType: const FullType(String),
-    );
     yield r'adminDid';
     yield serializers.serialize(
       object.adminDid,
-      specifiedType: const FullType(String),
-    );
-    yield r'adminPublicKey';
-    yield serializers.serialize(
-      object.adminPublicKey,
       specifiedType: const FullType(String),
     );
     yield r'memberContactCard';
@@ -401,15 +381,6 @@ class _$RegisterOfferGroupInputSerializer
                   as String;
           result.metadata = valueDes;
           break;
-        case r'adminReencryptionKey':
-          final valueDes =
-              serializers.deserialize(
-                    value,
-                    specifiedType: const FullType(String),
-                  )
-                  as String;
-          result.adminReencryptionKey = valueDes;
-          break;
         case r'adminDid':
           final valueDes =
               serializers.deserialize(
@@ -418,15 +389,6 @@ class _$RegisterOfferGroupInputSerializer
                   )
                   as String;
           result.adminDid = valueDes;
-          break;
-        case r'adminPublicKey':
-          final valueDes =
-              serializers.deserialize(
-                    value,
-                    specifiedType: const FullType(String),
-                  )
-                  as String;
-          result.adminPublicKey = valueDes;
           break;
         case r'memberContactCard':
           final valueDes =

@@ -13,8 +13,6 @@ class GroupAddMemberCommand
     required this.memberDid,
     required this.acceptOfferDid,
     required this.offerLink,
-    required this.publicKey,
-    required this.reencryptionKey,
     this.contactCard,
   });
   final String mnemonic;
@@ -22,7 +20,5 @@ class GroupAddMemberCommand
   final String memberDid;
   final String acceptOfferDid;
   final String offerLink;
-  final String publicKey;
-  final String reencryptionKey;
   final ContactCard? contactCard;
 }

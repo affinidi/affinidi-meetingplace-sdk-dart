@@ -23,16 +23,13 @@ Group _group() => Group(
   offerLink: 'offer://test',
   created: DateTime.utc(2026, 1, 1),
   ownerDid: 'did:test:alice',
-  publicKey: 'pk',
   members: [
     GroupMember.admin(
       did: 'did:test:alice',
-      publicKey: 'pk-alice',
       contactCard: _card('did:test:alice'),
     ),
     GroupMember(
       did: 'did:test:bob',
-      publicKey: 'pk-bob',
       dateAdded: DateTime.utc(2026, 1, 1),
       status: GroupMemberStatus.approved,
       membershipType: GroupMembershipType.member,
@@ -135,12 +132,10 @@ void main() {
         offerLink: staleGroup.offerLink,
         created: staleGroup.created,
         ownerDid: staleGroup.ownerDid,
-        publicKey: staleGroup.publicKey,
         members: [
           ...staleGroup.members,
           GroupMember(
             did: 'did:test:charlie',
-            publicKey: 'pk-charlie',
             dateAdded: DateTime.utc(2026, 1, 1),
             status: GroupMemberStatus.approved,
             membershipType: GroupMembershipType.member,

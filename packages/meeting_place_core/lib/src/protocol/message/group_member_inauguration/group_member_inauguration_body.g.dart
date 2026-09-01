@@ -12,7 +12,6 @@ GroupMemberInaugurationBody _$GroupMemberInaugurationBodyFromJson(
   memberDid: json['member_did'] as String,
   groupDid: json['group_did'] as String,
   groupId: json['group_id'] as String,
-  groupPublicKey: json['group_public_key'] as String,
   adminDids: (json['admin_dids'] as List<dynamic>)
       .map((e) => e as String)
       .toList(),
@@ -30,7 +29,6 @@ Map<String, dynamic> _$GroupMemberInaugurationBodyToJson(
   'member_did': instance.memberDid,
   'group_did': instance.groupDid,
   'group_id': instance.groupId,
-  'group_public_key': instance.groupPublicKey,
   'admin_dids': instance.adminDids,
   'members': instance.members.map((e) => e.toJson()).toList(),
 };

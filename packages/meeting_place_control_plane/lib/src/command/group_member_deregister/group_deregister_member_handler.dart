@@ -68,8 +68,7 @@ class GroupDeregisterMemberHandler
 
     final builder = GroupDeregisterMemberInputBuilder()
       ..groupId = command.groupId
-      ..memberDid = command.memberId
-      ..messageToRelay = command.messageBase64;
+      ..memberDid = command.memberId;
 
     try {
       _logger.info(

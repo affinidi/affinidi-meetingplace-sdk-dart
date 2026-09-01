@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_credentials/meeting_place_credentials.dart';
-import 'package:meeting_place_credentials/src/rcard/model/r_card_rejection.dart';
 import 'package:meeting_place_credentials/src/rcard/parser/r_card_parser.dart';
 import 'package:meeting_place_credentials/src/rcard/r_card_channel_stream_manager.dart';
 import 'package:mocktail/mocktail.dart';

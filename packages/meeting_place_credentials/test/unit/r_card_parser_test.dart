@@ -4,7 +4,6 @@ import 'dart:typed_data';
 
 import 'package:meeting_place_credentials/meeting_place_credentials.dart';
 import 'package:meeting_place_credentials/src/rcard/builder/r_card_builder.dart';
-import 'package:meeting_place_credentials/src/rcard/model/r_card_rejection.dart';
 import 'package:meeting_place_credentials/src/rcard/parser/r_card_parser.dart';
 import 'package:meeting_place_credentials/src/shared/credential_signer.dart';
 import 'package:ssi/ssi.dart';

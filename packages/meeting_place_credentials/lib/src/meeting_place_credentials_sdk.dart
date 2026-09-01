@@ -10,6 +10,7 @@ import 'rcard/builder/r_card_builder.dart';
 import 'rcard/model/channel_r_card_event.dart';
 import 'rcard/model/r_card.dart';
 import 'rcard/model/r_card_constants.dart';
+import 'rcard/model/r_card_rejection.dart';
 import 'rcard/model/r_card_subject.dart';
 import 'rcard/parser/r_card_parser.dart';
 import 'rcard/r_card_channel_stream_manager.dart';
@@ -101,6 +102,14 @@ class MeetingPlaceCredentialsSDK {
       _receivedRCardsController.add,
       onError: _receivedRCardsController.addError,
     );
+    _rCardRejectionsController = StreamController<RCardRejection>.broadcast();
+    _rCardRejectionsStream = _rCardRejectionsController.stream;
+    _attachmentRejectionSubscription = _attachmentManager.rejections.listen(
+      _rCardRejectionsController.add,
+    );
+    _rCardVdipRejectionSubscription = _rCardVdipStreamManager.rejections.listen(
+      _rCardRejectionsController.add,
+    );
     // Secondary path: processor registered on VdipClient so R-Cards are
     // persisted before the mediator message is deleted — guarantees
     // persistence even if this SDK was constructed after the message
@@ -170,6 +179,11 @@ class MeetingPlaceCredentialsSDK {
   late final StreamSubscription<ChannelRCardEvent> _attachmentSubscription;
   late final StreamSubscription<RCard> _rCardVdipSubscription;
   late final StreamSubscription<void> _persistenceSubscription;
+  late final StreamController<RCardRejection> _rCardRejectionsController;
+  late final Stream<RCardRejection> _rCardRejectionsStream;
+  late final StreamSubscription<RCardRejection>
+  _attachmentRejectionSubscription;
+  late final StreamSubscription<RCardRejection> _rCardVdipRejectionSubscription;
 
   late final VrcVdipStreamManager _vrcVdipStreamManager;
   late final VrcExchangeClient _vrcClient;
@@ -199,6 +213,16 @@ class MeetingPlaceCredentialsSDK {
   /// for those.
   Stream<ChannelRCardEvent> get receivedRCardsOnChannel =>
       _attachmentManager.stream;
+
+  /// A broadcast stream that emits an [RCardRejection] for every R-Card
+  /// (from either delivery path) that was received but rejected — malformed
+  /// payload, failed signature/expiry/revocation verification, or an issuer
+  /// that did not match the expected counterparty.
+  ///
+  /// Every such rejection is already logged internally; this stream lets
+  /// callers additionally observe and react to them (e.g. surface a warning
+  /// in their own logs or UI).
+  Stream<RCardRejection> get rCardRejections => _rCardRejectionsStream;
 
   /// Returns a live stream of all persisted R-Cards, ordered by
   /// [RCard.receivedAt] descending.
@@ -277,12 +301,15 @@ class MeetingPlaceCredentialsSDK {
       await _persistenceSubscription.cancel();
       await _rCardVdipSubscription.cancel();
       await _attachmentSubscription.cancel();
+      await _attachmentRejectionSubscription.cancel();
+      await _rCardVdipRejectionSubscription.cancel();
       await _vrcPersistenceSubscription?.cancel();
       await _rCardVdipStreamManager.close();
       await _vrcVdipStreamManager.close();
       await _attachmentManager.close();
       await _credentialsVdipStreamManager.close();
       await _receivedRCardsController.close();
+      await _rCardRejectionsController.close();
       await _coreSDK.closeVdipStream();
       return;
     }

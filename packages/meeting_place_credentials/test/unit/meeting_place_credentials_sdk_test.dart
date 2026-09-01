@@ -308,6 +308,68 @@ void main() {
       await sub.cancel();
       await sdk.closeCredentialStreams();
     });
+
+    test('rCardRejections surfaces rejections from the channel path', () async {
+      final sdk = MeetingPlaceCredentialsSDK(
+        coreSDK: mockCoreSDK,
+        rCardRepository: mockRepo,
+        vrcRepository: mockVrcRepo,
+      );
+      final channel = MockChannel();
+      when(
+        () => channel.otherPartyPermanentChannelDid,
+      ).thenReturn('did:example:other');
+
+      final rejections = <RCardRejection>[];
+      final sub = sdk.rCardRejections.listen(rejections.add);
+
+      channelAttachmentsCtrl.add(
+        ChannelAttachmentEvent(
+          channel: channel,
+          attachments: [rCardAttachment()],
+        ),
+      );
+
+      await Future<void>.delayed(Duration.zero);
+
+      expect(rejections, hasLength(1));
+      expect(rejections.first.source, RCardRejectionSource.channel);
+      await sub.cancel();
+      await sdk.closeCredentialStreams();
+    });
+
+    test('rCardRejections surfaces rejections from the VDIP path', () async {
+      final sdk = MeetingPlaceCredentialsSDK(
+        coreSDK: mockCoreSDK,
+        rCardRepository: mockRepo,
+        vrcRepository: mockVrcRepo,
+      );
+
+      final rejections = <RCardRejection>[];
+      final sub = sdk.rCardRejections.listen(rejections.add);
+
+      vdipMessagesCtrl.add(
+        PlainTextMessage(
+          id: 'msg-rejected-1',
+          type: VdipIssuedCredentialMessage.messageType,
+          // No `from` — the credential must still be R-Card-shaped so
+          // CredentialsVdipStreamManager routes it to the R-Card path at
+          // all, even though it's rejected before ever being parsed there.
+          body: {
+            'credential': rCardVcBlob,
+            'credential_format': CredentialsSDKConstants.w3cLdV1,
+          },
+        ),
+      );
+
+      await Future<void>.delayed(Duration.zero);
+
+      expect(rejections, hasLength(1));
+      expect(rejections.first.reason, RCardRejectionReason.missingSender);
+      expect(rejections.first.source, RCardRejectionSource.vdip);
+      await sub.cancel();
+      await sdk.closeCredentialStreams();
+    });
   });
 
   group('MeetingPlaceCredentialsSDK VRC streams', () {

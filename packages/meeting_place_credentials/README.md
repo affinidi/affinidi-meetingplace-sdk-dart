@@ -102,7 +102,14 @@ Working code for both flows is included in the [Affinidi Meeting Place Reference
 
 An R-Card is a signed W3C Verifiable Credential containing a jCard payload (RFC 7095). It is sent automatically on channel establishment and can be shared manually at any time.
 
+Every R-Card delivered through `receivedRCards`, `receivedRCardsOnChannel`, or `consumePendingRCard` has already passed full proof verification (signature, expiry, revocation) and been checked against the expected issuer/counterparty — an R-Card whose issuer doesn't match the DIDComm sender (VDIP path) or the channel's `otherPartyPermanentChannelDid` (channel path) is rejected rather than delivered. `RCard.fromVcBlob` is the one exception: it performs no verification at all and should not be used for trust decisions.
+
 - Receive incoming R-Cards with `credentialsSDK.receivedRCards`
+- Observe rejected R-Cards (failed verification, wrong issuer, malformed payload) with `credentialsSDK.rCardRejections`:
+  ```dart
+  credentialsSDK.rCardRejections.listen((r) =>
+      logger.warning('R-Card rejected: ${r.reason}'));
+  ```
 - Parse contact fields with `RCardSubject.fromVcBlob(rCard.vcBlob)`
 - Export to vCard 3.0 with `RCardVCardExtension.toVCard(subject)`
 - Persist and query with `RCardRepository`

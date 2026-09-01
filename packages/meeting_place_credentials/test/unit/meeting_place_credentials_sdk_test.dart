@@ -207,9 +207,7 @@ void main() {
         vrcRepository: mockVrcRepo,
       );
       final channel = MockChannel();
-      when(
-        () => channel.otherPartyPermanentChannelDid,
-      ).thenReturn('did:example:other');
+      when(() => channel.otherPartyPermanentChannelDid).thenReturn(issuerDid);
 
       final emitted = <RCard>[];
       final sub = sdk.receivedRCards.listen(emitted.add);

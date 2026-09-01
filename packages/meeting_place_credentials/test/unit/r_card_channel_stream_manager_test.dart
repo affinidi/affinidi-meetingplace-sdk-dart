@@ -228,9 +228,7 @@ void main() {
     });
 
     setUp(() {
-      when(
-        () => channel.otherPartyPermanentChannelDid,
-      ).thenReturn('did:example:other');
+      when(() => channel.otherPartyPermanentChannelDid).thenReturn(issuerDid);
     });
 
     test('valid signed R-Card emits on stream', () async {
@@ -263,5 +261,55 @@ void main() {
       final manager = makeManager();
       await expectLater(manager.close(), completes);
     });
+  });
+
+  group('RCardChannelStreamManager — issuer/counterparty binding', () {
+    late List<Attachment> signedAttachments;
+    late String issuerDid;
+
+    setUpAll(() async {
+      final wallet = PersistentWallet(InMemoryKeyStore());
+
+      final didManager = DidKeyManager(
+        wallet: wallet,
+        store: InMemoryDidStore(),
+      );
+      final keyPair = await wallet.generateKey();
+      await didManager.addVerificationMethod(keyPair.id);
+      final didDoc = await didManager.getDidDocument();
+      issuerDid = didDoc.id;
+
+      final vc = await CredentialBuilder.buildRCard(
+        issuerDid: issuerDid,
+        subjectDid: issuerDid,
+        subject: const RCardSubject(firstName: 'Alice'),
+        issuerDidManager: didManager,
+      );
+      signedAttachments = RCardDIDCommAttachmentBuilder.fromVcJson(vc.toJson());
+    });
+
+    test(
+      'R-Card with mismatched issuerDid is discarded — relay attack blocked',
+      () async {
+        when(
+          () => channel.otherPartyPermanentChannelDid,
+        ).thenReturn('did:key:relay-attacker');
+        final manager = makeManager();
+        final emitted = <ChannelRCardEvent>[];
+        final sub = manager.stream.listen(emitted.add);
+
+        channelAttachmentsCtrl.add(
+          ChannelAttachmentEvent(
+            channel: channel,
+            attachments: signedAttachments,
+          ),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+
+        expect(emitted, isEmpty);
+        await sub.cancel();
+        await manager.close();
+      },
+    );
   });
 }

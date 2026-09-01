@@ -69,16 +69,24 @@ class RCardChannelStreamManager {
       final vcBlob = _extractVcBlob(attachment);
       if (vcBlob == null) continue;
       final rCard = await _parser.parse(vcBlob: vcBlob);
-      if (rCard != null) {
-        yield ChannelRCardEvent(channel: channel, rCard: rCard);
-      } else {
+      if (rCard == null) {
         _controller.addError(
           FormatException(
             'Failed to parse R-Card from attachment '
             '(vcBlob length=${vcBlob.length})',
           ),
         );
+        continue;
       }
+      if (rCard.issuerDid != contactChannelDid) {
+        _logger.warning(
+          'R-Card issuerDid (${rCard.issuerDid}) does not match channel '
+          'counterparty ($contactChannelDid) — discarding to prevent '
+          'relay/replay.',
+        );
+        continue;
+      }
+      yield ChannelRCardEvent(channel: channel, rCard: rCard);
     }
   }
 

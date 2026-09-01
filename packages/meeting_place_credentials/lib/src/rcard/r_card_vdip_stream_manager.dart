@@ -115,8 +115,8 @@ class RCardVdipStreamManager {
       return;
     }
 
-    final rCard = await _parser.parse(vcBlob: credential);
-    if (rCard == null) {
+    final result = await _parser.parse(vcBlob: credential);
+    if (result is! RCardParseSuccess) {
       yield* Stream.error(
         const FormatException(
           'Failed to parse VDIP R-Card from credential blob',
@@ -124,6 +124,7 @@ class RCardVdipStreamManager {
       );
       return;
     }
+    final rCard = result.rCard;
 
     if (rCard.issuerDid != from) {
       _logger.warning(

@@ -341,8 +341,9 @@ class MeetingPlaceCredentialsSDK {
   /// Returns `null` if the blob is not a valid, signature-verified R-Card.
   ///
   /// - [vcBlob] — the raw serialised VC JSON string.
-  Future<RCard?> parseRCard({required String vcBlob}) {
-    return _rCardParser.parse(vcBlob: vcBlob);
+  Future<RCard?> parseRCard({required String vcBlob}) async {
+    final result = await _rCardParser.parse(vcBlob: vcBlob);
+    return result is RCardParseSuccess ? result.rCard : null;
   }
 
   /// Parses and validates a VRC from a raw VC blob string.

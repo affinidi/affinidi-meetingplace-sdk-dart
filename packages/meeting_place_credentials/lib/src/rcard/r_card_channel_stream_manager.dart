@@ -68,8 +68,8 @@ class RCardChannelStreamManager {
     for (final attachment in attachments) {
       final vcBlob = _extractVcBlob(attachment);
       if (vcBlob == null) continue;
-      final rCard = await _parser.parse(vcBlob: vcBlob);
-      if (rCard == null) {
+      final result = await _parser.parse(vcBlob: vcBlob);
+      if (result is! RCardParseSuccess) {
         _controller.addError(
           FormatException(
             'Failed to parse R-Card from attachment '
@@ -78,6 +78,7 @@ class RCardChannelStreamManager {
         );
         continue;
       }
+      final rCard = result.rCard;
       if (rCard.issuerDid != contactChannelDid) {
         _logger.warning(
           'R-Card issuerDid (${rCard.issuerDid}) does not match channel '

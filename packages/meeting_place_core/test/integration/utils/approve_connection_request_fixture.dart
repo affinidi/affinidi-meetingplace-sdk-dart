@@ -18,11 +18,14 @@ class ApproveConnectionRequestFixture {
   late final Channel aliceApprovedChannel;
   late final Channel bobOfferFinalisedChannel;
 
-  static Future<ApproveConnectionRequestFixture> create() async {
+  static Future<ApproveConnectionRequestFixture> create({
+    MeetingPlaceCoreSDKOptions? aliceOptions,
+    MeetingPlaceCoreSDKOptions? bobOptions,
+  }) async {
     final fixture = ApproveConnectionRequestFixture._();
 
-    fixture.aliceSDK = await initSDKInstance();
-    fixture.bobSDK = await initSDKInstance();
+    fixture.aliceSDK = await initSDKInstance(options: aliceOptions);
+    fixture.bobSDK = await initSDKInstance(options: bobOptions);
 
     fixture.aliceContactCard = ContactCardFixture.getContactCardFixture(
       did: 'did:test:alice',

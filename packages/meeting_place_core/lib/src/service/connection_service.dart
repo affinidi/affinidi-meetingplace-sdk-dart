@@ -550,6 +550,7 @@ class ConnectionService {
     final permanentIdentity = await _identityService.createPermanentIdentity(
       wallet,
     );
+    channel.permanentChannelDid = permanentIdentity.didDocument.id;
 
     if (channel.transport != ChannelTransport.didcomm) {
       await _channelTransport.setupChannel(

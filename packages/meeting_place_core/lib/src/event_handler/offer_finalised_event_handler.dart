@@ -167,7 +167,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
       otherPartyContactCard: connectionRequestApprovalMessage.contactCard,
     );
 
-    final attachments = message.attachments;
+    final attachments = connectionRequestApprovalMessage.attachments;
     if (attachments != null && attachments.isNotEmpty) {
       options.onAttachmentsReceived?.call(channel, attachments);
     }

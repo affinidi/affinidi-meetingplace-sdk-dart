@@ -18,6 +18,15 @@ class ApproveConnectionRequestFixture {
   late final Channel aliceApprovedChannel;
   late final Channel bobOfferFinalisedChannel;
 
+  /// [ChannelAttachmentEvent]s observed on `aliceSDK.channelAttachments`
+  /// during [create]. Populated before the handshake runs, since
+  /// `channelAttachments` is a broadcast stream and events fired during
+  /// [create] would otherwise be missed by a listener attached afterwards.
+  final aliceChannelAttachmentEvents = <ChannelAttachmentEvent>[];
+
+  /// Same as [aliceChannelAttachmentEvents], for `bobSDK.channelAttachments`.
+  final bobChannelAttachmentEvents = <ChannelAttachmentEvent>[];
+
   static Future<ApproveConnectionRequestFixture> create({
     MeetingPlaceCoreSDKOptions? aliceOptions,
     MeetingPlaceCoreSDKOptions? bobOptions,
@@ -26,6 +35,13 @@ class ApproveConnectionRequestFixture {
 
     fixture.aliceSDK = await initSDKInstance(options: aliceOptions);
     fixture.bobSDK = await initSDKInstance(options: bobOptions);
+
+    fixture.aliceSDK.channelAttachments.listen(
+      fixture.aliceChannelAttachmentEvents.add,
+    );
+    fixture.bobSDK.channelAttachments.listen(
+      fixture.bobChannelAttachmentEvents.add,
+    );
 
     fixture.aliceContactCard = ContactCardFixture.getContactCardFixture(
       did: 'did:test:alice',

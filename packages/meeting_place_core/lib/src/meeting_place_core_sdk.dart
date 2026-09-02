@@ -343,6 +343,7 @@ class MeetingPlaceCoreSDK {
       offerService: offerService,
       didResolver: didResolver,
       channelTransport: channelTransport,
+      onBuildAttachments: options.onBuildAttachments,
       logger: mpxLogger,
     );
 
@@ -457,6 +458,7 @@ class MeetingPlaceCoreSDK {
           channelAttachmentsController.add(
             ChannelAttachmentEvent(channel: channel, attachments: attachments),
           ),
+      onBuildAttachments: options.onBuildAttachments,
       logger: mpxLogger,
     );
 

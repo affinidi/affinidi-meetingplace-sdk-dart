@@ -228,9 +228,7 @@ void main() {
     });
 
     setUp(() {
-      when(
-        () => channel.otherPartyPermanentChannelDid,
-      ).thenReturn('did:example:other');
+      when(() => channel.otherPartyPermanentChannelDid).thenReturn(issuerDid);
     });
 
     test('valid signed R-Card emits on stream', () async {
@@ -263,5 +261,114 @@ void main() {
       final manager = makeManager();
       await expectLater(manager.close(), completes);
     });
+  });
+
+  group('RCardChannelStreamManager — issuer/counterparty binding', () {
+    late List<Attachment> signedAttachments;
+    late String issuerDid;
+
+    setUpAll(() async {
+      final wallet = PersistentWallet(InMemoryKeyStore());
+
+      final didManager = DidKeyManager(
+        wallet: wallet,
+        store: InMemoryDidStore(),
+      );
+      final keyPair = await wallet.generateKey();
+      await didManager.addVerificationMethod(keyPair.id);
+      final didDoc = await didManager.getDidDocument();
+      issuerDid = didDoc.id;
+
+      final vc = await CredentialBuilder.buildRCard(
+        issuerDid: issuerDid,
+        subjectDid: issuerDid,
+        subject: const RCardSubject(firstName: 'Alice'),
+        issuerDidManager: didManager,
+      );
+      signedAttachments = RCardDIDCommAttachmentBuilder.fromVcJson(vc.toJson());
+    });
+
+    test(
+      'R-Card with mismatched issuerDid is discarded — relay attack blocked',
+      () async {
+        when(
+          () => channel.otherPartyPermanentChannelDid,
+        ).thenReturn('did:key:relay-attacker');
+        final manager = makeManager();
+        final emitted = <ChannelRCardEvent>[];
+        final rejections = <RCardRejection>[];
+        final sub = manager.stream.listen(emitted.add);
+        final rejectionSub = manager.rejections.listen(rejections.add);
+
+        channelAttachmentsCtrl.add(
+          ChannelAttachmentEvent(
+            channel: channel,
+            attachments: signedAttachments,
+          ),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+
+        expect(emitted, isEmpty);
+        expect(rejections, hasLength(1));
+        expect(rejections.first.reason, RCardRejectionReason.issuerMismatch);
+        expect(rejections.first.source, RCardRejectionSource.channel);
+        expect(rejections.first.rCardIssuerDid, issuerDid);
+        expect(rejections.first.expectedDid, 'did:key:relay-attacker');
+        await rejectionSub.cancel();
+        await sub.cancel();
+        await manager.close();
+      },
+    );
+  });
+
+  group('RCardChannelStreamManager — rejections', () {
+    setUp(() {
+      when(
+        () => channel.otherPartyPermanentChannelDid,
+      ).thenReturn('did:example:other');
+    });
+
+    test('malformed attachment payload is surfaced as a rejection', () async {
+      final manager = makeManager();
+      final rejections = <RCardRejection>[];
+      final sub = manager.rejections.listen(rejections.add);
+
+      channelAttachmentsCtrl.add(
+        ChannelAttachmentEvent(
+          channel: channel,
+          attachments: [rCardAttachment(overrideDataJson: 'not-json')],
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(rejections, hasLength(1));
+      expect(rejections.first.reason, RCardRejectionReason.malformedAttachment);
+      expect(rejections.first.source, RCardRejectionSource.channel);
+      await sub.cancel();
+      await manager.close();
+    });
+
+    test(
+      'unsigned R-Card is surfaced as a rejection carrying the parser reason',
+      () async {
+        final manager = makeManager();
+        final rejections = <RCardRejection>[];
+        final sub = manager.rejections.listen(rejections.add);
+
+        channelAttachmentsCtrl.add(
+          ChannelAttachmentEvent(
+            channel: channel,
+            attachments: [rCardAttachment()],
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
+
+        expect(rejections, hasLength(1));
+        expect(rejections.first.reason, RCardRejectionReason.malformedJson);
+        expect(rejections.first.source, RCardRejectionSource.channel);
+        await sub.cancel();
+        await manager.close();
+      },
+    );
   });
 }

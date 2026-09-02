@@ -107,7 +107,9 @@ void main() {
       final manager = makeManager(ctrl);
       final emitted = <RCard>[];
       final errors = <Object>[];
+      final rejections = <RCardRejection>[];
       final sub = manager.stream.listen(emitted.add, onError: errors.add);
+      final rejectionSub = manager.rejections.listen(rejections.add);
 
       ctrl.add(
         PlainTextMessage(
@@ -125,6 +127,10 @@ void main() {
       expect(emitted, isEmpty);
       expect(errors, hasLength(1));
       expect(errors.first, isA<FormatException>());
+      expect(rejections, hasLength(1));
+      expect(rejections.first.reason, RCardRejectionReason.missingSender);
+      expect(rejections.first.source, RCardRejectionSource.vdip);
+      await rejectionSub.cancel();
       await sub.cancel();
       await manager.close();
       await ctrl.close();
@@ -134,7 +140,9 @@ void main() {
       final ctrl = StreamController<PlainTextMessage>.broadcast();
       final manager = makeManager(ctrl);
       final emitted = <RCard>[];
+      final rejections = <RCardRejection>[];
       final sub = manager.stream.listen(emitted.add);
+      final rejectionSub = manager.rejections.listen(rejections.add);
 
       ctrl.add(
         PlainTextMessage(
@@ -148,6 +156,10 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       expect(emitted, isEmpty);
+      expect(rejections, hasLength(1));
+      expect(rejections.first.reason, RCardRejectionReason.malformedAttachment);
+      expect(rejections.first.source, RCardRejectionSource.vdip);
+      await rejectionSub.cancel();
       await sub.cancel();
       await manager.close();
       await ctrl.close();
@@ -159,7 +171,9 @@ void main() {
         final ctrl = StreamController<PlainTextMessage>.broadcast();
         final manager = makeManager(ctrl);
         final emitted = <RCard>[];
+        final rejections = <RCardRejection>[];
         final sub = manager.stream.listen(emitted.add);
+        final rejectionSub = manager.rejections.listen(rejections.add);
 
         // Send a message where `from` is an attacker DID but the VC blob
         // was signed by issuerDid — simulates a relay/replay attack.
@@ -180,7 +194,13 @@ void main() {
         expect(emitted, isEmpty);
         expect(manager.consumePendingRCard('did:key:relay-attacker'), isNull);
         expect(manager.consumePendingRCard(issuerDid), isNull);
+        expect(rejections, hasLength(1));
+        expect(rejections.first.reason, RCardRejectionReason.issuerMismatch);
+        expect(rejections.first.source, RCardRejectionSource.vdip);
+        expect(rejections.first.rCardIssuerDid, issuerDid);
+        expect(rejections.first.expectedDid, 'did:key:relay-attacker');
 
+        await rejectionSub.cancel();
         await sub.cancel();
         await manager.close();
         await ctrl.close();

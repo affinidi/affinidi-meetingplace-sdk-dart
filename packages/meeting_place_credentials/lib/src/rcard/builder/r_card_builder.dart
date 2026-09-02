@@ -18,11 +18,13 @@ abstract final class RCardBuilder {
   /// - [subjectDid] — DID of the credential subject.
   /// - [subject] — Contact fields to embed as a jCard.
   /// - [issuerDidManager] — [DidManager] used to sign the credential.
+  /// - [validUntil] — optional expiry, for tests exercising expired R-Cards.
   static Future<VcDataModelV2> build({
     required String issuerDid,
     required String subjectDid,
     required RCardSubject subject,
     required DidManager issuerDidManager,
+    DateTime? validUntil,
   }) async {
     final unsigned = VcDataModelV2(
       context: JsonLdContext.fromJson([
@@ -37,6 +39,7 @@ abstract final class RCardBuilder {
         RCardConstants.typeRCard,
       },
       validFrom: DateTime.now().toUtc(),
+      validUntil: validUntil,
       credentialSubject: [
         CredentialSubject.fromJson({
           'id': subjectDid,

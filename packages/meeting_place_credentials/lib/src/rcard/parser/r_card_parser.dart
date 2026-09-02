@@ -34,23 +34,12 @@ final class RCardParseFailure extends RCardParseResult {
 
 /// Parses R-Card VC blobs and extracts verified [RCard] instances.
 class RCardParser {
-  /// Creates an [RCardParser], optionally injecting a [logger] and a
-  /// [documentLoader].
-  ///
-  /// [documentLoader] is forwarded to `ssi`'s `UniversalVerifier` and used
-  /// to fetch external resources (e.g. RevocationList2020 status list
-  /// credentials) during verification. Production callers can leave it
-  /// unset; tests can inject one to exercise revocation without a live
-  /// network call.
-  RCardParser({
-    MeetingPlaceCoreSDKLogger? logger,
-    DocumentLoader? documentLoader,
-  }) : _logger =
-           logger ?? DefaultMeetingPlaceCoreSDKLogger(className: 'RCardParser'),
-       _documentLoader = documentLoader;
+  /// Creates an [RCardParser], optionally injecting a [logger].
+  RCardParser({MeetingPlaceCoreSDKLogger? logger})
+    : _logger =
+          logger ?? DefaultMeetingPlaceCoreSDKLogger(className: 'RCardParser');
 
   final MeetingPlaceCoreSDKLogger _logger;
-  final DocumentLoader? _documentLoader;
 
   /// Parses and verifies [vcBlob] as an R-Card credential.
   ///
@@ -98,9 +87,7 @@ class RCardParser {
 
     final VerificationResult verification;
     try {
-      verification = await UniversalVerifier(
-        customDocumentLoader: _documentLoader,
-      ).verify(parsedVc);
+      verification = await UniversalVerifier().verify(parsedVc);
     } catch (e, st) {
       _logger.error('R-Card verification threw', error: e, stackTrace: st);
       return const RCardParseFailure(RCardRejectionReason.verificationError);

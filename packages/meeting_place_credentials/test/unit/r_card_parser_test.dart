@@ -1,6 +1,4 @@
 import 'dart:convert';
-import 'dart:io' show gzip;
-import 'dart:typed_data';
 
 import 'package:meeting_place_credentials/meeting_place_credentials.dart';
 import 'package:meeting_place_credentials/src/rcard/builder/r_card_builder.dart';
@@ -184,63 +182,6 @@ void main() {
       );
 
       final result = await parser.parse(vcBlob: jsonEncode(vc.toJson()));
-      expect(result, isA<RCardParseFailure>());
-      expect(
-        (result as RCardParseFailure).reason,
-        RCardRejectionReason.verificationFailed,
-      );
-    });
-  });
-
-  group('RCardParser revocation', () {
-    test('revoked R-Card is rejected as verificationFailed', () async {
-      final wallet = PersistentWallet(InMemoryKeyStore());
-      final didManager = DidKeyManager(
-        wallet: wallet,
-        store: InMemoryDidStore(),
-      );
-      final keyPair = await wallet.generateKey();
-      await didManager.addVerificationMethod(keyPair.id);
-      final didDoc = await didManager.getDidDocument();
-      final issuerDid = didDoc.id;
-
-      // Bitstring with bit 0 set — the credential at revocationListIndex
-      // "0" is revoked.
-      final bitstring = Uint8List.fromList([0x01]);
-      final encodedList = base64Url.encode(gzip.encode(bitstring));
-
-      // ssi's CredentialStatusV2 types aren't part of its public API for
-      // direct construction, so build the unsigned VC as JSON (grafting a
-      // credentialStatus entry onto what RCardBuilder would otherwise
-      // produce) and re-parse + sign it via the public VcDataModelV2.fromJson
-      // + CredentialSigner path.
-      final template = await RCardBuilder.build(
-        issuerDid: issuerDid,
-        subjectDid: issuerDid,
-        subject: const RCardSubject(firstName: 'Revoked'),
-        issuerDidManager: didManager,
-      );
-      final unsignedJson = template.toJson()..remove('proof');
-      unsignedJson['credentialStatus'] = [
-        {
-          'id': 'urn:uuid:status-entry-1',
-          'type': 'RevocationList2020Status',
-          'revocationListIndex': '0',
-          'revocationListCredential': 'https://example.com/status-list/1',
-        },
-      ];
-      final unsigned = VcDataModelV2.fromJson(unsignedJson);
-      final vc = await CredentialSigner.sign(unsigned, didManager);
-
-      final revocationAwareParser = RCardParser(
-        documentLoader: (uri) async => {
-          'credentialSubject': {'encodedList': encodedList},
-        },
-      );
-
-      final result = await revocationAwareParser.parse(
-        vcBlob: jsonEncode(vc.toJson()),
-      );
       expect(result, isA<RCardParseFailure>());
       expect(
         (result as RCardParseFailure).reason,

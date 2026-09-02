@@ -1,3 +1,7 @@
+## 0.0.1-dev.15
+
+ - **FIX**: enforce R-Card issuer binding and surface rejection reasons (CWE-345) (#328).
+
 ## 0.0.1-dev.14
 
  - **FIX**: stop group approval failing when member updates overlap (#301).

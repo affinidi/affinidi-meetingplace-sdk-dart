@@ -3,6 +3,38 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-09-02
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_credentials` - `v0.0.1-dev.15`](#meeting_place_credentials---v001-dev15)
+ - [`meeting_place_chat` - `v0.0.1-dev.61`](#meeting_place_chat---v001-dev61)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.61`](#meeting_place_drift_repository---v001-dev61)
+ - [`meeting_place_matrix` - `v0.0.1-dev.21`](#meeting_place_matrix---v001-dev21)
+
+Packages with dependency updates only:
+
+> Packages listed below depend on other packages in this workspace that have had changes. Their versions have been incremented to bump the minimum dependency versions of the packages they depend upon in this project.
+
+ - `meeting_place_chat` - `v0.0.1-dev.61`
+ - `meeting_place_drift_repository` - `v0.0.1-dev.61`
+ - `meeting_place_matrix` - `v0.0.1-dev.21`
+
+---
+
+#### `meeting_place_credentials` - `v0.0.1-dev.15`
+
+ - **FIX**: enforce R-Card issuer binding and surface rejection reasons (CWE-345) (#328).
+
+
 ## 2026-08-21
 
 ### Changes

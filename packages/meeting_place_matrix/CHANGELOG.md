@@ -1,3 +1,7 @@
+## 0.0.1-dev.21
+
+ - Update a dependency to the latest release.
+
 ## 0.0.1-dev.20
 
  - **FIX**: correct group call role, media type, duration and leave handling (#321).

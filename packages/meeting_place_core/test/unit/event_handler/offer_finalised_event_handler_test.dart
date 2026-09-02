@@ -51,14 +51,16 @@ void main() {
     notificationToken: 'other-party-notification-token',
   );
 
-  PlainTextMessage createApprovalMessage() => PlainTextMessage(
-    id: 'msg-id',
-    from: 'did:test:sender',
-    to: [acceptOfferDid],
-    type: Uri.parse(MeetingPlaceProtocol.connectionRequestApproval.value),
-    body: {'channel_did': otherPartyPermanentDid},
-    parentThreadId: 'thread-id',
-  );
+  PlainTextMessage createApprovalMessage({List<Attachment>? attachments}) =>
+      PlainTextMessage(
+        id: 'msg-id',
+        from: 'did:test:sender',
+        to: [acceptOfferDid],
+        type: Uri.parse(MeetingPlaceProtocol.connectionRequestApproval.value),
+        body: {'channel_did': otherPartyPermanentDid},
+        parentThreadId: 'thread-id',
+        attachments: attachments,
+      );
 
   Channel createChannel({required ChannelTransport transport}) => Channel(
     offerLink: offerLink,
@@ -268,5 +270,130 @@ void main() {
         ),
       );
     });
+  });
+
+  group('attachment hooks', () {
+    test(
+      'calls onAttachmentsReceived when ConnectionRequestApproval has '
+      'attachments',
+      () async {
+        final channel = createChannel(transport: ChannelTransport.didcomm);
+        final attachment = Attachment(
+          id: 'incoming-attachment',
+          data: AttachmentData(base64: 'aW4='),
+        );
+        final received = <List<Attachment>>[];
+
+        final handlerWithHook = OfferFinalisedEventHandler(
+          wallet: mockWallet,
+          connectionOfferRepository: mockOfferRepo,
+          channelService: mockChannelService,
+          connectionManager: mockConnectionManager,
+          mediatorService: mockMediatorService,
+          controlPlaneSDK: mockControlPlaneSDK,
+          didResolver: mockDidResolver,
+          channelTransport: mockMeetingPlaceTransport,
+          identityService: mockIdentityService,
+          options: ControlPlaneEventHandlerManagerOptions(
+            onAttachmentsReceived: (ch, atts) => received.add(atts),
+          ),
+          logger: DefaultMeetingPlaceCoreSDKLogger(),
+        );
+
+        await handlerWithHook.processMessage(
+          createApprovalMessage(attachments: [attachment]),
+          event: event,
+          connection: connectionOffer,
+          channel: channel,
+        );
+
+        expect(received, hasLength(1));
+        expect(received.first, equals([attachment]));
+      },
+    );
+
+    test(
+      'does not call onAttachmentsReceived when ConnectionRequestApproval '
+      'has no attachments',
+      () async {
+        final channel = createChannel(transport: ChannelTransport.didcomm);
+        final received = <List<Attachment>>[];
+
+        final handlerWithHook = OfferFinalisedEventHandler(
+          wallet: mockWallet,
+          connectionOfferRepository: mockOfferRepo,
+          channelService: mockChannelService,
+          connectionManager: mockConnectionManager,
+          mediatorService: mockMediatorService,
+          controlPlaneSDK: mockControlPlaneSDK,
+          didResolver: mockDidResolver,
+          channelTransport: mockMeetingPlaceTransport,
+          identityService: mockIdentityService,
+          options: ControlPlaneEventHandlerManagerOptions(
+            onAttachmentsReceived: (ch, atts) => received.add(atts),
+          ),
+          logger: DefaultMeetingPlaceCoreSDKLogger(),
+        );
+
+        await handlerWithHook.processMessage(
+          createApprovalMessage(),
+          event: event,
+          connection: connectionOffer,
+          channel: channel,
+        );
+
+        expect(received, isEmpty);
+      },
+    );
+
+    test(
+      "attaches onBuildAttachments' result to the sent ChannelInauguration "
+      'message',
+      () async {
+        final channel = createChannel(transport: ChannelTransport.didcomm);
+        final builtAttachment = Attachment(
+          id: 'built-attachment',
+          data: AttachmentData(base64: 'YnVpbHQ='),
+        );
+
+        final handlerWithHook = OfferFinalisedEventHandler(
+          wallet: mockWallet,
+          connectionOfferRepository: mockOfferRepo,
+          channelService: mockChannelService,
+          connectionManager: mockConnectionManager,
+          mediatorService: mockMediatorService,
+          controlPlaneSDK: mockControlPlaneSDK,
+          didResolver: mockDidResolver,
+          channelTransport: mockMeetingPlaceTransport,
+          identityService: mockIdentityService,
+          options: ControlPlaneEventHandlerManagerOptions(
+            onBuildAttachments: (ch, getDidManager) async => [builtAttachment],
+          ),
+          logger: DefaultMeetingPlaceCoreSDKLogger(),
+        );
+
+        await handlerWithHook.processMessage(
+          createApprovalMessage(),
+          event: event,
+          connection: connectionOffer,
+          channel: channel,
+        );
+
+        final captured = verify(
+          () => mockMediatorService.sendMessage(
+            captureAny(),
+            senderDidManager: any(named: 'senderDidManager'),
+            recipientDidDocument: any(named: 'recipientDidDocument'),
+            mediatorDid: any(named: 'mediatorDid'),
+          ),
+        ).captured;
+
+        final sentMessage = captured.single as PlainTextMessage;
+        expect(
+          sentMessage.attachments?.map((a) => a.id),
+          contains(builtAttachment.id),
+        );
+      },
+    );
   });
 }

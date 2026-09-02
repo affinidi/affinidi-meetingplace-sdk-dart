@@ -9,6 +9,7 @@ import '../entity/connection_offer.dart';
 import '../entity/group_connection_offer.dart';
 import '../loggers/default_meeting_place_core_sdk_logger.dart';
 import '../loggers/meeting_place_core_sdk_logger.dart';
+import '../meeting_place_core_sdk_options.dart';
 import '../protocol/protocol.dart';
 import '../repository/repository.dart';
 import '../sdk/results/results.dart' hide AcceptOfferResult;
@@ -48,6 +49,7 @@ class ConnectionService {
     required DidResolver didResolver,
     required ChannelService channelService,
     required MeetingPlaceTransport channelTransport,
+    OnBuildAttachmentsCallback? onBuildAttachments,
     MeetingPlaceCoreSDKLogger? logger,
   }) : _connectionManager = connectionManager,
        _channelService = channelService,
@@ -59,6 +61,7 @@ class ConnectionService {
        _connectionOfferService = offerService,
        _didResolver = didResolver,
        _channelTransport = channelTransport,
+       _onBuildAttachments = onBuildAttachments,
        _logger =
            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
 
@@ -74,6 +77,7 @@ class ConnectionService {
   final ControlPlaneSDK _controlPlaneSDK;
   final DidResolver _didResolver;
   final MeetingPlaceTransport _channelTransport;
+  final OnBuildAttachmentsCallback? _onBuildAttachments;
   final MeetingPlaceCoreSDKLogger _logger;
 
   Future<(ConnectionOffer? connectionOffer, FindOfferErrorCodes? errorCode)>
@@ -557,6 +561,12 @@ class ConnectionService {
 
     _logger.info('Channel room created', name: methodName);
 
+    final builtAttachments = await _onBuildAttachments?.call(
+      channel,
+      (did) => _connectionManager.getDidManagerForDid(wallet, did),
+    );
+    final mergedAttachments = [...?attachments, ...?builtAttachments];
+
     await sendConnectionRequestApprovalToMediator(
       offerPublishedDid: publishOfferDid,
       permanentChannelDid: permanentIdentity.didManager,
@@ -565,7 +575,7 @@ class ConnectionService {
       outboundMessageId: channel.offerLink,
       mediatorDid: channel.mediatorDid,
       contactCard: channel.contactCard,
-      attachments: attachments,
+      attachments: mergedAttachments.isEmpty ? null : mergedAttachments,
     );
 
     final contactCard = channel.contactCard;

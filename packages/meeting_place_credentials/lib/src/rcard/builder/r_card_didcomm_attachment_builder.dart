@@ -52,17 +52,20 @@ class RCardDIDCommAttachmentBuilder {
 
   /// Builds and signs an R-Card and returns it as a DIDComm attachment list.
   ///
-  /// - [issuerDid] — DID of the identity whose card is being shared.
+  /// - [issuerDid] — DID of the channel the card is being shared over (the
+  ///   permanent channel DID), not the identity's own DID.
+  /// - [subjectDid] — DID of the identity whose card is being shared.
   /// - [card] — The contact fields to embed in the R-Card VC.
   /// - [issuerDidManager] — [DidManager] used to sign the credential.
   static Future<List<Attachment>> build({
     required String issuerDid,
+    required String subjectDid,
     required RCardSubject card,
     required DidManager issuerDidManager,
   }) async {
     final vc = await CredentialBuilder.buildRCard(
       issuerDid: issuerDid,
-      subjectDid: issuerDid,
+      subjectDid: subjectDid,
       subject: card,
       issuerDidManager: issuerDidManager,
     );

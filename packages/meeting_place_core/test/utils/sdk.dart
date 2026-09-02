@@ -50,12 +50,14 @@ Future<MeetingPlaceCoreSDK> initSDKInstance({
   String? deviceToken,
   bool withoutDevice = false,
   ChannelRepository? channelRepository,
+  MeetingPlaceCoreSDKOptions? options,
 }) async {
   final (sdk, _) = await _initSdkAndOptionalDidcomm(
     wallet: wallet,
     deviceToken: deviceToken,
     withoutDevice: withoutDevice,
     channelRepository: channelRepository,
+    options: options,
     buildDidcomm: false,
   );
   return sdk;
@@ -74,6 +76,7 @@ Future<(MeetingPlaceCoreSDK, DIDCommTransport)> initSDKWithDidcomm({
     deviceToken: deviceToken,
     withoutDevice: withoutDevice,
     channelRepository: channelRepository,
+    options: null,
     buildDidcomm: true,
   );
   return (sdk, didcomm!);
@@ -84,6 +87,7 @@ Future<(MeetingPlaceCoreSDK, DIDCommTransport?)> _initSdkAndOptionalDidcomm({
   required String? deviceToken,
   required bool withoutDevice,
   required ChannelRepository? channelRepository,
+  required MeetingPlaceCoreSDKOptions? options,
   required bool buildDidcomm,
 }) async {
   final effectiveWallet = wallet ?? PersistentWallet(InMemoryKeyStore());
@@ -104,6 +108,7 @@ Future<(MeetingPlaceCoreSDK, DIDCommTransport?)> _initSdkAndOptionalDidcomm({
       channelRepository: effectiveChannelRepository,
     ),
     config: config,
+    options: options ?? const MeetingPlaceCoreSDKOptions(),
   );
 
   if (!withoutDevice) {
@@ -116,7 +121,7 @@ Future<(MeetingPlaceCoreSDK, DIDCommTransport?)> _initSdkAndOptionalDidcomm({
     return (sdk, null);
   }
 
-  const options = MeetingPlaceCoreSDKOptions();
+  const defaultOptions = MeetingPlaceCoreSDKOptions();
   final logger = LoggerAdapter(
     className: 'MediatorIntegrationTest',
     sdkName: coreSDKName,
@@ -125,7 +130,7 @@ Future<(MeetingPlaceCoreSDK, DIDCommTransport?)> _initSdkAndOptionalDidcomm({
     ),
   );
   final didResolver = CachedDidResolver(
-    resolverAddress: options.didResolverAddress,
+    resolverAddress: defaultOptions.didResolverAddress,
     logger: logger,
   );
   final mediatorSDK = MeetingPlaceMediatorSDK(
@@ -167,7 +172,7 @@ Future<(MeetingPlaceCoreSDK, DIDCommTransport?)> _initSdkAndOptionalDidcomm({
     getDidManager: (did) =>
         connectionManager.getDidManagerForDid(effectiveWallet, did),
     defaultMediatorDid: config.mediatorDid,
-    expectedMessageWrappingTypes: options.expectedMessageWrappingTypes,
+    expectedMessageWrappingTypes: defaultOptions.expectedMessageWrappingTypes,
   );
 
   return (sdk, didcomm);

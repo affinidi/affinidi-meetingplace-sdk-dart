@@ -301,6 +301,41 @@ void main() {
         ),
       );
     });
+
+    test(
+      'calls onBuildAttachments with a channel that has a permanent '
+      'channel DID',
+      () async {
+        setUpCommonMocks(ChannelTransport.didcomm);
+        final channel = createChannel(transport: ChannelTransport.didcomm);
+
+        Channel? capturedChannel;
+        final serviceWithHook = ConnectionService(
+          connectionManager: mockConnectionManager,
+          connectionOfferRepository: mockOfferRepo,
+          controlPlaneSDK: mockControlPlaneSDK,
+          mediatorSDK: mockMediatorSDK,
+          mediatorAclService: mockMediatorAclService,
+          identityService: mockIdentityService,
+          offerService: mockOfferService,
+          didResolver: mockDidResolver,
+          channelService: mockChannelService,
+          channelTransport: mockMeetingPlaceTransport,
+          onBuildAttachments: (channel, getDidManager) async {
+            capturedChannel = channel;
+            return null;
+          },
+        );
+
+        await serviceWithHook.approveConnectionRequest(
+          wallet: mockWallet,
+          channel: channel,
+        );
+
+        expect(capturedChannel, isNotNull);
+        expect(capturedChannel!.permanentChannelDid, equals(permanentDid));
+      },
+    );
   });
 
   group('unlink', () {

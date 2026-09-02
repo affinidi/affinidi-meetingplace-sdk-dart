@@ -8,6 +8,7 @@ import '../../entity/entity.dart';
 import '../../event_handler/control_plane_event_stream_manager.dart';
 import '../../event_handler/control_plane_stream_event.dart';
 import '../../loggers/meeting_place_core_sdk_logger.dart';
+import '../../meeting_place_core_sdk_options.dart';
 import '../../protocol/protocol.dart';
 import '../../utils/string.dart';
 import '../channel/channel_service.dart';
@@ -33,6 +34,7 @@ class OobService {
     required ControlPlaneEventStreamManager controlPlaneEventStreamManager,
     required MeetingPlaceCoreSDKLogger logger,
     void Function(Channel, List<Attachment>)? onAttachmentsReceived,
+    OnBuildAttachmentsCallback? onBuildAttachments,
   }) : _wallet = wallet,
        _mediatorService = mediatorService,
        _connectionService = connectionService,
@@ -42,6 +44,7 @@ class OobService {
        _controlPlaneEventStreamManager = controlPlaneEventStreamManager,
        _controlPlaneSDK = controlPlaneSDK,
        _onAttachmentsReceived = onAttachmentsReceived,
+       _onBuildAttachments = onBuildAttachments,
        _logger = logger;
 
   final Wallet _wallet;
@@ -53,6 +56,7 @@ class OobService {
   final ControlPlaneEventStreamManager _controlPlaneEventStreamManager;
   final ControlPlaneSDK _controlPlaneSDK;
   final void Function(Channel, List<Attachment>)? _onAttachmentsReceived;
+  final OnBuildAttachmentsCallback? _onBuildAttachments;
   final MeetingPlaceCoreSDKLogger _logger;
 
   static final String _logKey = 'OobService';
@@ -245,13 +249,19 @@ class OobService {
       return MediatorStreamProcessingResult(keepMessage: false);
     });
 
+    final builtAttachments = await _onBuildAttachments?.call(
+      channel,
+      (did) => _connectionManager.getDidManagerForDid(_wallet, did),
+    );
+    final mergedAttachments = [...?attachments, ...?builtAttachments];
+
     await _connectionService.sendAcceptOfferToMediator(
       acceptOfferDid: acceptOfferIdentity.didManager,
       permanentChannelDidDocument: permanentIdentity.didDocument,
       invitationMessage: invitationMessage.toPlainTextMessage(),
       mediatorDid: mediatorDid,
       acceptContactCard: contactCard,
-      attachments: attachments,
+      attachments: mergedAttachments.isEmpty ? null : mergedAttachments,
     );
 
     await _channelService.persistChannel(channel);
@@ -278,16 +288,6 @@ class OobService {
     final permanentChannelDidDoc = await permanentChannelDidManager
         .getDidDocument();
 
-    await _connectionService.sendConnectionRequestApprovalToMediator(
-      offerPublishedDid: session.didManager,
-      permanentChannelDid: permanentChannelDidManager,
-      otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
-      otherPartyAcceptOfferDid: message.from,
-      outboundMessageId: session.oobInvitationMessage.id,
-      contactCard: session.contactCard,
-      mediatorDid: session.mediatorDid,
-    );
-
     final channel = Channel(
       offerLink: session.oobInvitationMessage.id,
       publishOfferDid: session.didDocument.id,
@@ -303,6 +303,22 @@ class OobService {
       otherPartyContactCard: message.contactCard,
       externalRef: externalRef,
       transport: ChannelTransport.didcomm,
+    );
+
+    final outgoingAttachments = await _onBuildAttachments?.call(
+      channel,
+      (did) => _connectionManager.getDidManagerForDid(_wallet, did),
+    );
+
+    await _connectionService.sendConnectionRequestApprovalToMediator(
+      offerPublishedDid: session.didManager,
+      permanentChannelDid: permanentChannelDidManager,
+      otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+      otherPartyAcceptOfferDid: message.from,
+      outboundMessageId: session.oobInvitationMessage.id,
+      contactCard: session.contactCard,
+      mediatorDid: session.mediatorDid,
+      attachments: outgoingAttachments,
     );
 
     await _channelService.persistChannel(channel);

@@ -65,20 +65,20 @@ void main() {
 
     test('does nothing if offer is null', () async {
       when(
-        () => mockOfferRepo.getConnectionOfferByOfferLink(offerLink),
+        () => mockOfferRepo.findConnectionOfferByOfferLink(offerLink),
       ).thenAnswer((_) async => null);
 
       await service.ensureConnectionOfferIsClaimable(offerLink);
 
       verify(
-        () => mockOfferRepo.getConnectionOfferByOfferLink(offerLink),
+        () => mockOfferRepo.findConnectionOfferByOfferLink(offerLink),
       ).called(1);
-      verifyNever(() => mockChannelService.findChannelByDidOrNull(any()));
+      verifyNever(() => mockChannelService.findChannelByDid(any()));
     });
 
     test('throws ownedByClaimingPartyError if offer is published', () async {
       when(
-        () => mockOfferRepo.getConnectionOfferByOfferLink(offerLink),
+        () => mockOfferRepo.findConnectionOfferByOfferLink(offerLink),
       ).thenAnswer((_) async => offer);
 
       expect(
@@ -101,7 +101,7 @@ void main() {
         );
 
         when(
-          () => mockOfferRepo.getConnectionOfferByOfferLink(offerLink),
+          () => mockOfferRepo.findConnectionOfferByOfferLink(offerLink),
         ).thenAnswer((_) async => offerFinalised);
 
         expect(
@@ -139,12 +139,10 @@ void main() {
         );
 
         when(
-          () => mockOfferRepo.getConnectionOfferByOfferLink(offerLink),
+          () => mockOfferRepo.findConnectionOfferByOfferLink(offerLink),
         ).thenAnswer((_) async => finalisedOffer);
         when(
-          () => mockChannelService.findChannelByDidOrNull(
-            offer.permanentChannelDid!,
-          ),
+          () => mockChannelService.findChannelByDid(offer.permanentChannelDid!),
         ).thenAnswer((_) async => groupChannel);
 
         expect(
@@ -166,12 +164,10 @@ void main() {
       );
 
       when(
-        () => mockOfferRepo.getConnectionOfferByOfferLink(offerLink),
+        () => mockOfferRepo.findConnectionOfferByOfferLink(offerLink),
       ).thenAnswer((_) async => deletedOffer);
       when(
-        () => mockChannelService.findChannelByDidOrNull(
-          offer.permanentChannelDid!,
-        ),
+        () => mockChannelService.findChannelByDid(offer.permanentChannelDid!),
       ).thenAnswer((_) async => channel);
 
       await service.ensureConnectionOfferIsClaimable(offerLink);
@@ -183,12 +179,10 @@ void main() {
       );
 
       when(
-        () => mockOfferRepo.getConnectionOfferByOfferLink(offerLink),
+        () => mockOfferRepo.findConnectionOfferByOfferLink(offerLink),
       ).thenAnswer((_) async => finalisedOffer);
       when(
-        () => mockChannelService.findChannelByDidOrNull(
-          offer.permanentChannelDid!,
-        ),
+        () => mockChannelService.findChannelByDid(offer.permanentChannelDid!),
       ).thenAnswer((_) async => channel);
 
       await service.ensureConnectionOfferIsClaimable(offerLink);

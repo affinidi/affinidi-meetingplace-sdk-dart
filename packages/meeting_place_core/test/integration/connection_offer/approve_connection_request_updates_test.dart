@@ -18,7 +18,7 @@ void main() {
 
     setUp(() async {
       connectionOffer =
-          await fixture.aliceSDK.getConnectionOffer(
+          await fixture.aliceSDK.findConnectionOffer(
             fixture.aliceApprovedChannel.offerLink,
           ) ??
           fail('Connection offer does not exist');
@@ -87,7 +87,7 @@ void main() {
 
     setUp(() async {
       connectionOffer =
-          await fixture.bobSDK.getConnectionOffer(
+          await fixture.bobSDK.findConnectionOffer(
             fixture.bobOfferFinalisedChannel.offerLink,
           ) ??
           fail('Connection offer does not exist');

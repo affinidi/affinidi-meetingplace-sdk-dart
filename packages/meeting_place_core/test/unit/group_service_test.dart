@@ -127,7 +127,7 @@ void main() {
 
     test('throws groupNotFoundError when the group does not exist', () async {
       when(
-        () => groupRepository.getGroupById('missing'),
+        () => groupRepository.findGroupById('missing'),
       ).thenAnswer((_) async => null);
 
       await expectLater(
@@ -145,7 +145,7 @@ void main() {
 
     test('throws groupNotFoundError when ownerDid is null', () async {
       when(
-        () => groupRepository.getGroupById('group-1'),
+        () => groupRepository.findGroupById('group-1'),
       ).thenAnswer((_) async => _group(ownerDid: null));
 
       await expectLater(
@@ -163,7 +163,7 @@ void main() {
 
     test('throws cannotRemoveOwner when target is the owner', () async {
       when(
-        () => groupRepository.getGroupById('group-1'),
+        () => groupRepository.findGroupById('group-1'),
       ).thenAnswer((_) async => _group());
 
       await expectLater(
@@ -184,7 +184,7 @@ void main() {
     test('throws memberDoesNotBelongToGroupError when target is not a '
         'member', () async {
       when(
-        () => groupRepository.getGroupById('group-1'),
+        () => groupRepository.findGroupById('group-1'),
       ).thenAnswer((_) async => _group());
 
       await expectLater(
@@ -251,7 +251,7 @@ void main() {
       );
 
       when(
-        () => groupRepository.getGroupByOfferLink('offer://test'),
+        () => groupRepository.findGroupByOfferLink('offer://test'),
       ).thenAnswer((_) async => grp);
 
       when(
@@ -271,7 +271,7 @@ void main() {
       ).thenThrow(Exception('Server unavailable'));
 
       when(
-        () => connectionOfferRepository.getConnectionOfferByOfferLink(
+        () => connectionOfferRepository.findConnectionOfferByOfferLink(
           'offer://test',
         ),
       ).thenAnswer((_) async => null);
@@ -416,15 +416,15 @@ void main() {
       final ownerDidManager = _MockDidManager();
       final memberDidDocument = _MockDidDocument(approveMemberDid);
 
-      // Both getGroupByOfferLink calls (initial read + post-update fresh read)
+      // Both findGroupByOfferLink calls (initial read + post-update fresh read)
       // return the same group for simplicity; the test is about which write
       // method is called, not about the inauguration message contents.
       when(
-        () => groupRepository.getGroupByOfferLink(approveOfferLink),
+        () => groupRepository.findGroupByOfferLink(approveOfferLink),
       ).thenAnswer((_) async => group);
 
       when(
-        () => connectionOfferRepository.getConnectionOfferByOfferLink(
+        () => connectionOfferRepository.findConnectionOfferByOfferLink(
           approveOfferLink,
         ),
       ).thenAnswer(
@@ -483,7 +483,7 @@ void main() {
         otherPartyPermanentChannelDid: approveGroupDid,
       );
       when(
-        () => channelService.findChannelByOtherPartyPermanentChannelDid(
+        () => channelService.getChannelByOtherPartyPermanentChannelDid(
           approveGroupDid,
         ),
       ).thenAnswer((_) async => groupChannel);
@@ -537,14 +537,14 @@ void main() {
 
       // updateGroup must NOT be called during approve — using it would silently
       // drop members that a concurrent InvitationGroupAcceptedHandler added
-      // between the initial getGroupByOfferLink read and this write.
+      // between the initial findGroupByOfferLink read and this write.
       verifyNever(() => groupRepository.updateGroup(any()));
 
       // Two reads must be issued: one at the start of the method to resolve
       // member/group data, and one after the atomic update to build the
       // GroupMemberInauguration message from the freshest list.
       verify(
-        () => groupRepository.getGroupByOfferLink(approveOfferLink),
+        () => groupRepository.findGroupByOfferLink(approveOfferLink),
       ).called(2);
     });
   });
@@ -581,7 +581,7 @@ void main() {
       ).copyWith(id: rejectGroupId, offerLink: rejectOfferLink);
 
       when(
-        () => groupRepository.getGroupByOfferLink(rejectOfferLink),
+        () => groupRepository.findGroupByOfferLink(rejectOfferLink),
       ).thenAnswer((_) async => group);
       when(
         () => groupRepository.removeMember(any(), any()),

@@ -189,7 +189,7 @@ void main() {
       ).thenAnswer((_) async => mockPublishDidManager);
 
       when(
-        () => mockOfferRepo.getConnectionOfferByOfferLink(offerLink),
+        () => mockOfferRepo.findConnectionOfferByOfferLink(offerLink),
       ).thenAnswer((_) async => createOffer(transport: transport));
 
       when(
@@ -464,7 +464,7 @@ void main() {
       mockDidManager = _MockDidManager();
 
       when(
-        () => mockOfferRepo.getConnectionOfferByOfferLink(offerLink),
+        () => mockOfferRepo.findConnectionOfferByOfferLink(offerLink),
       ).thenAnswer((_) async => null);
 
       when(

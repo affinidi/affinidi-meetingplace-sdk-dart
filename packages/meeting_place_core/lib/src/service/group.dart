@@ -353,7 +353,9 @@ class GroupService {
     String? externalRef,
     required String offerLink,
   }) async {
-    final existingGroup = await _groupRepository.getGroupByOfferLink(offerLink);
+    final existingGroup = await _groupRepository.findGroupByOfferLink(
+      offerLink,
+    );
     if (existingGroup != null) {
       final updatedGroup = existingGroup.copyWith(
         created: DateTime.now().toUtc(),
@@ -398,7 +400,7 @@ class GroupService {
     String? externalRef,
   }) async {
     final existingConnectionOffer = await _connectionOfferRepository
-        .getConnectionOfferByOfferLink(connectionOffer.offerLink);
+        .findConnectionOfferByOfferLink(connectionOffer.offerLink);
 
     if (existingConnectionOffer != null &&
         existingConnectionOffer is! GroupConnectionOffer) {
@@ -532,7 +534,9 @@ class GroupService {
       throw GroupException.memberDidIsNull();
     }
 
-    final group = await _groupRepository.getGroupByOfferLink(channel.offerLink);
+    final group = await _groupRepository.findGroupByOfferLink(
+      channel.offerLink,
+    );
 
     if (group == null) {
       _logger.error(
@@ -543,7 +547,7 @@ class GroupService {
     }
 
     final connectionOffer = await _connectionOfferRepository
-        .getConnectionOfferByOfferLink(channel.offerLink);
+        .findConnectionOfferByOfferLink(channel.offerLink);
 
     if (connectionOffer == null) {
       _logger.error(
@@ -579,7 +583,7 @@ class GroupService {
     );
 
     final groupChannel = await _channelService
-        .findChannelByOtherPartyPermanentChannelDid(group.did);
+        .getChannelByOtherPartyPermanentChannelDid(group.did);
     await _channelTransport.inviteToChannel(
       channel: groupChannel,
       participantDid: member.did,
@@ -603,7 +607,7 @@ class GroupService {
     // Re-read so the inauguration payload reflects the just-approved status and
     // any members added concurrently since the initial read.
     final freshGroup =
-        await _groupRepository.getGroupByOfferLink(channel.offerLink) ?? group;
+        await _groupRepository.findGroupByOfferLink(channel.offerLink) ?? group;
 
     final groupMemberInauguration = GroupMemberInauguration.create(
       from: channel.publishOfferDid,
@@ -667,7 +671,9 @@ class GroupService {
       name: methodName,
     );
 
-    final group = await _groupRepository.getGroupByOfferLink(channel.offerLink);
+    final group = await _groupRepository.findGroupByOfferLink(
+      channel.offerLink,
+    );
     if (group == null) {
       _logger.error(
         'Group not found for offer link: ${channel.offerLink}',
@@ -690,12 +696,12 @@ class GroupService {
     return group;
   }
 
-  Future<Group?> getGroupByOfferLink(String offerLink) {
-    return _groupRepository.getGroupByOfferLink(offerLink);
+  Future<Group?> findGroupByOfferLink(String offerLink) {
+    return _groupRepository.findGroupByOfferLink(offerLink);
   }
 
-  Future<Group?> getGroupById(String groupId) {
-    return _groupRepository.getGroupById(groupId);
+  Future<Group?> findGroupById(String groupId) {
+    return _groupRepository.findGroupById(groupId);
   }
 
   /// Removes [memberDid] from the group identified by [groupId].
@@ -739,7 +745,7 @@ class GroupService {
     required PermanentIdentity ownerIdentity,
   }) async {
     final groupChannel = await _channelService
-        .findChannelByOtherPartyPermanentChannelDid(group.did);
+        .getChannelByOtherPartyPermanentChannelDid(group.did);
     await _channelTransport.removeFromChannel(
       channel: groupChannel,
       participantDid: memberDid,
@@ -751,7 +757,7 @@ class GroupService {
     required String groupId,
     required String memberDid,
   }) async {
-    final group = await _groupRepository.getGroupById(groupId);
+    final group = await _groupRepository.findGroupById(groupId);
     if (group == null || group.ownerDid == null) {
       throw GroupException.notFoundError();
     }
@@ -840,7 +846,9 @@ class GroupService {
     );
 
     final memberDid = channel.permanentChannelDid!;
-    final group = await _groupRepository.getGroupByOfferLink(channel.offerLink);
+    final group = await _groupRepository.findGroupByOfferLink(
+      channel.offerLink,
+    );
     if (group == null) {
       _logger.warning(
         'Group not found for offer link: ${channel.offerLink}',
@@ -883,7 +891,7 @@ class GroupService {
     }
 
     final connectionOffer = await _connectionOfferRepository
-        .getConnectionOfferByOfferLink(channel.offerLink);
+        .findConnectionOfferByOfferLink(channel.offerLink);
     if (connectionOffer != null) {
       await _connectionService.markConnectionOfferAsDeleted(connectionOffer);
     }
@@ -907,7 +915,7 @@ class GroupService {
     final methodName = 'delete';
     _logger.info('Deleting group with ID: $groupId', name: methodName);
 
-    final group = await _groupRepository.getGroupById(groupId);
+    final group = await _groupRepository.findGroupById(groupId);
     if (group == null) {
       _logger.warning(
         'Group does not exist, skip deletion with ID: $groupId',

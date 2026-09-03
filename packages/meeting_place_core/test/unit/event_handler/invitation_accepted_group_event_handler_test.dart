@@ -134,7 +134,7 @@ void main() {
 
     // ConnectionOffer lookup
     when(
-      () => mockConnectionOfferRepository.getConnectionOfferByOfferLink(
+      () => mockConnectionOfferRepository.findConnectionOfferByOfferLink(
         offerLink,
       ),
     ).thenAnswer(
@@ -164,7 +164,7 @@ void main() {
 
     // findChannelByOtherPartyPermanentChannelDid for the group channel
     when(
-      () => mockChannelService.findChannelByOtherPartyPermanentChannelDid(
+      () => mockChannelService.getChannelByOtherPartyPermanentChannelDid(
         groupDid,
       ),
     ).thenAnswer(
@@ -232,7 +232,7 @@ void main() {
         );
 
         when(
-          () => mockGroupRepository.getGroupByOfferLink(offerLink),
+          () => mockGroupRepository.findGroupByOfferLink(offerLink),
         ).thenAnswer((_) async => groupWithJoiner);
 
         when(
@@ -279,7 +279,7 @@ void main() {
       );
 
       when(
-        () => mockGroupRepository.getGroupByOfferLink(offerLink),
+        () => mockGroupRepository.findGroupByOfferLink(offerLink),
       ).thenAnswer((_) async => groupWithoutJoiner);
 
       when(

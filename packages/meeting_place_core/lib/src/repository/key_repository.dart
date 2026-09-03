@@ -5,5 +5,5 @@ abstract interface class KeyRepository {
 
   Future<void> saveKeyIdForDid({required String keyId, required String did});
 
-  Future<String?> getKeyIdByDid({required String did});
+  Future<String?> findKeyIdByDid({required String did});
 }

@@ -49,13 +49,13 @@ abstract class BaseEventHandler<T> {
   @internal
   Future<ConnectionOffer> findConnectionByDid(String did) async {
     return await connectionOfferRepository
-            .getConnectionOfferByPermanentChannelDid(did) ??
+            .findConnectionOfferByPermanentChannelDid(did) ??
         (throw EventHandlerException.offerNotFound());
   }
 
   @internal
   Future<ConnectionOffer> findConnectionByOfferLink(String offerLink) async {
-    return await connectionOfferRepository.getConnectionOfferByOfferLink(
+    return await connectionOfferRepository.findConnectionOfferByOfferLink(
           offerLink,
         ) ??
         (throw EventHandlerException.offerNotFound());

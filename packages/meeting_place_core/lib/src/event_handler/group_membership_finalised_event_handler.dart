@@ -75,7 +75,7 @@ class GroupMembershipFinalisedEventHandler
       );
     }
 
-    final channel = await channelService.findChannelByDid(permanentChannelDid);
+    final channel = await channelService.getChannelByDid(permanentChannelDid);
     final didManager = await connectionManager.getDidManagerForDid(
       wallet,
       permanentChannelDid,
@@ -167,7 +167,7 @@ class GroupMembershipFinalisedEventHandler
       didManager: didManager,
     );
 
-    final initialMatrixSyncMarker = await _channelTransport.getLastEventId(
+    final initialMatrixSyncMarker = await _channelTransport.findLastEventId(
       channel: channel,
       didManager: didManager,
     );
@@ -385,7 +385,7 @@ class GroupMembershipFinalisedEventHandler
   }
 
   Future<Group> _findGroupByOfferLink(String offerLink) async {
-    return await _groupRepository.getGroupByOfferLink(offerLink) ??
+    return await _groupRepository.findGroupByOfferLink(offerLink) ??
         (throw GroupException.notFoundError());
   }
 }

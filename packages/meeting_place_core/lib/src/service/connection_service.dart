@@ -390,7 +390,7 @@ class ConnectionService {
     String? externalRef,
   }) async {
     final existingConnectionOffer = await _connectionOfferRepository
-        .getConnectionOfferByOfferLink(connectionOffer.offerLink);
+        .findConnectionOfferByOfferLink(connectionOffer.offerLink);
 
     if (existingConnectionOffer != null) {
       final acceptedConnectionOffer = existingConnectionOffer.accept(
@@ -519,7 +519,7 @@ class ConnectionService {
     final otherPartyPermanentChannelDid = channel.otherPartyPermanentChannelDid;
 
     final connectionOffer =
-        await _connectionOfferRepository.getConnectionOfferByOfferLink(
+        await _connectionOfferRepository.findConnectionOfferByOfferLink(
           channel.offerLink,
         ) ??
         (throw ConnectionOfferException.offerNotFoundError());
@@ -678,7 +678,7 @@ class ConnectionService {
     required Channel channel,
   }) async {
     final connectionOffer = await _connectionOfferRepository
-        .getConnectionOfferByOfferLink(channel.offerLink);
+        .findConnectionOfferByOfferLink(channel.offerLink);
 
     final networkRequests = <Future<dynamic>>[];
     if (channel.notificationToken != null) {
@@ -759,7 +759,7 @@ class ConnectionService {
     );
 
     final connectionOfferToBeDeleted = await _connectionOfferRepository
-        .getConnectionOfferByOfferLink(connectionOffer.offerLink);
+        .findConnectionOfferByOfferLink(connectionOffer.offerLink);
     if (connectionOfferToBeDeleted == null) {
       _logger.error(
         'Connection offer does not exist: ${connectionOffer.offerName}',

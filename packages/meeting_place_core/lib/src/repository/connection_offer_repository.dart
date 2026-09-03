@@ -1,11 +1,11 @@
 import '../entity/connection_offer.dart';
 
 abstract interface class ConnectionOfferRepository {
-  Future<ConnectionOffer?> getConnectionOfferByOfferLink(String offerLink);
-  Future<ConnectionOffer?> getConnectionOfferByPermanentChannelDid(
+  Future<ConnectionOffer?> findConnectionOfferByOfferLink(String offerLink);
+  Future<ConnectionOffer?> findConnectionOfferByPermanentChannelDid(
     String permanentChannelDid,
   );
-  Future<ConnectionOffer?> getConnectionOfferByGroupDid(String groupDid);
+  Future<ConnectionOffer?> findConnectionOfferByGroupDid(String groupDid);
 
   Future<List<ConnectionOffer>> listConnectionOffers();
 

@@ -30,7 +30,7 @@ class ChatActivityEventHandler extends BaseEventHandler<ChannelActivity> {
     );
 
     try {
-      final channel = await channelService.findChannelByDid(event.did);
+      final channel = await channelService.getChannelByDid(event.did);
       if (channel.transport == ChannelTransport.didcomm) {
         await _syncFromMediator(channel);
       } else {

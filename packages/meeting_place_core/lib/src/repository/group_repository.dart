@@ -4,8 +4,8 @@ abstract interface class GroupRepository {
   Future<void> createGroup(Group group);
   Future<void> updateGroup(Group group);
 
-  Future<Group?> getGroupById(String groupId);
-  Future<Group?> getGroupByOfferLink(String offerLink);
+  Future<Group?> findGroupById(String groupId);
+  Future<Group?> findGroupByOfferLink(String offerLink);
   Future<void> removeGroup(Group group);
 
   /// Atomically inserts [member] into the group identified by [groupId] only

@@ -51,7 +51,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
         permanentChannelDid''');
     }
 
-    final channel = await channelService.findChannelByDid(permanentChannelDid);
+    final channel = await channelService.getChannelByDid(permanentChannelDid);
 
     final acceptOfferDid = connection.acceptOfferDid;
     if (acceptOfferDid == null) {

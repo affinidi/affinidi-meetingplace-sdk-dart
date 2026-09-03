@@ -97,7 +97,7 @@ void main() {
     registerFallbackValue(channel);
 
     when(
-      () => mockConnectionOfferRepository.getConnectionOfferByOfferLink(
+      () => mockConnectionOfferRepository.findConnectionOfferByOfferLink(
         offerLink,
       ),
     ).thenAnswer((_) async => connectionOffer);

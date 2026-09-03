@@ -87,8 +87,8 @@ void main() async {
   test('connection offer owner leaves channel', () async {
     await aliceSDK.leaveChannel(aliceChannel);
 
-    final co = await aliceSDK.getConnectionOffer(aliceChannel.offerLink);
-    final channel = await aliceSDK.getChannelByDid(
+    final co = await aliceSDK.findConnectionOffer(aliceChannel.offerLink);
+    final channel = await aliceSDK.findChannelByDid(
       aliceChannel.permanentChannelDid!,
     );
 
@@ -119,8 +119,8 @@ void main() async {
   test('other party leaves channel', () async {
     await bobSDK.leaveChannel(bobChannel);
 
-    final co = await bobSDK.getConnectionOffer(bobChannel.offerLink);
-    final channel = await bobSDK.getChannelByDid(
+    final co = await bobSDK.findConnectionOffer(bobChannel.offerLink);
+    final channel = await bobSDK.findChannelByDid(
       bobChannel.permanentChannelDid!,
     );
 

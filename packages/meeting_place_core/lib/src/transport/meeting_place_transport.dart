@@ -99,7 +99,7 @@ abstract interface class MeetingPlaceTransport {
 
   /// Returns the id of the most recent event in [channel], or null if
   /// the channel has no events or the transport does not track event ids.
-  Future<String?> getLastEventId({
+  Future<String?> findLastEventId({
     required Channel channel,
     required DidManager didManager,
   });

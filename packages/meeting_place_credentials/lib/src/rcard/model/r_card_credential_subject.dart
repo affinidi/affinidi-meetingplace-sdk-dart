@@ -89,6 +89,6 @@ class RCardCredentialSubject {
     if (email != null) 'email': email,
     if (phone != null) 'phone': phone,
     if (address != null) 'address': address,
-    if (additionalFields != null) ...additionalFields!,
+    ...?additionalFields,
   };
 }

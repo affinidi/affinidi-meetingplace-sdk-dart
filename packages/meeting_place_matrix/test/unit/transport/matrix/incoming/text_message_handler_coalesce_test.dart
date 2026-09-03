@@ -46,7 +46,7 @@ MatrixRoomEvent _imageEvent({
     'filename': filename,
     'info': {'mimetype': 'image/jpeg', 'size': 1234},
     MatrixEventField.attachmentId: attachmentId,
-    if (correlationId != null) MatrixEventField.correlationId: correlationId,
+    MatrixEventField.correlationId: ?correlationId,
   },
   timestamp: timestamp ?? DateTime.utc(2026, 1, 1, 12),
 );

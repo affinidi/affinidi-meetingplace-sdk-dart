@@ -109,7 +109,7 @@ class MessagingService {
     final didManager = await _getDidManager(_permanentChannelDid(channel));
 
     final mergedExtra = <String, dynamic>{
-      if (caption != null) 'body': caption,
+      'body': ?caption,
       ...?extraContent,
     };
 

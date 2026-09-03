@@ -40,7 +40,7 @@ MatrixRoomEvent _callItemEvent({
   senderDid: senderDid,
   userId: userId ?? (senderDid == null ? '@unknown:server' : null),
   roomId: '!room:server',
-  content: {if (metadata != null) MatrixEventField.callMetadata: metadata},
+  content: {MatrixEventField.callMetadata: ?metadata},
   timestamp: DateTime.utc(2026, 1, 1, 12),
 );
 

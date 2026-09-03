@@ -3,6 +3,44 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-09-03
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - [`meeting_place_control_plane` - `v0.0.1-dev.24`](#meeting_place_control_plane---v001-dev24)
+ - [`meeting_place_core` - `v0.0.1-dev.50`](#meeting_place_core---v001-dev50)
+
+Packages with other changes:
+
+ - [`meeting_place_matrix` - `v0.0.1-dev.22`](#meeting_place_matrix---v001-dev22)
+ - [`meeting_place_chat` - `v0.0.1-dev.62`](#meeting_place_chat---v001-dev62)
+ - [`meeting_place_credentials` - `v0.0.1-dev.16`](#meeting_place_credentials---v001-dev16)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.62`](#meeting_place_drift_repository---v001-dev62)
+
+Packages with dependency updates only:
+
+> Packages listed below depend on other packages in this workspace that have had changes. Their versions have been incremented to bump the minimum dependency versions of the packages they depend upon in this project.
+
+ - `meeting_place_matrix` - `v0.0.1-dev.22`
+ - `meeting_place_chat` - `v0.0.1-dev.62`
+ - `meeting_place_credentials` - `v0.0.1-dev.16`
+ - `meeting_place_drift_repository` - `v0.0.1-dev.62`
+
+---
+
+#### `meeting_place_control_plane` - `v0.0.1-dev.24`
+
+ - **BREAKING** **FIX**: remove group-send-message endpoint and related code (#325).
+
+#### `meeting_place_core` - `v0.0.1-dev.50`
+
+ - **BREAKING** **FIX**: remove group-send-message endpoint and related code (#325).
+
+
 ## 2026-09-02
 
 ### Changes

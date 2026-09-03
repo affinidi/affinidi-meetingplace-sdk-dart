@@ -1,3 +1,9 @@
+## 0.0.1-dev.50
+
+> Note: This release has breaking changes.
+
+ - **BREAKING** **FIX**: remove group-send-message endpoint and related code (#325).
+
 ## 0.0.1-dev.49
 
  - **FIX**: stop group approval failing when member updates overlap (#301).

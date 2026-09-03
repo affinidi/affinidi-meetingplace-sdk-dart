@@ -1,3 +1,7 @@
+## 0.0.1-dev.16
+
+ - Update a dependency to the latest release.
+
 ## 0.0.1-dev.15
 
  - **FIX**: enforce R-Card issuer binding and surface rejection reasons (CWE-345) (#328).

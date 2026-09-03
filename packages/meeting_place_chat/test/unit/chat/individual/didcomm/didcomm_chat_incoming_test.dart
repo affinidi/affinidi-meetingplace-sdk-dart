@@ -88,7 +88,7 @@ void main() {
       () => core.subscribe(any()),
     ).thenAnswer((_) async => _FakeIncomingMessageHandle(incomingController));
     when(
-      () => core.getChannelByOtherPartyPermanentDid(any()),
+      () => core.findChannelByOtherPartyPermanentDid(any()),
     ).thenAnswer((_) async => _fakeChannel());
     when(() => core.vdip).thenReturn(vdip);
     when(() => vdip.dispatch(any())).thenReturn(null);
@@ -235,7 +235,7 @@ void main() {
 
     test('incoming message with higher seqNo updates channel', () async {
       when(
-        () => core.getChannelByOtherPartyPermanentDid(any()),
+        () => core.findChannelByOtherPartyPermanentDid(any()),
       ).thenAnswer((_) async => _fakeChannel(seqNo: 5));
 
       final chat = await sdk.startChatSession();
@@ -273,7 +273,7 @@ void main() {
 
     test('incoming message with lower seqNo does not update channel', () async {
       when(
-        () => core.getChannelByOtherPartyPermanentDid(any()),
+        () => core.findChannelByOtherPartyPermanentDid(any()),
       ).thenAnswer((_) async => _fakeChannel(seqNo: 10));
 
       final chat = await sdk.startChatSession();

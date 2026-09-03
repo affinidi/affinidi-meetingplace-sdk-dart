@@ -55,7 +55,7 @@ class ConnectionOfferRepositoryImpl implements ConnectionOfferRepository {
   }
 
   @override
-  Future<ConnectionOffer?> getConnectionOfferByOfferLink(
+  Future<ConnectionOffer?> findConnectionOfferByOfferLink(
     String offerLink,
   ) async {
     final connection = await _storage.get<String>(
@@ -94,7 +94,7 @@ class ConnectionOfferRepositoryImpl implements ConnectionOfferRepository {
   }
 
   @override
-  Future<ConnectionOffer?> getConnectionOfferByPermanentChannelDid(
+  Future<ConnectionOffer?> findConnectionOfferByPermanentChannelDid(
     String permanentChannelDid,
   ) async {
     final offerLink = await _storage.get<String>(
@@ -102,7 +102,7 @@ class ConnectionOfferRepositoryImpl implements ConnectionOfferRepository {
     );
     if (offerLink == null) return null;
 
-    return getConnectionOfferByOfferLink(offerLink);
+    return findConnectionOfferByOfferLink(offerLink);
   }
 
   @override
@@ -112,12 +112,13 @@ class ConnectionOfferRepositoryImpl implements ConnectionOfferRepository {
   }
 
   @override
-  Future<ConnectionOffer?> getConnectionOfferByGroupDid(String groupDid) async {
+  Future<ConnectionOffer?> findConnectionOfferByGroupDid(
+      String groupDid) async {
     final offerLink = await _storage.get<String>(
       '$connectionGroupRelationPrefix$groupDid',
     );
     if (offerLink == null) return null;
-    return getConnectionOfferByOfferLink(offerLink);
+    return findConnectionOfferByOfferLink(offerLink);
   }
 
   @override

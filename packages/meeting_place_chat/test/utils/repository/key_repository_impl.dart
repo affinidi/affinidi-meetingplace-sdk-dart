@@ -11,7 +11,7 @@ class KeyRepositoryImpl implements KeyRepository {
   final Storage _storage;
 
   @override
-  Future<String?> getKeyIdByDid({required String did}) {
+  Future<String?> findKeyIdByDid({required String did}) {
     return _storage.get('$_didPrefix$did');
   }
 

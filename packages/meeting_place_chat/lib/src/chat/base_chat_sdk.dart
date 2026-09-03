@@ -239,7 +239,7 @@ abstract class BaseChatSDK {
   }
 
   Future<Channel> getChannel() async {
-    return await coreSDK.getChannelByOtherPartyPermanentDid(otherPartyDid) ??
+    return await coreSDK.findChannelByOtherPartyPermanentDid(otherPartyDid) ??
         (throw Exception(
           'Channel with peer DID ${otherPartyDid.topAndTail()} not '
           'found',

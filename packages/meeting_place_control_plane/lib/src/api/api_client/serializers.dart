@@ -128,8 +128,6 @@ part 'serializers.g.dart';
   GroupMemberDeregisterOK,
   GroupNotifyChannelInput,
   GroupNotifyChannelOK,
-  GroupSendMessage,
-  GroupSendMessageOK,
   InvalidAcceptanceError,
   InvalidOfferError,
   MatrixChallenge,

@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     as cp;
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
@@ -868,61 +867,6 @@ class GroupService {
         stackTrace,
       );
     }
-  }
-
-  Future<void> sendMessage(
-    PlainTextMessage message, {
-    required DidManager senderDid,
-    required DidDocument groupDidDocument,
-    bool increaseSequenceNumber = true,
-    bool notify = true,
-    bool ephemeral = false,
-    int? forwardExpiryInSeconds,
-  }) async {
-    final methodName = 'sendMessage';
-    _logger.info(
-      'Sending message to group DID: ${groupDidDocument.id.topAndTail()}',
-      name: methodName,
-    );
-
-    final channel = await _channelService
-        .findChannelByOtherPartyPermanentChannelDidOrNull(groupDidDocument.id);
-
-    if (channel == null) {
-      _logger.error(
-        'Channel not found for group DID: ${groupDidDocument.id.topAndTail()}',
-        name: methodName,
-      );
-      throw GroupException.channelDoesNotExistError();
-    }
-
-    final group = await getGroupByOfferLink(channel.offerLink);
-    if (group == null) throw GroupException.notFoundError();
-
-    final encryptedMessage = group_message.GroupMessage.encrypt(
-      message,
-      publicKeyBytes: recrypt.PublicKey.fromBase64(
-        group.publicKey!,
-      ).point.toBytes(),
-    );
-
-    await _controlPlaneSDK.execute(
-      cp.GroupSendMessageCommand(
-        offerLink: channel.offerLink,
-        fromDid: message.from!,
-        groupDid: groupDidDocument.id,
-        messageBase64: _encodeEncryptedMessagePayload(encryptedMessage),
-        increaseSequenceNumber: increaseSequenceNumber,
-        notify: notify,
-        ephemeral: ephemeral,
-        forwardExpiryInSeconds: forwardExpiryInSeconds,
-      ),
-    );
-    _logger.info(
-      'Successfully sent message to group DID: '
-      '${groupDidDocument.id.topAndTail()}',
-      name: methodName,
-    );
   }
 
   Future<void> _allowMemberToMessageGroupAdmin(

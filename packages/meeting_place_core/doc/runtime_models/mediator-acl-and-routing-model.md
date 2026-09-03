@@ -226,14 +226,12 @@ After that transition:
 
 ### 5. Steady-state group messaging targets the group DID
 
-Group messages are not sent through the same direct pairwise path as individual messages.
+Group chat messages themselves are sent over Matrix, not through this DIDComm/mediator routing path. The group DID is still the shared identity used for the group's runtime channel and for non-message group management traffic:
 
-- the sender still uses a local member DID
+- the sender still uses a local member DID for management traffic
 - the runtime channel for the group stores `otherPartyPermanentChannelDid = groupDid`
-- the SDK encrypts the payload with the group's public key
-- the send path goes through `GroupSendMessageCommand`, which uses the group DID as the recipient identity
 
-That means the group DID acts as the shared routing target for ongoing group traffic, even though each member still owns an individual permanent DID for direct management traffic and notification setup.
+That means the group DID acts as the shared routing target for ongoing group management traffic, even though each member still owns an individual permanent DID for direct management traffic and notification setup.
 
 ### Group ACL Evolution
 

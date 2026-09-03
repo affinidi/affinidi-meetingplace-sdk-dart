@@ -10,7 +10,8 @@ class _MockChatRepository extends Mock implements ChatRepository {}
 
 class _FakeCoreSDK extends Fake implements MeetingPlaceCoreSDK {
   @override
-  Future<Channel?> getChannelByOtherPartyPermanentDid(String did) async => null;
+  Future<Channel?> findChannelByOtherPartyPermanentDid(String did) async =>
+      null;
 }
 
 const _chatId = 'chat-1';

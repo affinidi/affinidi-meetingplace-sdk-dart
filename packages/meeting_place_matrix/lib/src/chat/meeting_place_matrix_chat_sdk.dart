@@ -76,7 +76,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     if (channel.type == ChannelType.group &&
         channel.transport == ChannelTransport.matrix) {
       final group =
-          await coreSDK.getGroupByOfferLink(channel.offerLink) ??
+          await coreSDK.findGroupByOfferLink(channel.offerLink) ??
           (throw Exception('Group not found'));
 
       return GroupMatrixChatSDK(

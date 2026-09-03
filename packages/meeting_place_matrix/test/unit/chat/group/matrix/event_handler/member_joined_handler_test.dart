@@ -51,7 +51,7 @@ void main() {
       when(
         () => chatRepository.updateMesssage(any()),
       ).thenAnswer((inv) async => inv.positionalArguments.first as ChatItem);
-      when(() => coreSDK.getGroupById(any())).thenAnswer((_) async => group);
+      when(() => coreSDK.findGroupById(any())).thenAnswer((_) async => group);
     });
 
     MemberJoinedHandler buildHandler({String ownDid = 'did:test:alice'}) =>

@@ -33,7 +33,7 @@ class IndividualContactDetailsUpdateHandler {
     if (profileDetails == null) return;
 
     final updatedCard = ContactCard.fromJson(profileDetails);
-    final channel = await _coreSDK.getChannelByOtherPartyPermanentDid(
+    final channel = await _coreSDK.findChannelByOtherPartyPermanentDid(
       _otherPartyDid,
     );
     if (channel == null) return;

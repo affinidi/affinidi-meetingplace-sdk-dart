@@ -62,7 +62,7 @@ void main() {
         return null;
       });
       when(
-        () => coreSDK.getChannelByOtherPartyPermanentDid(any()),
+        () => coreSDK.findChannelByOtherPartyPermanentDid(any()),
       ).thenAnswer((_) async => channel);
       when(() => coreSDK.updateChannel(any())).thenAnswer((_) async {});
     });

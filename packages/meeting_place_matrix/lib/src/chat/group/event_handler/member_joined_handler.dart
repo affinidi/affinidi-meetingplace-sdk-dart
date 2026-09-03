@@ -72,7 +72,7 @@ class MemberJoinedHandler implements ChatEventHandler {
       ),
     );
 
-    final updatedGroup = await _coreSDK.getGroupById(group.id);
+    final updatedGroup = await _coreSDK.findGroupById(group.id);
     if (updatedGroup != null) {
       _setGroup(updatedGroup);
     }

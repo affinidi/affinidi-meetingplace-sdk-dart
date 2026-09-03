@@ -128,7 +128,7 @@ void main() {
       ).thenAnswer((_) async => _FakeHandle(liveEvents));
       when(() => core.vdip).thenReturn(vdip);
       when(
-        () => core.getChannelByOtherPartyPermanentDid(_bobDid),
+        () => core.findChannelByOtherPartyPermanentDid(_bobDid),
       ).thenAnswer((_) async => channel);
       when(() => vdip.subscribe(channel)).thenAnswer((_) async => vdipSub);
       when(() => vdip.incomingMessages).thenAnswer((_) => const Stream.empty());
@@ -243,7 +243,7 @@ void main() {
       ).thenAnswer((_) async => _FakeHandle(liveEvents));
       when(() => core.vdip).thenReturn(vdip);
       when(
-        () => core.getChannelByOtherPartyPermanentDid(_bobDid),
+        () => core.findChannelByOtherPartyPermanentDid(_bobDid),
       ).thenAnswer((_) async => channel);
       when(() => vdip.subscribe(channel)).thenAnswer((_) async => vdipSub);
       when(() => vdip.incomingMessages).thenAnswer((_) => const Stream.empty());
@@ -345,7 +345,7 @@ void main() {
       ).thenAnswer((_) async => _FakeHandle(liveEvents));
       when(() => core.vdip).thenReturn(vdip);
       when(
-        () => core.getChannelByOtherPartyPermanentDid(_bobDid),
+        () => core.findChannelByOtherPartyPermanentDid(_bobDid),
       ).thenAnswer((_) async => channel);
       when(() => vdip.subscribe(channel)).thenAnswer((_) async => vdipSub);
       when(() => vdip.incomingMessages).thenAnswer((_) => const Stream.empty());

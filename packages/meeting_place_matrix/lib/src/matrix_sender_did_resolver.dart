@@ -17,7 +17,7 @@ class MatrixSenderDidResolver {
     required String receiverDid,
     required String matrixUserId,
   }) async {
-    final channel = await _coreSDK.findChannelByDidOrNull(receiverDid);
+    final channel = await _coreSDK.findChannelByDid(receiverDid);
     if (channel == null) return null;
 
     final serverName = _matrixService.homeserver.host;
@@ -31,7 +31,7 @@ class MatrixSenderDidResolver {
 
   Future<List<String>> fetchParticipantDids(Channel channel) async {
     if (channel.type == ChannelType.group) {
-      final group = await _coreSDK.getGroupByOfferLink(channel.offerLink);
+      final group = await _coreSDK.findGroupByOfferLink(channel.offerLink);
       if (group == null) return [];
       return group.members.map((m) => m.did).toList();
     }

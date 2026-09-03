@@ -114,7 +114,7 @@ void main() {
     coreSDK = MockMeetingPlaceCoreSDK();
     tokenService = MockSfuTokenService();
     when(
-      () => coreSDK.getGroupByOfferLink(any()),
+      () => coreSDK.findGroupByOfferLink(any()),
     ).thenAnswer((_) async => null);
     adapter = _buildAdapter(
       matrixService: matrixService,
@@ -129,7 +129,7 @@ void main() {
       () async {
         final channel = _stubChannel();
         when(
-          () => coreSDK.getChannelByOtherPartyPermanentDid(_otherPartyDid),
+          () => coreSDK.findChannelByOtherPartyPermanentDid(_otherPartyDid),
         ).thenAnswer((_) async => channel);
 
         final result = await adapter.resolveChannel();
@@ -148,7 +148,7 @@ void main() {
 
     test('throws operation exception when channel is missing', () async {
       when(
-        () => coreSDK.getChannelByOtherPartyPermanentDid(_otherPartyDid),
+        () => coreSDK.findChannelByOtherPartyPermanentDid(_otherPartyDid),
       ).thenAnswer((_) async => null);
 
       expect(
@@ -162,10 +162,10 @@ void main() {
       () async {
         final channel = _stubChannel(isGroup: false);
         when(
-          () => coreSDK.getChannelByOtherPartyPermanentDid(_otherPartyDid),
+          () => coreSDK.findChannelByOtherPartyPermanentDid(_otherPartyDid),
         ).thenAnswer((_) async => channel);
         when(
-          () => coreSDK.getGroupByOfferLink(channel.offerLink),
+          () => coreSDK.findGroupByOfferLink(channel.offerLink),
         ).thenAnswer((_) async => _stubGroup());
 
         final result = await adapter.resolveChannel();
@@ -348,10 +348,10 @@ void main() {
       () async {
         final channel = _stubChannel(isGroup: false);
         when(
-          () => coreSDK.getChannelByOtherPartyPermanentDid(_otherPartyDid),
+          () => coreSDK.findChannelByOtherPartyPermanentDid(_otherPartyDid),
         ).thenAnswer((_) async => channel);
         when(
-          () => coreSDK.getGroupByOfferLink(channel.offerLink),
+          () => coreSDK.findGroupByOfferLink(channel.offerLink),
         ).thenAnswer((_) async => _stubGroup());
         when(() => coreSDK.notifyChannel(any())).thenAnswer((_) async {});
 
@@ -444,7 +444,7 @@ void main() {
       final startedAt = DateTime.utc(2026, 1, 1, 12);
 
       when(
-        () => coreSDK.getChannelByOtherPartyPermanentDid(_otherPartyDid),
+        () => coreSDK.findChannelByOtherPartyPermanentDid(_otherPartyDid),
       ).thenAnswer((_) async => channel);
       when(
         () => coreSDK.getDidManager(_ownDid),
@@ -1029,7 +1029,7 @@ void main() {
     test('sends individual decline notification for direct calls', () async {
       final channel = _stubChannel();
       when(
-        () => coreSDK.getChannelByOtherPartyPermanentDid(_otherPartyDid),
+        () => coreSDK.findChannelByOtherPartyPermanentDid(_otherPartyDid),
       ).thenAnswer((_) async => channel);
       when(() => coreSDK.notifyChannel(any())).thenAnswer((_) async {});
 
@@ -1058,7 +1058,7 @@ void main() {
     test('sends group decline notification for group calls', () async {
       final channel = _stubChannel(isGroup: true);
       when(
-        () => coreSDK.getChannelByOtherPartyPermanentDid(_otherPartyDid),
+        () => coreSDK.findChannelByOtherPartyPermanentDid(_otherPartyDid),
       ).thenAnswer((_) async => channel);
       when(() => coreSDK.notifyChannel(any())).thenAnswer((_) async {});
 
@@ -1094,7 +1094,7 @@ void main() {
       final didManager = MockDidManager();
       final groupCallSession = MockGroupCallSession();
       when(
-        () => coreSDK.getChannelByOtherPartyPermanentDid(_otherPartyDid),
+        () => coreSDK.findChannelByOtherPartyPermanentDid(_otherPartyDid),
       ).thenAnswer((_) async => channel);
       when(
         () => coreSDK.getDidManager(_ownDid),
@@ -1171,7 +1171,7 @@ void main() {
       () async {
         final channel = _stubChannel(isGroup: true);
         when(
-          () => coreSDK.getChannelByOtherPartyPermanentDid(_otherPartyDid),
+          () => coreSDK.findChannelByOtherPartyPermanentDid(_otherPartyDid),
         ).thenAnswer((_) async => channel);
         when(() => coreSDK.notifyChannel(any())).thenAnswer((_) async {});
 
@@ -1181,7 +1181,7 @@ void main() {
         await adapter.sendCallCancelToRecipient();
 
         verify(() => coreSDK.notifyChannel(any())).called(1);
-        verifyNever(() => coreSDK.getChannelByOtherPartyPermanentDid(any()));
+        verifyNever(() => coreSDK.findChannelByOtherPartyPermanentDid(any()));
       },
     );
 
@@ -1190,10 +1190,10 @@ void main() {
       () async {
         final channel = _stubChannel(isGroup: false);
         when(
-          () => coreSDK.getChannelByOtherPartyPermanentDid(_otherPartyDid),
+          () => coreSDK.findChannelByOtherPartyPermanentDid(_otherPartyDid),
         ).thenAnswer((_) async => channel);
         when(
-          () => coreSDK.getGroupByOfferLink(channel.offerLink),
+          () => coreSDK.findGroupByOfferLink(channel.offerLink),
         ).thenAnswer((_) async => _stubGroup());
         when(() => coreSDK.notifyChannel(any())).thenAnswer((_) async {});
 

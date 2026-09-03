@@ -114,7 +114,7 @@ void main() {
 
       when(() => core.vdip).thenReturn(vdip);
       when(
-        () => core.getChannelByOtherPartyPermanentDid(_bobDid),
+        () => core.findChannelByOtherPartyPermanentDid(_bobDid),
       ).thenAnswer((_) async => channel);
       when(
         () => vdip.subscribe(channel),

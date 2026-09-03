@@ -24,7 +24,7 @@ class ApproveConnectionRequestAction implements GroupAction<Group> {
       );
     }
 
-    final channel = await _chatSDK.coreSDK.getChannelByOtherPartyPermanentDid(
+    final channel = await _chatSDK.coreSDK.findChannelByOtherPartyPermanentDid(
       message.data['memberDid'] as String,
     );
 
@@ -45,7 +45,7 @@ class ApproveConnectionRequestAction implements GroupAction<Group> {
 
     await _chatSDK.coreSDK.approveConnectionRequest(channel: channel);
 
-    final updatedGroup = (await _chatSDK.coreSDK.getGroupById(
+    final updatedGroup = (await _chatSDK.coreSDK.findGroupById(
       _chatSDK.group.id,
     ))!;
 

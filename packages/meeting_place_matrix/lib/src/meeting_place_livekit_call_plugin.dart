@@ -285,7 +285,7 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
       name: _logKey,
     );
     final sdk = _requireSdk();
-    final channel = await sdk.getChannelByOtherPartyPermanentDid(
+    final channel = await sdk.findChannelByOtherPartyPermanentDid(
       groupChannelDid,
     );
     if (channel == null || !channel.isGroup) {

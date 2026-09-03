@@ -171,7 +171,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
       return;
     }
 
-    final channel = await _coreSDK.getChannelByOtherPartyPermanentDid(
+    final channel = await _coreSDK.findChannelByOtherPartyPermanentDid(
       groupChannelDid,
     );
     if (channel == null || !channel.isGroup) {
@@ -473,8 +473,8 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
       _coreSDK.deleteControlPlaneEvents();
 
   @override
-  Future<ConnectionOffer?> getConnectionOffer(String offerLink) =>
-      _coreSDK.getConnectionOffer(offerLink);
+  Future<ConnectionOffer?> findConnectionOffer(String offerLink) =>
+      _coreSDK.findConnectionOffer(offerLink);
 
   @override
   Future<ConnectionOffer> markConnectionOfferAsDeleted(
@@ -486,11 +486,12 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
       _coreSDK.deleteConnectionOffer(connectionOffer);
 
   @override
-  Future<Group?> getGroupByOfferLink(String offerLink) =>
-      _coreSDK.getGroupByOfferLink(offerLink);
+  Future<Group?> findGroupByOfferLink(String offerLink) =>
+      _coreSDK.findGroupByOfferLink(offerLink);
 
   @override
-  Future<Group?> getGroupById(String groupId) => _coreSDK.getGroupById(groupId);
+  Future<Group?> findGroupById(String groupId) =>
+      _coreSDK.findGroupById(groupId);
 
   @override
   Future<void> updateGroup(Group group) => _coreSDK.updateGroup(group);
@@ -517,19 +518,20 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   }) => _coreSDK.updateLocalConnectionOffersScore(score: score, offers: offers);
 
   @override
-  Future<Channel?> getChannelByDid(String did) => _coreSDK.getChannelByDid(did);
+  Future<Channel?> findChannelByDid(String did) =>
+      _coreSDK.findChannelByDid(did);
 
   @override
-  Future<Channel?> getChannelByOtherPartyPermanentDid(String did) =>
-      _coreSDK.getChannelByOtherPartyPermanentDid(did);
+  Future<Channel?> findChannelByOtherPartyPermanentDid(String did) =>
+      _coreSDK.findChannelByOtherPartyPermanentDid(did);
 
   @override
   Future<void> updateChannel(Channel channel) =>
       _coreSDK.updateChannel(channel);
 
   @override
-  Future<String?> getMediatorDidFromUrl(String mediatorEndpoint) =>
-      _coreSDK.getMediatorDidFromUrl(mediatorEndpoint);
+  Future<String?> findMediatorDidFromUrl(String mediatorEndpoint) =>
+      _coreSDK.findMediatorDidFromUrl(mediatorEndpoint);
 
   @override
   Future<String?> sendMediaMessage(
@@ -555,12 +557,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
       _coreSDK.downloadMedia(channel, reference);
 
   @override
-  Future<Channel> findChannelByDid(String did) =>
-      _coreSDK.findChannelByDid(did);
-
-  @override
-  Future<Channel?> findChannelByDidOrNull(String did) =>
-      _coreSDK.findChannelByDidOrNull(did);
+  Future<Channel> getChannelByDid(String did) => _coreSDK.getChannelByDid(did);
 
   @override
   Future<void> updateMessageSyncMarker(Channel channel, String eventId) =>
@@ -580,7 +577,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   ) async {
     switch (subscription) {
       case MatrixRoomSubscription s:
-        final channel = await _coreSDK.findChannelByDid(s.receiverDid);
+        final channel = await _coreSDK.getChannelByDid(s.receiverDid);
         final didManager = await _coreSDK.getDidManager(s.receiverDid);
         final participantDids = await _senderDidResolver.fetchParticipantDids(
           channel,
@@ -609,7 +606,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   Future<String?> sendMessage(OutgoingMessage message) async {
     switch (message) {
       case MatrixOutgoingMessage m:
-        final channel = await _coreSDK.findChannelByDid(m.senderDid);
+        final channel = await _coreSDK.getChannelByDid(m.senderDid);
         final didManager = await _coreSDK.getDidManager(m.senderDid);
         final eventId = await _coreSDK.channelTransport.sendEvent(
           channel: channel,
@@ -635,7 +632,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   Future<List<IncomingMessage>> fetchHistory(HistoryQuery query) async {
     switch (query) {
       case MatrixRoomHistoryQuery q:
-        final channel = await _coreSDK.findChannelByDid(q.receiverDid);
+        final channel = await _coreSDK.getChannelByDid(q.receiverDid);
         final didManager = await _coreSDK.getDidManager(q.receiverDid);
         final events = await _coreSDK.channelTransport.fetchHistory(
           channel: channel,

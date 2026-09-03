@@ -100,7 +100,7 @@ class MatrixCallAdapter {
     if (existingResolution != null) {
       await existingResolution;
     }
-    final channel = await _coreSDK.getChannelByOtherPartyPermanentDid(
+    final channel = await _coreSDK.findChannelByOtherPartyPermanentDid(
       _otherPartyChannelDid,
     );
     if (channel == null) {
@@ -432,7 +432,7 @@ class MatrixCallAdapter {
 
   /// Resolves the caller's channel DID for sending cancel notifications.
   Future<String?> _resolveOwnChannelDidForCancel() async {
-    final channel = await _coreSDK.getChannelByOtherPartyPermanentDid(
+    final channel = await _coreSDK.findChannelByOtherPartyPermanentDid(
       _otherPartyChannelDid,
     );
     return channel?.permanentChannelDid;
@@ -445,14 +445,14 @@ class MatrixCallAdapter {
       _isGroupCall = true;
       return;
     }
-    final group = await _coreSDK.getGroupByOfferLink(channel.offerLink);
+    final group = await _coreSDK.findGroupByOfferLink(channel.offerLink);
     _isGroupCall = group != null;
   }
 
   /// Prepares the cancel target by looking up the channel if not already
   /// resolved.
   Future<void> _prepareCancelTarget() async {
-    final channel = await _coreSDK.getChannelByOtherPartyPermanentDid(
+    final channel = await _coreSDK.findChannelByOtherPartyPermanentDid(
       _otherPartyChannelDid,
     );
     if (channel == null) return;
@@ -516,7 +516,7 @@ class MatrixCallAdapter {
     addParticipant(ownChannelDid, channel.contactCard);
 
     if (channel.isGroup) {
-      final group = await _coreSDK.getGroupByOfferLink(channel.offerLink);
+      final group = await _coreSDK.findGroupByOfferLink(channel.offerLink);
       if (group != null) {
         for (final member in group.members) {
           addParticipant(member.did, member.contactCard);

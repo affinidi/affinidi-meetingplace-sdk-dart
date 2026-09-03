@@ -119,7 +119,7 @@ Future<void> waitForRoomEncryptionReady(
   required Iterable<String> expectedDids,
   Duration timeout = const Duration(seconds: 15),
 }) async {
-  final channel = await sdk.findChannelByDid(localDid);
+  final channel = await sdk.getChannelByDid(localDid);
   final didManager = await sdk.getDidManager(localDid);
   final roomId = await sdk.matrixService.resolveRoomIdForChannel(
     didManager: didManager,

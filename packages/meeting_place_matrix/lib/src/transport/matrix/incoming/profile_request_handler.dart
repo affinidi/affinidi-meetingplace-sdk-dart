@@ -26,7 +26,7 @@ class ProfileRequestHandler {
     final profileHash = event.content['profile_hash'] as String?;
     if (profileHash == null) return;
 
-    final channel = await _coreSDK.getChannelByOtherPartyPermanentDid(
+    final channel = await _coreSDK.findChannelByOtherPartyPermanentDid(
       _otherPartyDid,
     );
     final replyTo = channel?.otherPartyContactCard?.did ?? event.senderDid;

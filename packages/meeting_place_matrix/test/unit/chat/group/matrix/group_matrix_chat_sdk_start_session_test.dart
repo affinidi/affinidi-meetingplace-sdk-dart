@@ -69,7 +69,7 @@ Group _groupNoMembers() => Group(
   ],
 );
 
-/// Group returned by getGroupById after an InvitationGroupAccept event —
+/// Group returned by findGroupById after an InvitationGroupAccept event —
 /// contains one pending member so PendingApprovalConciergeFactory creates a
 /// concierge and calls chatRepository.createMessage.
 Group _groupWithPendingMember() => Group(
@@ -184,10 +184,10 @@ void main() {
           () => coreSDK.controlPlaneEventsStream,
         ).thenAnswer((_) => controlPlaneController.stream);
 
-        // getGroupById returns a group with one pending member so the listener
+        // findGroupById returns a group with one pending member so the listener
         // has something to create a concierge for.
         when(
-          () => coreSDK.getGroupById('group-1'),
+          () => coreSDK.findGroupById('group-1'),
         ).thenAnswer((_) async => _groupWithPendingMember());
 
         when(

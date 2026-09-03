@@ -75,7 +75,7 @@ void main() {
         );
 
         expect(await router.resolveTargetDid(event), 'did:test:bob');
-        verifyNever(() => coreSDK.getGroupById(any()));
+        verifyNever(() => coreSDK.findGroupById(any()));
       },
     );
 
@@ -84,7 +84,7 @@ void main() {
       const serverName = 'server';
       final group = _group();
       final coreSDK = _MockCoreSDK();
-      when(() => coreSDK.getGroupById(any())).thenAnswer((_) async => group);
+      when(() => coreSDK.findGroupById(any())).thenAnswer((_) async => group);
       final router = GroupRoomEventRouter(
         chatSDK: _buildSdk(group, coreSDK: coreSDK),
       );
@@ -119,7 +119,7 @@ void main() {
       );
 
       expect(await router.resolveTargetDid(event), isNull);
-      verifyNever(() => coreSDK.getGroupById(any()));
+      verifyNever(() => coreSDK.findGroupById(any()));
     });
 
     test('falls back to the persisted group when the in-memory snapshot is '
@@ -145,7 +145,7 @@ void main() {
       );
       final coreSDK = _MockCoreSDK();
       when(
-        () => coreSDK.getGroupById(staleGroup.id),
+        () => coreSDK.findGroupById(staleGroup.id),
       ).thenAnswer((_) async => persistedGroup);
       final router = GroupRoomEventRouter(
         chatSDK: _buildSdk(staleGroup, coreSDK: coreSDK),
@@ -161,7 +161,7 @@ void main() {
       );
 
       expect(await router.resolveTargetDid(event), 'did:test:charlie');
-      verify(() => coreSDK.getGroupById(staleGroup.id)).called(1);
+      verify(() => coreSDK.findGroupById(staleGroup.id)).called(1);
     });
 
     test('returns null instead of throwing when the persisted-store lookup '
@@ -170,7 +170,7 @@ void main() {
       final group = _group();
       final coreSDK = _MockCoreSDK();
       when(
-        () => coreSDK.getGroupById(any()),
+        () => coreSDK.findGroupById(any()),
       ).thenThrow(Exception('store unavailable'));
       final router = GroupRoomEventRouter(
         chatSDK: _buildSdk(group, coreSDK: coreSDK),

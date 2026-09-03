@@ -221,7 +221,7 @@ class MatrixTransport implements MeetingPlaceTransport {
   }
 
   @override
-  Future<String?> getLastEventId({
+  Future<String?> findLastEventId({
     required Channel channel,
     required DidManager didManager,
   }) async {

@@ -1179,15 +1179,15 @@ Packages with dependency updates only:
 
 #### `meeting_place_control_plane` - `v0.0.1-dev.17`
 
- - **FEAT**: increase HTTP idle timeout for control plane requests (FTL-27059) (#174).
+ - **FEAT**: increase HTTP idle timeout for control plane requests (#174).
 
 #### `meeting_place_core` - `v0.0.1-dev.35`
 
- - **FEAT**: increase HTTP idle timeout for control plane requests (FTL-27059) (#174).
+ - **FEAT**: increase HTTP idle timeout for control plane requests (#174).
 
 #### `meeting_place_drift_repository` - `v0.0.1-dev.38`
 
- - **FEAT**: increase HTTP idle timeout for control plane requests (FTL-27059) (#174).
+ - **FEAT**: increase HTTP idle timeout for control plane requests (#174).
 
 
 ## 2026-05-19

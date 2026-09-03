@@ -37,7 +37,7 @@ class VrcExchangeClient {
     required String identityDid,
     required String identityName,
   }) async {
-    final channel = await _coreSDK.getChannelByOtherPartyPermanentDid(
+    final channel = await _coreSDK.findChannelByOtherPartyPermanentDid(
       channelDid,
     );
     final senderDid = channel?.permanentChannelDid;
@@ -81,7 +81,7 @@ class VrcExchangeClient {
     required String peerDid,
     required String peerName,
   }) async {
-    final channel = await _coreSDK.getChannelByOtherPartyPermanentDid(
+    final channel = await _coreSDK.findChannelByOtherPartyPermanentDid(
       channelDid,
     );
     final senderDid = channel?.permanentChannelDid;

@@ -484,7 +484,7 @@ class MeetingPlaceCredentialsSDK {
   );
 
   Future<void> _persistReceivedVrc(VrcIssuance vrcIssuance) async {
-    final channel = await _coreSDK.getChannelByOtherPartyPermanentDid(
+    final channel = await _coreSDK.findChannelByOtherPartyPermanentDid(
       vrcIssuance.senderDid,
     );
     if (channel == null) {

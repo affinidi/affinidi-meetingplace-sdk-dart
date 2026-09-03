@@ -420,7 +420,7 @@ void main() {
       when(() => mockRepo.updateNotes(any(), any())).thenAnswer((_) async {});
       when(() => mockRepo.deleteBySubjectDid(any())).thenAnswer((_) async {});
       when(
-        () => mockCoreSDK.getChannelByOtherPartyPermanentDid(any()),
+        () => mockCoreSDK.findChannelByOtherPartyPermanentDid(any()),
       ).thenAnswer((_) async => null);
     });
 
@@ -675,7 +675,7 @@ void main() {
       final channel = MockChannel();
       when(() => channel.id).thenReturn('channel-1');
       when(
-        () => mockCoreSDK.getChannelByOtherPartyPermanentDid('did:key:sender'),
+        () => mockCoreSDK.findChannelByOtherPartyPermanentDid('did:key:sender'),
       ).thenAnswer((_) async => channel);
 
       vdipMessagesCtrl.add(
@@ -745,7 +745,7 @@ void main() {
       when(() => mockRepo.updateNotes(any(), any())).thenAnswer((_) async {});
       when(() => mockRepo.deleteBySubjectDid(any())).thenAnswer((_) async {});
       when(
-        () => mockCoreSDK.getChannelByOtherPartyPermanentDid(any()),
+        () => mockCoreSDK.findChannelByOtherPartyPermanentDid(any()),
       ).thenAnswer((_) async => null);
       sdk = MeetingPlaceCredentialsSDK(
         coreSDK: mockCoreSDK,
@@ -835,7 +835,7 @@ void main() {
       when(() => sendChannel.id).thenReturn('channel-id');
       when(() => sendChannel.permanentChannelDid).thenReturn(issuerDid);
       when(
-        () => mockCoreSDK.getChannelByOtherPartyPermanentDid(any()),
+        () => mockCoreSDK.findChannelByOtherPartyPermanentDid(any()),
       ).thenAnswer((_) async => sendChannel);
       when(
         () => mockCoreSDK.getDidManager(issuerDid),
@@ -874,7 +874,7 @@ void main() {
         when(() => sendChannel.id).thenReturn('channel-id');
         when(() => sendChannel.permanentChannelDid).thenReturn(issuerDid);
         when(
-          () => mockCoreSDK.getChannelByOtherPartyPermanentDid(any()),
+          () => mockCoreSDK.findChannelByOtherPartyPermanentDid(any()),
         ).thenAnswer((_) async => sendChannel);
         when(
           () => mockCoreSDK.getDidManager(issuerDid),
@@ -910,7 +910,7 @@ void main() {
         when(() => sendChannel.id).thenReturn('channel-id');
         when(() => sendChannel.permanentChannelDid).thenReturn(issuerDid);
         when(
-          () => mockCoreSDK.getChannelByOtherPartyPermanentDid(any()),
+          () => mockCoreSDK.findChannelByOtherPartyPermanentDid(any()),
         ).thenAnswer((_) async => sendChannel);
         when(
           () => mockCoreSDK.getDidManager(issuerDid),
@@ -953,7 +953,7 @@ void main() {
         when(() => sendChannel.id).thenReturn('channel-id');
         when(() => sendChannel.permanentChannelDid).thenReturn(issuerDid);
         when(
-          () => mockCoreSDK.getChannelByOtherPartyPermanentDid(any()),
+          () => mockCoreSDK.findChannelByOtherPartyPermanentDid(any()),
         ).thenAnswer((_) async => sendChannel);
         when(
           () => mockCoreSDK.getDidManager(issuerDid),

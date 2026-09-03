@@ -91,7 +91,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
   /// Returns the [model.Group] including its member list, or `null`
   /// if no group with the given ID exists.
   @override
-  Future<model.Group?> getGroupById(String groupId) async {
+  Future<model.Group?> findGroupById(String groupId) async {
     final results = await Future.wait([
       (_database.select(
         _database.meetingPlaceGroups,
@@ -116,13 +116,13 @@ class GroupsRepositoryDrift implements model.GroupRepository {
   ///
   /// Returns the [model.Group], or `null` if no matching group exists.
   @override
-  Future<model.Group?> getGroupByOfferLink(String offerLink) async {
+  Future<model.Group?> findGroupByOfferLink(String offerLink) async {
     final group = await (_database.select(
       _database.meetingPlaceGroups,
     )..where((g) => g.offerLink.equals(offerLink))).getSingleOrNull();
     if (group == null) return null;
 
-    return getGroupById(group.id);
+    return findGroupById(group.id);
   }
 
   /// Deletes a [model.Group] from the database.

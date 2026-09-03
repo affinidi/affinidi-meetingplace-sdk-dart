@@ -279,7 +279,7 @@ void main() {
       );
       when(
         () =>
-            connectionOfferRepository.getConnectionOfferByOfferLink(offerLink),
+            connectionOfferRepository.findConnectionOfferByOfferLink(offerLink),
       ).thenAnswer((_) async => connectionOffer);
 
       // DID resolution for Bob (approve path needs member's DidDocument).
@@ -332,7 +332,7 @@ void main() {
       );
       when(
         () =>
-            channelService.findChannelByOtherPartyPermanentChannelDid(groupDid),
+            channelService.getChannelByOtherPartyPermanentChannelDid(groupDid),
       ).thenAnswer((_) async => groupChannel);
 
       when(
@@ -458,7 +458,7 @@ void main() {
       ]);
 
       // ── Re-read from the REAL drift repository ─────────────────────────
-      final finalGroup = await groupsRepo.getGroupByOfferLink(offerLink);
+      final finalGroup = await groupsRepo.findGroupByOfferLink(offerLink);
       expect(
         finalGroup,
         isNotNull,

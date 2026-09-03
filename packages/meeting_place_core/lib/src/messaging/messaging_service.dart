@@ -108,10 +108,7 @@ class MessagingService {
   }) async {
     final didManager = await _getDidManager(_permanentChannelDid(channel));
 
-    final mergedExtra = <String, dynamic>{
-      'body': ?caption,
-      ...?extraContent,
-    };
+    final mergedExtra = <String, dynamic>{'body': ?caption, ...?extraContent};
 
     final eventId = await _channelTransport.sendFile(
       channel: channel,

@@ -14,8 +14,9 @@ import '../utils/storage.dart';
 
 void main() async {
   // Bob approves offer
-  final bobSDK =
-      await initCoreSDK(wallet: PersistentWallet(InMemoryKeyStore()));
+  final bobSDK = await initCoreSDK(
+    wallet: PersistentWallet(InMemoryKeyStore()),
+  );
 
   // Bob registers for DIDComm notifications
   prettyPrintGreen('>>> Calling SDK.registerForDIDCommNotifications');
@@ -74,8 +75,9 @@ void main() async {
   );
 
   prettyPrintYellow('>>> Listen on notification stream');
-  final notificationSubscription =
-      notificationStream.stream.listen((IncomingMessage message) async {
+  final notificationSubscription = notificationStream.stream.listen((
+    IncomingMessage message,
+  ) async {
     final didcommMessage = message as DidCommIncomingMessage;
     prettyJsonPrintYellow('Received message', didcommMessage.payload.toJson());
     await bobSDK.processControlPlaneEvents();
@@ -95,7 +97,8 @@ void main() async {
     coreSDK: bobSDK,
     chatRepository: ChatRepositoryImpl(storage: InMemoryStorage()),
     options: MeetingPlaceChatSDKOptions(
-        chatPresenceSendInterval: const Duration(seconds: 60)),
+      chatPresenceSendInterval: const Duration(seconds: 60),
+    ),
   );
 
   await Future<void>.delayed(const Duration(seconds: 2));
@@ -113,11 +116,13 @@ void main() async {
   });
 
   prettyPrintGreen(
-      '>>> Calling MeetingPlaceChatSDK.sendTextMessage("Hi Alice!")');
+    '>>> Calling MeetingPlaceChatSDK.sendTextMessage("Hi Alice!")',
+  );
   await bobChatSDK.sendTextMessage('Hi Alice!');
 
   prettyPrintGreen(
-      '>>> Calling MeetingPlaceChatSDK.sendTextMessage("How are you?")');
+    '>>> Calling MeetingPlaceChatSDK.sendTextMessage("How are you?")',
+  );
   await bobChatSDK.sendTextMessage('How are you?');
 
   // Send message manually via core SDK

@@ -1,3 +1,7 @@
+## 0.0.1-dev.51
+
+ - **FIX**: drop reencryption/messageToRelay fields from group commands (#326).
+
 ## 0.0.1-dev.50
 
 > Note: This release has breaking changes.

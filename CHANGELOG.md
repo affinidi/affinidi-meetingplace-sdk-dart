@@ -11,6 +11,52 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 Packages with breaking changes:
 
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_chat` - `v0.0.1-dev.63`](#meeting_place_chat---v001-dev63)
+ - [`meeting_place_control_plane` - `v0.0.1-dev.25`](#meeting_place_control_plane---v001-dev25)
+ - [`meeting_place_core` - `v0.0.1-dev.51`](#meeting_place_core---v001-dev51)
+ - [`meeting_place_credentials` - `v0.0.1-dev.17`](#meeting_place_credentials---v001-dev17)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.63`](#meeting_place_drift_repository---v001-dev63)
+ - [`meeting_place_matrix` - `v0.0.1-dev.23`](#meeting_place_matrix---v001-dev23)
+
+---
+
+#### `meeting_place_chat` - `v0.0.1-dev.63`
+
+ - **FIX**: drop reencryption/messageToRelay fields from group commands (#326).
+
+#### `meeting_place_control_plane` - `v0.0.1-dev.25`
+
+ - **FIX**: drop reencryption/messageToRelay fields from group commands (#326).
+
+#### `meeting_place_core` - `v0.0.1-dev.51`
+
+ - **FIX**: drop reencryption/messageToRelay fields from group commands (#326).
+
+#### `meeting_place_credentials` - `v0.0.1-dev.17`
+
+ - **FIX**: drop reencryption/messageToRelay fields from group commands (#326).
+
+#### `meeting_place_drift_repository` - `v0.0.1-dev.63`
+
+ - **FIX**: drop reencryption/messageToRelay fields from group commands (#326).
+
+#### `meeting_place_matrix` - `v0.0.1-dev.23`
+
+ - **FIX**: drop reencryption/messageToRelay fields from group commands (#326).
+
+
+## 2026-09-03
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
  - [`meeting_place_control_plane` - `v0.0.1-dev.24`](#meeting_place_control_plane---v001-dev24)
  - [`meeting_place_core` - `v0.0.1-dev.50`](#meeting_place_core---v001-dev50)
 

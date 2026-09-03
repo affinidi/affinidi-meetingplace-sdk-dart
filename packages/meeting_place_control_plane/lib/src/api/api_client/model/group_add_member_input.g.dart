@@ -18,10 +18,6 @@ class _$GroupAddMemberInput extends GroupAddMemberInput {
   @override
   final String acceptOfferAsDid;
   @override
-  final String reencryptionKey;
-  @override
-  final String publicKey;
-  @override
   final String contactCard;
 
   factory _$GroupAddMemberInput([
@@ -34,8 +30,6 @@ class _$GroupAddMemberInput extends GroupAddMemberInput {
     required this.groupId,
     required this.memberDid,
     required this.acceptOfferAsDid,
-    required this.reencryptionKey,
-    required this.publicKey,
     required this.contactCard,
   }) : super._();
   @override
@@ -56,8 +50,6 @@ class _$GroupAddMemberInput extends GroupAddMemberInput {
         groupId == other.groupId &&
         memberDid == other.memberDid &&
         acceptOfferAsDid == other.acceptOfferAsDid &&
-        reencryptionKey == other.reencryptionKey &&
-        publicKey == other.publicKey &&
         contactCard == other.contactCard;
   }
 
@@ -69,8 +61,6 @@ class _$GroupAddMemberInput extends GroupAddMemberInput {
     _$hash = $jc(_$hash, groupId.hashCode);
     _$hash = $jc(_$hash, memberDid.hashCode);
     _$hash = $jc(_$hash, acceptOfferAsDid.hashCode);
-    _$hash = $jc(_$hash, reencryptionKey.hashCode);
-    _$hash = $jc(_$hash, publicKey.hashCode);
     _$hash = $jc(_$hash, contactCard.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
@@ -84,8 +74,6 @@ class _$GroupAddMemberInput extends GroupAddMemberInput {
           ..add('groupId', groupId)
           ..add('memberDid', memberDid)
           ..add('acceptOfferAsDid', acceptOfferAsDid)
-          ..add('reencryptionKey', reencryptionKey)
-          ..add('publicKey', publicKey)
           ..add('contactCard', contactCard))
         .toString();
   }
@@ -116,15 +104,6 @@ class GroupAddMemberInputBuilder
   set acceptOfferAsDid(String? acceptOfferAsDid) =>
       _$this._acceptOfferAsDid = acceptOfferAsDid;
 
-  String? _reencryptionKey;
-  String? get reencryptionKey => _$this._reencryptionKey;
-  set reencryptionKey(String? reencryptionKey) =>
-      _$this._reencryptionKey = reencryptionKey;
-
-  String? _publicKey;
-  String? get publicKey => _$this._publicKey;
-  set publicKey(String? publicKey) => _$this._publicKey = publicKey;
-
   String? _contactCard;
   String? get contactCard => _$this._contactCard;
   set contactCard(String? contactCard) => _$this._contactCard = contactCard;
@@ -141,8 +120,6 @@ class GroupAddMemberInputBuilder
       _groupId = $v.groupId;
       _memberDid = $v.memberDid;
       _acceptOfferAsDid = $v.acceptOfferAsDid;
-      _reencryptionKey = $v.reencryptionKey;
-      _publicKey = $v.publicKey;
       _contactCard = $v.contactCard;
       _$v = null;
     }
@@ -190,16 +167,6 @@ class GroupAddMemberInputBuilder
             acceptOfferAsDid,
             r'GroupAddMemberInput',
             'acceptOfferAsDid',
-          ),
-          reencryptionKey: BuiltValueNullFieldError.checkNotNull(
-            reencryptionKey,
-            r'GroupAddMemberInput',
-            'reencryptionKey',
-          ),
-          publicKey: BuiltValueNullFieldError.checkNotNull(
-            publicKey,
-            r'GroupAddMemberInput',
-            'publicKey',
           ),
           contactCard: BuiltValueNullFieldError.checkNotNull(
             contactCard,

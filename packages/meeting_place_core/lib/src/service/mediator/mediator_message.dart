@@ -3,12 +3,6 @@ import 'dart:convert';
 import 'package:didcomm/didcomm.dart';
 
 import '../../loggers/meeting_place_core_sdk_logger.dart';
-import '../../protocol/meeting_place_protocol.dart';
-import '../../protocol/message/plaintext_message_extension.dart';
-import '../../protocol/protocol.dart' as protocol;
-import '../../repository/repository.dart';
-import '../../service/group/group_message.dart';
-import '../../utils/string.dart';
 
 class MediatorMessage {
   MediatorMessage({
@@ -26,20 +20,9 @@ class MediatorMessage {
   /// Create a MediatorMessage from a PlainTextMessage
   static Future<MediatorMessage> fromPlainTextMessage(
     PlainTextMessage message, {
-    required KeyRepository keyRepository,
     required MeetingPlaceCoreSDKLogger logger,
     String? messageHash,
   }) async {
-    if (message.isOfType(MeetingPlaceProtocol.groupMessage.value)) {
-      final decrypted = await _decryptGroupMessage(message, keyRepository);
-      return MediatorMessage(
-        plainTextMessage: decrypted,
-        seqNo: message.body!['seq_no'] as int?,
-        fromDid: message.body!['from_did'] as String?,
-        messageHash: messageHash,
-      );
-    }
-
     if (message.type == ProblemReportMessage.messageType) {
       logger.warning(
         'Received problem report message: ${jsonEncode(message.body)}',
@@ -61,22 +44,5 @@ class MediatorMessage {
       return seqNoFromBody;
     }
     return null;
-  }
-
-  static Future<PlainTextMessage> _decryptGroupMessage(
-    PlainTextMessage message,
-    KeyRepository keyRepository,
-  ) async {
-    final keyPair =
-        await keyRepository.getKeyPair(message.to!.first) ??
-        (throw Exception(
-          'Key pair not found for DID: ${message.to!.first.topAndTail()}',
-        ));
-
-    final groupMessage = protocol.GroupMessage.fromPlainTextMessage(message);
-    return GroupMessage.decrypt(
-      groupMessage,
-      privateKeyBytes: keyPair.privateKeyBytes,
-    );
   }
 }

@@ -49,7 +49,6 @@ class GroupsRepositoryDrift implements model.GroupRepository {
               offerLink: Value(group.offerLink),
               status: Value(group.status),
               created: Value(group.created),
-              publicKey: Value(group.publicKey),
               ownerDid: Value(group.ownerDid),
             ),
           );
@@ -60,7 +59,6 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           groupId: group.id,
           memberDid: member.did,
           dateAdded: Value(member.dateAdded),
-          publicKey: member.publicKey,
           membershipType: member.membershipType,
           status: member.status,
           identityDid: contactCard.did,
@@ -168,7 +166,6 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           status: Value(group.status),
           offerLink: Value(group.offerLink),
           created: Value(group.created),
-          publicKey: Value(group.publicKey),
           ownerDid: Value(group.ownerDid),
         ),
       );
@@ -183,7 +180,6 @@ class GroupsRepositoryDrift implements model.GroupRepository {
           groupId: group.id,
           memberDid: member.did,
           dateAdded: Value(member.dateAdded),
-          publicKey: member.publicKey,
           membershipType: member.membershipType,
           status: member.status,
           identityDid: contactCard.did,
@@ -229,7 +225,6 @@ class GroupsRepositoryDrift implements model.GroupRepository {
               groupId: groupId,
               memberDid: member.did,
               dateAdded: Value(member.dateAdded),
-              publicKey: member.publicKey,
               membershipType: member.membershipType,
               status: member.status,
               identityDid: contactCard.did,
@@ -282,7 +277,6 @@ class _GroupMapper {
           .toList(),
       created: group.created,
       ownerDid: group.ownerDid,
-      publicKey: group.publicKey,
     );
   }
 }
@@ -295,7 +289,6 @@ class _GroupMemberMapper {
       status: groupMember.status,
       membershipType: groupMember.membershipType,
       contactCard: _makeContactCardFromDb(groupMember),
-      publicKey: groupMember.publicKey,
     );
   }
 

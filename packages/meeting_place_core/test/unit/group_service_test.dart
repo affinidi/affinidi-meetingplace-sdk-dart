@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     as cp;
 import 'package:meeting_place_core/meeting_place_core.dart';
@@ -13,7 +11,6 @@ import 'package:meeting_place_core/src/service/identity/identity_service.dart';
 import 'package:meeting_place_core/src/service/identity/model/permanent_identity.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:proxy_recrypt/proxy_recrypt.dart' as recrypt;
 import 'package:ssi/ssi.dart' hide KeyPair;
 import 'package:test/test.dart';
 
@@ -28,8 +25,6 @@ class _MockConnectionOfferRepository extends Mock
     implements ConnectionOfferRepository {}
 
 class _MockGroupRepository extends Mock implements GroupRepository {}
-
-class _MockKeyRepository extends Mock implements KeyRepository {}
 
 class _MockChannelService extends Mock implements ChannelService {}
 
@@ -63,13 +58,11 @@ class _MockDidDocument extends Mock implements DidDocument {
 
 GroupMember _ownerMember(String did) => GroupMember.admin(
   did: did,
-  publicKey: 'pk-$did',
   contactCard: ContactCardFixture.getContactCardFixture(did: did),
 );
 
 GroupMember _member(String did) => GroupMember(
   did: did,
-  publicKey: 'pk-$did',
   dateAdded: DateTime.utc(2026, 1, 1),
   status: GroupMemberStatus.approved,
   membershipType: GroupMembershipType.member,
@@ -78,7 +71,6 @@ GroupMember _member(String did) => GroupMember(
 
 Group _group({
   String? ownerDid = 'did:test:alice',
-  String? publicKey = 'group-pk',
   List<GroupMember>? members,
 }) => Group(
   id: 'group-1',
@@ -86,7 +78,6 @@ Group _group({
   offerLink: 'offer://test',
   created: DateTime.utc(2026, 1, 1),
   ownerDid: ownerDid,
-  publicKey: publicKey,
   members: members ?? [_ownerMember('did:test:alice'), _member('did:test:bob')],
 );
 
@@ -106,8 +97,6 @@ void main() {
         memberDid: '',
         acceptOfferDid: '',
         offerLink: '',
-        publicKey: '',
-        reencryptionKey: '',
       ),
     );
     // updateMemberStatus and verify calls use any() on GroupMemberStatus.
@@ -125,7 +114,6 @@ void main() {
         connectionManager: _MockConnectionManager(),
         connectionOfferRepository: _MockConnectionOfferRepository(),
         groupRepository: groupRepository,
-        keyRepository: _MockKeyRepository(),
         channelService: _MockChannelService(),
         offerService: _MockConnectionOfferService(),
         connectionService: _MockConnectionService(),
@@ -159,24 +147,6 @@ void main() {
       when(
         () => groupRepository.getGroupById('group-1'),
       ).thenAnswer((_) async => _group(ownerDid: null));
-
-      await expectLater(
-        () =>
-            service.removeMember(groupId: 'group-1', memberDid: 'did:test:bob'),
-        throwsA(
-          isA<GroupException>().having(
-            (e) => e.code,
-            'code',
-            MeetingPlaceCoreSDKErrorCode.groupNotFoundError,
-          ),
-        ),
-      );
-    });
-
-    test('throws groupNotFoundError when publicKey is null', () async {
-      when(
-        () => groupRepository.getGroupById('group-1'),
-      ).thenAnswer((_) async => _group(publicKey: null));
 
       await expectLater(
         () =>
@@ -256,7 +226,6 @@ void main() {
         connectionManager: _MockConnectionManager(),
         connectionOfferRepository: connectionOfferRepository,
         groupRepository: groupRepository,
-        keyRepository: _MockKeyRepository(),
         channelService: channelService,
         offerService: _MockConnectionOfferService(),
         connectionService: _MockConnectionService(),
@@ -353,7 +322,6 @@ void main() {
     late _MockChannelService channelService;
     late _MockMeetingPlaceTransport channelTransport;
     late _MockMediatorSDK mediatorSDK;
-    late _MockKeyRepository keyRepository;
     late _MockControlPlaneSDK controlPlaneSDK;
     late _MockDidResolver didResolver;
     late GroupService service;
@@ -375,7 +343,6 @@ void main() {
       channelService = _MockChannelService();
       channelTransport = _MockMeetingPlaceTransport();
       mediatorSDK = _MockMediatorSDK();
-      keyRepository = _MockKeyRepository();
       controlPlaneSDK = _MockControlPlaneSDK();
       didResolver = _MockDidResolver();
 
@@ -384,7 +351,6 @@ void main() {
         connectionManager: connectionManager,
         connectionOfferRepository: connectionOfferRepository,
         groupRepository: groupRepository,
-        keyRepository: keyRepository,
         channelService: channelService,
         offerService: _MockConnectionOfferService(),
         connectionService: _MockConnectionService(),
@@ -398,21 +364,8 @@ void main() {
 
     test('calls updateMemberStatus (not updateGroup) so concurrent handler '
         'adds are never clobbered by a full member-list replace', () async {
-      // Generate real proxy_recrypt keys so generateMemberReEncryptionKey
-      // (called inside approveMembershipRequest) doesn't throw.
-      final r = recrypt.Recrypt();
-      final groupKeyPair = r.generateKeyPair();
-      final memberKeyPair = r.generateKeyPair();
-      // The service stores
-      // privateKeyBytes = base64.decode(privateKey.toBase64()) and later does
-      // base64.encode(bytes) → fromBase64 to reconstruct.
-      final groupPrivateBytes = base64.decode(
-        groupKeyPair.privateKey.toBase64(),
-      );
-
       final pendingMember = GroupMember(
         did: approveMemberDid,
-        publicKey: memberKeyPair.publicKey.toBase64(), // valid recrypt pubkey
         dateAdded: DateTime.utc(2026, 1, 1),
         status: GroupMemberStatus.pendingApproval,
         membershipType: GroupMembershipType.member,
@@ -427,7 +380,6 @@ void main() {
         offerLink: approveOfferLink,
         created: DateTime.utc(2026, 1, 1),
         ownerDid: approveOwnerDid,
-        publicKey: 'group-pk',
         members: [
           _ownerMember(approveOwnerDid),
           pendingMember,
@@ -435,7 +387,6 @@ void main() {
           // add. With the old full-replace, this would be dropped.
           GroupMember(
             did: 'did:test:concurrent-joiner',
-            publicKey: 'pk-concurrent',
             dateAdded: DateTime.utc(2026, 1, 1),
             status: GroupMemberStatus.pendingApproval,
             membershipType: GroupMembershipType.member,
@@ -553,14 +504,6 @@ void main() {
         ),
       ).thenAnswer((_) async => ownerDidManager);
 
-      // generateMemberReEncryptionKey reads the group private key
-      when(() => keyRepository.getKeyPair(approveGroupDid)).thenAnswer(
-        (_) async => KeyPair(
-          privateKeyBytes: groupPrivateBytes,
-          publicKeyBytes: base64.decode(groupKeyPair.publicKey.toBase64()),
-        ),
-      );
-
       when(
         () => groupRepository.updateMemberStatus(any(), any(), any()),
       ).thenAnswer((_) async {});
@@ -621,7 +564,6 @@ void main() {
         connectionManager: _MockConnectionManager(),
         connectionOfferRepository: _MockConnectionOfferRepository(),
         groupRepository: groupRepository,
-        keyRepository: _MockKeyRepository(),
         channelService: _MockChannelService(),
         offerService: _MockConnectionOfferService(),
         connectionService: _MockConnectionService(),

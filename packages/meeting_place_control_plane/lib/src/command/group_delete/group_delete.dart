@@ -5,7 +5,6 @@ import 'group_delete_output.dart';
 /// operation.
 class GroupDeleteCommand extends DiscoveryCommand<GroupDeleteCommandOutput> {
   /// Creates a new instance of [GroupDeleteCommand].
-  GroupDeleteCommand({required this.groupId, required this.messageBase64});
+  GroupDeleteCommand({required this.groupId});
   final String groupId;
-  final String messageBase64;
 }

@@ -44,8 +44,6 @@ import '../model/group_deregister_member_input.dart';
 import '../model/group_member_deregister_ok.dart';
 import '../model/group_notify_channel_input.dart';
 import '../model/group_notify_channel_ok.dart';
-import '../model/group_send_message.dart';
-import '../model/group_send_message_ok.dart';
 import '../model/matrix_challenge.dart';
 import '../model/matrix_challenge_ok.dart';
 import '../model/matrix_token.dart';

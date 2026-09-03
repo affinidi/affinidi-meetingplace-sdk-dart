@@ -54,9 +54,9 @@ Map<String, dynamic> _$ChannelToJson(Channel instance) => <String, dynamic>{
   'otherPartyPermanentChannelDid': ?instance.otherPartyPermanentChannelDid,
   'notificationToken': ?instance.notificationToken,
   'otherPartyNotificationToken': ?instance.otherPartyNotificationToken,
+  'messageSyncMarker': ?instance.messageSyncMarker,
   'externalRef': ?instance.externalRef,
   'seqNo': instance.seqNo,
-  'messageSyncMarker': ?instance.messageSyncMarker,
 };
 
 const _$ChannelStatusEnumMap = {

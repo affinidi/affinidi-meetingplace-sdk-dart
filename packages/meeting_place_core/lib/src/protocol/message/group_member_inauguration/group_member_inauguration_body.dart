@@ -13,7 +13,6 @@ class GroupMemberInaugurationBody {
     required this.memberDid,
     required this.groupDid,
     required this.groupId,
-    required this.groupPublicKey,
     required this.adminDids,
     required this.members,
   });
@@ -26,9 +25,6 @@ class GroupMemberInaugurationBody {
 
   @JsonKey(name: 'group_id')
   final String groupId;
-
-  @JsonKey(name: 'group_public_key')
-  final String groupPublicKey;
 
   @JsonKey(name: 'admin_dids')
   final List<String> adminDids;

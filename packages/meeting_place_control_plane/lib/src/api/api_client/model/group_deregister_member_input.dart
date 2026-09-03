@@ -15,8 +15,6 @@ part 'group_deregister_member_input.g.dart';
 /// * [memberDid] - Decentralised Identifier (DID) of the member to remove.
 /// * [groupId] - The unique identifier of the group chat to remove the member
 ///   from.
-/// * [messageToRelay] - An encrypted DIDComm message to send to the remaining
-///   group chat members in base64 format.
 @BuiltValue()
 abstract class GroupDeregisterMemberInput
     implements
@@ -28,11 +26,6 @@ abstract class GroupDeregisterMemberInput
   /// The unique identifier of the group chat to remove the member from.
   @BuiltValueField(wireName: r'groupId')
   String get groupId;
-
-  /// An encrypted DIDComm message to send to the remaining group chat members
-  /// in base64 format.
-  @BuiltValueField(wireName: r'messageToRelay')
-  String? get messageToRelay;
 
   GroupDeregisterMemberInput._();
 
@@ -74,13 +67,6 @@ class _$GroupDeregisterMemberInputSerializer
       object.groupId,
       specifiedType: const FullType(String),
     );
-    if (object.messageToRelay != null) {
-      yield r'messageToRelay';
-      yield serializers.serialize(
-        object.messageToRelay,
-        specifiedType: const FullType(String),
-      );
-    }
   }
 
   @override
@@ -125,15 +111,6 @@ class _$GroupDeregisterMemberInputSerializer
                   )
                   as String;
           result.groupId = valueDes;
-          break;
-        case r'messageToRelay':
-          final valueDes =
-              serializers.deserialize(
-                    value,
-                    specifiedType: const FullType(String),
-                  )
-                  as String;
-          result.messageToRelay = valueDes;
           break;
         default:
           unhandled.add(key);

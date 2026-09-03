@@ -17,8 +17,6 @@ class RegisterOfferGroupCommand
     required this.device,
     required this.oobInvitationMessage,
     required this.adminDid,
-    required this.adminPublicKey,
-    required this.adminReencryptionKey,
     this.validUntil,
     this.maximumUsage,
     this.customPhrase,
@@ -44,6 +42,4 @@ class RegisterOfferGroupCommand
   final String? metadata;
 
   final String adminDid;
-  final String adminPublicKey;
-  final String adminReencryptionKey;
 }

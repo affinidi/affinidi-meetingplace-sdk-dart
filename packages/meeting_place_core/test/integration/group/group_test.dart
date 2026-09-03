@@ -438,7 +438,6 @@ void main() async {
 
     // assert group information
     expect(actual.payload.body?['group_did'], group!.did);
-    expect(actual.payload.body?['group_public_key'], group.publicKey);
 
     final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       bobSDK,

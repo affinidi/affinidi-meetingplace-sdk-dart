@@ -40,7 +40,6 @@
 
 library;
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
@@ -65,7 +64,6 @@ import 'package:meeting_place_drift_repository/src/repositories/group_repository
     as drift_db;
 import 'package:meeting_place_drift_repository/src/repositories/group_repository/groups_repository_drift.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:proxy_recrypt/proxy_recrypt.dart' as recrypt;
 import 'package:ssi/ssi.dart' hide KeyPair;
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
@@ -80,8 +78,6 @@ class _MockConnectionManager extends Mock implements ConnectionManager {}
 
 class _MockConnectionOfferRepository extends Mock
     implements ConnectionOfferRepository {}
-
-class _MockKeyRepository extends Mock implements KeyRepository {}
 
 class _MockChannelService extends Mock implements ChannelService {}
 
@@ -145,7 +141,6 @@ PlainTextMessage _buildAcceptanceMessage({
   required String from,
   required String to,
   required String channelDid,
-  required String publicKey,
   required ContactCard contactCard,
 }) {
   final msg = InvitationAcceptanceGroup.create(
@@ -153,7 +148,6 @@ PlainTextMessage _buildAcceptanceMessage({
     to: [to],
     parentThreadId: const Uuid().v4(),
     channelDid: channelDid,
-    publicKey: publicKey,
     contactCard: contactCard,
   );
   return msg.toPlainTextMessage();
@@ -181,7 +175,6 @@ void main() {
     registerFallbackValue(
       GroupMember.pendingMember(
         did: 'did:fallback',
-        publicKey: 'pk-fallback',
         contactCard: _card('did:fallback'),
       ),
     );
@@ -192,8 +185,6 @@ void main() {
         memberDid: '',
         acceptOfferDid: '',
         offerLink: '',
-        publicKey: '',
-        reencryptionKey: '',
       ),
     );
   });
@@ -207,7 +198,6 @@ void main() {
     late _MockWallet wallet;
     late _MockConnectionManager connectionManager;
     late _MockConnectionOfferRepository connectionOfferRepository;
-    late _MockKeyRepository keyRepository;
     late _MockChannelService channelService;
     late _MockIdentityService identityService;
     late _MockControlPlaneSDK controlPlaneSDK;
@@ -230,21 +220,9 @@ void main() {
     // Carol = member Y that the handler will add as pendingApproval.
     const carolDid = 'did:test:carol-race';
 
-    // Real recrypt key pairs.
-    late recrypt.KeyPair groupKeyPair;
-    late recrypt.KeyPair bobKeyPair;
-    late recrypt.KeyPair carolKeyPair;
-
     setUp(() async {
       database = _inMemoryGroupsDatabase();
       groupsRepo = GroupsRepositoryDrift(database: database);
-
-      // Generate real proxy_recrypt keys so that
-      // GroupService.generateMemberReEncryptionKey doesn't throw.
-      final r = recrypt.Recrypt();
-      groupKeyPair = r.generateKeyPair();
-      bobKeyPair = r.generateKeyPair();
-      carolKeyPair = r.generateKeyPair();
 
       // ── Seed the group ──────────────────────────────────────────────────
       // Owner Alice (admin/approved) + Bob (pendingApproval).
@@ -253,18 +231,12 @@ void main() {
         id: groupId,
         did: groupDid,
         offerLink: offerLink,
-        publicKey: groupKeyPair.publicKey.toBase64(),
         ownerDid: ownerDid,
         created: DateTime.utc(2026, 1, 1),
         members: [
-          GroupMember.admin(
-            did: ownerDid,
-            publicKey: 'pk-owner',
-            contactCard: _card(ownerDid),
-          ),
+          GroupMember.admin(did: ownerDid, contactCard: _card(ownerDid)),
           GroupMember(
             did: bobDid,
-            publicKey: bobKeyPair.publicKey.toBase64(),
             dateAdded: DateTime.utc(2026, 1, 2),
             status: GroupMemberStatus.pendingApproval,
             membershipType: GroupMembershipType.member,
@@ -278,7 +250,6 @@ void main() {
       wallet = _MockWallet();
       connectionManager = _MockConnectionManager();
       connectionOfferRepository = _MockConnectionOfferRepository();
-      keyRepository = _MockKeyRepository();
       channelService = _MockChannelService();
       identityService = _MockIdentityService();
       controlPlaneSDK = _MockControlPlaneSDK();
@@ -372,14 +343,6 @@ void main() {
         ),
       ).thenAnswer((_) async {});
 
-      // keyRepository.getKeyPair: real private-key bytes for the group DID.
-      when(() => keyRepository.getKeyPair(groupDid)).thenAnswer(
-        (_) async => KeyPair(
-          privateKeyBytes: base64.decode(groupKeyPair.privateKey.toBase64()),
-          publicKeyBytes: base64.decode(groupKeyPair.publicKey.toBase64()),
-        ),
-      );
-
       // mediatorSDK.sendMessage: inauguration message — no-op.
       when(
         () => mediatorSDK.sendMessage(
@@ -401,7 +364,6 @@ void main() {
         from: acceptOfferDid,
         to: publishOfferDid,
         channelDid: carolDid,
-        publicKey: carolKeyPair.publicKey.toBase64(),
         contactCard: _card(carolDid),
       );
       when(
@@ -443,7 +405,6 @@ void main() {
         connectionManager: connectionManager,
         connectionOfferRepository: connectionOfferRepository,
         groupRepository: groupsRepo, // REAL drift repo
-        keyRepository: keyRepository,
         channelService: channelService,
         offerService: _MockConnectionOfferService(),
         connectionService: _MockConnectionService(),

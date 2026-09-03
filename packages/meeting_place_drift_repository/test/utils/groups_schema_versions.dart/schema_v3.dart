@@ -49,22 +49,6 @@ class MeetingPlaceGroups extends Table with TableInfo {
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL',
   );
-  late final GeneratedColumn<String> groupKeyPair = GeneratedColumn<String>(
-    'group_key_pair',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: 'NULL',
-  );
-  late final GeneratedColumn<String> publicKey = GeneratedColumn<String>(
-    'public_key',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: 'NULL',
-  );
   late final GeneratedColumn<String> ownerDid = GeneratedColumn<String>(
     'owner_did',
     aliasedName,
@@ -80,8 +64,6 @@ class MeetingPlaceGroups extends Table with TableInfo {
     offerLink,
     status,
     created,
-    groupKeyPair,
-    publicKey,
     ownerDid,
   ];
   @override
@@ -169,14 +151,6 @@ class GroupMembers extends Table with TableInfo {
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL',
   );
-  late final GeneratedColumn<String> publicKey = GeneratedColumn<String>(
-    'public_key',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
   late final GeneratedColumn<int> membershipType = GeneratedColumn<int>(
     'membership_type',
     aliasedName,
@@ -217,55 +191,23 @@ class GroupMembers extends Table with TableInfo {
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL',
   );
-  late final GeneratedColumn<String> firstName = GeneratedColumn<String>(
-    'first_name',
+  late final GeneratedColumn<String> contactInfoJson = GeneratedColumn<String>(
+    'contact_info_json',
     aliasedName,
     false,
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<String> lastName = GeneratedColumn<String>(
-    'last_name',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<String> email = GeneratedColumn<String>(
-    'email',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<String> mobile = GeneratedColumn<String>(
-    'mobile',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT \'{}\'',
+    defaultValue: const CustomExpression('\'{}\''),
   );
   late final GeneratedColumn<String> profilePic = GeneratedColumn<String>(
     'profile_pic',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
   );
-  late final GeneratedColumn<String> meetingplaceIdentityCardColor =
-      GeneratedColumn<String>(
-        'meetingplace_identity_card_color',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-        $customConstraints: 'NOT NULL',
-      );
   @override
   List<GeneratedColumn> get $columns => [
     groupId,
@@ -275,18 +217,13 @@ class GroupMembers extends Table with TableInfo {
     metadata,
     acceptOfferAsDid,
     dateAdded,
-    publicKey,
     membershipType,
     peerProfileHash,
     status,
     identityDid,
     type,
-    firstName,
-    lastName,
-    email,
-    mobile,
+    contactInfoJson,
     profilePic,
-    meetingplaceIdentityCardColor,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -309,8 +246,8 @@ class GroupMembers extends Table with TableInfo {
   bool get dontWriteConstraints => true;
 }
 
-class DatabaseAtV1 extends GeneratedDatabase {
-  DatabaseAtV1(QueryExecutor e) : super(e);
+class DatabaseAtV3 extends GeneratedDatabase {
+  DatabaseAtV3(QueryExecutor e) : super(e);
   late final MeetingPlaceGroups meetingPlaceGroups = MeetingPlaceGroups(this);
   late final GroupMembers groupMembers = GroupMembers(this);
   @override
@@ -332,7 +269,7 @@ class DatabaseAtV1 extends GeneratedDatabase {
     ),
   ]);
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 3;
   @override
   DriftDatabaseOptions get options =>
       const DriftDatabaseOptions(storeDateTimeAsText: true);

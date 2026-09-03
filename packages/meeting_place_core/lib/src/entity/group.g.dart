@@ -20,7 +20,6 @@ Group _$GroupFromJson(Map<String, dynamic> json) => Group(
       $enumDecodeNullable(_$GroupStatusEnumMap, json['status']) ??
       GroupStatus.created,
   ownerDid: json['ownerDid'] as String?,
-  publicKey: json['publicKey'] as String?,
   externalRef: json['externalRef'] as String?,
 );
 
@@ -30,7 +29,6 @@ Map<String, dynamic> _$GroupToJson(Group instance) => <String, dynamic>{
   'offerLink': instance.offerLink,
   'created': instance.created.toIso8601String(),
   'externalRef': ?instance.externalRef,
-  'publicKey': ?instance.publicKey,
   'ownerDid': ?instance.ownerDid,
   'status': _$GroupStatusEnumMap[instance.status]!,
   'members': instance.members.map((e) => e.toJson()).toList(),

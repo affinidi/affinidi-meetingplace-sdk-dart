@@ -104,21 +104,19 @@ That last point matters because the current group-join flow can persist a placeh
 
 ### KeyRepository
 
-This repository does not store domain entities. It stores key-management metadata required to reconstruct DIDs and group encryption state.
+This repository does not store domain entities. It stores key-management metadata required to reconstruct DIDs.
 
-The interface covers four categories of data:
+The interface covers two categories of data:
 
 | Data | Interface methods | Purpose |
 | --- | --- | --- |
 | DID derivation counter | `getLastAccountIndex`, `setLastAccountIndex` | Generates new DID derivation paths without collisions |
 | DID-to-keyId mapping | `saveKeyIdForDid`, `getKeyIdByDid` | Allows `ConnectionManager` to reconstruct a `DidManager` for a previously generated DID |
-| Group and member key pairs | `saveKeyPair`, `getKeyPair` | Persists recrypt key pairs for group owner DIDs, member DIDs, and group DIDs |
 
 Observed runtime usage:
 
 - `getLastAccountIndex()` is used as the source for the next DID derivation index
 - `saveKeyIdForDid()` stores the mapping later used to reconstruct a `DidManager` for an existing DID
-- `saveKeyPair()` stores raw key bytes used by group encryption flows
 
 ## What Is Not Persisted Through These Repositories
 

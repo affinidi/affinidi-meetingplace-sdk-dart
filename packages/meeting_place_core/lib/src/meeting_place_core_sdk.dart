@@ -358,7 +358,6 @@ class MeetingPlaceCoreSDK {
       connectionService: connectionService,
       groupRepository: repositoryConfig.groupRepository,
       channelService: channelService,
-      keyRepository: repositoryConfig.keyRepository,
       controlPlaneSDK: controlPlaneSDK,
       mediatorSDK: mediatorSDK,
       offerService: offerService,
@@ -370,7 +369,6 @@ class MeetingPlaceCoreSDK {
 
     final mediatorService = MediatorService(
       mediatorSDK: mediatorSDK,
-      keyRepository: repositoryConfig.keyRepository,
       logger: mpxLogger,
     );
 

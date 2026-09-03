@@ -15,7 +15,6 @@ class ChatGroupDetailsUpdateBody {
     required this.members,
     required this.adminDids,
     required this.dateCreated,
-    required this.groupPublicKey,
     this.groupKeyPair,
   });
 
@@ -37,9 +36,6 @@ class ChatGroupDetailsUpdateBody {
   @JsonKey(name: 'date_created')
   final DateTime dateCreated;
 
-  @JsonKey(name: 'group_public_key')
-  final String groupPublicKey;
-
   @JsonKey(name: 'group_key_pair')
   final String? groupKeyPair;
 
@@ -57,7 +53,6 @@ class ChatGroupDetailsUpdateBodyMember {
     required this.contactCard,
     required this.dateAdded,
     required this.status,
-    required this.publicKey,
     required this.membershipType,
   });
 
@@ -72,9 +67,6 @@ class ChatGroupDetailsUpdateBodyMember {
 
   @JsonKey(name: 'status')
   final String status;
-
-  @JsonKey(name: 'public_key')
-  final String publicKey;
 
   @JsonKey(name: 'membership_type')
   final String membershipType;

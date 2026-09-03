@@ -12,18 +12,12 @@ part 'group_delete_input.g.dart';
 ///
 /// Properties:
 /// * [groupId] - Unique identifier of the group chat to delete.
-/// * [messageToRelay] - Message to send to the group chat members upon
-///   deletion.
 @BuiltValue()
 abstract class GroupDeleteInput
     implements Built<GroupDeleteInput, GroupDeleteInputBuilder> {
   /// Unique identifier of the group chat to delete.
   @BuiltValueField(wireName: r'groupId')
   String get groupId;
-
-  /// Message to send to the group chat members upon deletion.
-  @BuiltValueField(wireName: r'messageToRelay')
-  String get messageToRelay;
 
   GroupDeleteInput._();
 
@@ -54,11 +48,6 @@ class _$GroupDeleteInputSerializer
     yield r'groupId';
     yield serializers.serialize(
       object.groupId,
-      specifiedType: const FullType(String),
-    );
-    yield r'messageToRelay';
-    yield serializers.serialize(
-      object.messageToRelay,
       specifiedType: const FullType(String),
     );
   }
@@ -96,15 +85,6 @@ class _$GroupDeleteInputSerializer
                   )
                   as String;
           result.groupId = valueDes;
-          break;
-        case r'messageToRelay':
-          final valueDes =
-              serializers.deserialize(
-                    value,
-                    specifiedType: const FullType(String),
-                  )
-                  as String;
-          result.messageToRelay = valueDes;
           break;
         default:
           unhandled.add(key);

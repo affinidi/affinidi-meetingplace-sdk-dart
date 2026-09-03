@@ -30,7 +30,6 @@ PlainTextMessage _acceptanceMessage({
   required String from,
   required String to,
   required String channelDid,
-  required String publicKey,
   ContactCard? contactCard,
 }) {
   final msg = InvitationAcceptanceGroup.create(
@@ -38,7 +37,6 @@ PlainTextMessage _acceptanceMessage({
     to: [to],
     parentThreadId: const Uuid().v4(),
     channelDid: channelDid,
-    publicKey: publicKey,
     contactCard: contactCard,
   );
   return msg.toPlainTextMessage();
@@ -56,13 +54,8 @@ Group _makeGroup({
     offerLink: offerLink,
     created: DateTime.utc(2026, 1, 1),
     ownerDid: ownerDid,
-    publicKey: 'group-pk',
     members: [
-      GroupMember.admin(
-        did: ownerDid,
-        publicKey: 'pk-admin',
-        contactCard: _contactCard(ownerDid),
-      ),
+      GroupMember.admin(did: ownerDid, contactCard: _contactCard(ownerDid)),
       ...extraMembers,
     ],
   );
@@ -101,7 +94,6 @@ void main() {
     registerFallbackValue(
       GroupMember.pendingMember(
         did: 'did:fallback',
-        publicKey: 'pk-fallback',
         contactCard: ContactCard(
           did: 'did:fallback',
           type: 'individual',
@@ -234,7 +226,6 @@ void main() {
           extraMembers: [
             GroupMember.pendingMember(
               did: joinerDid,
-              publicKey: 'pk-joiner',
               contactCard: _contactCard(joinerDid),
             ),
           ],
@@ -252,7 +243,6 @@ void main() {
           from: acceptOfferDid,
           to: publishOfferDid,
           channelDid: joinerDid,
-          publicKey: 'pk-joiner',
           contactCard: _contactCard(joinerDid),
         );
 
@@ -300,7 +290,6 @@ void main() {
         from: acceptOfferDid,
         to: publishOfferDid,
         channelDid: joinerDid, // new DID
-        publicKey: 'pk-joiner',
         contactCard: _contactCard(joinerDid),
       );
 

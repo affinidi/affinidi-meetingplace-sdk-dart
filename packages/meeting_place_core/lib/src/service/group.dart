@@ -1,9 +1,6 @@
-import 'dart:convert';
-
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     as cp;
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
-import 'package:proxy_recrypt/proxy_recrypt.dart' as recrypt;
 import 'package:ssi/ssi.dart' show DidDocument, DidManager, DidResolver, Wallet;
 import 'package:uuid/uuid.dart';
 
@@ -24,9 +21,7 @@ import 'connection_manager/connection_manager.dart';
 import 'connection_offer/connection_offer_exception.dart';
 import 'connection_offer/connection_offer_service.dart';
 import 'connection_service.dart';
-import 'group/group_admin.dart';
 import 'group/group_exception.dart';
-import 'group/group_message.dart' as group_message;
 import 'group_service/accept_group_offer_result.dart';
 import 'identity/identity_service.dart';
 import 'identity/model/permanent_identity.dart';
@@ -37,7 +32,6 @@ class GroupService {
     required ConnectionManager connectionManager,
     required ConnectionOfferRepository connectionOfferRepository,
     required GroupRepository groupRepository,
-    required KeyRepository keyRepository,
     required ChannelService channelService,
     required ConnectionOfferService offerService,
     required ConnectionService connectionService,
@@ -52,7 +46,6 @@ class GroupService {
        _connectionOfferRepository = connectionOfferRepository,
        _groupRepository = groupRepository,
        _channelService = channelService,
-       _keyRepository = keyRepository,
        _connectionOfferService = offerService,
        _connectionService = connectionService,
        _identityService = identityService,
@@ -72,7 +65,6 @@ class GroupService {
   final ConnectionOfferService _connectionOfferService;
   final ConnectionService _connectionService;
   final ChannelService _channelService;
-  final KeyRepository _keyRepository;
   final IdentityService _identityService;
   final DidResolver _didResolver;
   final MeetingPlaceCoreSDKLogger _logger;
@@ -80,8 +72,6 @@ class GroupService {
   final cp.ControlPlaneSDK _controlPlaneSDK;
   final MeetingPlaceMediatorSDK _mediatorSDK;
   final MeetingPlaceTransport _channelTransport;
-
-  final _recrypt = recrypt.Recrypt();
 
   Future<
     (
@@ -113,14 +103,6 @@ class GroupService {
     final ownerDid = ownerIdentity.didManager;
     final ownerDidDocument = ownerIdentity.didDocument;
 
-    final groupKeyPair = _recrypt.generateKeyPair();
-    final recryptKeyPair = await generateRecryptKeyPair(ownerDidDocument.id);
-
-    final groupAdmin = createGroupAdmin(
-      groupPrivateKey: groupKeyPair.privateKey,
-      memberPublicKey: recryptKeyPair.publicKey,
-    );
-
     final oobDidManager = await _connectionManager.generateDid(_wallet);
     final oobDidDoc = await oobDidManager.getDidDocument();
 
@@ -147,8 +129,6 @@ class GroupService {
         maximumUsage: maximumUsage,
         customPhrase: customPhrase,
         adminDid: ownerDidDocument.id,
-        adminPublicKey: recryptKeyPair.publicKeyToBase64(),
-        adminReencryptionKey: groupAdmin.memberReencryptionKey,
         mediatorDid: mediatorDid,
         metadata: metadata,
       ),
@@ -158,24 +138,12 @@ class GroupService {
       id: result.groupId,
       did: result.groupDid,
       offerLink: result.offerLink,
-      publicKey: groupKeyPair.publicKeyToBase64(),
       ownerDid: ownerDidDocument.id,
       created: DateTime.now().toUtc(),
       externalRef: externalRef,
-      members: [
-        GroupMember.admin(
-          did: ownerDidDocument.id,
-          publicKey: recryptKeyPair.publicKeyToBase64(),
-          contactCard: card,
-        ),
-      ],
+      members: [GroupMember.admin(did: ownerDidDocument.id, contactCard: card)],
     );
 
-    await _keyRepository.saveKeyPair(
-      privateKeyBytes: groupKeyPair.privateKey.toBytes(),
-      publicKeyBytes: groupKeyPair.publicKey.point.toBytes(),
-      did: result.groupDid,
-    );
     await _groupRepository.createGroup(group);
 
     try {
@@ -253,21 +221,6 @@ class GroupService {
     }
   }
 
-  GroupAdmin createGroupAdmin({
-    required recrypt.PrivateKey groupPrivateKey,
-    required recrypt.PublicKey memberPublicKey,
-  }) {
-    final rkGroupToMember = _recrypt.generateReEncryptionKey(
-      groupPrivateKey,
-      memberPublicKey,
-    );
-
-    return GroupAdmin(
-      memberPublicKey: memberPublicKey.toBase64(),
-      memberReencryptionKey: rkGroupToMember.toBase64(),
-    );
-  }
-
   Future<AcceptGroupOfferResult> acceptGroupOffer({
     required Wallet wallet,
     required GroupConnectionOffer connectionOffer,
@@ -324,24 +277,10 @@ class GroupService {
         {'thid': result.offerLink},
       );
 
-      final keyPair = await generateRecryptKeyPair(
-        permanentChannelDidDocument.id,
-      );
-
-      // TODO: Is this still required?
-      //
-      // We use a placeholder ID for the group until we know the real one.
-      // These will be updated during `GroupMembershipFinalised`.
-      // Using uuid will prevent it from being overwritten when being stored in
-      // Hive box as the `group.groupDid` is used as the key, it should be
-      // unique per transaction.
-      final memberPublicKeyBase64 = keyPair.publicKey.toBase64();
-
       final group = await _createOrUpdateGroup(
         permanentChannelDidDocument: permanentChannelDidDocument,
         card: card,
         externalRef: externalRef,
-        memberPublicKeyBase64: memberPublicKeyBase64,
         offerLink: connectionOffer.offerLink,
       );
 
@@ -350,7 +289,6 @@ class GroupService {
         mediatorDid: result.mediatorDid,
         permanentChannelDid: permanentChannelDidManager,
         invitationMessage: invitationMessage,
-        groupMemberPublicKey: memberPublicKeyBase64,
         contactCard: card,
       );
 
@@ -413,7 +351,6 @@ class GroupService {
     required DidDocument permanentChannelDidDocument,
     required ContactCard card,
     String? externalRef,
-    required String memberPublicKeyBase64,
     required String offerLink,
   }) async {
     final existingGroup = await _groupRepository.getGroupByOfferLink(offerLink);
@@ -424,7 +361,6 @@ class GroupService {
         members: [
           GroupMember.pendingMember(
             did: permanentChannelDidDocument.id,
-            publicKey: memberPublicKeyBase64,
             contactCard: card,
           ),
         ],
@@ -444,7 +380,6 @@ class GroupService {
       members: [
         GroupMember.pendingMember(
           did: permanentChannelDidDocument.id,
-          publicKey: memberPublicKeyBase64,
           contactCard: card,
         ),
       ],
@@ -495,24 +430,11 @@ class GroupService {
     return acceptedConnectionOffer;
   }
 
-  Future<recrypt.KeyPair> generateRecryptKeyPair(String did) async {
-    final recryptKeyPair = _recrypt.generateKeyPair();
-
-    await _keyRepository.saveKeyPair(
-      privateKeyBytes: recryptKeyPair.privateKey.toBytes(),
-      publicKeyBytes: recryptKeyPair.publicKey.point.toBytes(),
-      did: did,
-    );
-
-    return recryptKeyPair;
-  }
-
   Future<void> sendAcceptInvitationGroupToMediator({
     required DidManager senderDid,
     required DidManager permanentChannelDid,
     required OobInvitationMessage invitationMessage,
     required String mediatorDid,
-    required String groupMemberPublicKey,
     ContactCard? contactCard,
   }) async {
     final methodName = 'sendAcceptInvitationGroupToMediator';
@@ -544,7 +466,6 @@ class GroupService {
       to: [recipientDid],
       parentThreadId: invitationMessage.id,
       channelDid: permanentChannelDidDocument.id,
-      publicKey: groupMemberPublicKey,
       contactCard: contactCard,
     );
 
@@ -670,11 +591,6 @@ class GroupService {
       channel.publishOfferDid,
     );
 
-    final reencryptionKey = await generateMemberReEncryptionKey(
-      groupDid: group.did,
-      member: member,
-    );
-
     // Approve by updating only this member's row. A full-list updateGroup here
     // could drop members that a concurrent InvitationGroupAccept added between
     // the read above and this write — the lost-update that caused the bug.
@@ -696,7 +612,6 @@ class GroupService {
       groupDid: freshGroup.did,
       groupId: freshGroup.id,
       adminDids: [freshGroup.ownerDid!],
-      groupPublicKey: freshGroup.publicKey!,
       members: freshGroup.members
           .where((member) => member.status == GroupMemberStatus.approved)
           .map(
@@ -705,7 +620,6 @@ class GroupService {
               contactCardDid: member.contactCard.did,
               contactCardType: member.contactCard.type,
               status: member.status.name,
-              publicKey: member.publicKey,
               membershipType: member.membershipType.name,
             ),
           )
@@ -734,8 +648,6 @@ class GroupService {
                 contactInfo: otherPartyContactCard.contactInfo,
               )
             : null,
-        publicKey: member.publicKey,
-        reencryptionKey: reencryptionKey.toBase64(),
       ),
     );
 
@@ -840,7 +752,7 @@ class GroupService {
     required String memberDid,
   }) async {
     final group = await _groupRepository.getGroupById(groupId);
-    if (group == null || group.ownerDid == null || group.publicKey == null) {
+    if (group == null || group.ownerDid == null) {
       throw GroupException.notFoundError();
     }
 
@@ -1023,19 +935,7 @@ class GroupService {
       didManager: memberDidManager,
     );
 
-    final encryptedMessage = group_message.GroupMessage.encrypt(
-      GroupDeletion.create(groupId: group.id).toPlainTextMessage(),
-      publicKeyBytes: recrypt.PublicKey.fromBase64(
-        group.publicKey!,
-      ).point.toBytes(),
-    );
-
-    await _controlPlaneSDK.execute(
-      cp.GroupDeleteCommand(
-        groupId: group.id,
-        messageBase64: _encodeEncryptedMessagePayload(encryptedMessage),
-      ),
-    );
+    await _controlPlaneSDK.execute(cp.GroupDeleteCommand(groupId: group.id));
   }
 
   Future<void> _leaveGroupAsMember({
@@ -1061,52 +961,8 @@ class GroupService {
     required Group group,
     required String memberDid,
   }) async {
-    final encryptedMessage = group_message.GroupMessage.encrypt(
-      GroupMemberDeregistration.create(
-        groupId: group.id,
-        memberDid: memberDid,
-      ).toPlainTextMessage(),
-      publicKeyBytes: recrypt.PublicKey.fromBase64(
-        group.publicKey!,
-      ).point.toBytes(),
-    );
-
     await _controlPlaneSDK.execute(
-      cp.GroupDeregisterMemberCommand(
-        groupId: group.id,
-        memberId: memberDid,
-        messageBase64: _encodeEncryptedMessagePayload(encryptedMessage),
-      ),
-    );
-  }
-
-  String _encodeEncryptedMessagePayload(
-    group_message.EncryptedGroupMessage message,
-  ) {
-    return base64.encode(
-      utf8.encode(
-        jsonEncode({
-          'ciphertext': base64.encode(message.ciphertextBytes),
-          'capsule': message.capsule.toBase64(),
-          'iv': base64.encode(message.initializationVector),
-          'authentication_tag': base64.encode(message.authenticationTag),
-        }),
-      ),
-    );
-  }
-
-  Future<recrypt.ReEncryptionKey> generateMemberReEncryptionKey({
-    required String groupDid,
-    required GroupMember member,
-  }) async {
-    final storedKeyPair = await _keyRepository.getKeyPair(groupDid);
-    final privateKey = recrypt.PrivateKey.fromBase64(
-      base64.encode(storedKeyPair!.privateKeyBytes),
-    );
-
-    return recrypt.Recrypt().generateReEncryptionKey(
-      privateKey,
-      recrypt.PublicKey.fromBase64(member.publicKey),
+      cp.GroupDeregisterMemberCommand(groupId: group.id, memberId: memberDid),
     );
   }
 }

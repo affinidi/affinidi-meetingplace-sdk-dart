@@ -9,15 +9,12 @@ part of 'group_delete_input.dart';
 class _$GroupDeleteInput extends GroupDeleteInput {
   @override
   final String groupId;
-  @override
-  final String messageToRelay;
 
   factory _$GroupDeleteInput([
     void Function(GroupDeleteInputBuilder)? updates,
   ]) => (GroupDeleteInputBuilder()..update(updates))._build();
 
-  _$GroupDeleteInput._({required this.groupId, required this.messageToRelay})
-    : super._();
+  _$GroupDeleteInput._({required this.groupId}) : super._();
   @override
   GroupDeleteInput rebuild(void Function(GroupDeleteInputBuilder) updates) =>
       (toBuilder()..update(updates)).build();
@@ -29,26 +26,22 @@ class _$GroupDeleteInput extends GroupDeleteInput {
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other is GroupDeleteInput &&
-        groupId == other.groupId &&
-        messageToRelay == other.messageToRelay;
+    return other is GroupDeleteInput && groupId == other.groupId;
   }
 
   @override
   int get hashCode {
     var _$hash = 0;
     _$hash = $jc(_$hash, groupId.hashCode);
-    _$hash = $jc(_$hash, messageToRelay.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'GroupDeleteInput')
-          ..add('groupId', groupId)
-          ..add('messageToRelay', messageToRelay))
-        .toString();
+    return (newBuiltValueToStringHelper(
+      r'GroupDeleteInput',
+    )..add('groupId', groupId)).toString();
   }
 }
 
@@ -60,11 +53,6 @@ class GroupDeleteInputBuilder
   String? get groupId => _$this._groupId;
   set groupId(String? groupId) => _$this._groupId = groupId;
 
-  String? _messageToRelay;
-  String? get messageToRelay => _$this._messageToRelay;
-  set messageToRelay(String? messageToRelay) =>
-      _$this._messageToRelay = messageToRelay;
-
   GroupDeleteInputBuilder() {
     GroupDeleteInput._defaults(this);
   }
@@ -73,7 +61,6 @@ class GroupDeleteInputBuilder
     final $v = _$v;
     if ($v != null) {
       _groupId = $v.groupId;
-      _messageToRelay = $v.messageToRelay;
       _$v = null;
     }
     return this;
@@ -100,11 +87,6 @@ class GroupDeleteInputBuilder
             groupId,
             r'GroupDeleteInput',
             'groupId',
-          ),
-          messageToRelay: BuiltValueNullFieldError.checkNotNull(
-            messageToRelay,
-            r'GroupDeleteInput',
-            'messageToRelay',
           ),
         );
     replace(_$result);

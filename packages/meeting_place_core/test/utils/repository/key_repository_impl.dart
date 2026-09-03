@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 import '../storage/storage.dart';
@@ -9,7 +7,6 @@ class KeyRepositoryImpl implements KeyRepository {
 
   static final String _didPrefix = 'did_';
   static final String _indexPrefix = 'index_';
-  static final String _keyPairIndex = 'keyPair_';
 
   final Storage _storage;
 
@@ -35,30 +32,5 @@ class KeyRepositoryImpl implements KeyRepository {
   Future<void> setLastAccountIndex(int index) {
     final indexKey = _indexPrefix;
     return _storage.put(indexKey, index);
-  }
-
-  @override
-  Future<void> saveKeyPair({
-    required Uint8List privateKeyBytes,
-    required Uint8List publicKeyBytes,
-    required String did,
-  }) {
-    return _storage.put('$_keyPairIndex$did', {
-      'privateKeyBytes': privateKeyBytes,
-      'publicKeyBytes': publicKeyBytes,
-    });
-  }
-
-  @override
-  Future<KeyPair?> getKeyPair(String did) async {
-    final keyPair = await _storage.get<Map<String, Uint8List>>(
-      '$_keyPairIndex$did',
-    );
-    if (keyPair == null) return null;
-
-    return KeyPair(
-      publicKeyBytes: keyPair['publicKeyBytes']!,
-      privateKeyBytes: keyPair['privateKeyBytes']!,
-    );
   }
 }

@@ -16,13 +16,8 @@ void main() {
       offerLink: 'offer://test',
       created: DateTime.utc(2026, 1, 1),
       ownerDid: 'did:test:alice',
-      publicKey: 'pubkey',
       members: [
-        GroupMember.admin(
-          did: 'did:test:alice',
-          publicKey: 'pubkey',
-          contactCard: ownerCard,
-        ),
+        GroupMember.admin(did: 'did:test:alice', contactCard: ownerCard),
       ],
     );
 

@@ -321,7 +321,6 @@ class GroupMembershipFinalisedEventHandler
     final updatedGroup = group.copyWith(
       id: message.body.groupId,
       did: message.body.groupDid,
-      publicKey: message.body.groupPublicKey,
       ownerDid: message.body.adminDids[0],
       created: DateTime.now().toUtc(),
     );
@@ -348,7 +347,6 @@ class GroupMembershipFinalisedEventHandler
             membershipType: GroupMembershipType.values.byName(
               member.membershipType,
             ),
-            publicKey: member.publicKey,
             dateAdded: DateTime.now().toUtc(),
           ),
         );
@@ -361,7 +359,6 @@ class GroupMembershipFinalisedEventHandler
         card: contactCard,
         dateAdded: DateTime.now().toUtc(),
         status: GroupMemberStatus.approved,
-        publicKey: member.publicKey,
         membershipType: GroupMembershipType.values.byName(
           member.membershipType,
         ),

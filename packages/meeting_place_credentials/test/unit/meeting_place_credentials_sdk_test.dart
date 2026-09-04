@@ -1266,34 +1266,92 @@ void main() {
       await sdk.dispose();
     });
 
-    test(
-      'listReceivedRCards wraps a raw repository error as '
-      'MeetingPlaceCredentialsSDKException with the generic code',
-      () async {
-        final repositoryError = Exception('database unavailable');
-        when(() => mockRepo.listAll()).thenThrow(repositoryError);
-        final sdk = buildSdk();
+    test('listReceivedRCards wraps a raw repository error as '
+        'MeetingPlaceCredentialsSDKException with the generic code', () async {
+      final repositoryError = Exception('database unavailable');
+      when(() => mockRepo.listAll()).thenThrow(repositoryError);
+      final sdk = buildSdk();
 
-        await expectLater(
-          sdk.listReceivedRCards(),
-          throwsA(
-            isA<MeetingPlaceCredentialsSDKException>()
-                .having(
-                  (e) => e.code,
-                  'code',
-                  MeetingPlaceCredentialsSDKErrorCode.generic,
-                )
-                .having(
-                  (e) => e.innerException,
-                  'innerException',
-                  repositoryError,
-                ),
-          ),
-        );
+      await expectLater(
+        sdk.listReceivedRCards(),
+        throwsA(
+          isA<MeetingPlaceCredentialsSDKException>()
+              .having(
+                (e) => e.code,
+                'code',
+                MeetingPlaceCredentialsSDKErrorCode.generic,
+              )
+              .having(
+                (e) => e.innerException,
+                'innerException',
+                repositoryError,
+              ),
+        ),
+      );
 
-        await sdk.dispose();
-      },
-    );
+      await sdk.dispose();
+    });
+
+    test('watchReceivedRCards wraps a raw repository stream error as '
+        'MeetingPlaceCredentialsSDKException with the generic code', () async {
+      final repositoryError = Exception('database unavailable');
+      when(
+        () => mockRepo.watchAll(),
+      ).thenAnswer((_) => Stream<List<RCard>>.error(repositoryError));
+      final sdk = buildSdk();
+
+      await expectLater(
+        sdk.watchReceivedRCards(),
+        emitsError(
+          isA<MeetingPlaceCredentialsSDKException>()
+              .having(
+                (e) => e.code,
+                'code',
+                MeetingPlaceCredentialsSDKErrorCode.generic,
+              )
+              .having(
+                (e) => e.innerException,
+                'innerException',
+                repositoryError,
+              ),
+        ),
+      );
+
+      await sdk.dispose();
+    });
+
+    test('watchVrcs wraps a raw repository stream error as '
+        'MeetingPlaceCredentialsSDKException with the generic code', () async {
+      final repositoryError = Exception('database unavailable');
+      final vrcRepo = stubbedMockVrcRepository();
+      when(
+        vrcRepo.watchAll,
+      ).thenAnswer((_) => Stream<List<Vrc>>.error(repositoryError));
+      final sdk = MeetingPlaceCredentialsSDK(
+        coreSDK: mockCoreSDK,
+        rCardRepository: mockRepo,
+        vrcRepository: vrcRepo,
+      );
+
+      await expectLater(
+        sdk.watchVrcs(),
+        emitsError(
+          isA<MeetingPlaceCredentialsSDKException>()
+              .having(
+                (e) => e.code,
+                'code',
+                MeetingPlaceCredentialsSDKErrorCode.generic,
+              )
+              .having(
+                (e) => e.innerException,
+                'innerException',
+                repositoryError,
+              ),
+        ),
+      );
+
+      await sdk.dispose();
+    });
   });
 
   group('MeetingPlaceCredentialsSDK R-Card VDIP pending cache', () {

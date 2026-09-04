@@ -239,7 +239,8 @@ class MeetingPlaceCredentialsSDK {
   ///
   /// Backed by [RCardRepository.watchAll] — emits a new list
   /// whenever any record is added, updated, or removed from local storage.
-  Stream<List<RCard>> watchReceivedRCards() => _rCardRepository.watchAll();
+  Stream<List<RCard>> watchReceivedRCards() =>
+      _withSdkStreamExceptionHandling(_rCardRepository.watchAll);
 
   /// Returns a snapshot of all persisted R-Cards, ordered by
   /// [RCard.receivedAt] descending.
@@ -295,7 +296,8 @@ class MeetingPlaceCredentialsSDK {
       _rCardVdipStreamManager.consumePendingRCard(senderDid);
 
   /// Returns a live stream of all persisted VRCs.
-  Stream<List<Vrc>> watchVrcs() => _vrcRepository.watchAll();
+  Stream<List<Vrc>> watchVrcs() =>
+      _withSdkStreamExceptionHandling(_vrcRepository.watchAll);
 
   /// Returns a snapshot of all persisted VRCs.
   Future<List<Vrc>> listVrcs() =>
@@ -368,6 +370,40 @@ class MeetingPlaceCredentialsSDK {
     }
   }
 
+  /// Stream counterpart of [_withSdkExceptionHandling]: returns
+  /// [operation]'s stream, converting any error it throws while being built
+  /// or emits once subscribed to that is not already a
+  /// [MeetingPlaceCredentialsSDKException] into one with
+  /// [MeetingPlaceCredentialsSDKErrorCode.generic].
+  Stream<T> _withSdkStreamExceptionHandling<T>(Stream<T> Function() operation) {
+    try {
+      return operation().handleError((Object error, StackTrace stackTrace) {
+        if (error is MeetingPlaceCredentialsSDKException) {
+          Error.throwWithStackTrace(error, stackTrace);
+        }
+        Error.throwWithStackTrace(
+          MeetingPlaceCredentialsSDKException(
+            message: 'Failure on Credentials SDK exception',
+            code: MeetingPlaceCredentialsSDKErrorCode.generic,
+            innerException: error,
+          ),
+          stackTrace,
+        );
+      });
+    } on MeetingPlaceCredentialsSDKException {
+      rethrow;
+    } catch (e, stackTrace) {
+      Error.throwWithStackTrace(
+        MeetingPlaceCredentialsSDKException(
+          message: 'Failure on Credentials SDK exception',
+          code: MeetingPlaceCredentialsSDKErrorCode.generic,
+          innerException: e,
+        ),
+        stackTrace,
+      );
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // R-Card operations
   // ---------------------------------------------------------------------------
@@ -376,32 +412,32 @@ class MeetingPlaceCredentialsSDK {
   /// [SendRCardRequest.channel] via VDIP.
   ///
   /// Returns the sent [RCard] so callers can display or store the issued card.
-  Future<RCard> sendRCard(SendRCardRequest request) =>
-      _withSdkExceptionHandling(() async {
-        final channel = request.channel;
-        final subjectDid = request.subjectDid;
-        final issuerDid = channel.permanentChannelDid;
-        if (issuerDid == null || issuerDid.isEmpty) {
-          throw MeetingPlaceCredentialsSDKException
-              .sendRCardMissingChannelDid();
-        }
-        final vc = await RCardBuilder.build(
-          issuerDid: issuerDid,
-          subjectDid: subjectDid,
-          subject: request.card,
-          issuerDidManager: request.issuerDidManager,
-        );
-        await _coreSDK.vdip.issueCredential(channel: channel, credential: vc);
-        final vcBlob = jsonEncode(vc.toJson());
-        return RCard(
-          subjectDid: subjectDid,
-          vcBlob: vcBlob,
-          issuerDid: issuerDid,
-          version: RCardConstants.receivedRCardVersion,
-          issuanceDate: vc.validFrom?.toUtc() ?? DateTime.now().toUtc(),
-          receivedAt: DateTime.now().toUtc(),
-        );
-      });
+  Future<RCard> sendRCard(
+    SendRCardRequest request,
+  ) => _withSdkExceptionHandling(() async {
+    final channel = request.channel;
+    final subjectDid = request.subjectDid;
+    final issuerDid = channel.permanentChannelDid;
+    if (issuerDid == null || issuerDid.isEmpty) {
+      throw MeetingPlaceCredentialsSDKException.sendRCardMissingChannelDid();
+    }
+    final vc = await RCardBuilder.build(
+      issuerDid: issuerDid,
+      subjectDid: subjectDid,
+      subject: request.card,
+      issuerDidManager: request.issuerDidManager,
+    );
+    await _coreSDK.vdip.issueCredential(channel: channel, credential: vc);
+    final vcBlob = jsonEncode(vc.toJson());
+    return RCard(
+      subjectDid: subjectDid,
+      vcBlob: vcBlob,
+      issuerDid: issuerDid,
+      version: RCardConstants.receivedRCardVersion,
+      issuanceDate: vc.validFrom?.toUtc() ?? DateTime.now().toUtc(),
+      receivedAt: DateTime.now().toUtc(),
+    );
+  });
 
   // ---------------------------------------------------------------------------
   // Parsing

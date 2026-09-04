@@ -23,13 +23,15 @@ class MediatorService {
     FetchMessagesOptions options = const FetchMessagesOptions(),
   }) async {
     final results = await _mediatorSDK.fetchMessages(
-      didManager: didManager,
-      mediatorDid: mediatorDid,
-      startFrom: options.startFrom,
-      fetchMessagesBatchSize: options.batchSize,
-      deleteOnRetrieve: options.deleteOnRetrieve,
-      deleteFailedMessages: options.deleteFailedMessages,
-      expectedMessageWrappingTypes: options.expectedMessageWrappingTypes,
+      FetchMessagesRequest(
+        didManager: didManager,
+        mediatorDid: mediatorDid,
+        startFrom: options.startFrom,
+        fetchMessagesBatchSize: options.batchSize,
+        deleteOnRetrieve: options.deleteOnRetrieve,
+        deleteFailedMessages: options.deleteFailedMessages,
+        expectedMessageWrappingTypes: options.expectedMessageWrappingTypes,
+      ),
     );
 
     final mediatorMessages = await Future.wait(
@@ -96,13 +98,15 @@ class MediatorService {
     int? forwardExpiryInSeconds,
   }) {
     return _mediatorSDK.sendMessage(
-      message,
-      senderDidManager: senderDidManager,
-      recipientDidDocument: recipientDidDocument,
-      mediatorDid: mediatorDid,
-      next: next,
-      ephemeral: ephemeral ?? false,
-      forwardExpiryInSeconds: forwardExpiryInSeconds,
+      MediatorMessageRequest(
+        message: message,
+        senderDidManager: senderDidManager,
+        recipientDidDocument: recipientDidDocument,
+        mediatorDid: mediatorDid,
+        next: next,
+        ephemeral: ephemeral ?? false,
+        forwardExpiryInSeconds: forwardExpiryInSeconds,
+      ),
     );
   }
 

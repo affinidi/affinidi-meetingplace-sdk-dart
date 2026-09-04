@@ -46,9 +46,11 @@ void main() {
     });
 
     await fixture.sdk.sendMessage(
-      testMessage,
-      senderDidManager: fixture.didManagerB,
-      recipientDidDocument: recipientDidDoc,
+      MediatorMessageRequest(
+        message: testMessage,
+        senderDidManager: fixture.didManagerB,
+        recipientDidDocument: recipientDidDoc,
+      ),
     );
 
     final receivedMessage = await waitForMessage.future;
@@ -91,9 +93,11 @@ void main() {
     });
 
     await fixture.sdk.sendMessage(
-      testMessage,
-      senderDidManager: fixture.didManagerB,
-      recipientDidDocument: recipientDidDoc,
+      MediatorMessageRequest(
+        message: testMessage,
+        senderDidManager: fixture.didManagerB,
+        recipientDidDocument: recipientDidDoc,
+      ),
     );
 
     final receivedMessage = await waitForMessage.future;
@@ -102,9 +106,11 @@ void main() {
 
     expect(
       () => fixture.sdk.sendMessage(
-        testMessage,
-        senderDidManager: fixture.didManagerC,
-        recipientDidDocument: recipientDidDoc,
+        MediatorMessageRequest(
+          message: testMessage,
+          senderDidManager: fixture.didManagerC,
+          recipientDidDocument: recipientDidDoc,
+        ),
       ),
       throwsA(
         isA<MeetingPlaceMediatorSDKException>().having(

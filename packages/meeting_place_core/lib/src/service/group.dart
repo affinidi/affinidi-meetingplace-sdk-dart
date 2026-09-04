@@ -472,11 +472,13 @@ class GroupService {
     );
 
     await _mediatorSDK.sendMessage(
-      invitationAcceptanceMessage.toPlainTextMessage(),
-      senderDidManager: senderDidManager,
-      recipientDidDocument: recipientDidDocument,
-      mediatorDid: mediatorDid,
-      next: recipientDid,
+      MediatorMessageRequest(
+        message: invitationAcceptanceMessage.toPlainTextMessage(),
+        senderDidManager: senderDidManager,
+        recipientDidDocument: recipientDidDocument,
+        mediatorDid: mediatorDid,
+        next: recipientDid,
+      ),
     );
     _logger.info(
       'Successfully sent accept invitation to mediator: '
@@ -631,10 +633,12 @@ class GroupService {
     );
 
     await _mediatorSDK.sendMessage(
-      groupMemberInauguration.toPlainTextMessage(),
-      senderDidManager: senderDid,
-      recipientDidDocument: memberDidDocument,
-      mediatorDid: channel.mediatorDid,
+      MediatorMessageRequest(
+        message: groupMemberInauguration.toPlainTextMessage(),
+        senderDidManager: senderDid,
+        recipientDidDocument: memberDidDocument,
+        mediatorDid: channel.mediatorDid,
+      ),
     );
 
     final otherPartyContactCard = channel.otherPartyContactCard;

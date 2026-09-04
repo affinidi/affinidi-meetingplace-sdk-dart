@@ -92,6 +92,13 @@ void main() {
     registerFallbackValue(FakeDidDocument());
     registerFallbackValue(_group());
     registerFallbackValue(
+      MediatorMessageRequest(
+        message: FakePlainTextMessage(),
+        senderDidManager: _MockDidManager(),
+        recipientDidDocument: FakeDidDocument(),
+      ),
+    );
+    registerFallbackValue(
       cp.GroupAddMemberCommand(
         mnemonic: '',
         groupId: '',
@@ -509,14 +516,7 @@ void main() {
         () => groupRepository.updateMemberStatus(any(), any(), any()),
       ).thenAnswer((_) async {});
 
-      when(
-        () => mediatorSDK.sendMessage(
-          any(),
-          senderDidManager: any(named: 'senderDidManager'),
-          recipientDidDocument: any(named: 'recipientDidDocument'),
-          mediatorDid: any(named: 'mediatorDid'),
-        ),
-      ).thenAnswer((_) async {});
+      when(() => mediatorSDK.sendMessage(any())).thenAnswer((_) async {});
 
       when(
         () => controlPlaneSDK.execute<cp.GroupAddMemberCommandOutput>(any()),

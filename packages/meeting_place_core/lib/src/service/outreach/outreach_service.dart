@@ -48,9 +48,11 @@ class OutreachService {
     );
 
     await _mediatorSDK.sendMessage(
-      outreachInvitation.toPlainTextMessage(),
-      senderDidManager: senderDidManager,
-      recipientDidDocument: await _didResolver.resolveDid(message.from!),
+      MediatorMessageRequest(
+        message: outreachInvitation.toPlainTextMessage(),
+        senderDidManager: senderDidManager,
+        recipientDidDocument: await _didResolver.resolveDid(message.from!),
+      ),
     );
 
     await _controlPlaneSDK.execute(

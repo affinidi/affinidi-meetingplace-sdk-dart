@@ -456,11 +456,13 @@ class ConnectionService {
     );
 
     await _mediatorSDK.sendMessage(
-      invitationAcceptanceMessage.toPlainTextMessage(),
-      senderDidManager: acceptOfferDidManager,
-      recipientDidDocument: recipientDidDocument,
-      mediatorDid: mediatorDid,
-      next: recipientDid,
+      MediatorMessageRequest(
+        message: invitationAcceptanceMessage.toPlainTextMessage(),
+        senderDidManager: acceptOfferDidManager,
+        recipientDidDocument: recipientDidDocument,
+        mediatorDid: mediatorDid,
+        next: recipientDid,
+      ),
     );
 
     _logger.info('Accept offer sent to mediator', name: methodName);
@@ -661,11 +663,13 @@ class ConnectionService {
     );
 
     await _mediatorSDK.sendMessage(
-      connectionApprovalMwssage.toPlainTextMessage(),
-      senderDidManager: offerPublishedDidManager,
-      recipientDidDocument: recipientDidDocument,
-      mediatorDid: mediatorDid,
-      next: otherPartyAcceptOfferDid,
+      MediatorMessageRequest(
+        message: connectionApprovalMwssage.toPlainTextMessage(),
+        senderDidManager: offerPublishedDidManager,
+        recipientDidDocument: recipientDidDocument,
+        mediatorDid: mediatorDid,
+        next: otherPartyAcceptOfferDid,
+      ),
     );
 
     _logger.info(

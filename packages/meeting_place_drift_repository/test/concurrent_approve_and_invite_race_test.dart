@@ -169,6 +169,13 @@ void main() {
     );
     registerFallbackValue(_FakeChannel());
     registerFallbackValue(_FakePlainTextMessage());
+    registerFallbackValue(
+      MediatorMessageRequest(
+        message: _FakePlainTextMessage(),
+        senderDidManager: _StubDidManager('did:fallback'),
+        recipientDidDocument: DidDocument.create(id: 'did:fallback'),
+      ),
+    );
     registerFallbackValue(_FakeGroupAddMemberCommandOutput());
     registerFallbackValue(_FakeFetchMessagesOptions());
     registerFallbackValue(DidDocument.create(id: 'did:fallback'));
@@ -345,14 +352,7 @@ void main() {
       ).thenAnswer((_) async {});
 
       // mediatorSDK.sendMessage: inauguration message — no-op.
-      when(
-        () => mediatorSDK.sendMessage(
-          any(),
-          senderDidManager: any(named: 'senderDidManager'),
-          recipientDidDocument: any(named: 'recipientDidDocument'),
-          mediatorDid: any(named: 'mediatorDid'),
-        ),
-      ).thenAnswer((_) async {});
+      when(() => mediatorSDK.sendMessage(any())).thenAnswer((_) async {});
 
       // controlPlaneSDK.execute: GroupAddMemberCommand — no-op.
       when(

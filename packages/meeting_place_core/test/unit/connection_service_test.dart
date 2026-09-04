@@ -95,6 +95,13 @@ void main() {
     registerFallbackValue(_MockWallet());
     registerFallbackValue(ChannelTransport.didcomm);
     registerFallbackValue(
+      MediatorMessageRequest(
+        message: _FakePlainTextMessage(),
+        senderDidManager: _MockDidManager(),
+        recipientDidDocument: _MockDidDocument(),
+      ),
+    );
+    registerFallbackValue(
       cp.FinaliseAcceptanceCommand(
         mnemonic: '',
         offerLink: '',
@@ -215,15 +222,7 @@ void main() {
         () => mockDidResolver.resolveDid(any()),
       ).thenAnswer((_) async => mockRecipientDidDocument);
 
-      when(
-        () => mockMediatorSDK.sendMessage(
-          any(),
-          senderDidManager: any(named: 'senderDidManager'),
-          recipientDidDocument: any(named: 'recipientDidDocument'),
-          mediatorDid: any(named: 'mediatorDid'),
-          next: any(named: 'next'),
-        ),
-      ).thenAnswer((_) async {});
+      when(() => mockMediatorSDK.sendMessage(any())).thenAnswer((_) async {});
 
       when(() => mockControlPlaneSDK.device).thenReturn(
         cp.Device(
@@ -364,16 +363,10 @@ void main() {
       );
 
       final captured = verify(
-        () => mockMediatorSDK.sendMessage(
-          captureAny(),
-          senderDidManager: any(named: 'senderDidManager'),
-          recipientDidDocument: any(named: 'recipientDidDocument'),
-          mediatorDid: any(named: 'mediatorDid'),
-          next: any(named: 'next'),
-        ),
+        () => mockMediatorSDK.sendMessage(captureAny()),
       ).captured;
 
-      final sentMessage = captured.single as PlainTextMessage;
+      final sentMessage = (captured.single as MediatorMessageRequest).message;
       expect(
         sentMessage.attachments?.map((a) => a.id),
         contains(builtAttachment.id),
@@ -417,16 +410,10 @@ void main() {
         );
 
         final captured = verify(
-          () => mockMediatorSDK.sendMessage(
-            captureAny(),
-            senderDidManager: any(named: 'senderDidManager'),
-            recipientDidDocument: any(named: 'recipientDidDocument'),
-            mediatorDid: any(named: 'mediatorDid'),
-            next: any(named: 'next'),
-          ),
+          () => mockMediatorSDK.sendMessage(captureAny()),
         ).captured;
 
-        final sentMessage = captured.single as PlainTextMessage;
+        final sentMessage = (captured.single as MediatorMessageRequest).message;
         final attachmentIds = sentMessage.attachments?.map((a) => a.id).toSet();
         expect(
           attachmentIds,

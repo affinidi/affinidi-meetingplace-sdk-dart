@@ -1118,10 +1118,12 @@ void main() {
       );
 
       final rCard = await sdk.sendRCard(
-        channel: channel,
-        subjectDid: 'did:key:recipient',
-        card: const RCardSubject(firstName: 'Bob', lastName: 'Smith'),
-        issuerDidManager: didManager,
+        SendRCardRequest(
+          channel: channel,
+          subjectDid: 'did:key:recipient',
+          card: const RCardSubject(firstName: 'Bob', lastName: 'Smith'),
+          issuerDidManager: didManager,
+        ),
       );
 
       expect(rCard, isA<RCard>());
@@ -1153,10 +1155,12 @@ void main() {
 
       await expectLater(
         sdk.sendRCard(
-          channel: channel,
-          subjectDid: 'did:key:recipient',
-          card: const RCardSubject(firstName: 'Bob'),
-          issuerDidManager: didManager,
+          SendRCardRequest(
+            channel: channel,
+            subjectDid: 'did:key:recipient',
+            card: const RCardSubject(firstName: 'Bob'),
+            issuerDidManager: didManager,
+          ),
         ),
         throwsA(isA<MeetingPlaceCredentialsSDKException>()),
       );

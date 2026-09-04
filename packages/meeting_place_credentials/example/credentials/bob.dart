@@ -135,10 +135,12 @@ Future<void> main() async {
   );
 
   await credentialsSDK.sendRCard(
-    channel: bobChannel,
-    subjectDid: bobChannel.otherPartyPermanentChannelDid!,
-    card: bobCard,
-    issuerDidManager: bobDidManager,
+    SendRCardRequest(
+      channel: bobChannel,
+      subjectDid: bobChannel.otherPartyPermanentChannelDid!,
+      card: bobCard,
+      issuerDidManager: bobDidManager,
+    ),
   );
   prettyPrintYellow("Bob's R-Card sent.");
 

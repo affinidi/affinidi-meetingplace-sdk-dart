@@ -11,11 +11,11 @@ import 'rcard/model/channel_r_card_event.dart';
 import 'rcard/model/r_card.dart';
 import 'rcard/model/r_card_constants.dart';
 import 'rcard/model/r_card_rejection.dart';
-import 'rcard/model/r_card_subject.dart';
 import 'rcard/parser/r_card_parser.dart';
 import 'rcard/r_card_channel_stream_manager.dart';
 import 'rcard/r_card_vdip_stream_manager.dart';
 import 'rcard/repository/r_card_repository.dart';
+import 'rcard/requests/send_r_card_request.dart';
 import 'shared/credentials_vdip_stream_manager.dart';
 import 'vrc/model/vrc.dart';
 import 'vrc/model/vrc_issuance.dart';
@@ -335,20 +335,13 @@ class MeetingPlaceCredentialsSDK {
   // R-Card operations
   // ---------------------------------------------------------------------------
 
-  /// Builds, signs, and delivers an R-Card to the other party in [channel]
-  /// via VDIP.
+  /// Builds, signs, and delivers an R-Card to the other party in
+  /// [SendRCardRequest.channel] via VDIP.
   ///
   /// Returns the sent [RCard] so callers can display or store the issued card.
-  ///
-  /// - [channel] — the established channel to the contact.
-  /// - [card] — contact fields to embed in the R-Card VC.
-  /// - [issuerDidManager] — [DidManager] used to sign the credential.
-  Future<RCard> sendRCard({
-    required Channel channel,
-    required String subjectDid,
-    required RCardSubject card,
-    required DidManager issuerDidManager,
-  }) async {
+  Future<RCard> sendRCard(SendRCardRequest request) async {
+    final channel = request.channel;
+    final subjectDid = request.subjectDid;
     final issuerDid = channel.permanentChannelDid;
     if (issuerDid == null || issuerDid.isEmpty) {
       throw MeetingPlaceCredentialsSDKException.sendRCardMissingChannelDid();
@@ -356,8 +349,8 @@ class MeetingPlaceCredentialsSDK {
     final vc = await RCardBuilder.build(
       issuerDid: issuerDid,
       subjectDid: subjectDid,
-      subject: card,
-      issuerDidManager: issuerDidManager,
+      subject: request.card,
+      issuerDidManager: request.issuerDidManager,
     );
     await _coreSDK.vdip.issueCredential(channel: channel, credential: vc);
     final vcBlob = jsonEncode(vc.toJson());

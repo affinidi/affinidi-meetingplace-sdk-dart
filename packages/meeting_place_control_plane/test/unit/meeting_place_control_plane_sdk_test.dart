@@ -20,22 +20,19 @@ void main() {
   });
 
   group('MeetingPlaceControlPlaneSDK.device', () {
-    test(
-      'throws MeetingPlaceControlPlaneSDKException with missingDevice code '
-      'when no device has been set',
-      () {
-        expect(
-          () => sdk.device,
-          throwsA(
-            isA<MeetingPlaceControlPlaneSDKException>().having(
-              (e) => e.code,
-              'code',
-              MeetingPlaceControlPlaneSDKErrorCode.missingDevice.value,
-            ),
+    test('throws MeetingPlaceControlPlaneSDKException with missingDevice code '
+        'when no device has been set', () {
+      expect(
+        () => sdk.device,
+        throwsA(
+          isA<MeetingPlaceControlPlaneSDKException>().having(
+            (e) => e.code,
+            'code',
+            MeetingPlaceControlPlaneSDKErrorCode.missingDevice.value,
           ),
-        );
-      },
-    );
+        ),
+      );
+    });
 
     test('returns the device once one has been set', () {
       final device = Device(

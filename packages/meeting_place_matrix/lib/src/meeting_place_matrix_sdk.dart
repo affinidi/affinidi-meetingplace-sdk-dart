@@ -196,7 +196,10 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
             serverName: context.serverName,
             candidateDids: context.candidateDids,
           ),
-        );
+        )
+        .handleError((Object e, StackTrace stackTrace) {
+          Error.throwWithStackTrace(toMatrixSdkException(e), stackTrace);
+        });
   }
 
   Future<

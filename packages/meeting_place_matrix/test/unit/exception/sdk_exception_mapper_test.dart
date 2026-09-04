@@ -24,18 +24,15 @@ void main() {
       expect(result.innerException, authException);
     });
 
-    test(
-      'falls back to the generic code for any other error, keeping it as '
-      'the inner exception',
-      () {
-        final error = StateError('unexpected failure');
+    test('falls back to the generic code for any other error, keeping it as '
+        'the inner exception', () {
+      final error = StateError('unexpected failure');
 
-        final result = toMatrixSdkException(error);
+      final result = toMatrixSdkException(error);
 
-        expect(result, isA<MeetingPlaceMatrixSDKException>());
-        expect(result.code, MeetingPlaceMatrixSDKErrorCode.generic);
-        expect(result.innerException, error);
-      },
-    );
+      expect(result, isA<MeetingPlaceMatrixSDKException>());
+      expect(result.code, MeetingPlaceMatrixSDKErrorCode.generic);
+      expect(result.innerException, error);
+    });
   });
 }

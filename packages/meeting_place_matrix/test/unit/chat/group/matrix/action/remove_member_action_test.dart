@@ -70,9 +70,7 @@ void main() {
       when(() => chatSDK.logger).thenReturn(logger);
       when(() => chatSDK.group).thenReturn(group);
 
-      when(
-        () => coreSDK.removeMemberFromGroup(any()),
-      ).thenAnswer((_) async {});
+      when(() => coreSDK.removeMemberFromGroup(any())).thenAnswer((_) async {});
       when(
         () => chatRepository.createMessage(any()),
       ).thenAnswer((inv) async => inv.positionalArguments.first as ChatItem);
@@ -91,8 +89,9 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       final removeRequest =
-          verify(() => coreSDK.removeMemberFromGroup(captureAny())).captured
-                  .single
+          verify(
+                () => coreSDK.removeMemberFromGroup(captureAny()),
+              ).captured.single
               as RemoveMemberFromGroupRequest;
       expect(removeRequest.groupId, 'group-1');
       expect(removeRequest.memberDid, 'did:test:bob');

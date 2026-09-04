@@ -239,7 +239,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   /// already-settled items. Prefers the device's own outgoing item over an
   /// incoming one so a caller that already ended its item can still be
   /// resolved. Scans persisted messages; per-chat call history is bounded.
-  Future<ChatItem?> getCallChatItemByCallId(String callId) async {
+  Future<ChatItem?> findCallChatItemByCallId(String callId) async {
     if (callId.isEmpty) return null;
     final items = await messages;
     Message? outgoing;

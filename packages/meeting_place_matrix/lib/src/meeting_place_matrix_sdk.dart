@@ -125,15 +125,11 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
 
   /// Rings a single group member to invite them into a group call.
   ///
-  /// Sends a targeted call-invite notification to [memberDid] only, leaving the
-  /// other group members undisturbed. Throws
-  /// [MeetingPlaceLiveKitCallOperationException] when no call plugin is
-  /// configured.
-  Future<void> ringGroupMember({
-    required String groupChannelDid,
-    required String memberDid,
-    required CallMediaType mediaType,
-  }) {
+  /// Sends a targeted call-invite notification to
+  /// [RingGroupMemberRequest.memberDid] only, leaving the other group
+  /// members undisturbed. Throws [MeetingPlaceLiveKitCallOperationException]
+  /// when no call plugin is configured.
+  Future<void> ringGroupMember(RingGroupMemberRequest request) {
     final plugin = _callPlugin;
     if (plugin == null) {
       throw const MeetingPlaceLiveKitCallOperationException(
@@ -141,9 +137,9 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
       );
     }
     return plugin.ringGroupMember(
-      groupChannelDid: groupChannelDid,
-      memberDid: memberDid,
-      mediaType: mediaType,
+      groupChannelDid: request.groupChannelDid,
+      memberDid: request.memberDid,
+      mediaType: request.mediaType,
     );
   }
 

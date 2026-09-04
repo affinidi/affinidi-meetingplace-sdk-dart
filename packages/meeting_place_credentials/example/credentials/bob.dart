@@ -41,11 +41,13 @@ Future<void> main() async {
       'VRC request received from ${request.senderDid} - sending VRC',
     );
     await credentialsSDK.sendVrc(
-      channelDid: bobChannel.otherPartyPermanentChannelDid!,
-      issuerDid: bobChannel.permanentChannelDid!,
-      issuerName: 'Bob',
-      peerDid: bobChannel.otherPartyPermanentChannelDid!,
-      peerName: 'Alice',
+      SendVrcParams(
+        channelDid: bobChannel.otherPartyPermanentChannelDid!,
+        issuerDid: bobChannel.permanentChannelDid!,
+        issuerName: 'Bob',
+        peerDid: bobChannel.otherPartyPermanentChannelDid!,
+        peerName: 'Alice',
+      ),
     );
     prettyPrintYellow('Bob VRC sent to Alice.');
   });

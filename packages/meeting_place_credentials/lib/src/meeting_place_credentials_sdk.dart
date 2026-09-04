@@ -24,6 +24,8 @@ import 'vrc/model/vrc_request.dart';
 import 'vrc/model/vrc_request_processing_result.dart';
 import 'vrc/params/received_vrc_params.dart';
 import 'vrc/params/received_vrc_request_params.dart';
+import 'vrc/params/request_vrc_exchange_params.dart';
+import 'vrc/params/send_vrc_params.dart';
 import 'vrc/params/store_vrc_params.dart';
 import 'vrc/parser/vrc_parser.dart';
 import 'vrc/repository/vrc_repository.dart';
@@ -408,34 +410,28 @@ class MeetingPlaceCredentialsSDK {
   // Outbound VRC operations
   // ---------------------------------------------------------------------------
 
-  /// Requests a VRC exchange over VDIP for the given [channelDid].
+  /// Requests a VRC exchange over VDIP for the given
+  /// [RequestVrcExchangeParams.channelDid].
   ///
-  /// [requesterDid] and [requesterName] identify the caller — the party
-  /// asking to be named as the counterpart when the other side issues a VRC
-  /// in response, not the party issuing a credential right now.
-  Future<void> requestVrcExchange({
-    required String channelDid,
-    required String requesterDid,
-    required String requesterName,
-  }) => _vrcClient.requestExchange(
-    channelDid: channelDid,
-    requesterDid: requesterDid,
-    requesterName: requesterName,
-  );
+  /// [RequestVrcExchangeParams.requesterDid] and
+  /// [RequestVrcExchangeParams.requesterName] identify the caller — the
+  /// party asking to be named as the counterpart when the other side issues
+  /// a VRC in response, not the party issuing a credential right now.
+  Future<void> requestVrcExchange(RequestVrcExchangeParams params) =>
+      _vrcClient.requestExchange(
+        channelDid: params.channelDid,
+        requesterDid: params.requesterDid,
+        requesterName: params.requesterName,
+      );
 
-  /// Builds and sends a VRC over VDIP for the given [channelDid].
-  Future<String> sendVrc({
-    required String channelDid,
-    required String issuerDid,
-    required String issuerName,
-    required String peerDid,
-    required String peerName,
-  }) => _vrcClient.sendVrc(
-    channelDid: channelDid,
-    issuerDid: issuerDid,
-    issuerName: issuerName,
-    peerDid: peerDid,
-    peerName: peerName,
+  /// Builds and sends a VRC over VDIP for the given
+  /// [SendVrcParams.channelDid].
+  Future<String> sendVrc(SendVrcParams params) => _vrcClient.sendVrc(
+    channelDid: params.channelDid,
+    issuerDid: params.issuerDid,
+    issuerName: params.issuerName,
+    peerDid: params.peerDid,
+    peerName: params.peerName,
   );
 
   // ---------------------------------------------------------------------------

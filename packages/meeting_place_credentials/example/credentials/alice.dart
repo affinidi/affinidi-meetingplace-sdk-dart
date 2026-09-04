@@ -49,11 +49,13 @@ Future<void> main() async {
       'VRC received from ${issuance.senderDid} - reciprocating',
     );
     await credentialsSDK.sendVrc(
-      channelDid: aliceChannel.otherPartyPermanentChannelDid!,
-      issuerDid: aliceChannel.permanentChannelDid!,
-      issuerName: 'Alice',
-      peerDid: aliceChannel.otherPartyPermanentChannelDid!,
-      peerName: 'Bob',
+      SendVrcParams(
+        channelDid: aliceChannel.otherPartyPermanentChannelDid!,
+        issuerDid: aliceChannel.permanentChannelDid!,
+        issuerName: 'Alice',
+        peerDid: aliceChannel.otherPartyPermanentChannelDid!,
+        peerName: 'Bob',
+      ),
     );
     prettyPrintYellow('Alice VRC sent to Bob.');
     if (!vrcCompleter.isCompleted) vrcCompleter.complete(issuance);
@@ -194,9 +196,11 @@ Future<void> main() async {
   // here; in production use a stable long-lived identity DID).
   prettyPrintGreen('>>> Requesting VRC exchange with Bob');
   await credentialsSDK.requestVrcExchange(
-    channelDid: aliceChannel.otherPartyPermanentChannelDid!,
-    requesterDid: aliceChannel.permanentChannelDid!,
-    requesterName: 'Alice',
+    RequestVrcExchangeParams(
+      channelDid: aliceChannel.otherPartyPermanentChannelDid!,
+      requesterDid: aliceChannel.permanentChannelDid!,
+      requesterName: 'Alice',
+    ),
   );
   prettyPrintYellow('VRC exchange requested - waiting for Bob to respond...');
 

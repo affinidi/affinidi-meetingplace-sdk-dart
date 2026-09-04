@@ -68,8 +68,8 @@ void main() {
 
       await client.requestExchange(
         channelDid: 'did:key:peer',
-        identityDid: 'did:key:identity',
-        identityName: 'Alice',
+        requesterDid: 'did:key:identity',
+        requesterName: 'Alice',
       );
 
       final captured = verify(
@@ -102,8 +102,8 @@ void main() {
 
       await client.requestExchange(
         channelDid: 'did:key:unknown',
-        identityDid: 'did:key:identity',
-        identityName: 'Alice',
+        requesterDid: 'did:key:identity',
+        requesterName: 'Alice',
       );
 
       verifyNever(

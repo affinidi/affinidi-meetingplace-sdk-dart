@@ -187,13 +187,14 @@ Future<void> main() async {
 
   // ── 10. Initiate VRC exchange ───────────────────────────────────────────
   // channelDid = Bob's permanentChannelDid (used for VDIP routing).
-  // identityDid = the DID embedded in the VRC from-party (Alice's channel DID
+  // requesterDid = Alice's own identity DID, to be named as the VRC's
+  // counterpart (peer) once Bob issues one in response (Alice's channel DID
   // here; in production use a stable long-lived identity DID).
   prettyPrintGreen('>>> Requesting VRC exchange with Bob');
   await credentialsSDK.requestVrcExchange(
     channelDid: aliceChannel.otherPartyPermanentChannelDid!,
-    identityDid: aliceChannel.permanentChannelDid!,
-    identityName: 'Alice',
+    requesterDid: aliceChannel.permanentChannelDid!,
+    requesterName: 'Alice',
   );
   prettyPrintYellow('VRC exchange requested - waiting for Bob to respond...');
 

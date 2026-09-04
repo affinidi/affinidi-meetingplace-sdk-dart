@@ -419,14 +419,18 @@ class MeetingPlaceCredentialsSDK {
   // ---------------------------------------------------------------------------
 
   /// Requests a VRC exchange over VDIP for the given [channelDid].
+  ///
+  /// [requesterDid] and [requesterName] identify the caller — the party
+  /// asking to be named as the counterpart when the other side issues a VRC
+  /// in response, not the party issuing a credential right now.
   Future<void> requestVrcExchange({
     required String channelDid,
-    required String identityDid,
-    required String identityName,
+    required String requesterDid,
+    required String requesterName,
   }) => _vrcClient.requestExchange(
     channelDid: channelDid,
-    identityDid: identityDid,
-    identityName: identityName,
+    requesterDid: requesterDid,
+    requesterName: requesterName,
   );
 
   /// Builds and sends a VRC over VDIP for the given [channelDid].

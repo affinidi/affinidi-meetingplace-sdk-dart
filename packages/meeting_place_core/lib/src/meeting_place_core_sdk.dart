@@ -53,8 +53,10 @@ import 'utils/cached_did_resolver.dart';
 /// flow. If it changes, you can easily update it without affecting other parts
 /// of your application.
 /// ## Error Handling
-/// All methods within this SDK throw a unified MeetingPlaceCoreSDKException,
-/// which includes:
+/// Every method that performs a real operation — everything except
+/// construction ([create]) and teardown ([dispose] and its narrower
+/// counterparts) — throws a unified MeetingPlaceCoreSDKException, which
+/// includes:
 /// * A message providing context about the error
 /// * A code that can be used to map specific error messages based on consumer
 ///   requirements
@@ -1017,7 +1019,7 @@ class MeetingPlaceCoreSDK {
 
   /// A method that deletes all pending discovery events.
   Future<List<String>> deleteControlPlaneEvents() {
-    return _controlPlaneEventService.deleteAll();
+    return _withSdkExceptionHandling(_controlPlaneEventService.deleteAll);
   }
 
   /// Returns connection offer identified by [offerLink] from storage.
@@ -1028,8 +1030,10 @@ class MeetingPlaceCoreSDK {
   /// **Returns:**
   /// - [ConnectionOffer] or `null`
   Future<ConnectionOffer?> findConnectionOffer(String offerLink) {
-    return _repositoryConfig.connectionOfferRepository
-        .findConnectionOfferByOfferLink(offerLink);
+    return _withSdkExceptionHandling(
+      () => _repositoryConfig.connectionOfferRepository
+          .findConnectionOfferByOfferLink(offerLink),
+    );
   }
 
   /// Marks connection offer as deleted - updates connection offer status to
@@ -1044,7 +1048,9 @@ class MeetingPlaceCoreSDK {
   Future<ConnectionOffer> markConnectionOfferAsDeleted(
     ConnectionOffer connectionOffer,
   ) {
-    return _connectionService.markConnectionOfferAsDeleted(connectionOffer);
+    return _withSdkExceptionHandling(
+      () => _connectionService.markConnectionOfferAsDeleted(connectionOffer),
+    );
   }
 
   /// Deletes connection offer from storage.
@@ -1052,7 +1058,9 @@ class MeetingPlaceCoreSDK {
   /// **Parameters:**
   /// - [connectionOffer] - [ConnectionOffer] instance.
   Future<void> deleteConnectionOffer(ConnectionOffer connectionOffer) {
-    return _connectionService.deleteConnectionOffer(connectionOffer);
+    return _withSdkExceptionHandling(
+      () => _connectionService.deleteConnectionOffer(connectionOffer),
+    );
   }
 
   /// Returns group identified by [offerLink] from storage.
@@ -1063,7 +1071,9 @@ class MeetingPlaceCoreSDK {
   /// **Returns:**
   /// - [Group] or `null`
   Future<Group?> findGroupByOfferLink(String offerLink) {
-    return _groupService.findGroupByOfferLink(offerLink);
+    return _withSdkExceptionHandling(
+      () => _groupService.findGroupByOfferLink(offerLink),
+    );
   }
 
   /// Returns group identified by [groupId] from storage.
@@ -1074,7 +1084,9 @@ class MeetingPlaceCoreSDK {
   /// **Returns:**
   /// - [Group] or `null`
   Future<Group?> findGroupById(String groupId) {
-    return _groupService.findGroupById(groupId);
+    return _withSdkExceptionHandling(
+      () => _groupService.findGroupById(groupId),
+    );
   }
 
   /// Updates an existing group in the repository by using repository method
@@ -1082,8 +1094,10 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Parameters:**
   /// [group] - Specifies the channel entity to update.
-  Future<void> updateGroup(Group group) async {
-    await _repositoryConfig.groupRepository.updateGroup(group);
+  Future<void> updateGroup(Group group) {
+    return _withSdkExceptionHandling(
+      () => _repositoryConfig.groupRepository.updateGroup(group),
+    );
   }
 
   /// Returns a list of all connection offers from repository by using
@@ -1092,15 +1106,19 @@ class MeetingPlaceCoreSDK {
   /// **Returns:**
   /// - list of objects with type [ConnectionOffer].
   Future<List<ConnectionOffer>> listConnectionOffers() {
-    return _repositoryConfig.connectionOfferRepository.listConnectionOffers();
+    return _withSdkExceptionHandling(
+      _repositoryConfig.connectionOfferRepository.listConnectionOffers,
+    );
   }
 
   /// Retrieves all [ConnectionOffer] objects matching the given [externalRef].
   Future<List<ConnectionOffer>> getConnectionOffersByExternalRef(
     String externalRef,
   ) {
-    return _repositoryConfig.connectionOfferRepository
-        .getConnectionOffersByExternalRef(externalRef);
+    return _withSdkExceptionHandling(
+      () => _repositoryConfig.connectionOfferRepository
+          .getConnectionOffersByExternalRef(externalRef),
+    );
   }
 
   /// Updates the VRC score for the offers in [request] on the Control Plane.
@@ -1140,13 +1158,14 @@ class MeetingPlaceCoreSDK {
   /// mnemonic on the control plane.
   Future<void> updateOffersScoreLocally(
     sdk.UpdateOffersScoreRequest request,
-  ) async {
-    final offersSnapshot = request.offers.toList(growable: false);
-    for (final offer in offersSnapshot) {
-      await _repositoryConfig.connectionOfferRepository.updateConnectionOffer(
-        offer.copyWith(score: request.score),
-      );
-    }
+  ) {
+    return _withSdkExceptionHandling(() async {
+      final offersSnapshot = request.offers.toList(growable: false);
+      for (final offer in offersSnapshot) {
+        await _repositoryConfig.connectionOfferRepository
+            .updateConnectionOffer(offer.copyWith(score: request.score));
+      }
+    });
   }
 
   /// Fetches a channel entity by [did], matched against either
@@ -1159,7 +1178,9 @@ class MeetingPlaceCoreSDK {
   /// **Returns:**
   /// - The matching [Channel] if found, or `null` if no match exists.
   Future<Channel?> findChannelByDid(String did) {
-    return _channelService.findChannelByDid(did);
+    return _withSdkExceptionHandling(
+      () => _channelService.findChannelByDid(did),
+    );
   }
 
   /// Fetches a channel entity by [did], matched the same way as
@@ -1173,9 +1194,13 @@ class MeetingPlaceCoreSDK {
   /// - The matching [Channel].
   ///
   /// **Throws:**
-  /// - An exception if no matching channel exists.
+  /// - [MeetingPlaceCoreSDKException] with
+  ///   [MeetingPlaceCoreSDKErrorCode.channelNotFound] if no matching channel
+  ///   exists.
   Future<Channel> getChannelByDid(String did) {
-    return _channelService.getChannelByDid(did);
+    return _withSdkExceptionHandling(
+      () => _channelService.getChannelByDid(did),
+    );
   }
 
   /// Fetches a channel entity by the other party's permanent channel [did].
@@ -1186,7 +1211,9 @@ class MeetingPlaceCoreSDK {
   /// **Returns:**
   /// - The matching [Channel] if found, or `null` if no match exists.
   Future<Channel?> findChannelByOtherPartyPermanentDid(String did) {
-    return _channelService.findChannelByOtherPartyPermanentChannelDid(did);
+    return _withSdkExceptionHandling(
+      () => _channelService.findChannelByOtherPartyPermanentChannelDid(did),
+    );
   }
 
   /// Updates an existing channel in the repository.
@@ -1194,7 +1221,9 @@ class MeetingPlaceCoreSDK {
   /// **Parameters:**
   /// [channel] - Specifies the channel entity to update.
   Future<void> updateChannel(Channel channel) {
-    return _channelService.updateChannel(channel);
+    return _withSdkExceptionHandling(
+      () => _channelService.updateChannel(channel),
+    );
   }
 
   /// Resolves mediator DID from the given mediator endpoint URL.

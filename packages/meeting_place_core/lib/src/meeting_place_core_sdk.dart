@@ -917,15 +917,12 @@ class MeetingPlaceCoreSDK {
   /// [MeetingPlaceCoreSDKErrorCode.groupCannotRemoveOwnerError]. Owners that
   /// want to leave their own group should use [leaveChannel] instead.
   ///
-  /// **Parameters:**
-  /// - [groupId] - Identifier of the group to remove the member from.
-  /// - [memberDid] - DID of the member to remove.
-  Future<void> removeMemberFromGroup({
-    required String groupId,
-    required String memberDid,
-  }) {
+  Future<void> removeMemberFromGroup(sdk.RemoveMemberFromGroupRequest request) {
     return _withSdkExceptionHandling(() {
-      return _groupService.removeMember(groupId: groupId, memberDid: memberDid);
+      return _groupService.removeMember(
+        groupId: request.groupId,
+        memberDid: request.memberDid,
+      );
     });
   }
 

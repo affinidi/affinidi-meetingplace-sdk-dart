@@ -379,10 +379,8 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   Future<void> leaveChannel(Channel channel) => _coreSDK.leaveChannel(channel);
 
   @override
-  Future<void> removeMemberFromGroup({
-    required String groupId,
-    required String memberDid,
-  }) => _coreSDK.removeMemberFromGroup(groupId: groupId, memberDid: memberDid);
+  Future<void> removeMemberFromGroup(RemoveMemberFromGroupRequest request) =>
+      _coreSDK.removeMemberFromGroup(request);
 
   @override
   Future<void> sendOutreachInvitation(SendOutreachInvitationRequest request) =>

@@ -42,6 +42,9 @@ Group _group() => Group(
 void main() {
   setUpAll(() {
     registerFallbackValue(_FakeChatItem());
+    registerFallbackValue(
+      const RemoveMemberFromGroupRequest(groupId: '', memberDid: ''),
+    );
   });
 
   group('RemoveMemberAction', () {
@@ -68,10 +71,7 @@ void main() {
       when(() => chatSDK.group).thenReturn(group);
 
       when(
-        () => coreSDK.removeMemberFromGroup(
-          groupId: any(named: 'groupId'),
-          memberDid: any(named: 'memberDid'),
-        ),
+        () => coreSDK.removeMemberFromGroup(any()),
       ).thenAnswer((_) async {});
       when(
         () => chatRepository.createMessage(any()),
@@ -90,12 +90,12 @@ void main() {
       ).execute();
       await Future<void>.delayed(Duration.zero);
 
-      verify(
-        () => coreSDK.removeMemberFromGroup(
-          groupId: 'group-1',
-          memberDid: 'did:test:bob',
-        ),
-      ).called(1);
+      final removeRequest =
+          verify(() => coreSDK.removeMemberFromGroup(captureAny())).captured
+                  .single
+              as RemoveMemberFromGroupRequest;
+      expect(removeRequest.groupId, 'group-1');
+      expect(removeRequest.memberDid, 'did:test:bob');
 
       final bob = result.members.firstWhere((m) => m.did == 'did:test:bob');
       expect(bob.status, GroupMemberStatus.deleted);
@@ -123,12 +123,7 @@ void main() {
       );
 
       verify(() => logger.error(any(), name: 'removeMember')).called(1);
-      verifyNever(
-        () => coreSDK.removeMemberFromGroup(
-          groupId: any(named: 'groupId'),
-          memberDid: any(named: 'memberDid'),
-        ),
-      );
+      verifyNever(() => coreSDK.removeMemberFromGroup(any()));
       verifyNever(() => chatRepository.createMessage(any()));
     });
 
@@ -140,21 +135,13 @@ void main() {
         throwsException,
       );
 
-      verifyNever(
-        () => coreSDK.removeMemberFromGroup(
-          groupId: any(named: 'groupId'),
-          memberDid: any(named: 'memberDid'),
-        ),
-      );
+      verifyNever(() => coreSDK.removeMemberFromGroup(any()));
     });
 
     test('does not mutate local state when coreSDK throws', () async {
       when(() => chatSDK.isGroupOwner).thenReturn(true);
       when(
-        () => coreSDK.removeMemberFromGroup(
-          groupId: any(named: 'groupId'),
-          memberDid: any(named: 'memberDid'),
-        ),
+        () => coreSDK.removeMemberFromGroup(any()),
       ).thenThrow(Exception('boom'));
 
       await expectLater(

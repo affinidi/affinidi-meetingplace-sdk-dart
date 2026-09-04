@@ -385,17 +385,8 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   }) => _coreSDK.removeMemberFromGroup(groupId: groupId, memberDid: memberDid);
 
   @override
-  Future<void> sendOutreachInvitation({
-    required ConnectionOffer outreachConnectionOffer,
-    required ConnectionOffer inviteToConnectionOffer,
-    required String messageToInclude,
-    required String senderInfo,
-  }) => _coreSDK.sendOutreachInvitation(
-    outreachConnectionOffer: outreachConnectionOffer,
-    inviteToConnectionOffer: inviteToConnectionOffer,
-    messageToInclude: messageToInclude,
-    senderInfo: senderInfo,
-  );
+  Future<void> sendOutreachInvitation(SendOutreachInvitationRequest request) =>
+      _coreSDK.sendOutreachInvitation(request);
 
   @override
   Future<void> processControlPlaneEvents({

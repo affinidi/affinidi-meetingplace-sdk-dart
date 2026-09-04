@@ -929,27 +929,18 @@ class MeetingPlaceCoreSDK {
     });
   }
 
-  /// Sends outreach invitation to owner of [outreachConnectionOffer].
-  ///
-  /// **Parameters:**
-  /// - [outreachConnectionOffer] - The connection offer that receives the
-  ///   outreach notification.
-  /// - [inviteToConnectionOffer] - The connection offer the invitation refers
-  ///   to.
-  /// - [messageToInclude] - Message to include in DIDComm message
-  Future<void> sendOutreachInvitation({
-    required ConnectionOffer outreachConnectionOffer,
-    required ConnectionOffer inviteToConnectionOffer,
-    required String messageToInclude,
-    required String senderInfo,
-  }) {
+  /// Sends outreach invitation to the owner of
+  /// [SendOutreachInvitationRequest.outreachConnectionOffer].
+  Future<void> sendOutreachInvitation(
+    sdk.SendOutreachInvitationRequest request,
+  ) {
     return _withSdkExceptionHandling(() {
       return _outreachService.sendOutreachInvitation(
         wallet: wallet,
-        outreachConnectionOffer: outreachConnectionOffer,
-        inviteToConnectionOffer: inviteToConnectionOffer,
-        messageToInclude: messageToInclude,
-        senderInfo: senderInfo,
+        outreachConnectionOffer: request.outreachConnectionOffer,
+        inviteToConnectionOffer: request.inviteToConnectionOffer,
+        messageToInclude: request.messageToInclude,
+        senderInfo: request.senderInfo,
       );
     });
   }

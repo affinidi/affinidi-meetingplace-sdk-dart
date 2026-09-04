@@ -84,10 +84,12 @@ void main() async {
   // Alice sends outreach invitation to Bob
   prettyPrintGreen('>>> Calling SDK.sendOutreachInvitation');
   await aliceSDK.sendOutreachInvitation(
-    outreachConnectionOffer: findOfferResult.connectionOffer!,
-    inviteToConnectionOffer: publishOfferResult.connectionOffer,
-    messageToInclude: 'Please connect to my offer',
-    senderInfo: 'Alice',
+    SendOutreachInvitationRequest(
+      outreachConnectionOffer: findOfferResult.connectionOffer!,
+      inviteToConnectionOffer: publishOfferResult.connectionOffer,
+      messageToInclude: 'Please connect to my offer',
+      senderInfo: 'Alice',
+    ),
   );
 
   prettyPrintYellow('=== Waiting for Bob to accept offer');

@@ -1,3 +1,7 @@
+## 0.0.1-dev.24
+
+ - Update a dependency to the latest release.
+
 ## 0.0.1-dev.23
 
  - **FIX**: drop reencryption/messageToRelay fields from group commands (#326).

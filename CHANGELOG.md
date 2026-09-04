@@ -3,6 +3,40 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-09-04
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_core` - `v0.0.1-dev.52`](#meeting_place_core---v001-dev52)
+ - [`meeting_place_chat` - `v0.0.1-dev.64`](#meeting_place_chat---v001-dev64)
+ - [`meeting_place_credentials` - `v0.0.1-dev.18`](#meeting_place_credentials---v001-dev18)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.64`](#meeting_place_drift_repository---v001-dev64)
+ - [`meeting_place_matrix` - `v0.0.1-dev.24`](#meeting_place_matrix---v001-dev24)
+
+Packages with dependency updates only:
+
+> Packages listed below depend on other packages in this workspace that have had changes. Their versions have been incremented to bump the minimum dependency versions of the packages they depend upon in this project.
+
+ - `meeting_place_chat` - `v0.0.1-dev.64`
+ - `meeting_place_credentials` - `v0.0.1-dev.18`
+ - `meeting_place_drift_repository` - `v0.0.1-dev.64`
+ - `meeting_place_matrix` - `v0.0.1-dev.24`
+
+---
+
+#### `meeting_place_core` - `v0.0.1-dev.52`
+
+ - **FIX**: auto-exchange attachments during connection setup (#329).
+
+
 ## 2026-09-03
 
 ### Changes

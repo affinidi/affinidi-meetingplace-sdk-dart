@@ -1,3 +1,7 @@
+## 0.0.1-dev.52
+
+ - **FIX**: auto-exchange attachments during connection setup (#329).
+
 ## 0.0.1-dev.51
 
  - **FIX**: drop reencryption/messageToRelay fields from group commands (#326).

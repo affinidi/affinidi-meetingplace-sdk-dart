@@ -384,7 +384,7 @@ void main() {
 
       expect(
         () => sdk.sendTextMessage('Hi', attachments: [attachment]),
-        throwsA(isA<StateError>()),
+        throwsA(isA<MeetingPlaceChatSDKException>()),
       );
     });
 
@@ -467,7 +467,10 @@ void main() {
         format: 'test-format',
       );
 
-      expect(() => sdk.downloadMedia(attachment), throwsA(isA<StateError>()));
+      expect(
+        () => sdk.downloadMedia(attachment),
+        throwsA(isA<MeetingPlaceChatSDKException>()),
+      );
     });
 
     test(

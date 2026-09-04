@@ -118,7 +118,7 @@ class GroupMatrixChatSDK extends MeetingPlaceMatrixChatSDK
   /// **Returns:**
   /// - A [Chat] instance representing the started session.
   @override
-  Future<Chat> startChatSession() async {
+  Future<Chat> startChatSession() => withSdkExceptionHandling(() async {
     if (group.isDeleted) {
       logger.info('Group has been deleted', name: _logkey);
       final messages = await chatRepository.listMessages(chatId);
@@ -134,7 +134,7 @@ class GroupMatrixChatSDK extends MeetingPlaceMatrixChatSDK
     }
 
     return chat;
-  }
+  });
 
   /// End the chat session, cancelling any active subscriptions and cleaning up
   /// resources.
@@ -154,12 +154,13 @@ class GroupMatrixChatSDK extends MeetingPlaceMatrixChatSDK
   /// - [Exception] if the caller is not the group owner.
   /// - [Exception] if the channel or connection offer cannot be found.
   @override
-  Future<void> approveConnectionRequest(ConciergeMessage message) async {
-    group = await ApproveConnectionRequestAction(
-      this,
-      message: message,
-    ).execute();
-  }
+  Future<void> approveConnectionRequest(ConciergeMessage message) =>
+      withSdkExceptionHandling(() async {
+        group = await ApproveConnectionRequestAction(
+          this,
+          message: message,
+        ).execute();
+      });
 
   /// Rejects a pending connection request for joining the group.
   ///
@@ -170,12 +171,13 @@ class GroupMatrixChatSDK extends MeetingPlaceMatrixChatSDK
   /// - [Exception] if the caller is not the group owner.
   /// - [Exception] if the channel does not exist.
   @override
-  Future<void> rejectConnectionRequest(ConciergeMessage message) async {
-    group = await RejectConnectionRequestAction(
-      this,
-      message: message,
-    ).execute();
-  }
+  Future<void> rejectConnectionRequest(ConciergeMessage message) =>
+      withSdkExceptionHandling(() async {
+        group = await RejectConnectionRequestAction(
+          this,
+          message: message,
+        ).execute();
+      });
 
   /// Removes [memberDid] from the group. Owner-only.
   ///
@@ -183,19 +185,20 @@ class GroupMatrixChatSDK extends MeetingPlaceMatrixChatSDK
   /// chat state directly so the initiator's UI reflects the change without
   /// waiting for a Matrix echo (which is filtered by `excludeSelf`).
   @override
-  Future<void> removeMember(String memberDid) async {
-    group = await RemoveMemberAction(this, memberDid: memberDid).execute();
-  }
+  Future<void> removeMember(String memberDid) =>
+      withSdkExceptionHandling(() async {
+        group = await RemoveMemberAction(this, memberDid: memberDid).execute();
+      });
 
   /// Creates a local concierge prompting the user to confirm sharing the new
   /// contact card with the group. The card is broadcast to the group only when
   /// the user approves via [sendChatContactDetailsUpdate].
   @override
-  Future<void> proposeProfileUpdate() async {
+  Future<void> proposeProfileUpdate() => withSdkExceptionHandling(() async {
     assertCanSend();
     await ProposeProfileUpdateAction(this).execute();
     logger.info('Proposed profile update', name: _logkey);
-  }
+  });
 
   /// Sends updated chat contact details to other group members.
   ///
@@ -207,18 +210,19 @@ class GroupMatrixChatSDK extends MeetingPlaceMatrixChatSDK
   /// **Throws:**
   /// - [StateError] if [card] is missing.
   @override
-  Future<void> sendChatContactDetailsUpdate(ConciergeMessage message) async {
-    assertCanSend();
-    final c = currentContactCard;
-    if (c == null) {
-      throw StateError('ContactCard missing for contact details update');
-    }
-    final myMember = group.members.firstWhere((m) => m.did == did);
-    myMember.contactCard = c;
-    await coreSDK.updateGroup(group);
+  Future<void> sendChatContactDetailsUpdate(ConciergeMessage message) =>
+      withSdkExceptionHandling(() async {
+        assertCanSend();
+        final c = currentContactCard;
+        if (c == null) {
+          throw StateError('ContactCard missing for contact details update');
+        }
+        final myMember = group.members.firstWhere((m) => m.did == did);
+        myMember.contactCard = c;
+        await coreSDK.updateGroup(group);
 
-    await super.sendChatContactDetailsUpdate(message);
-  }
+        await super.sendChatContactDetailsUpdate(message);
+      });
 
   Future<List<ChatItem>> _createConciergeMessagesForPendingApprovals(
     Chat chat,

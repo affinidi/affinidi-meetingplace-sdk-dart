@@ -336,13 +336,10 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
 
   @override
   Future<RegisterForDidcommNotificationsResult>
-  registerForDIDCommNotifications({
-    String? mediatorDid,
-    String? recipientDid,
-  }) => _coreSDK.registerForDIDCommNotifications(
-    mediatorDid: mediatorDid,
-    recipientDid: recipientDid,
-  );
+  registerForDIDCommNotifications([
+    RegisterForDidcommNotificationsRequest request =
+        const RegisterForDidcommNotificationsRequest(),
+  ]) => _coreSDK.registerForDIDCommNotifications(request);
 
   @override
   Future<PublishOfferResult<T>> publishOffer<T extends ConnectionOffer>(

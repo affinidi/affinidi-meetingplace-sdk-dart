@@ -688,13 +688,16 @@ class MeetingPlaceCoreSDK {
 
   /// Registers for DIDComm notifications via the mediator.
   Future<RegisterForDidcommNotificationsResult>
-  registerForDIDCommNotifications({String? mediatorDid, String? recipientDid}) {
+  registerForDIDCommNotifications([
+    sdk.RegisterForDidcommNotificationsRequest request =
+        const sdk.RegisterForDidcommNotificationsRequest(),
+  ]) {
     return _withSdkExceptionHandling(() async {
       final result = await _notificationService.registerForDIDCommNotifications(
         wallet: wallet,
         controlPlaneDid: _controlPlaneDid,
-        recipientDid: recipientDid,
-        mediatorDid: mediatorDid ?? _mediatorDid,
+        recipientDid: request.recipientDid,
+        mediatorDid: request.mediatorDid ?? _mediatorDid,
       );
       _controlPlaneSDK.device = result.device;
       return RegisterForDidcommNotificationsResult(

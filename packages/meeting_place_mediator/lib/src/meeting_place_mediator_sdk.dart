@@ -13,7 +13,7 @@ import 'command/oob_message/oob_invitation_message_output.dart';
 import 'constants/sdk_constants.dart';
 import 'core/command/command.dart';
 import 'core/command/command_dispatcher.dart';
-import 'core/exception/i_mediator_exception.dart';
+import 'core/exception/sdk_exception_mapper.dart';
 import 'core/mediator/fetch_message_result.dart';
 import 'core/mediator/mediator_exception.dart' show MediatorException;
 import 'core/mediator/mediator_resolver.dart';
@@ -322,24 +322,8 @@ class MeetingPlaceMediatorSDK {
   Future<T> _withSdkExceptionHandling<T>(Future<T> Function() operation) async {
     try {
       return await operation();
-    } on IMediatorException catch (e, stackTrace) {
-      Error.throwWithStackTrace(
-        MeetingPlaceMediatorSDKException(
-          message: 'Meeting Place Mediator SDK exception',
-          code: e.code.value,
-          innerException: e.innerException ?? e,
-        ),
-        stackTrace,
-      );
     } catch (e, stackTrace) {
-      Error.throwWithStackTrace(
-        MeetingPlaceMediatorSDKException(
-          message: 'Failure on Mediator SDK exception',
-          code: MeetingPlaceMediatorSDKErrorCode.generic.value,
-          innerException: e,
-        ),
-        stackTrace,
-      );
+      Error.throwWithStackTrace(toMediatorSdkException(e), stackTrace);
     }
   }
 }

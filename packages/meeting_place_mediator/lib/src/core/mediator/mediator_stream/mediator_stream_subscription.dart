@@ -8,6 +8,7 @@ import 'package:ssi/ssi.dart';
 
 import '../../../../meeting_place_mediator.dart';
 import '../../../constants/sdk_constants.dart';
+import '../../exception/sdk_exception_mapper.dart';
 import '../../message/message_queue.dart';
 import '../../message/message_unpacker.dart';
 import '../../message/plaintext_message_extension.dart';
@@ -133,7 +134,7 @@ class MediatorStreamSubscription {
             stackTrace: stackTrace,
             name: 'listen',
           );
-          _controller.addError(e);
+          _controller.addError(toMediatorSdkException(e), stackTrace);
         }
       },
       onError: onError,

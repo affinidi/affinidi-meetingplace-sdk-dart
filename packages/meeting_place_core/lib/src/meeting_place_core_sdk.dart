@@ -1149,7 +1149,7 @@ class MeetingPlaceCoreSDK {
   ///
   /// [score] — the new trust score (VRC count) to set.
   /// [offers] — the published [ConnectionOffer] objects to update.
-  Future<UpdateScoreForOffersResult> updateScoreForOffers({
+  Future<UpdateOffersScoreResult> updateOffersScore({
     required int score,
     required List<ConnectionOffer> offers,
   }) {
@@ -1168,7 +1168,7 @@ class MeetingPlaceCoreSDK {
         }
       }
 
-      return UpdateScoreForOffersResult(
+      return UpdateOffersScoreResult(
         updatedOffers: output.updatedOffers,
         failedOffers: output.failedOffers,
       );
@@ -1187,7 +1187,7 @@ class MeetingPlaceCoreSDK {
   /// - [score] — the new trust score (VRC count) to persist locally.
   /// - [offers] — the accepted [ConnectionOffer] objects to update in the
   ///   local repository.
-  Future<void> updateLocalConnectionOffersScore({
+  Future<void> updateOffersScoreLocally({
     required int score,
     required List<ConnectionOffer> offers,
   }) async {

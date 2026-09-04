@@ -1,9 +1,9 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     show FailedOffer;
 
-/// Result of `MeetingPlaceCoreSDK.updateScoreForOffers`.
-class UpdateScoreForOffersResult {
-  UpdateScoreForOffersResult({
+/// Result of `MeetingPlaceCoreSDK.updateOffersScore`.
+class UpdateOffersScoreResult {
+  UpdateOffersScoreResult({
     required this.updatedOffers,
     required this.failedOffers,
   });

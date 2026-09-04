@@ -28,6 +28,14 @@ import 'meeting_place_livekit_call_plugin.dart';
 /// exposes matrix-specific APIs for consumers that need them
 /// (e.g. `meeting_place_matrix`).
 ///
+/// This is a deliberate facade trade-off: `implements MeetingPlaceCoreSDK`
+/// gives consumers a single object exposing both the core surface and the
+/// call/chat surface, at the cost of hand-forwarding every public member of
+/// [MeetingPlaceCoreSDK] here. It is not being restructured to composition
+/// (e.g. a `matrixSdk.core.xxx()` accessor instead) because that would be a
+/// breaking change for any downstream code that calls core methods directly
+/// on a [MeetingPlaceMatrixSDK] instance.
+///
 /// Use [MeetingPlaceMatrixSDK.create] to instantiate.
 class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   MeetingPlaceMatrixSDK._({

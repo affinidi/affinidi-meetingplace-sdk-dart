@@ -23,7 +23,7 @@ void main() async {
   prettyPrintGreen('>>> Calling SDK.registerForDIDCommNotifications');
   final notification = await bobSDK.registerForDIDCommNotifications();
   final notificationDidDocument =
-      await notification.recipientDid.getDidDocument();
+      await notification.recipientDidManager.getDidDocument();
 
   final outputDirectory = Directory('.example-output');
   final mnemonicBytes = File(

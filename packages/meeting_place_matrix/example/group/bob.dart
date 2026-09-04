@@ -19,7 +19,7 @@ void main() async {
 
   final notification = await bobSDK.registerForDIDCommNotifications();
   final notificationDidDocument =
-      await notification.recipientDid.getDidDocument();
+      await notification.recipientDidManager.getDidDocument();
 
   final file = File('.example-output${Platform.pathSeparator}group.txt');
   final mnemonicBytes = file.readAsBytesSync();
@@ -43,7 +43,7 @@ void main() async {
     senderInfo: 'Bob',
   );
   final memberDidDocument =
-      await acceptOfferResult.permanentChannelDid.getDidDocument();
+      await acceptOfferResult.permanentChannelDidManager.getDidDocument();
   prettyPrintYellow('Group member DID ${memberDidDocument.id}');
 
   final waitForMembershipFinalised = Completer<ControlPlaneStreamEvent>();

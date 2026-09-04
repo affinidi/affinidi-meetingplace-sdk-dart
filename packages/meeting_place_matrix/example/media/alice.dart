@@ -23,7 +23,7 @@ void main() async {
   prettyPrintGreen('>>> Calling SDK.registerForDIDCommNotifications');
   final notification = await aliceSDK.registerForDIDCommNotifications();
   final notificationDidDocument =
-      await notification.recipientDid.getDidDocument();
+      await notification.recipientDidManager.getDidDocument();
 
   prettyPrintGreen('>>> Calling SDK.publishOffer');
   final publishOfferResult = await aliceSDK.publishOffer(

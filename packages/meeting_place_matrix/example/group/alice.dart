@@ -19,7 +19,7 @@ void main() async {
 
   final notification = await aliceSDK.registerForDIDCommNotifications();
   final notificationDidDocument =
-      await notification.recipientDid.getDidDocument();
+      await notification.recipientDidManager.getDidDocument();
 
   final publishOfferResult = await aliceSDK.publishOffer<GroupConnectionOffer>(
     offerName: 'Example group offer',

@@ -23,7 +23,7 @@ Future<void> main() async {
     prettyPrintGreen('>>> Registering DIDComm notifications');
     final notification = await sdk.registerForDIDCommNotifications();
     final notificationDidDocument =
-        await notification.recipientDid.getDidDocument();
+        await notification.recipientDidManager.getDidDocument();
 
     prettyPrintGreen('>>> Publishing an invitation offer');
     final publishOfferResult = await sdk.publishOffer(

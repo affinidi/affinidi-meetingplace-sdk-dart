@@ -99,7 +99,7 @@ void main() {
     await newAliceChatSDK.rejectConnectionRequest(conciergeMessage);
     await bobGroupUpdated;
 
-    final newMemberDidDoc = await acceptance.permanentChannelDid
+    final newMemberDidDoc = await acceptance.permanentChannelDidManager
         .getDidDocument();
 
     final updatedGroup = await fixture.aliceSDK.findGroupById(

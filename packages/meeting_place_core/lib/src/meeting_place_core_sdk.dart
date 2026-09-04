@@ -747,39 +747,8 @@ class MeetingPlaceCoreSDK {
   /// users or systems to find and connect.
   ///
   /// **Parameters:**
-  /// - [offerName] - The name of your offer as it will be displayed when others
-  /// search for offers.
-  ///
-  /// [type] - Type of the offer. Either invitation, outreachInvitation
-  ///   or groupInvitation.
-  ///
-  /// - [contactCard] - A ContactCard that contains information about who is
-  /// offering the offer. This helps others know whom they are connecting with
-  /// and provides necessary contact details.
-  ///
-  /// - [offerDescription] - Description of the offer to indicate the purpose of
-  /// the offer.
-  ///
-  /// - [customMnemonic] - A custom phrase or keyword to help your offer be
-  /// found more easily by specific searches on MeetingPlace. If not
-  /// provided, a generic mnemonic will be used.
-  ///
-  /// - [validUntil] - The date and time when the offer expires.
-  /// Once this date is reached, the offer will no longer be available.
-  ///
-  /// - [maximumUsage] - The maximum number of times the offer can be queried or
-  /// accepted. Once this limit is reached, no further queries or acceptances
-  /// will be allowed.
-  ///
-  /// - [mediatorDid] - The specific Mediator DID to be used for this offer.
-  /// If not provided, the default SDK Mediator DID will be used.
-  ///
-  /// - [metadata] - The additional data related to the offer to be published.
-  ///
-  /// - [externalRef] - Application-specific data that is passed through to
-  /// internal entities, such as connection offers and channels, and can be
-  /// referenced later for tracking or identification purposes. [externalRef]
-  /// is accessible on the current device only.
+  /// - [request] - A [sdk.PublishOfferRequest] describing the offer to
+  /// publish.
   ///
   /// **Returns:**
   /// - A [sdk.PublishOfferResult] object which includes the connection offer
@@ -787,32 +756,21 @@ class MeetingPlaceCoreSDK {
   ///
   /// For group offers, it also includes the owner DID manager and the group
   /// DID manager.
-  Future<sdk.PublishOfferResult<T>> publishOffer<T extends ConnectionOffer>({
-    required String offerName,
-    required sdk.SDKConnectionOfferType type,
-    required ContactCard contactCard,
-    required String offerDescription,
-    String? customMnemonic,
-    DateTime? validUntil,
-    int? maximumUsage,
-    String? mediatorDid,
-    String? metadata,
-    String? externalRef,
-    ChannelTransport transport = ChannelTransport.didcomm,
-    int? score,
-  }) async {
-    if (type == sdk.SDKConnectionOfferType.groupInvitation) {
+  Future<sdk.PublishOfferResult<T>> publishOffer<T extends ConnectionOffer>(
+    sdk.PublishOfferRequest request,
+  ) async {
+    if (request.type == sdk.SDKConnectionOfferType.groupInvitation) {
       final (connectionOffer, publishedOfferDid, ownerDid) = await _groupService
           .createGroup(
-            offerName: offerName,
-            offerDescription: offerDescription,
-            customMnemonic: customMnemonic,
-            validUntil: validUntil,
-            maximumUsage: maximumUsage,
-            mediatorDid: mediatorDid ?? _mediatorDid,
-            externalRef: externalRef,
-            metadata: metadata,
-            card: contactCard,
+            offerName: request.offerName,
+            offerDescription: request.offerDescription,
+            customMnemonic: request.customMnemonic,
+            validUntil: request.validUntil,
+            maximumUsage: request.maximumUsage,
+            mediatorDid: request.mediatorDid ?? _mediatorDid,
+            externalRef: request.externalRef,
+            metadata: request.metadata,
+            card: request.contactCard,
           );
       return sdk.PublishOfferResult(
         connectionOffer: connectionOffer as T,
@@ -824,19 +782,19 @@ class MeetingPlaceCoreSDK {
     final (connectionOffer, publishedOfferDid) = await _connectionService
         .publishOffer(
           wallet: wallet,
-          offerName: offerName,
-          offerDescription: offerDescription,
-          type: type == SDKConnectionOfferType.outreachInvitation
+          offerName: request.offerName,
+          offerDescription: request.offerDescription,
+          type: request.type == SDKConnectionOfferType.outreachInvitation
               ? ConnectionOfferType.meetingPlaceOutreachInvitation
               : ConnectionOfferType.meetingPlaceInvitation,
-          customMnemonic: customMnemonic,
-          validUntil: validUntil,
-          maximumUsage: maximumUsage,
-          mediatorDid: mediatorDid,
-          externalRef: externalRef,
-          contactCard: contactCard,
-          transport: transport,
-          score: score,
+          customMnemonic: request.customMnemonic,
+          validUntil: request.validUntil,
+          maximumUsage: request.maximumUsage,
+          mediatorDid: request.mediatorDid,
+          externalRef: request.externalRef,
+          contactCard: request.contactCard,
+          transport: request.transport,
+          score: request.score,
         );
 
     return sdk.PublishOfferResult(

@@ -27,7 +27,7 @@ void main() async {
       await notification.recipientDidManager.getDidDocument();
 
   prettyPrintGreen('>>> Calling SDK.publishOffer');
-  final publishOfferResult = await aliceSDK.publishOffer(
+  final publishOfferResult = await aliceSDK.publishOffer(PublishOfferRequest(
     offerName: 'Media example offer',
     offerDescription: 'Example offer to demo sendMediaMessage.',
     contactCard: ContactCard(
@@ -38,7 +38,7 @@ void main() async {
     type: SDKConnectionOfferType.invitation,
     validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
     transport: ChannelTransport.matrix,
-  );
+  ));
 
   final outputDirectory = Directory('.example-output')
     ..createSync(recursive: true);

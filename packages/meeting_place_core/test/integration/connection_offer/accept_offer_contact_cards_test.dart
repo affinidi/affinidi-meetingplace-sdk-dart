@@ -34,11 +34,13 @@ void main() {
     );
 
     final offer = await aliceSDK.publishOffer(
-      offerName: 'Sample Offer 123',
-      offerDescription: 'Sample offer description',
-      maximumUsage: 1,
-      contactCard: aliceCard,
-      type: SDKConnectionOfferType.invitation,
+      PublishOfferRequest(
+        offerName: 'Sample Offer 123',
+        offerDescription: 'Sample offer description',
+        maximumUsage: 1,
+        contactCard: aliceCard,
+        type: SDKConnectionOfferType.invitation,
+      ),
     );
 
     final findOfferResult = await bobSDK.findOffer(
@@ -82,10 +84,12 @@ void main() {
       );
 
       final actual = await aliceSDK.publishOffer(
-        offerName: 'Sample',
-        offerDescription: 'Sample offer description',
-        contactCard: aliceCard,
-        type: SDKConnectionOfferType.invitation,
+        PublishOfferRequest(
+          offerName: 'Sample',
+          offerDescription: 'Sample offer description',
+          contactCard: aliceCard,
+          type: SDKConnectionOfferType.invitation,
+        ),
       );
 
       final bobCard = ContactCardFixture.getContactCardFixture(

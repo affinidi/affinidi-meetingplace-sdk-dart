@@ -44,10 +44,12 @@ class GroupChatFixture {
 
     final publishOfferResult = await fixture.aliceSDK
         .publishOffer<GroupConnectionOffer>(
-          offerName: 'Sample offer',
-          offerDescription: 'Sample offer description',
-          contactCard: aliceCard,
-          type: SDKConnectionOfferType.groupInvitation,
+          PublishOfferRequest(
+            offerName: 'Sample offer',
+            offerDescription: 'Sample offer description',
+            contactCard: aliceCard,
+            type: SDKConnectionOfferType.groupInvitation,
+          ),
         );
 
     final bobAcceptance = await fixture.bobSDK.acceptOffer(

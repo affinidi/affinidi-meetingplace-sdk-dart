@@ -20,16 +20,18 @@ void main() async {
 
     // Run action to authenticate & register device
     await sdk.publishOffer(
-      offerName: 'Sample Offer 123',
-      offerDescription: 'Sample offer description',
-      validUntil: DateTime.now().toUtc().add(const Duration(seconds: 30)),
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:alice',
-        contactInfo: {
-          'n': {'given': 'Alice'},
-        },
+      PublishOfferRequest(
+        offerName: 'Sample Offer 123',
+        offerDescription: 'Sample offer description',
+        validUntil: DateTime.now().toUtc().add(const Duration(seconds: 30)),
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:alice',
+          contactInfo: {
+            'n': {'given': 'Alice'},
+          },
+        ),
+        type: SDKConnectionOfferType.invitation,
       ),
-      type: SDKConnectionOfferType.invitation,
     );
 
     expect(sdk.controlPlaneSDK.device.deviceToken, result.device.deviceToken);

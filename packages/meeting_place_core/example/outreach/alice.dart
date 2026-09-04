@@ -20,7 +20,7 @@ void main() async {
 
   // Alice publishes offer
   prettyPrintGreen('>>> Calling SDK.publishOffer');
-  final publishOfferResult = await aliceSDK.publishOffer(
+  final publishOfferResult = await aliceSDK.publishOffer(PublishOfferRequest(
     offerName: 'Example offer',
     offerDescription: 'Example offer to test.',
     contactCard: ContactCard(
@@ -30,7 +30,7 @@ void main() async {
     ),
     type: SDKConnectionOfferType.invitation,
     validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
-  );
+  ));
 
   prettyJsonPrintYellow(
     'Connection offer',

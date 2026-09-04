@@ -45,13 +45,15 @@ class GroupChatFixture {
 
     fixture.publishOfferResult = await fixture.aliceSDK
         .publishOffer<GroupConnectionOffer>(
-          offerName: 'Sample offer',
-          offerDescription: 'Sample offer description',
-          contactCard: ContactCardFixture.getContactCardFixture(
-            did: 'did:test:alice',
-            contactInfo: ContactCardFixture.alicePrimaryCardInfo,
+          PublishOfferRequest(
+            offerName: 'Sample offer',
+            offerDescription: 'Sample offer description',
+            contactCard: ContactCardFixture.getContactCardFixture(
+              did: 'did:test:alice',
+              contactInfo: ContactCardFixture.alicePrimaryCardInfo,
+            ),
+            type: SDKConnectionOfferType.groupInvitation,
           ),
-          type: SDKConnectionOfferType.groupInvitation,
         );
 
     fixture.groupOwnerDidDocument = await fixture

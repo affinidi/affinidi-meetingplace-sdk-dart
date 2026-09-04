@@ -19,14 +19,16 @@ void main() async {
     bobSDK = await initSDKInstance();
 
     final offer = await aliceSDK.publishOffer(
-      offerName: 'Sample Offer',
-      offerDescription: 'Sample offer description',
-      validUntil: DateTime.now().add(const Duration(minutes: 5)),
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:alice',
-        contactInfo: const {},
+      PublishOfferRequest(
+        offerName: 'Sample Offer',
+        offerDescription: 'Sample offer description',
+        validUntil: DateTime.now().add(const Duration(minutes: 5)),
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:alice',
+          contactInfo: const {},
+        ),
+        type: SDKConnectionOfferType.invitation,
       ),
-      type: SDKConnectionOfferType.invitation,
     );
     connectionOffer = offer.connectionOffer;
   });
@@ -53,12 +55,14 @@ void main() async {
 
   test('returns offer group connection', () async {
     final result = await aliceSDK.publishOffer(
-      offerName: 'Sample Offer',
-      offerDescription: 'Sample offer description',
-      type: SDKConnectionOfferType.groupInvitation,
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:alice',
-        contactInfo: const {},
+      PublishOfferRequest(
+        offerName: 'Sample Offer',
+        offerDescription: 'Sample offer description',
+        type: SDKConnectionOfferType.groupInvitation,
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:alice',
+          contactInfo: const {},
+        ),
       ),
     );
 
@@ -76,12 +80,14 @@ void main() async {
 
   test('return offer with error code because is owner', () async {
     final offer = await aliceSDK.publishOffer(
-      offerName: 'Sample Offer',
-      offerDescription: 'Sample offer description',
-      type: SDKConnectionOfferType.invitation,
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:alice',
-        contactInfo: const {},
+      PublishOfferRequest(
+        offerName: 'Sample Offer',
+        offerDescription: 'Sample offer description',
+        type: SDKConnectionOfferType.invitation,
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:alice',
+          contactInfo: const {},
+        ),
       ),
     );
 

@@ -28,11 +28,13 @@ void main() {
     );
 
     final offer = await aliceSDK.publishOffer(
-      offerName: 'Sample Offer 123',
-      offerDescription: 'Sample offer description',
-      maximumUsage: 1,
-      contactCard: aliceCard,
-      type: SDKConnectionOfferType.invitation,
+      PublishOfferRequest(
+        offerName: 'Sample Offer 123',
+        offerDescription: 'Sample offer description',
+        maximumUsage: 1,
+        contactCard: aliceCard,
+        type: SDKConnectionOfferType.invitation,
+      ),
     );
 
     final findOfferResult = await bobSDK.findOffer(
@@ -76,10 +78,12 @@ void main() {
     );
 
     final offer = await aliceSDK.publishOffer(
-      offerName: 'Sample Offer 123',
-      offerDescription: 'Sample offer description',
-      contactCard: aliceCard,
-      type: SDKConnectionOfferType.invitation,
+      PublishOfferRequest(
+        offerName: 'Sample Offer 123',
+        offerDescription: 'Sample offer description',
+        contactCard: aliceCard,
+        type: SDKConnectionOfferType.invitation,
+      ),
     );
 
     final findOfferResult = await bobSDK.findOffer(
@@ -128,10 +132,12 @@ void main() {
         },
       );
       final publishedOfferResult = await aliceSDK.publishOffer(
-        offerName: 'Test Offer',
-        offerDescription: 'Sample offer description',
-        contactCard: aliceCard,
-        type: SDKConnectionOfferType.invitation,
+        PublishOfferRequest(
+          offerName: 'Test Offer',
+          offerDescription: 'Sample offer description',
+          contactCard: aliceCard,
+          type: SDKConnectionOfferType.invitation,
+        ),
       );
 
       expect(
@@ -169,10 +175,12 @@ void main() {
       },
     );
     final publishedOfferResult = await aliceSDK.publishOffer(
-      offerName: 'Test Offer',
-      offerDescription: 'Sample offer description',
-      contactCard: aliceCard,
-      type: SDKConnectionOfferType.invitation,
+      PublishOfferRequest(
+        offerName: 'Test Offer',
+        offerDescription: 'Sample offer description',
+        contactCard: aliceCard,
+        type: SDKConnectionOfferType.invitation,
+      ),
     );
 
     final findOfferResult = await bobSDK.findOffer(

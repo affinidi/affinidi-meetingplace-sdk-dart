@@ -62,11 +62,13 @@ class SetupChatSdk {
     ChannelTransport transport = ChannelTransport.didcomm,
   }) async {
     final offer = await aliceSDK.coreSDK.publishOffer(
-      offerName: 'Sample Offer',
-      offerDescription: 'Sample offer description',
-      contactCard: aliceSDK.contactCard,
-      type: SDKConnectionOfferType.invitation,
-      transport: transport,
+      PublishOfferRequest(
+        offerName: 'Sample Offer',
+        offerDescription: 'Sample offer description',
+        contactCard: aliceSDK.contactCard,
+        type: SDKConnectionOfferType.invitation,
+        transport: transport,
+      ),
     );
 
     final findOfferResult = await bobSDK.coreSDK.findOffer(

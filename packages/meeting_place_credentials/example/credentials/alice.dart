@@ -62,15 +62,17 @@ Future<void> main() async {
   // ── 4. Publish connection offer ────────────────────────────────────────
   prettyPrintGreen('>>> Publishing connection offer');
   final offerResult = await coreSDK.publishOffer(
-    offerName: 'Relationship example',
-    offerDescription: 'Connect to exchange R-Cards and VRCs.',
-    contactCard: ContactCard(
-      did: 'did:example:alice',
-      type: 'individual',
-      contactInfo: {},
+    PublishOfferRequest(
+      offerName: 'Relationship example',
+      offerDescription: 'Connect to exchange R-Cards and VRCs.',
+      contactCard: ContactCard(
+        did: 'did:example:alice',
+        type: 'individual',
+        contactInfo: {},
+      ),
+      type: SDKConnectionOfferType.invitation,
+      validUntil: DateTime.now().toUtc().add(const Duration(minutes: 10)),
     ),
-    type: SDKConnectionOfferType.invitation,
-    validUntil: DateTime.now().toUtc().add(const Duration(minutes: 10)),
   );
 
   final outputDir = Directory('.example-output')..createSync(recursive: true);

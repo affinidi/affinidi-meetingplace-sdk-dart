@@ -25,7 +25,7 @@ void main() async {
   prettyPrintYellow('Notification DID ${notificationDidDocument.id}');
 
   prettyPrintGreen('>>> Calling SDK.publishOffer');
-  final publishOfferResult = await aliceSDK.publishOffer(
+  final publishOfferResult = await aliceSDK.publishOffer(PublishOfferRequest(
     offerName: 'Example offer',
     offerDescription: 'Example offer to test.',
     contactCard: ContactCard(
@@ -36,7 +36,7 @@ void main() async {
     type: SDKConnectionOfferType.invitation,
     validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
     transport: ChannelTransport.didcomm,
-  );
+  ));
 
   final outputDirectory = Directory('.example-output')
     ..createSync(recursive: true);

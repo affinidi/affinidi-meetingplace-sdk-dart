@@ -26,7 +26,7 @@ Future<void> main() async {
         await notification.recipientDidManager.getDidDocument();
 
     prettyPrintGreen('>>> Publishing an invitation offer');
-    final publishOfferResult = await sdk.publishOffer(
+    final publishOfferResult = await sdk.publishOffer(PublishOfferRequest(
       offerName: 'Meeting Place Matrix quickstart offer',
       offerDescription: 'Minimal example offer created from example/main.dart.',
       contactCard: ContactCard(
@@ -37,7 +37,7 @@ Future<void> main() async {
       type: SDKConnectionOfferType.invitation,
       validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
       transport: ChannelTransport.matrix,
-    );
+    ));
 
     final outputDirectory = Directory('.example-output')
       ..createSync(recursive: true);

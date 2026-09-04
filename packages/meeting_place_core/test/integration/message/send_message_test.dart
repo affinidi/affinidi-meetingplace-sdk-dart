@@ -30,10 +30,12 @@ void main() async {
       },
     );
     final offer = await aliceSDK.publishOffer(
-      offerName: 'Sample Offer 123',
-      offerDescription: 'Sample offer description',
-      contactCard: aliceCard,
-      type: SDKConnectionOfferType.invitation,
+      PublishOfferRequest(
+        offerName: 'Sample Offer 123',
+        offerDescription: 'Sample offer description',
+        contactCard: aliceCard,
+        type: SDKConnectionOfferType.invitation,
+      ),
     );
 
     final findOfferResult = await bobSDK.findOffer(

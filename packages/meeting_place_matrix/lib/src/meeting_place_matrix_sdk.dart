@@ -365,33 +365,9 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   );
 
   @override
-  Future<PublishOfferResult<T>> publishOffer<T extends ConnectionOffer>({
-    required String offerName,
-    required SDKConnectionOfferType type,
-    required ContactCard contactCard,
-    required String offerDescription,
-    String? customMnemonic,
-    DateTime? validUntil,
-    int? maximumUsage,
-    String? mediatorDid,
-    String? metadata,
-    String? externalRef,
-    ChannelTransport transport = ChannelTransport.didcomm,
-    int? score,
-  }) => _coreSDK.publishOffer(
-    offerName: offerName,
-    type: type,
-    contactCard: contactCard,
-    offerDescription: offerDescription,
-    customMnemonic: customMnemonic,
-    validUntil: validUntil,
-    maximumUsage: maximumUsage,
-    mediatorDid: mediatorDid,
-    metadata: metadata,
-    externalRef: externalRef,
-    transport: transport,
-    score: score,
-  );
+  Future<PublishOfferResult<T>> publishOffer<T extends ConnectionOffer>(
+    PublishOfferRequest request,
+  ) => _coreSDK.publishOffer(request);
 
   @override
   Future<FindOfferResult> findOffer({required String mnemonic}) =>

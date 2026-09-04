@@ -14,10 +14,10 @@ class OfferMaximumClaimLimitExceeded implements Exception {}
 class AcceptOfferResult<T extends ConnectionOffer> {
   AcceptOfferResult({
     required this.connectionOffer,
-    required this.acceptOfferDid,
-    required this.permanentChannelDid,
+    required this.acceptOfferDidManager,
+    required this.permanentChannelDidManager,
   });
   final T connectionOffer;
-  final DidManager acceptOfferDid;
-  final DidManager permanentChannelDid;
+  final DidManager acceptOfferDidManager;
+  final DidManager permanentChannelDidManager;
 }

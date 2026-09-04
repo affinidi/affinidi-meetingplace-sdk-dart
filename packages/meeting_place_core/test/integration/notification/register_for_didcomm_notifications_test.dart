@@ -34,7 +34,7 @@ void main() async {
 
     expect(sdk.controlPlaneSDK.device.deviceToken, result.device.deviceToken);
     expect(sdk.controlPlaneSDK.device.platformType, PlatformType.didcomm);
-    expect(result.recipientDid, isA<DidManager>());
+    expect(result.recipientDidManager, isA<DidManager>());
 
     // TODO: test notifications
   });
@@ -48,7 +48,7 @@ void main() async {
       recipientDid: recipientDidDoc.id,
     );
 
-    final actual = await result.recipientDid.getDidDocument();
+    final actual = await result.recipientDidManager.getDidDocument();
     expect(recipientDidDoc.id, equals(actual.id));
   });
 }

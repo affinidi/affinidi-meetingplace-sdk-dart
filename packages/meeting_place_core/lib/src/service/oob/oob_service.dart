@@ -256,7 +256,7 @@ class OobService {
     final mergedAttachments = [...?attachments, ...?builtAttachments];
 
     await _connectionService.sendAcceptOfferToMediator(
-      acceptOfferDid: acceptOfferIdentity.didManager,
+      acceptOfferDidManager: acceptOfferIdentity.didManager,
       permanentChannelDidDocument: permanentIdentity.didDocument,
       invitationMessage: invitationMessage.toPlainTextMessage(),
       mediatorDid: mediatorDid,
@@ -311,8 +311,8 @@ class OobService {
     );
 
     await _connectionService.sendConnectionRequestApprovalToMediator(
-      offerPublishedDid: session.didManager,
-      permanentChannelDid: permanentChannelDidManager,
+      offerPublishedDidManager: session.didManager,
+      permanentChannelDidManager: permanentChannelDidManager,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
       otherPartyAcceptOfferDid: message.from,
       outboundMessageId: session.oobInvitationMessage.id,

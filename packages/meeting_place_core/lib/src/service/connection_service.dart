@@ -335,7 +335,7 @@ class ConnectionService {
     );
 
     await sendAcceptOfferToMediator(
-      acceptOfferDid: acceptOfferIdentity.didManager,
+      acceptOfferDidManager: acceptOfferIdentity.didManager,
       permanentChannelDidDocument: permanentIdentity.didDocument,
       invitationMessage: invitationMessage.toPlainTextMessage(),
       mediatorDid: result.mediatorDid,
@@ -377,8 +377,8 @@ class ConnectionService {
     return AcceptOfferResult(
       connectionOffer: acceptedConnectionOffer,
       channel: channel,
-      acceptOfferDid: acceptOfferIdentity.didManager,
-      permanentChannelDid: permanentIdentity.didManager,
+      acceptOfferDidManager: acceptOfferIdentity.didManager,
+      permanentChannelDidManager: permanentIdentity.didManager,
     );
   }
 
@@ -426,7 +426,7 @@ class ConnectionService {
   }
 
   Future<void> sendAcceptOfferToMediator({
-    required DidManager acceptOfferDid,
+    required DidManager acceptOfferDidManager,
     required DidDocument permanentChannelDidDocument,
     required PlainTextMessage invitationMessage,
     String? mediatorDid,
@@ -438,10 +438,11 @@ class ConnectionService {
 
     final recipientDid = invitationMessage.from!;
     final recipientDidDocument = await _didResolver.resolveDid(recipientDid);
-    final acceptOfferDidDocument = await acceptOfferDid.getDidDocument();
+    final acceptOfferDidDocument = await acceptOfferDidManager
+        .getDidDocument();
 
     await _mediatorAclService.addToAcl(
-      didManager: acceptOfferDid,
+      didManager: acceptOfferDidManager,
       mediatorDid: mediatorDid,
       granteeDids: [recipientDid],
     );
@@ -457,7 +458,7 @@ class ConnectionService {
 
     await _mediatorSDK.sendMessage(
       invitationAcceptanceMessage.toPlainTextMessage(),
-      senderDidManager: acceptOfferDid,
+      senderDidManager: acceptOfferDidManager,
       recipientDidDocument: recipientDidDocument,
       mediatorDid: mediatorDid,
       next: recipientDid,
@@ -569,8 +570,8 @@ class ConnectionService {
     final mergedAttachments = [...?attachments, ...?builtAttachments];
 
     await sendConnectionRequestApprovalToMediator(
-      offerPublishedDid: publishOfferDid,
-      permanentChannelDid: permanentIdentity.didManager,
+      offerPublishedDidManager: publishOfferDid,
+      permanentChannelDidManager: permanentIdentity.didManager,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
       otherPartyAcceptOfferDid: acceptOfferDid,
       outboundMessageId: channel.offerLink,
@@ -620,8 +621,8 @@ class ConnectionService {
   }
 
   Future<void> sendConnectionRequestApprovalToMediator({
-    required DidManager offerPublishedDid,
-    required DidManager permanentChannelDid,
+    required DidManager offerPublishedDidManager,
+    required DidManager permanentChannelDidManager,
     required String otherPartyPermanentChannelDid,
     required String otherPartyAcceptOfferDid,
     required String outboundMessageId,
@@ -635,13 +636,14 @@ class ConnectionService {
       name: methodName,
     );
 
-    final permanentChannelDidDocument = await permanentChannelDid
+    final permanentChannelDidDocument = await permanentChannelDidManager
         .getDidDocument();
 
-    final offerPublishedDidDocument = await offerPublishedDid.getDidDocument();
+    final offerPublishedDidDocument = await offerPublishedDidManager
+        .getDidDocument();
 
     await _mediatorAclService.addToAcl(
-      didManager: permanentChannelDid,
+      didManager: permanentChannelDidManager,
       mediatorDid: mediatorDid,
       granteeDids: [otherPartyPermanentChannelDid, otherPartyAcceptOfferDid],
     );
@@ -661,7 +663,7 @@ class ConnectionService {
 
     await _mediatorSDK.sendMessage(
       connectionApprovalMwssage.toPlainTextMessage(),
-      senderDidManager: offerPublishedDid,
+      senderDidManager: offerPublishedDidManager,
       recipientDidDocument: recipientDidDocument,
       mediatorDid: mediatorDid,
       next: otherPartyAcceptOfferDid,

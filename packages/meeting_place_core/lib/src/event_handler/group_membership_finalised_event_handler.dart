@@ -270,7 +270,7 @@ class GroupMembershipFinalisedEventHandler
       ),
 
       _allowGroupToSendMessagesToPermanetChannelDid(
-        permanentChannelDid: didManager,
+        permanentChannelDidManager: didManager,
         mediatorDid: mediatorDid,
         groupDid: groupDid,
       ),
@@ -278,12 +278,12 @@ class GroupMembershipFinalisedEventHandler
   }
 
   Future<void> _allowGroupToSendMessagesToPermanetChannelDid({
-    required DidManager permanentChannelDid,
+    required DidManager permanentChannelDidManager,
     required String mediatorDid,
     required String groupDid,
   }) async {
     final methodName = '_allowGroupToSendMessagesToPermanentChannelDid';
-    final permanentChannelDidDocument = await permanentChannelDid
+    final permanentChannelDidDocument = await permanentChannelDidManager
         .getDidDocument();
 
     logger.info(
@@ -293,7 +293,7 @@ class GroupMembershipFinalisedEventHandler
       name: methodName,
     );
     return mediatorService.updateAcl(
-      ownerDidManager: permanentChannelDid,
+      ownerDidManager: permanentChannelDidManager,
       mediatorDid: mediatorDid,
       acl: AccessListAdd(
         ownerDid: permanentChannelDidDocument.id,

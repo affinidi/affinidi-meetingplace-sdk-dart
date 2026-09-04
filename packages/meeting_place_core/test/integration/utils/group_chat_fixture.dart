@@ -74,7 +74,7 @@ class GroupChatFixture {
     await fixture.aliceSDK.processControlPlaneEvents();
     await aliceSDKCompleter.future;
 
-    final bobMemberDidDoc = await bobAcceptance.permanentChannelDid
+    final bobMemberDidDoc = await bobAcceptance.permanentChannelDidManager
         .getDidDocument();
     final aliceToBobChannel = await fixture.aliceSDK
         .findChannelByOtherPartyPermanentDid(bobMemberDidDoc.id);
@@ -83,7 +83,8 @@ class GroupChatFixture {
       channel: aliceToBobChannel!,
     );
 
-    final charlieMemberDidDoc = await charlieAcceptance.permanentChannelDid
+    final charlieMemberDidDoc = await charlieAcceptance
+        .permanentChannelDidManager
         .getDidDocument();
     final aliceToCharlieChannel = await fixture.aliceSDK
         .findChannelByOtherPartyPermanentDid(charlieMemberDidDoc.id);

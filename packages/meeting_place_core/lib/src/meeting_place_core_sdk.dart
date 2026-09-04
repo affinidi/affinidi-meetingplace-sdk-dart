@@ -736,7 +736,7 @@ class MeetingPlaceCoreSDK {
       );
       _controlPlaneSDK.device = result.device;
       return RegisterForDidcommNotificationsResult(
-        recipientDid: result.recipientDid,
+        recipientDidManager: result.recipientDidManager,
         device: result.device,
       );
     });
@@ -902,8 +902,8 @@ class MeetingPlaceCoreSDK {
 
         return sdk.AcceptOfferResult(
           connectionOffer: result.connectionOffer as T,
-          acceptOfferDid: result.acceptOfferDid,
-          permanentChannelDid: result.permanentChannelDid,
+          acceptOfferDidManager: result.acceptOfferDidManager,
+          permanentChannelDidManager: result.permanentChannelDidManager,
         );
       }
 
@@ -917,8 +917,8 @@ class MeetingPlaceCoreSDK {
 
       return sdk.AcceptOfferResult(
         connectionOffer: result.connectionOffer as T,
-        acceptOfferDid: result.acceptOfferDid,
-        permanentChannelDid: result.permanentChannelDid,
+        acceptOfferDidManager: result.acceptOfferDidManager,
+        permanentChannelDidManager: result.permanentChannelDidManager,
       );
     });
   }

@@ -3,10 +3,10 @@ import '../../../meeting_place_core.dart';
 class AcceptGroupOfferResult {
   AcceptGroupOfferResult({
     required this.connectionOffer,
-    required this.acceptOfferDid,
-    required this.permanentChannelDid,
+    required this.acceptOfferDidManager,
+    required this.permanentChannelDidManager,
   });
   final GroupConnectionOffer connectionOffer;
-  final DidManager acceptOfferDid;
-  final DidManager permanentChannelDid;
+  final DidManager acceptOfferDidManager;
+  final DidManager permanentChannelDidManager;
 }

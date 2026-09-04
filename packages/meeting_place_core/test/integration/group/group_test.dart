@@ -291,7 +291,7 @@ void main() async {
       await aliceSDK.processControlPlaneEvents();
       await aliceCompleter.future;
 
-      final charlieDidDoc = await acceptResultCharlie.permanentChannelDid
+      final charlieDidDoc = await acceptResultCharlie.permanentChannelDidManager
           .getDidDocument();
       final charlieChannel = await aliceSDK.findChannelByDid(charlieDidDoc.id);
 
@@ -307,7 +307,7 @@ void main() async {
       await charlieCompleter.future;
 
       final acceptResultBobChannelDid = await acceptResultBob
-          .permanentChannelDid
+          .permanentChannelDidManager
           .getDidDocument();
 
       final bobChannel = await aliceSDK.findChannelByDid(
@@ -576,7 +576,7 @@ void main() async {
     await bobSDK.processControlPlaneEvents();
     await bobCompleter.future;
 
-    final bobMemberDidDic = await acceptResult.permanentChannelDid
+    final bobMemberDidDic = await acceptResult.permanentChannelDidManager
         .getDidDocument();
 
     final bobChannel = await bobSDK.findChannelByDid(bobMemberDidDic.id);

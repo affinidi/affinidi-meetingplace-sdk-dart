@@ -77,7 +77,7 @@ class GroupService {
     (
       GroupConnectionOffer connectionOffer,
       DidManager didManager,
-      DidManager ownerDid,
+      DidManager ownerDidManager,
     )
   >
   createGroup({
@@ -164,7 +164,7 @@ class GroupService {
       await (
         _channelTransport.setupChannel(channel: channel, didManager: ownerDid),
         _allowGroupToMessageGroupOwner(
-          groupOwnerDid: ownerDid,
+          groupOwnerDidManager: ownerDid,
           mediatorDid: result.mediatorDid,
           groupDid: result.groupDid,
         ),
@@ -285,9 +285,9 @@ class GroupService {
       );
 
       await sendAcceptInvitationGroupToMediator(
-        senderDid: acceptOfferDidManager,
+        senderDidManager: acceptOfferDidManager,
         mediatorDid: result.mediatorDid,
-        permanentChannelDid: permanentChannelDidManager,
+        permanentChannelDidManager: permanentChannelDidManager,
         invitationMessage: invitationMessage,
         contactCard: card,
       );
@@ -333,8 +333,8 @@ class GroupService {
 
       return AcceptGroupOfferResult(
         connectionOffer: acceptedConnectionOffer,
-        acceptOfferDid: acceptOfferDidManager,
-        permanentChannelDid: permanentChannelDidManager,
+        acceptOfferDidManager: acceptOfferDidManager,
+        permanentChannelDidManager: permanentChannelDidManager,
       );
     } catch (e, stackTrace) {
       _logger.error(
@@ -433,8 +433,8 @@ class GroupService {
   }
 
   Future<void> sendAcceptInvitationGroupToMediator({
-    required DidManager senderDid,
-    required DidManager permanentChannelDid,
+    required DidManager senderDidManager,
+    required DidManager permanentChannelDidManager,
     required OobInvitationMessage invitationMessage,
     required String mediatorDid,
     ContactCard? contactCard,
@@ -448,14 +448,14 @@ class GroupService {
 
     final recipientDid = invitationMessage.from;
 
-    final senderDidDocument = await senderDid.getDidDocument();
-    final permanentChannelDidDocument = await permanentChannelDid
+    final senderDidDocument = await senderDidManager.getDidDocument();
+    final permanentChannelDidDocument = await permanentChannelDidManager
         .getDidDocument();
 
     final recipientDidDocument = await _didResolver.resolveDid(recipientDid);
 
     await _mediatorSDK.updateAcl(
-      ownerDidManager: permanentChannelDid,
+      ownerDidManager: permanentChannelDidManager,
       mediatorDid: mediatorDid,
       acl: AccessListAdd(
         ownerDid: permanentChannelDidDocument.id,
@@ -473,7 +473,7 @@ class GroupService {
 
     await _mediatorSDK.sendMessage(
       invitationAcceptanceMessage.toPlainTextMessage(),
-      senderDidManager: senderDid,
+      senderDidManager: senderDidManager,
       recipientDidDocument: recipientDidDocument,
       mediatorDid: mediatorDid,
       next: recipientDid,
@@ -805,14 +805,14 @@ class GroupService {
   }
 
   Future<void> _allowGroupToMessageGroupOwner({
-    required DidManager groupOwnerDid,
+    required DidManager groupOwnerDidManager,
     required String mediatorDid,
     required String groupDid,
   }) async {
-    final groupOwnerDidDocument = await groupOwnerDid.getDidDocument();
+    final groupOwnerDidDocument = await groupOwnerDidManager.getDidDocument();
 
     return _mediatorSDK.updateAcl(
-      ownerDidManager: groupOwnerDid,
+      ownerDidManager: groupOwnerDidManager,
       mediatorDid: mediatorDid,
       acl: AccessListAdd(
         ownerDid: groupOwnerDidDocument.id,
@@ -822,14 +822,14 @@ class GroupService {
   }
 
   Future<void> _removePermissionToGetMessagesFromGroup({
-    required DidManager memberDid,
+    required DidManager memberDidManager,
     required String mediatorDid,
     required String groupDid,
   }) async {
-    final memberDidDocument = await memberDid.getDidDocument();
+    final memberDidDocument = await memberDidManager.getDidDocument();
 
     return _mediatorSDK.updateAcl(
-      ownerDidManager: memberDid,
+      ownerDidManager: memberDidManager,
       mediatorDid: mediatorDid,
       acl: AccessListRemove(
         ownerDid: memberDidDocument.id,
@@ -900,7 +900,7 @@ class GroupService {
     await _removePermissionToGetMessagesFromGroup(
       groupDid: group.did,
       mediatorDid: channel.mediatorDid,
-      memberDid: memberIdentity.didManager,
+      memberDidManager: memberIdentity.didManager,
     );
 
     await _groupRepository.removeGroup(group);

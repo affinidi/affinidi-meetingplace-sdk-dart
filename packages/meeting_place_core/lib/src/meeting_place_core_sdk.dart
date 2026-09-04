@@ -386,12 +386,15 @@ class MeetingPlaceCoreSDK {
       logger: mpxLogger,
     );
 
+    final sdkErrorHandler = SDKErrorHandler(logger: mpxLogger);
+
     final vdipClient = VdipClient(
       messageService: messageService,
       channelService: channelService,
       connectionManager: connectionManager,
       wallet: wallet,
       mediatorService: mediatorService,
+      sdkErrorHandler: sdkErrorHandler,
     );
 
     final discoveryEventManager = ControlPlaneEventManager(
@@ -465,8 +468,6 @@ class MeetingPlaceCoreSDK {
     );
 
     mpxLogger.info('Completed initializing CoreSDK', name: methodName);
-
-    final sdkErrorHandler = SDKErrorHandler(logger: mpxLogger);
 
     final didcommTransport = DIDCommTransport(
       mediatorSDK: mediatorSDK,
@@ -1156,14 +1157,13 @@ class MeetingPlaceCoreSDK {
   /// update the score remotely — for example, when B accepted A's published
   /// offer and needs to reflect an updated VRC count without owning the
   /// mnemonic on the control plane.
-  Future<void> updateOffersScoreLocally(
-    sdk.UpdateOffersScoreRequest request,
-  ) {
+  Future<void> updateOffersScoreLocally(sdk.UpdateOffersScoreRequest request) {
     return _withSdkExceptionHandling(() async {
       final offersSnapshot = request.offers.toList(growable: false);
       for (final offer in offersSnapshot) {
-        await _repositoryConfig.connectionOfferRepository
-            .updateConnectionOffer(offer.copyWith(score: request.score));
+        await _repositoryConfig.connectionOfferRepository.updateConnectionOffer(
+          offer.copyWith(score: request.score),
+        );
       }
     });
   }

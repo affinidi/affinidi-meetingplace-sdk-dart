@@ -5,11 +5,13 @@ import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../meeting_place_core.dart';
+import '../sdk/sdk_error_handler.dart';
 import '../service/channel/channel_service.dart';
 import '../service/connection_manager/connection_manager.dart';
 import '../service/mediator/mediator_service.dart';
 import '../service/mediator/mediator_stream_subscription_wrapper.dart';
 import '../service/message/message_service.dart';
+import 'vdip_client_exception.dart';
 
 /// Client for sending and receiving VDIP (Verifiable Data Issuance Protocol)
 /// messages over the shared DIDComm connection managed by
@@ -24,11 +26,13 @@ class VdipClient {
     required ConnectionManager connectionManager,
     required Wallet wallet,
     required MediatorService mediatorService,
+    required SDKErrorHandler sdkErrorHandler,
   }) : _messageService = messageService,
        _channelService = channelService,
        _connectionManager = connectionManager,
        _wallet = wallet,
-       _mediatorService = mediatorService;
+       _mediatorService = mediatorService,
+       _sdkErrorHandler = sdkErrorHandler;
 
   /// DIDComm message type for a VDIP issued-credential message.
   static final String issuedCredentialMessageType = VdipIssuedCredentialMessage
@@ -45,6 +49,7 @@ class VdipClient {
   final ConnectionManager _connectionManager;
   final Wallet _wallet;
   final MediatorService _mediatorService;
+  final SDKErrorHandler _sdkErrorHandler;
 
   /// Upper bound on the number of recently dispatched message ids retained
   /// for duplicate detection. Bounded to avoid unbounded memory growth on a
@@ -117,7 +122,7 @@ class VdipClient {
     required String senderDid,
     required String recipientDid,
     required RequestCredentialsOptions options,
-  }) async {
+  }) => _sdkErrorHandler.handleError(() async {
     final senderDidManager = await _connectionManager.getDidManagerForDid(
       _wallet,
       senderDid,
@@ -144,7 +149,7 @@ class VdipClient {
       mediatorDid: channel.mediatorDid,
       notifyChannelType: ChannelActivityType.vdipRequestIssuance,
     );
-  }
+  });
 
   /// Sends an issued credential to [recipientDid] over VDIP.
   ///
@@ -162,6 +167,18 @@ class VdipClient {
   /// - `Future<void>` completes when the message is delivered and the
   ///   Control Plane has been notified.
   Future<void> sendIssuedCredential({
+    required String senderDid,
+    required String recipientDid,
+    required VdipIssuedCredentialBody body,
+  }) => _sdkErrorHandler.handleError(
+    () => _sendIssuedCredential(
+      senderDid: senderDid,
+      recipientDid: recipientDid,
+      body: body,
+    ),
+  );
+
+  Future<void> _sendIssuedCredential({
     required String senderDid,
     required String recipientDid,
     required VdipIssuedCredentialBody body,
@@ -193,33 +210,36 @@ class VdipClient {
   /// the sender and recipient DIDs from [channel], constructs the
   /// [VdipIssuedCredentialBody], and delivers the message.
   ///
-  /// Throws [StateError] if the channel DIDs are missing.
+  /// Throws `VdipClientException` if the channel DIDs are missing.
   Future<void> issueCredential({
     required Channel channel,
     required VcDataModelV2 credential,
-  }) async {
+  }) => _sdkErrorHandler.handleError(() async {
     final senderDid = channel.permanentChannelDid;
     final recipientDid = channel.otherPartyPermanentChannelDid;
     if (senderDid == null || senderDid.isEmpty) {
-      throw StateError(
-        'Channel is missing permanentChannelDid — cannot issue credential.',
+      throw VdipClientException.missingChannelDid(
+        reason:
+            'Channel is missing permanentChannelDid — cannot issue '
+            'credential.',
       );
     }
     if (recipientDid == null || recipientDid.isEmpty) {
-      throw StateError(
-        'Channel is missing otherPartyPermanentChannelDid — cannot issue'
-        ' credential.',
+      throw VdipClientException.missingChannelDid(
+        reason:
+            'Channel is missing otherPartyPermanentChannelDid — cannot '
+            'issue credential.',
       );
     }
 
     final body = VdipIssuedCredentialBody.w3cV2(credential: credential);
 
-    await sendIssuedCredential(
+    await _sendIssuedCredential(
       senderDid: senderDid,
       recipientDid: recipientDid,
       body: body,
     );
-  }
+  });
 
   /// Dispatches an incoming [message] to the [incomingMessages] stream.
   ///
@@ -260,13 +280,15 @@ class VdipClient {
   Future<
     CoreSDKStreamSubscription<MediatorMessage, MediatorStreamProcessingResult>
   >
-  subscribe(Channel channel) async {
+  subscribe(Channel channel) => _sdkErrorHandler.handleError(() async {
     if (_mediatorSubscription != null) return _mediatorSubscription!;
 
     final permanentChannelDid = channel.permanentChannelDid;
     if (permanentChannelDid == null) {
-      throw StateError(
-        'Channel is missing permanentChannelDid — cannot subscribe to VDIP',
+      throw VdipClientException.missingChannelDid(
+        reason:
+            'Channel is missing permanentChannelDid — cannot subscribe to '
+            'VDIP',
       );
     }
 
@@ -301,7 +323,7 @@ class VdipClient {
     });
 
     return _mediatorSubscription!;
-  }
+  });
 
   /// Closes the streaming WebSocket subscription opened by [subscribe].
   Future<void> unsubscribe() async {

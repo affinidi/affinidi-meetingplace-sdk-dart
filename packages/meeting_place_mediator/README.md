@@ -28,7 +28,7 @@ The Mediator SDK is part of the Meeting Place SDK toolkit and enables a safe and
 
 ## Requirements
 
-- Dart SDK `>=3.6.0 <4.0.0`
+- Dart SDK `>=3.10.0 <4.0.0`
 
 ## Installation
 

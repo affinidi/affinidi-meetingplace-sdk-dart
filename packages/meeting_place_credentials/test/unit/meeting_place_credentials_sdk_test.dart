@@ -643,7 +643,7 @@ void main() {
       );
 
       final vrc = await sdk.storeVrc(
-        StoreVrcParams(vcBlob: signedVrcBlob, referenceId: 'channel-1'),
+        StoreVrcRequest(vcBlob: signedVrcBlob, referenceId: 'channel-1'),
       );
 
       expect(vrc, isNotNull);
@@ -661,7 +661,7 @@ void main() {
 
       await expectLater(
         () => sdk.storeVrc(
-          const StoreVrcParams(vcBlob: 'not-a-vrc', referenceId: 'channel-1'),
+          const StoreVrcRequest(vcBlob: 'not-a-vrc', referenceId: 'channel-1'),
         ),
         throwsA(isA<MeetingPlaceCredentialsSDKException>()),
       );

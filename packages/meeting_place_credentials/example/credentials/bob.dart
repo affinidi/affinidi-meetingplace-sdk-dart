@@ -41,7 +41,7 @@ Future<void> main() async {
       'VRC request received from ${request.senderDid} - sending VRC',
     );
     await credentialsSDK.sendVrc(
-      SendVrcParams(
+      SendVrcRequest(
         channelDid: bobChannel.otherPartyPermanentChannelDid!,
         issuerDid: bobChannel.permanentChannelDid!,
         issuerName: 'Bob',

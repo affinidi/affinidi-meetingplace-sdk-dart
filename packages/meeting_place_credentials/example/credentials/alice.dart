@@ -49,7 +49,7 @@ Future<void> main() async {
       'VRC received from ${issuance.senderDid} - reciprocating',
     );
     await credentialsSDK.sendVrc(
-      SendVrcParams(
+      SendVrcRequest(
         channelDid: aliceChannel.otherPartyPermanentChannelDid!,
         issuerDid: aliceChannel.permanentChannelDid!,
         issuerName: 'Alice',

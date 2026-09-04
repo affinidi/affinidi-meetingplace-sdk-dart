@@ -6,5 +6,5 @@
 export 'received_vrc_params.dart';
 export 'received_vrc_request_params.dart';
 export 'request_vrc_exchange_params.dart';
-export 'send_vrc_params.dart';
-export 'store_vrc_params.dart';
+export 'send_vrc_request.dart';
+export 'store_vrc_request.dart';

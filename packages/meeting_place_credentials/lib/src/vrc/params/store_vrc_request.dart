@@ -1,6 +1,6 @@
 /// Parameters for `MeetingPlaceCredentialsSDK.storeVrc`.
-class StoreVrcParams {
-  const StoreVrcParams({
+class StoreVrcRequest {
+  const StoreVrcRequest({
     required this.vcBlob,
     required this.referenceId,
     this.verifiedAt,

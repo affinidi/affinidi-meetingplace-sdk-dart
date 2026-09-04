@@ -25,8 +25,8 @@ import 'vrc/model/vrc_request_processing_result.dart';
 import 'vrc/params/received_vrc_params.dart';
 import 'vrc/params/received_vrc_request_params.dart';
 import 'vrc/params/request_vrc_exchange_params.dart';
-import 'vrc/params/send_vrc_params.dart';
-import 'vrc/params/store_vrc_params.dart';
+import 'vrc/params/send_vrc_request.dart';
+import 'vrc/params/store_vrc_request.dart';
 import 'vrc/parser/vrc_parser.dart';
 import 'vrc/repository/vrc_repository.dart';
 import 'vrc/vrc_exchange_client.dart';
@@ -385,12 +385,12 @@ class MeetingPlaceCredentialsSDK {
     return _vrcParser.parse(vcBlob: vcBlob);
   }
 
-  /// Parses and stores a VRC for the given [StoreVrcParams.referenceId].
+  /// Parses and stores a VRC for the given [StoreVrcRequest.referenceId].
   ///
   /// Throws [MeetingPlaceCredentialsSDKException] with
   /// [MeetingPlaceCredentialsSDKErrorCode.vrcInvalidCredential] if
-  /// [StoreVrcParams.vcBlob] cannot be parsed as a valid VRC.
-  Future<Vrc> storeVrc(StoreVrcParams params) async {
+  /// [StoreVrcRequest.vcBlob] cannot be parsed as a valid VRC.
+  Future<Vrc> storeVrc(StoreVrcRequest params) async {
     final parsed = await parseVrc(vcBlob: params.vcBlob);
     if (parsed == null) {
       throw MeetingPlaceCredentialsSDKException.vrcInvalidCredential();
@@ -425,8 +425,8 @@ class MeetingPlaceCredentialsSDK {
       );
 
   /// Builds and sends a VRC over VDIP for the given
-  /// [SendVrcParams.channelDid].
-  Future<String> sendVrc(SendVrcParams params) => _vrcClient.sendVrc(
+  /// [SendVrcRequest.channelDid].
+  Future<String> sendVrc(SendVrcRequest params) => _vrcClient.sendVrc(
     channelDid: params.channelDid,
     issuerDid: params.issuerDid,
     issuerName: params.issuerName,

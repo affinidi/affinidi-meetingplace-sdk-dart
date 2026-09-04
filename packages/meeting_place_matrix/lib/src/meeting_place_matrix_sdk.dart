@@ -315,36 +315,12 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   Future<DidManager> getDidManager(String did) => _coreSDK.getDidManager(did);
 
   @override
-  Future<OobOfferSession> createOobFlow({
-    required ContactCard contactCard,
-    String? type,
-    String? did,
-    String? mediatorDid,
-    String? externalRef,
-  }) => _coreSDK.createOobFlow(
-    contactCard: contactCard,
-    type: type,
-    did: did,
-    mediatorDid: mediatorDid,
-    externalRef: externalRef,
-  );
+  Future<OobOfferSession> createOobFlow(CreateOobFlowRequest request) =>
+      _coreSDK.createOobFlow(request);
 
   @override
-  Future<OobAcceptanceSession> acceptOobFlow(
-    Uri oobUrl, {
-    required ContactCard contactCard,
-    String? type,
-    String? externalRef,
-    String? did,
-    List<Attachment>? attachments,
-  }) => _coreSDK.acceptOobFlow(
-    oobUrl,
-    contactCard: contactCard,
-    type: type,
-    externalRef: externalRef,
-    did: did,
-    attachments: attachments,
-  );
+  Future<OobAcceptanceSession> acceptOobFlow(AcceptOobFlowRequest request) =>
+      _coreSDK.acceptOobFlow(request);
 
   @override
   Future<ValidateOfferPhraseResult> validateOfferPhrase(String mnemonic) =>

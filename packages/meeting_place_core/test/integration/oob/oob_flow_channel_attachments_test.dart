@@ -28,9 +28,11 @@ void main() {
       final oobOfferSession = await fixture.createOobFlow();
 
       await fixture.bobSDK.acceptOobFlow(
-        oobOfferSession.oobUrl,
-        contactCard: OobFlowFixture.bobContactCard(),
-        attachments: [attachment],
+        AcceptOobFlowRequest(
+          oobUrl: oobOfferSession.oobUrl,
+          contactCard: OobFlowFixture.bobContactCard(),
+          attachments: [attachment],
+        ),
       );
 
       await OobFlowFixture.waitForFirstChannelFromCreate(oobOfferSession);

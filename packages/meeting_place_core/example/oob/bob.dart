@@ -20,14 +20,14 @@ void main() async {
   final bobWaitFor = Completer<Channel>();
 
   // Bob accepts OOB
-  final acceptance = await bobSDK.acceptOobFlow(
-    oobUri,
+  final acceptance = await bobSDK.acceptOobFlow(AcceptOobFlowRequest(
+    oobUrl: oobUri,
     contactCard: ContactCard(
       did: 'did:test:bob',
       type: 'individual',
       contactInfo: {'firstName': 'Bob'},
     ),
-  );
+  ));
 
   // Bob listens for approval
   prettyPrintYellow('Listening on OOB stream...');

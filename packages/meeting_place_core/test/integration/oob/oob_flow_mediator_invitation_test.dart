@@ -65,7 +65,7 @@ void main() {
       final bobOnDoneCompleter = Completer<void>();
 
       final oobOfferSession = await aliceSDK.createOobFlow(
-        contactCard: aliceCard,
+        CreateOobFlowRequest(contactCard: aliceCard),
       );
 
       oobOfferSession.stream.listen((data) {
@@ -74,8 +74,10 @@ void main() {
       });
 
       final oobAcceptanceSession = await bobSDK.acceptOobFlow(
-        oobOfferSession.oobUrl,
-        contactCard: bobCard,
+        AcceptOobFlowRequest(
+          oobUrl: oobOfferSession.oobUrl,
+          contactCard: bobCard,
+        ),
       );
 
       oobAcceptanceSession.stream.listen((data) {
@@ -145,19 +147,22 @@ void main() {
 
   test('creates oob with custom goal_code based on type', () async {
     final session = await aliceSDK.createOobFlow(
-      contactCard: aliceCard,
-      type: 'test',
+      CreateOobFlowRequest(contactCard: aliceCard, type: 'test'),
     );
 
     expect(session.oobInvitationMessage.body.goalCode, equals('test'));
   });
 
   test('throws not found error if OOB invitation is not found', () async {
-    final oob = await aliceSDK.createOobFlow(contactCard: aliceCard);
+    final oob = await aliceSDK.createOobFlow(
+      CreateOobFlowRequest(contactCard: aliceCard),
+    );
     final notFoundUri = Uri.parse('${oob.oobUrl}non-existing-path');
 
     expect(
-      () async => await bobSDK.acceptOobFlow(notFoundUri, contactCard: bobCard),
+      () async => await bobSDK.acceptOobFlow(
+        AcceptOobFlowRequest(oobUrl: notFoundUri, contactCard: bobCard),
+      ),
       throwsA(
         isA<MeetingPlaceCoreSDKException>().having(
           (e) => e.code,
@@ -172,15 +177,16 @@ void main() {
     'throws invalid type error if OOB invitation type doesn\'t match',
     () async {
       final oob = await aliceSDK.createOobFlow(
-        contactCard: aliceCard,
-        type: 'one',
+        CreateOobFlowRequest(contactCard: aliceCard, type: 'one'),
       );
 
       expect(
         () async => await bobSDK.acceptOobFlow(
-          oob.oobUrl,
-          contactCard: bobCard,
-          type: 'two',
+          AcceptOobFlowRequest(
+            oobUrl: oob.oobUrl,
+            contactCard: bobCard,
+            type: 'two',
+          ),
         ),
         throwsA(
           isA<MeetingPlaceCoreSDKException>().having(

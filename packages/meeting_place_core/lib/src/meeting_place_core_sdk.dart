@@ -604,38 +604,18 @@ class MeetingPlaceCoreSDK {
   /// Creates an Out-Of-Band invitation for a User.
   ///
   /// **Parameters:**
-  /// - [contactCard]: An object that contains information about who is offering
-  ///   the
-  ///   offer. This helps others know whom they are connecting with and provides
-  ///   necessary contact details.
-  ///
-  /// - [did] - If specified, this DID is used as the permanent
-  ///   channel DID within the channel entity. If omitted, a new DID will be
-  ///   generated automatically.
-  ///
-  /// - [mediatorDid] - The mediator's DID. If not provided, the SDK will use
-  ///   the mediator DID configured in the current instance.
-  ///
-  /// - [externalRef] - Application-specific data that is passed through to
-  ///   internal oob entity and can be referenced later for tracking or
-  ///   identification purposes. [externalRef] is accessible on the current
-  ///   device only.
+  /// - [request] - A [sdk.CreateOobFlowRequest] describing the invitation to
+  ///   create.
   ///
   /// Returns [OobOfferSession]
-  Future<OobOfferSession> createOobFlow({
-    required ContactCard contactCard,
-    String? type,
-    String? did,
-    String? mediatorDid,
-    String? externalRef,
-  }) async {
+  Future<OobOfferSession> createOobFlow(sdk.CreateOobFlowRequest request) {
     return _withSdkExceptionHandling(() {
       return _oobService.createOobFlow(
-        contactCard: contactCard,
-        type: type,
-        did: did,
-        mediatorDid: mediatorDid ?? _mediatorDid,
-        externalRef: externalRef,
+        contactCard: request.contactCard,
+        type: request.type,
+        did: request.did,
+        mediatorDid: request.mediatorDid ?? _mediatorDid,
+        externalRef: request.externalRef,
       );
     });
   }
@@ -643,39 +623,20 @@ class MeetingPlaceCoreSDK {
   /// Accepts an Out-Of-Band invitation created by a User.
   ///
   /// **Parameters:**
-  /// - [oobUrl]: The OOB URL.
-  ///
-  /// - [contactCard]: An object that contains information about who is offering
-  ///   the
-  ///   offer. This helps others know whom they are connecting with and provides
-  ///   necessary contact details.
-  ///
-  /// - [externalRef] - Application-specific data that is passed through to
-  ///   internal oob entity and can be referenced later for tracking or
-  ///   identification purposes. [externalRef] is accessible on the current
-  ///   device only.
-  ///
-  /// - [attachments] - Optional list of attachments (e.g., R-Card credentials)
-  ///   to include in the invitation acceptance message.
+  /// - [request] - A [sdk.AcceptOobFlowRequest] describing the invitation to
+  ///   accept.
   ///
   /// Returns [OobAcceptanceSession]
-  Future<OobAcceptanceSession> acceptOobFlow(
-    Uri oobUrl, {
-    required ContactCard contactCard,
-    String? type,
-    String? externalRef,
-    String? did,
-    List<Attachment>? attachments,
-  }) async {
+  Future<OobAcceptanceSession> acceptOobFlow(sdk.AcceptOobFlowRequest request) {
     return _withSdkExceptionHandling(() {
       return _oobService.acceptOobFlow(
-        oobUrl,
-        did: did,
-        type: type,
-        contactCard: contactCard,
-        externalRef: externalRef,
+        request.oobUrl,
+        did: request.did,
+        type: request.type,
+        contactCard: request.contactCard,
+        externalRef: request.externalRef,
         mediatorDid: _mediatorDid,
-        attachments: attachments,
+        attachments: request.attachments,
       );
     });
   }

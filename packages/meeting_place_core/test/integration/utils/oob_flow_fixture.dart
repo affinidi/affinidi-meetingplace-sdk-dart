@@ -42,11 +42,15 @@ class OobFlowFixture {
   }
 
   Future<OobOfferSession> createOobFlow({String? did}) {
-    return aliceSDK.createOobFlow(contactCard: aliceContactCard(), did: did);
+    return aliceSDK.createOobFlow(
+      CreateOobFlowRequest(contactCard: aliceContactCard(), did: did),
+    );
   }
 
   Future<OobAcceptanceSession> acceptOobFlow(Uri oobUrl) {
-    return bobSDK.acceptOobFlow(oobUrl, contactCard: bobContactCard());
+    return bobSDK.acceptOobFlow(
+      AcceptOobFlowRequest(oobUrl: oobUrl, contactCard: bobContactCard()),
+    );
   }
 
   static Future<Channel> waitForFirstChannelFromCreate(OobOfferSession result) {

@@ -14,13 +14,13 @@ void main() async {
   final bobWaitFor = Completer<void>();
 
   // Alice creates OOB
-  final oob = await aliceSDK.createOobFlow(
+  final oob = await aliceSDK.createOobFlow(CreateOobFlowRequest(
     contactCard: ContactCard(
       did: 'did:test:alice',
       type: 'individual',
       contactInfo: {'firstName': 'Alice'},
     ),
-  );
+  ));
 
   // Alice listens on acceptance
   oob.stream.listen((data) {
@@ -29,14 +29,14 @@ void main() async {
   });
 
   // Bob accepts OOB
-  final acceptance = await bobSDK.acceptOobFlow(
-    oob.oobUrl,
+  final acceptance = await bobSDK.acceptOobFlow(AcceptOobFlowRequest(
+    oobUrl: oob.oobUrl,
     contactCard: ContactCard(
       did: 'did:test:bob',
       type: 'individual',
       contactInfo: {'firstName': 'Bob'},
     ),
-  );
+  ));
 
   // Bob listens for approval
   acceptance.stream.listen((data) {

@@ -7,7 +7,6 @@ import 'package:uuid/uuid.dart';
 
 import '../../meeting_place_chat.dart';
 import '../logger/logger_formatter.dart';
-import '../logger/top_and_tail_extension.dart';
 
 /// [BaseChatSDK] is an abstract base class that provides functionality
 /// for Chat App implementations.
@@ -84,14 +83,17 @@ abstract class BaseChatSDK {
 
   /// Refreshes the current local contact card through the SDK-owned local
   /// event pipeline so app code stays transport-agnostic.
-  Future<void> refreshCurrentContactCard(ContactCard? card) async {
-    await onLocalChatEvent(
-      ChatCurrentContactCardUpdatedEvent(contactCard: card),
-    );
-    chatStream.pushData(
-      StreamData(event: ChatCurrentContactCardUpdatedEvent(contactCard: card)),
-    );
-  }
+  Future<void> refreshCurrentContactCard(ContactCard? card) =>
+      withSdkExceptionHandling(() async {
+        await onLocalChatEvent(
+          ChatCurrentContactCardUpdatedEvent(contactCard: card),
+        );
+        chatStream.pushData(
+          StreamData(
+            event: ChatCurrentContactCardUpdatedEvent(contactCard: card),
+          ),
+        );
+      });
 
   /// Emits a local chat event through the session stream.
   @protected
@@ -121,6 +123,28 @@ abstract class BaseChatSDK {
   /// (e.g. a deleted group). Default: no-op.
   @protected
   void assertCanSend() {}
+
+  /// Runs [operation], converting any error it throws that is not already a
+  /// [MeetingPlaceChatSDKException] into one with
+  /// [MeetingPlaceChatSDKErrorCode.generic], so every operational method on
+  /// the chat SDK throws the same unified exception type.
+  @protected
+  Future<T> withSdkExceptionHandling<T>(Future<T> Function() operation) async {
+    try {
+      return await operation();
+    } on MeetingPlaceChatSDKException {
+      rethrow;
+    } catch (e, stackTrace) {
+      Error.throwWithStackTrace(
+        MeetingPlaceChatSDKException(
+          message: 'Failure on Chat SDK exception',
+          code: MeetingPlaceChatSDKErrorCode.generic,
+          innerException: e,
+        ),
+        stackTrace,
+      );
+    }
+  }
 
   /// Unique chat ID derived from [did] and [otherPartyDid].
   String get chatId => Chat.deriveId(did: did, otherPartyDid: otherPartyDid);
@@ -156,7 +180,9 @@ abstract class BaseChatSDK {
   /// Retrieves a single message by ID.
   Future<ChatItem?> getMessageById(String messageId) {
     _logger.info('Retrieving message by ID: $messageId', name: _logkey);
-    return chatRepository.getMessage(chatId: chatId, messageId: messageId);
+    return withSdkExceptionHandling(
+      () => chatRepository.getMessage(chatId: chatId, messageId: messageId),
+    );
   }
 
   /// Stream of live chat events ([StreamData]) for this session.
@@ -198,13 +224,14 @@ abstract class BaseChatSDK {
   Future<void> sendChatContactDetailsUpdate(ConciergeMessage message);
 
   /// Rejects a contact details update and marks message as confirmed.
-  Future<void> rejectChatContactDetailsUpdate(ConciergeMessage message) async {
-    message.status = ChatItemStatus.confirmed;
-    await chatRepository.updateMesssage(message);
+  Future<void> rejectChatContactDetailsUpdate(ConciergeMessage message) =>
+      withSdkExceptionHandling(() async {
+        message.status = ChatItemStatus.confirmed;
+        await chatRepository.updateMesssage(message);
 
-    _logger.info('Chat contact details update rejected', name: _logkey);
-    chatStream.pushData(StreamData(chatItem: message));
-  }
+        _logger.info('Chat contact details update rejected', name: _logkey);
+        chatStream.pushData(StreamData(chatItem: message));
+      });
 
   /// Reacts (or unreacts) to a chat message with an emoji or symbol.
   Future<void> reactOnMessage(Message message, {required String reaction});
@@ -238,13 +265,13 @@ abstract class BaseChatSDK {
     chatStream.dispose();
   }
 
-  Future<Channel> getChannel() async {
+  @protected
+  Future<Channel> getChannel() => withSdkExceptionHandling(() async {
     return await coreSDK.findChannelByOtherPartyPermanentDid(otherPartyDid) ??
-        (throw Exception(
-          'Channel with peer DID ${otherPartyDid.topAndTail()} not '
-          'found',
+        (throw MeetingPlaceChatSDKException.channelNotFound(
+          otherPartyDid: otherPartyDid,
         ));
-  }
+  });
 
   /// Creates a local chat [Message] with the given attachments.
   ///
@@ -254,11 +281,10 @@ abstract class BaseChatSDK {
   Future<void> createAttachmentMessage({
     required List<ChatAttachment> attachments,
     required String senderDid,
-  }) async {
+  }) => withSdkExceptionHandling(() async {
     if (senderDid != did && senderDid != otherPartyDid) {
-      throw Exception(
-        'senderDid $senderDid is not a participant of this chat '
-        '(did=$did, otherPartyDid=$otherPartyDid).',
+      throw MeetingPlaceChatSDKException.invalidParticipant(
+        senderDid: senderDid,
       );
     }
     final chatMessage = Message(
@@ -273,5 +299,5 @@ abstract class BaseChatSDK {
     );
     await chatRepository.createMessage(chatMessage);
     chatStream.pushData(StreamData(chatItem: chatMessage));
-  }
+  });
 }

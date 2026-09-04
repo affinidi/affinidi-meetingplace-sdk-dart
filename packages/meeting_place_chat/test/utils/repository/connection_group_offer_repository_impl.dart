@@ -25,7 +25,7 @@ class GroupRepositoryImpl implements GroupRepository {
   }
 
   @override
-  Future<Group?> getGroupById(String groupId) async {
+  Future<Group?> findGroupById(String groupId) async {
     final group = await _storage.get<String>('$groupPrefix$groupId');
     if (group == null) return null;
 
@@ -33,7 +33,7 @@ class GroupRepositoryImpl implements GroupRepository {
   }
 
   @override
-  Future<Group?> getGroupByOfferLink(String offerLink) async {
+  Future<Group?> findGroupByOfferLink(String offerLink) async {
     final groupId = await _storage.get<String>(
       '$connectionGroupRelationPrefix$offerLink',
     );
@@ -42,7 +42,7 @@ class GroupRepositoryImpl implements GroupRepository {
       return null;
     }
 
-    return getGroupById(groupId);
+    return findGroupById(groupId);
   }
 
   @override
@@ -52,7 +52,7 @@ class GroupRepositoryImpl implements GroupRepository {
 
   @override
   Future<void> addMemberIfAbsent(String groupId, GroupMember member) async {
-    final group = await getGroupById(groupId);
+    final group = await findGroupById(groupId);
     if (group == null) return;
     final alreadyPresent = group.members.any((m) => m.did == member.did);
     if (alreadyPresent) return;
@@ -66,7 +66,7 @@ class GroupRepositoryImpl implements GroupRepository {
     String memberDid,
     GroupMemberStatus status,
   ) async {
-    final group = await getGroupById(groupId);
+    final group = await findGroupById(groupId);
     if (group == null) return;
     for (final m in group.members) {
       if (m.did == memberDid) {
@@ -79,7 +79,7 @@ class GroupRepositoryImpl implements GroupRepository {
 
   @override
   Future<void> removeMember(String groupId, String memberDid) async {
-    final group = await getGroupById(groupId);
+    final group = await findGroupById(groupId);
     if (group == null) return;
     group.members.removeWhere((m) => m.did == memberDid);
     await updateGroup(group);

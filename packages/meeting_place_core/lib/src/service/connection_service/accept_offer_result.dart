@@ -4,12 +4,12 @@ class AcceptOfferResult {
   AcceptOfferResult({
     required this.connectionOffer,
     required this.channel,
-    required this.acceptOfferDid,
-    required this.permanentChannelDid,
+    required this.acceptOfferDidManager,
+    required this.permanentChannelDidManager,
   });
 
   final ConnectionOffer connectionOffer;
   final Channel channel;
-  final DidManager acceptOfferDid;
-  final DidManager permanentChannelDid;
+  final DidManager acceptOfferDidManager;
+  final DidManager permanentChannelDidManager;
 }

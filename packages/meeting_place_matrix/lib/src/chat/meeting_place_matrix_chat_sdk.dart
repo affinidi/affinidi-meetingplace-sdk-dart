@@ -76,7 +76,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     if (channel.type == ChannelType.group &&
         channel.transport == ChannelTransport.matrix) {
       final group =
-          await coreSDK.getGroupByOfferLink(channel.offerLink) ??
+          await coreSDK.findGroupByOfferLink(channel.offerLink) ??
           (throw Exception('Group not found'));
 
       return GroupMatrixChatSDK(
@@ -239,7 +239,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   /// already-settled items. Prefers the device's own outgoing item over an
   /// incoming one so a caller that already ended its item can still be
   /// resolved. Scans persisted messages; per-chat call history is bounded.
-  Future<ChatItem?> getCallChatItemByCallId(String callId) async {
+  Future<ChatItem?> findCallChatItemByCallId(String callId) async {
     if (callId.isEmpty) return null;
     final items = await messages;
     Message? outgoing;
@@ -263,7 +263,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   Future<StreamSubscription<MatrixRoomEvent>> subscribeToMatrixRoom() async {
     final handle = await coreSDK.subscribe(
       MatrixRoomSubscription(
-        receiverDid: did,
+        ownerDid: did,
         options: const TransportSubscriptionOptions(excludeSelf: true),
       ),
     );
@@ -820,7 +820,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   ) async {
     final historyEvents = await coreSDK.fetchHistory(
       MatrixRoomHistoryQuery(
-        receiverDid: did,
+        ownerDid: did,
         since: bootstrapCursor,
         updateChannelSyncMarker: false,
       ),

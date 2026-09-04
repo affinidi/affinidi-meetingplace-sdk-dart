@@ -14,14 +14,14 @@ class MatrixSenderDidResolver {
   final MatrixService _matrixService;
 
   Future<String?> resolve({
-    required String receiverDid,
+    required String ownerDid,
     required String matrixUserId,
   }) async {
-    final channel = await _coreSDK.findChannelByDidOrNull(receiverDid);
+    final channel = await _coreSDK.findChannelByDid(ownerDid);
     if (channel == null) return null;
 
     final serverName = _matrixService.homeserver.host;
-    final candidates = [receiverDid, ...await fetchParticipantDids(channel)];
+    final candidates = [ownerDid, ...await fetchParticipantDids(channel)];
     return resolveSenderDidFromCandidates(
       matrixUserId: matrixUserId,
       serverName: serverName,
@@ -31,7 +31,7 @@ class MatrixSenderDidResolver {
 
   Future<List<String>> fetchParticipantDids(Channel channel) async {
     if (channel.type == ChannelType.group) {
-      final group = await _coreSDK.getGroupByOfferLink(channel.offerLink);
+      final group = await _coreSDK.findGroupByOfferLink(channel.offerLink);
       if (group == null) return [];
       return group.members.map((m) => m.did).toList();
     }

@@ -52,7 +52,7 @@ void main() {
       Uri.parse('https://didcomm.org/out-of-band/2.0/invitation'),
     );
 
-    final oobActual = await aliceSDK.mediator.getOob(oobUrl);
+    final oobActual = await aliceSDK.mediator.findOob(oobUrl);
     expect(oobActual?.id, actual.id);
   });
 

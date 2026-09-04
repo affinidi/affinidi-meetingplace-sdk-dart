@@ -47,7 +47,7 @@ void main() async {
     expect(
       () => sdk.execute(command),
       throwsA(
-        isA<ControlPlaneSDKException>().having(
+        isA<MeetingPlaceControlPlaneSDKException>().having(
           (e) => e.code,
           'code',
           'register_offer_mnemonic_in_use',

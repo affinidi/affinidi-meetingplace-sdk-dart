@@ -1,5 +1,5 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
-    show ControlPlaneSDKException;
+    show MeetingPlaceControlPlaneSDKException;
 import 'package:meeting_place_mediator/meeting_place_mediator.dart'
     show MeetingPlaceMediatorSDKException;
 
@@ -43,7 +43,7 @@ class MeetingPlaceCoreSDKException implements Exception {
 
     while (current != null) {
       if (current is! MeetingPlaceMediatorSDKException &&
-          current is! ControlPlaneSDKException) {
+          current is! MeetingPlaceControlPlaneSDKException) {
         buffer.writeln('- Caused by: ${current.toString()}');
       }
       current = getNestedInnerException(current);

@@ -66,7 +66,7 @@ void main() {
     group('IndividualChannelNotification', () {
       test('dispatches NotifyChannelCommand with token from channel', () async {
         when(
-          () => channelService.findChannelByDidOrNull('did:recipient'),
+          () => channelService.findChannelByDid('did:recipient'),
         ).thenAnswer((_) async => buildChannel(notificationToken: 'tok-1'));
         when(
           () => controlPlaneSDK.execute<NotifyChannelCommandOutput>(any()),
@@ -93,7 +93,7 @@ void main() {
 
       test('no-op when channel has no notification token', () async {
         when(
-          () => channelService.findChannelByDidOrNull('did:recipient'),
+          () => channelService.findChannelByDid('did:recipient'),
         ).thenAnswer((_) async => buildChannel());
 
         await service.notifyChannel(
@@ -110,7 +110,7 @@ void main() {
 
       test('wraps failure in MessageServiceException', () async {
         when(
-          () => channelService.findChannelByDidOrNull('did:recipient'),
+          () => channelService.findChannelByDid('did:recipient'),
         ).thenAnswer((_) async => buildChannel(notificationToken: 'tok-1'));
         when(
           () => controlPlaneSDK.execute<NotifyChannelCommandOutput>(any()),
@@ -154,7 +154,7 @@ void main() {
         expect(captured.groupDid, 'did:group');
         expect(captured.type, 'chat-activity');
         expect(captured.memberDid, isNull);
-        verifyNever(() => channelService.findChannelByDidOrNull(any()));
+        verifyNever(() => channelService.findChannelByDid(any()));
       });
 
       test('threads memberDid to GroupNotifyChannelCommand when set', () async {

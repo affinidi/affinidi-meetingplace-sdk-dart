@@ -21,7 +21,7 @@ class DeregisterNotificationsException implements ControlPlaneException {
   factory DeregisterNotificationsException.generic({Object? innerException}) {
     return DeregisterNotificationsException._(
       message: 'Deregister notification failed: ${innerException.toString()}.',
-      code: ControlPlaneSDKErrorCode.deregisterNotificationGeneric,
+      code: MeetingPlaceControlPlaneSDKErrorCode.deregisterNotificationGeneric,
       innerException: innerException,
     );
   }
@@ -29,7 +29,7 @@ class DeregisterNotificationsException implements ControlPlaneException {
   final String message;
 
   @override
-  final ControlPlaneSDKErrorCode code;
+  final MeetingPlaceControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;

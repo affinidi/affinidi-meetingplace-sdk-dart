@@ -114,7 +114,7 @@ class MatrixTransport implements MeetingPlaceTransport {
   }
 
   @override
-  Stream<TransportEvent> subscribe({
+  Stream<TransportEvent> subscribeToEvents({
     required Channel channel,
     required DidManager didManager,
     TransportSubscriptionOptions? options,
@@ -147,7 +147,7 @@ class MatrixTransport implements MeetingPlaceTransport {
           e.senderDid ??
           _resolveSenderDid(
             matrixUserId: e.userId,
-            receiverDid: (await didManager.getDidDocument()).id,
+            ownerDid: (await didManager.getDidDocument()).id,
             participantDids: participantDids,
             serverName: _matrixService.homeserver.host,
           );
@@ -182,7 +182,7 @@ class MatrixTransport implements MeetingPlaceTransport {
   }
 
   @override
-  Future<List<TransportEvent>> fetchHistory({
+  Future<List<TransportEvent>> fetchEventHistory({
     required Channel channel,
     required DidManager didManager,
     int? limit,
@@ -221,7 +221,7 @@ class MatrixTransport implements MeetingPlaceTransport {
   }
 
   @override
-  Future<String?> getLastEventId({
+  Future<String?> findLastEventId({
     required Channel channel,
     required DidManager didManager,
   }) async {
@@ -314,13 +314,13 @@ class MatrixTransport implements MeetingPlaceTransport {
 
   String? _resolveSenderDid({
     required String matrixUserId,
-    required String receiverDid,
+    required String ownerDid,
     required List<String> participantDids,
     required String serverName,
   }) {
     bool matches(String did) =>
         deriveMatrixUserId(did, serverName) == matrixUserId;
-    if (matches(receiverDid)) return receiverDid;
+    if (matches(ownerDid)) return ownerDid;
     for (final did in participantDids) {
       if (matches(did)) return did;
     }

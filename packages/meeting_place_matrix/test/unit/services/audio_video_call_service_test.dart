@@ -207,7 +207,7 @@ void main() {
   group('joinCall', () {
     test('sets status to error when no channel is found', () async {
       when(
-        () => mockSdk.getChannelByOtherPartyPermanentDid(any()),
+        () => mockSdk.findChannelByOtherPartyPermanentDid(any()),
       ).thenAnswer((_) async => null);
 
       await service.joinCall();
@@ -229,10 +229,10 @@ void main() {
       addTearDown(svc.dispose);
 
       when(
-        () => mockSdk.getChannelByOtherPartyPermanentDid(_otherPartyDid),
+        () => mockSdk.findChannelByOtherPartyPermanentDid(_otherPartyDid),
       ).thenAnswer((_) async => _stubChannel());
       when(
-        () => mockSdk.getGroupByOfferLink(any()),
+        () => mockSdk.findGroupByOfferLink(any()),
       ).thenAnswer((_) async => null);
 
       when(
@@ -328,10 +328,10 @@ void main() {
         );
 
         when(
-          () => mockSdk.getChannelByOtherPartyPermanentDid(_otherPartyDid),
+          () => mockSdk.findChannelByOtherPartyPermanentDid(_otherPartyDid),
         ).thenAnswer((_) async => _stubChannel());
         when(
-          () => mockSdk.getGroupByOfferLink(any()),
+          () => mockSdk.findGroupByOfferLink(any()),
         ).thenAnswer((_) async => null);
         when(
           () => mockSdk.getDidManager(any()),
@@ -419,10 +419,10 @@ void main() {
         addTearDown(svc.dispose);
 
         when(
-          () => mockSdk.getChannelByOtherPartyPermanentDid(_otherPartyDid),
+          () => mockSdk.findChannelByOtherPartyPermanentDid(_otherPartyDid),
         ).thenAnswer((_) async => _stubChannel());
         when(
-          () => mockSdk.getGroupByOfferLink(any()),
+          () => mockSdk.findGroupByOfferLink(any()),
         ).thenAnswer((_) async => null);
         when(
           () => mockSdk.getDidManager(any()),
@@ -502,10 +502,10 @@ void main() {
       required String? activeCallId,
     }) {
       when(
-        () => mockSdk.getChannelByOtherPartyPermanentDid(_otherPartyDid),
+        () => mockSdk.findChannelByOtherPartyPermanentDid(_otherPartyDid),
       ).thenAnswer((_) async => _stubChannel());
       when(
-        () => mockSdk.getGroupByOfferLink(any()),
+        () => mockSdk.findGroupByOfferLink(any()),
       ).thenAnswer((_) async => null);
       when(
         () => mockSdk.getDidManager(any()),
@@ -839,7 +839,7 @@ void main() {
     test('transitions from outgoingRinging to declined', () async {
       final channelCompleter = Completer<Channel?>();
       when(
-        () => mockSdk.getChannelByOtherPartyPermanentDid(any()),
+        () => mockSdk.findChannelByOtherPartyPermanentDid(any()),
       ).thenAnswer((_) => channelCompleter.future);
 
       unawaited(service.joinCall());

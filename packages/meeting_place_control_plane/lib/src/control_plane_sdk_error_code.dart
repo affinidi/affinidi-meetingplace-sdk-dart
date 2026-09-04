@@ -1,4 +1,4 @@
-enum ControlPlaneSDKErrorCode {
+enum MeetingPlaceControlPlaneSDKErrorCode {
   // accept offer codes
   acceptOfferAlreadyAccepted('accept_offer_already_accepted'),
   acceptOfferLimitExceeded('accept_offer_limit_exceeded'),
@@ -102,6 +102,6 @@ enum ControlPlaneSDKErrorCode {
   networkError('network_error'),
   generic('generic');
 
-  const ControlPlaneSDKErrorCode(this.value);
+  const MeetingPlaceControlPlaneSDKErrorCode(this.value);
   final String value;
 }

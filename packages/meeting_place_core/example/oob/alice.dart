@@ -44,7 +44,7 @@ void main() async {
   await oob.stream.dispose();
 
   final messageStream = await aliceSDK.subscribe(
-    DidCommSubscription(receiverDid: channel.permanentChannelDid!),
+    DidCommSubscription(ownerDid: channel.permanentChannelDid!),
   );
 
   final waitForBobsMessage = Completer<PlainTextMessage>();

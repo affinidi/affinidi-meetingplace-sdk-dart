@@ -102,7 +102,7 @@ void main() {
       'emits IncomingAudioVideoCallEvent with caller DID on success',
       () async {
         when(
-          () => sdk.getChannelByDid(_ownDid),
+          () => sdk.findChannelByDid(_ownDid),
         ).thenAnswer((_) async => _channel());
 
         final emitted = <IncomingAudioVideoCallEvent>[];
@@ -121,7 +121,7 @@ void main() {
     );
 
     test('drops signal when no channel is found', () async {
-      when(() => sdk.getChannelByDid(_ownDid)).thenAnswer((_) async => null);
+      when(() => sdk.findChannelByDid(_ownDid)).thenAnswer((_) async => null);
 
       final emitted = <IncomingAudioVideoCallEvent>[];
       final handler = callSignalHandler(emittedIncoming: emitted);
@@ -137,7 +137,7 @@ void main() {
       'drops signal when channel has no otherPartyPermanentChannelDid',
       () async {
         when(
-          () => sdk.getChannelByDid(_ownDid),
+          () => sdk.findChannelByDid(_ownDid),
         ).thenAnswer((_) async => _channel(otherPartyDid: null));
 
         final emitted = <IncomingAudioVideoCallEvent>[];
@@ -153,7 +153,7 @@ void main() {
 
     test('auto-rejects when already in a call', () async {
       when(
-        () => sdk.getChannelByDid(_ownDid),
+        () => sdk.findChannelByDid(_ownDid),
       ).thenAnswer((_) async => _channel());
 
       final handler = callSignalHandler();
@@ -188,10 +188,10 @@ void main() {
       const otherOwnDid = 'did:key:own-2';
       const otherCallerDid = 'did:key:caller-2';
       when(
-        () => sdk.getChannelByDid(_ownDid),
+        () => sdk.findChannelByDid(_ownDid),
       ).thenAnswer((_) async => _channel());
       when(
-        () => sdk.getChannelByDid(otherOwnDid),
+        () => sdk.findChannelByDid(otherOwnDid),
       ).thenAnswer((_) async => _channel(otherPartyDid: otherCallerDid));
       when(() => sdk.notifyChannel(any())).thenAnswer((_) async {});
 
@@ -223,7 +223,7 @@ void main() {
       '''routes re-invite from current peer to onPeerRestartedCall, not auto-decline''',
       () async {
         when(
-          () => sdk.getChannelByDid(_ownDid),
+          () => sdk.findChannelByDid(_ownDid),
         ).thenAnswer((_) async => _channel());
 
         // Mark an outbound call so isInCallWith returns true for _callerDid.
@@ -254,7 +254,7 @@ void main() {
       () async {
         const lowerPeerDid = 'did:key:aaa';
         when(
-          () => sdk.getChannelByDid(_ownDid),
+          () => sdk.findChannelByDid(_ownDid),
         ).thenAnswer((_) async => _channel(otherPartyDid: lowerPeerDid));
 
         pendingCallManager.markOutboundCall(lowerPeerDid);
@@ -284,7 +284,7 @@ void main() {
       () async {
         const higherPeerDid = 'did:key:zzz';
         when(
-          () => sdk.getChannelByDid(_ownDid),
+          () => sdk.findChannelByDid(_ownDid),
         ).thenAnswer((_) async => _channel(otherPartyDid: higherPeerDid));
 
         pendingCallManager.markOutboundCall(higherPeerDid);
@@ -312,7 +312,7 @@ void main() {
       'notifies active session when callee declines an outgoing call',
       () async {
         when(
-          () => sdk.getChannelByDid(_ownDid),
+          () => sdk.findChannelByDid(_ownDid),
         ).thenAnswer((_) async => _channel());
 
         final session = MockLiveKitCallSession();
@@ -333,7 +333,7 @@ void main() {
       'fires onCallCancelled when no active session matches caller DID',
       () async {
         when(
-          () => sdk.getChannelByDid(_ownDid),
+          () => sdk.findChannelByDid(_ownDid),
         ).thenAnswer((_) async => _channel());
 
         final cancelled = <IncomingAudioVideoCallEvent>[];
@@ -362,7 +362,7 @@ void main() {
       () async {
         const groupDid = 'did:key:group';
         when(
-          () => sdk.getChannelByDid(groupDid),
+          () => sdk.findChannelByDid(groupDid),
         ).thenAnswer((_) async => _channel());
 
         final cancelled = <IncomingAudioVideoCallEvent>[];
@@ -390,7 +390,7 @@ void main() {
 
     test('ignores signal when channel cannot be resolved', () async {
       when(
-        () => sdk.getChannelByDid(_ownDid),
+        () => sdk.findChannelByDid(_ownDid),
       ).thenThrow(Exception('network error'));
 
       final cancelled = <IncomingAudioVideoCallEvent>[];
@@ -409,7 +409,7 @@ void main() {
       () async {
         const recipientDid = 'did:key:recipient';
         when(
-          () => sdk.getChannelByDid(recipientDid),
+          () => sdk.findChannelByDid(recipientDid),
         ).thenAnswer((_) async => _channel(otherPartyDid: _callerDid));
 
         final cancelled = <IncomingAudioVideoCallEvent>[];
@@ -446,7 +446,7 @@ void main() {
       'drops a buffered invite that arrives after a pre-emptive decline',
       () async {
         when(
-          () => sdk.getChannelByDid(_ownDid),
+          () => sdk.findChannelByDid(_ownDid),
         ).thenAnswer((_) async => _channel());
 
         final incoming = <IncomingAudioVideoCallEvent>[];
@@ -476,7 +476,7 @@ void main() {
       'allows the next fresh invite after a buffered invite was dropped',
       () async {
         when(
-          () => sdk.getChannelByDid(_ownDid),
+          () => sdk.findChannelByDid(_ownDid),
         ).thenAnswer((_) async => _channel());
 
         final incoming = <IncomingAudioVideoCallEvent>[];
@@ -511,7 +511,7 @@ void main() {
   group('_resolveIncomingCallId roomId fallback', () {
     test('returns transport callId when activeCallId is available', () async {
       when(
-        () => sdk.getChannelByDid(_ownDid),
+        () => sdk.findChannelByDid(_ownDid),
       ).thenAnswer((_) async => _channel());
 
       final emitted = <IncomingAudioVideoCallEvent>[];
@@ -528,7 +528,7 @@ void main() {
       'falls back to roomId when transport callId not yet visible',
       () async {
         when(
-          () => sdk.getChannelByDid(_ownDid),
+          () => sdk.findChannelByDid(_ownDid),
         ).thenAnswer((_) async => _channel());
 
         // Mock activeCallId to return null (transport not visible yet)
@@ -559,7 +559,7 @@ void main() {
       'falls back to caller DID when call identifier resolution throws',
       () async {
         when(
-          () => sdk.getChannelByDid(_ownDid),
+          () => sdk.findChannelByDid(_ownDid),
         ).thenAnswer((_) async => _channel());
         when(
           () => matrixService.resolveRoomIdForChannel(

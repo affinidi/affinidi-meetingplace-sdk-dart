@@ -14,7 +14,7 @@ class GetOobHandler
 
   @override
   Future<GetOobOutput> handle(GetOobCommand command) async {
-    final oobMessageBase64 = await _mediatorService.getOob(command.oobUrl);
+    final oobMessageBase64 = await _mediatorService.findOob(command.oobUrl);
 
     return GetOobOutput(
       oobInvitationMessage: oobMessageBase64 == null

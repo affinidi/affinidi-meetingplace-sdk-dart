@@ -21,7 +21,7 @@ class GetOobException implements ControlPlaneException {
   factory GetOobException.oobNotFound({Object? innerException}) {
     return GetOobException._(
       message: 'Get OOB exception: OOB not found.',
-      code: ControlPlaneSDKErrorCode.oobNotFound,
+      code: MeetingPlaceControlPlaneSDKErrorCode.oobNotFound,
       innerException: innerException,
     );
   }
@@ -30,7 +30,7 @@ class GetOobException implements ControlPlaneException {
   final String message;
 
   @override
-  final ControlPlaneSDKErrorCode code;
+  final MeetingPlaceControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;

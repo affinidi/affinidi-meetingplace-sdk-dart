@@ -21,7 +21,7 @@ class GroupAddMemberException implements ControlPlaneException {
   factory GroupAddMemberException.generic({Object? innerException}) {
     return GroupAddMemberException._(
       message: 'Group add member exception: ${innerException.toString()}.',
-      code: ControlPlaneSDKErrorCode.groupAddMemberGeneric,
+      code: MeetingPlaceControlPlaneSDKErrorCode.groupAddMemberGeneric,
       innerException: innerException,
     );
   }
@@ -29,7 +29,7 @@ class GroupAddMemberException implements ControlPlaneException {
   final String message;
 
   @override
-  final ControlPlaneSDKErrorCode code;
+  final MeetingPlaceControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;

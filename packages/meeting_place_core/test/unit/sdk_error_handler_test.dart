@@ -39,32 +39,29 @@ void main() {
       );
     });
 
-    test(
-      'throws MeetingPlaceCoreSDKException for ControlPlaneSDKException',
-      () async {
-        final controlPlaneException = ControlPlaneSDKException(
-          message: 'ControlPlane error',
-          code: ControlPlaneSDKErrorCode.networkError.value,
-          innerException: ControlPlaneSDKException(
-            message: 'Control Plane SDK exception',
-            code: ControlPlaneSDKErrorCode.networkError.value,
-            innerException: Exception('Inner exception'),
-          ),
-        );
+    test('throws MeetingPlaceCoreSDKException for '
+        'MeetingPlaceControlPlaneSDKException', () async {
+      final controlPlaneException = MeetingPlaceControlPlaneSDKException(
+        message: 'ControlPlane error',
+        code: MeetingPlaceControlPlaneSDKErrorCode.networkError.value,
+        innerException: MeetingPlaceControlPlaneSDKException(
+          message: 'Control Plane SDK exception',
+          code: MeetingPlaceControlPlaneSDKErrorCode.networkError.value,
+          innerException: Exception('Inner exception'),
+        ),
+      );
 
-        expect(
-          () =>
-              errorHandler.handleError(() async => throw controlPlaneException),
-          throwsA(
-            isA<MeetingPlaceCoreSDKException>().having(
-              (e) => e.code,
-              'code',
-              ControlPlaneSDKErrorCode.networkError.value,
-            ),
+      expect(
+        () => errorHandler.handleError(() async => throw controlPlaneException),
+        throwsA(
+          isA<MeetingPlaceCoreSDKException>().having(
+            (e) => e.code,
+            'code',
+            MeetingPlaceControlPlaneSDKErrorCode.networkError.value,
           ),
-        );
-      },
-    );
+        ),
+      );
+    });
 
     test('throws MeetingPlaceCoreSDKException for '
         'MeetingPlaceMediatorSDKException', () async {

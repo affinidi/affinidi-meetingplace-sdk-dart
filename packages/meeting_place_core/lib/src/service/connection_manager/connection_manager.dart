@@ -98,7 +98,7 @@ class ConnectionManager {
 
   Future<DidManager> getDidManagerForDid(Wallet wallet, String did) async {
     final methodName = 'getDidManagerForDid';
-    final keyId = await _keyRepository.getKeyIdByDid(did: did);
+    final keyId = await _keyRepository.findKeyIdByDid(did: did);
     if (keyId == null) {
       _logger.error(
         'Key pair not found for DID: ${did.topAndTail()}',

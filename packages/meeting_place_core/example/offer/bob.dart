@@ -16,7 +16,7 @@ void main() async {
   prettyPrintGreen('>>> Calling SDK.registerForDIDCommNotifications');
   final notification = await bobSDK.registerForDIDCommNotifications();
   final notificationDidDocument =
-      await notification.recipientDid.getDidDocument();
+      await notification.recipientDidManager.getDidDocument();
   prettyPrintYellow('Notification DID ${notificationDidDocument.id}');
 
   final outputDirectory = Directory('.example-output');
@@ -65,7 +65,7 @@ void main() async {
   // Listen to mediator stream using notification DID
   prettyPrintGreen('>>> Calling SDK.subscribe');
   final notificationStream = await bobSDK.subscribe(
-    DidCommSubscription(receiverDid: notificationDidDocument.id),
+    DidCommSubscription(ownerDid: notificationDidDocument.id),
   );
 
   prettyPrintYellow('>>> Listen on notification stream');

@@ -1,5 +1,3 @@
-enum MediatorSdkExceptionErrorCodes { generic }
-
 /// Represents an Meeting Place Mediator SDK exception.
 class MeetingPlaceMediatorSDKException implements Exception {
   /// Creates a [MeetingPlaceMediatorSDKException] instance.

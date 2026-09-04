@@ -42,8 +42,8 @@ class MediatorResolver {
   ///
   /// Throws a [MediatorException.getMediatorDidError] if the
   /// request fails or returns an invalid response.
-  Future<String?> getMediatorDidFromUrl(String mediatorEndpoint) async {
-    final methodName = 'getMediatorDidFromUrl';
+  Future<String?> findMediatorDidFromUrl(String mediatorEndpoint) async {
+    final methodName = 'findMediatorDidFromUrl';
     _logger.info(
       'Started resolving mediator DID from endpoint: $mediatorEndpoint',
       name: methodName,

@@ -80,7 +80,7 @@ void main() {
 
   void stubChatActivity(Channel channel) {
     when(
-      () => mockChannelService.findChannelByDid(channelDid),
+      () => mockChannelService.getChannelByDid(channelDid),
     ).thenAnswer((_) async => channel);
 
     when(

@@ -80,9 +80,7 @@ class MessageService {
     try {
       switch (notification) {
         case IndividualChannelNotification(:final recipientDid, :final type):
-          final channel = await _channelService.findChannelByDidOrNull(
-            recipientDid,
-          );
+          final channel = await _channelService.findChannelByDid(recipientDid);
           final otherPartyNotificationToken =
               channel?.otherPartyNotificationToken;
           if (otherPartyNotificationToken == null) return;

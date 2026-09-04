@@ -152,7 +152,7 @@ void main() {
     when(
       () => coreSDK.controlPlaneEventsStream,
     ).thenAnswer((_) => streamController.stream);
-    when(() => coreSDK.getGroupById('group-1')).thenAnswer((_) async => grp);
+    when(() => coreSDK.findGroupById('group-1')).thenAnswer((_) async => grp);
     when(
       () => chatRepository.createMessage(any()),
     ).thenAnswer((_) async => _stubConcierge());

@@ -56,7 +56,7 @@ void main() {
     test('sends requestIssuance with correct metadata', () async {
       final channel = makeChannel();
       when(
-        () => mockCoreSDK.getChannelByOtherPartyPermanentDid('did:key:peer'),
+        () => mockCoreSDK.findChannelByOtherPartyPermanentDid('did:key:peer'),
       ).thenAnswer((_) async => channel);
       when(
         () => mockVdipClient.requestIssuance(
@@ -97,7 +97,7 @@ void main() {
 
     test('returns without sending when channel is null', () async {
       when(
-        () => mockCoreSDK.getChannelByOtherPartyPermanentDid(any()),
+        () => mockCoreSDK.findChannelByOtherPartyPermanentDid(any()),
       ).thenAnswer((_) async => null);
 
       await client.requestExchange(
@@ -132,7 +132,7 @@ void main() {
     test('builds, sends VRC and returns non-empty vcBlob', () async {
       final channel = makeChannel(permanentChannelDid: issuerDid);
       when(
-        () => mockCoreSDK.getChannelByOtherPartyPermanentDid('did:key:peer'),
+        () => mockCoreSDK.findChannelByOtherPartyPermanentDid('did:key:peer'),
       ).thenAnswer((_) async => channel);
       when(
         () => mockCoreSDK.getDidManager(issuerDid),
@@ -169,7 +169,7 @@ void main() {
       'throws MeetingPlaceCredentialsSDKException when channel is null',
       () async {
         when(
-          () => mockCoreSDK.getChannelByOtherPartyPermanentDid(any()),
+          () => mockCoreSDK.findChannelByOtherPartyPermanentDid(any()),
         ).thenAnswer((_) async => null);
 
         await expectLater(

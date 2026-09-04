@@ -82,7 +82,7 @@ void main() {
     final store = <String, ChatItem>{};
 
     when(
-      () => core.getChannelByOtherPartyPermanentDid(any()),
+      () => core.findChannelByOtherPartyPermanentDid(any()),
     ).thenAnswer((_) async => _fakeChannel());
 
     when(() => core.updateChannel(any())).thenAnswer((_) async {});

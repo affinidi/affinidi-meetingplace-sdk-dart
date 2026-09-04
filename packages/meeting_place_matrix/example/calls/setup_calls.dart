@@ -33,17 +33,20 @@ void main() async {
       controlPlaneDid:
           Platform.environment['CONTROL_PLANE_DID'] ?? 'did:test:controlplane',
       homeserver: Uri.parse(
-          Platform.environment['MATRIX_HOMESERVER'] ?? 'http://localhost:8008'),
+        Platform.environment['MATRIX_HOMESERVER'] ?? 'http://localhost:8008',
+      ),
       databaseFactory: const CallbackMatrixDatabaseFactory(
         openDatabase: _openMatrixDatabase,
       ),
       deviceId: const Uuid().v4(),
       // LiveKit configuration — required for audio/video calls
       livekitServiceUrl: Uri.parse(
-          Platform.environment['LIVEKIT_JWT_SERVICE_URL'] ??
-              'https://livekit-jwt.example.com'),
-      livekitSfuUrl: Uri.parse(Platform.environment['LIVEKIT_SFU_URL'] ??
-          'wss://livekit.example.com'),
+        Platform.environment['LIVEKIT_JWT_SERVICE_URL'] ??
+            'https://livekit-jwt.example.com',
+      ),
+      livekitSfuUrl: Uri.parse(
+        Platform.environment['LIVEKIT_SFU_URL'] ?? 'wss://livekit.example.com',
+      ),
     );
 
     print('MatrixConfig created with LiveKit enabled');
@@ -74,7 +77,8 @@ void main() async {
 Future<DatabaseApi> _openMatrixDatabase(MatrixDatabaseContext context) async {
   sqfliteFfiInit();
   final directory = Directory(
-      '${Directory.systemTemp.path}/meeting_place_matrix_calls_example');
+    '${Directory.systemTemp.path}/meeting_place_matrix_calls_example',
+  );
   await directory.create(recursive: true);
   return MatrixSdkDatabase.init(
     context.databaseName,

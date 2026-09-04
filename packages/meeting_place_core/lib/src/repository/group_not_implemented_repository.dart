@@ -4,12 +4,12 @@ class GroupNotImplementedRepository implements GroupRepository {
   const GroupNotImplementedRepository();
 
   @override
-  Future<Group?> getGroupById(String groupId) {
+  Future<Group?> findGroupById(String groupId) {
     throw UnimplementedError();
   }
 
   @override
-  Future<Group?> getGroupByOfferLink(String offerLink) {
+  Future<Group?> findGroupByOfferLink(String offerLink) {
     throw UnimplementedError();
   }
 

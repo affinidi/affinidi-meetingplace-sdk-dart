@@ -66,7 +66,7 @@ class NotificationService {
       name: methodName,
     );
     return RegisterForDidcommNotificationsResult(
-      recipientDid: didManager,
+      recipientDidManager: didManager,
       device: device,
     );
   }

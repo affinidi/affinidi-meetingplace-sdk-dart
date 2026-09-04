@@ -18,18 +18,18 @@ class ChannelService {
   /// - [did]: The DID of the channel to find.
   ///
   /// Returns [Channel] if found, otherwise null.
-  Future<Channel?> findChannelByDidOrNull(String did) {
+  Future<Channel?> findChannelByDid(String did) {
     return _channelRepository.findChannelByDid(did);
   }
 
-  /// Finds a channel by its DID.
+  /// Gets a channel by its DID.
   ///
   /// Parameters:
   /// - [did]: The DID of the channel to find.
   ///
   /// Returns [Channel] if found, otherwise throws a [ChannelServiceException].
-  Future<Channel> findChannelByDid(String did) async {
-    return await findChannelByDidOrNull(did) ??
+  Future<Channel> getChannelByDid(String did) async {
+    return await findChannelByDid(did) ??
         (throw ChannelServiceException.channelNotFound(did: did));
   }
 
@@ -40,20 +40,18 @@ class ChannelService {
   /// - [did]: The DID of the other party's permanent channel.
   ///
   /// Returns [Channel] if found, otherwise null.
-  Future<Channel?> findChannelByOtherPartyPermanentChannelDidOrNull(
-    String did,
-  ) {
+  Future<Channel?> findChannelByOtherPartyPermanentChannelDid(String did) {
     return _channelRepository.findChannelByOtherPartyPermanentChannelDid(did);
   }
 
-  /// Finds a [Channel] by the DID of the other party's permanent channel.
+  /// Gets a [Channel] by the DID of the other party's permanent channel.
   ///
   /// Parameters:
   /// - [did]: The DID of the other party's permanent channel.
   ///
   /// Returns [Channel] if found, otherwise throws a [ChannelServiceException].
-  Future<Channel> findChannelByOtherPartyPermanentChannelDid(String did) async {
-    return await findChannelByOtherPartyPermanentChannelDidOrNull(did) ??
+  Future<Channel> getChannelByOtherPartyPermanentChannelDid(String did) async {
+    return await findChannelByOtherPartyPermanentChannelDid(did) ??
         (throw ChannelServiceException.channelNotFound(did: did));
   }
 

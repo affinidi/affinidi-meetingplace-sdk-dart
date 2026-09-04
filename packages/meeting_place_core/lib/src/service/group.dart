@@ -77,7 +77,7 @@ class GroupService {
     (
       GroupConnectionOffer connectionOffer,
       DidManager didManager,
-      DidManager ownerDid,
+      DidManager ownerDidManager,
     )
   >
   createGroup({
@@ -111,7 +111,7 @@ class GroupService {
     await _mediatorSDK.updateAcl(
       mediatorDid: mediatorDid,
       ownerDidManager: oobDidManager,
-      acl: AclSet.toPublic(ownerDid: oobDidDoc.id),
+      acl: AccessListSet.toPublic(ownerDid: oobDidDoc.id),
     );
 
     final result = await _controlPlaneSDK.execute(
@@ -164,7 +164,7 @@ class GroupService {
       await (
         _channelTransport.setupChannel(channel: channel, didManager: ownerDid),
         _allowGroupToMessageGroupOwner(
-          groupOwnerDid: ownerDid,
+          groupOwnerDidManager: ownerDid,
           mediatorDid: result.mediatorDid,
           groupDid: result.groupDid,
         ),
@@ -285,9 +285,9 @@ class GroupService {
       );
 
       await sendAcceptInvitationGroupToMediator(
-        senderDid: acceptOfferDidManager,
+        senderDidManager: acceptOfferDidManager,
         mediatorDid: result.mediatorDid,
-        permanentChannelDid: permanentChannelDidManager,
+        permanentChannelDidManager: permanentChannelDidManager,
         invitationMessage: invitationMessage,
         contactCard: card,
       );
@@ -333,8 +333,8 @@ class GroupService {
 
       return AcceptGroupOfferResult(
         connectionOffer: acceptedConnectionOffer,
-        acceptOfferDid: acceptOfferDidManager,
-        permanentChannelDid: permanentChannelDidManager,
+        acceptOfferDidManager: acceptOfferDidManager,
+        permanentChannelDidManager: permanentChannelDidManager,
       );
     } catch (e, stackTrace) {
       _logger.error(
@@ -353,7 +353,9 @@ class GroupService {
     String? externalRef,
     required String offerLink,
   }) async {
-    final existingGroup = await _groupRepository.getGroupByOfferLink(offerLink);
+    final existingGroup = await _groupRepository.findGroupByOfferLink(
+      offerLink,
+    );
     if (existingGroup != null) {
       final updatedGroup = existingGroup.copyWith(
         created: DateTime.now().toUtc(),
@@ -398,7 +400,7 @@ class GroupService {
     String? externalRef,
   }) async {
     final existingConnectionOffer = await _connectionOfferRepository
-        .getConnectionOfferByOfferLink(connectionOffer.offerLink);
+        .findConnectionOfferByOfferLink(connectionOffer.offerLink);
 
     if (existingConnectionOffer != null &&
         existingConnectionOffer is! GroupConnectionOffer) {
@@ -431,8 +433,8 @@ class GroupService {
   }
 
   Future<void> sendAcceptInvitationGroupToMediator({
-    required DidManager senderDid,
-    required DidManager permanentChannelDid,
+    required DidManager senderDidManager,
+    required DidManager permanentChannelDidManager,
     required OobInvitationMessage invitationMessage,
     required String mediatorDid,
     ContactCard? contactCard,
@@ -446,14 +448,14 @@ class GroupService {
 
     final recipientDid = invitationMessage.from;
 
-    final senderDidDocument = await senderDid.getDidDocument();
-    final permanentChannelDidDocument = await permanentChannelDid
+    final senderDidDocument = await senderDidManager.getDidDocument();
+    final permanentChannelDidDocument = await permanentChannelDidManager
         .getDidDocument();
 
     final recipientDidDocument = await _didResolver.resolveDid(recipientDid);
 
     await _mediatorSDK.updateAcl(
-      ownerDidManager: permanentChannelDid,
+      ownerDidManager: permanentChannelDidManager,
       mediatorDid: mediatorDid,
       acl: AccessListAdd(
         ownerDid: permanentChannelDidDocument.id,
@@ -471,7 +473,7 @@ class GroupService {
 
     await _mediatorSDK.sendMessage(
       invitationAcceptanceMessage.toPlainTextMessage(),
-      senderDidManager: senderDid,
+      senderDidManager: senderDidManager,
       recipientDidDocument: recipientDidDocument,
       mediatorDid: mediatorDid,
       next: recipientDid,
@@ -532,7 +534,9 @@ class GroupService {
       throw GroupException.memberDidIsNull();
     }
 
-    final group = await _groupRepository.getGroupByOfferLink(channel.offerLink);
+    final group = await _groupRepository.findGroupByOfferLink(
+      channel.offerLink,
+    );
 
     if (group == null) {
       _logger.error(
@@ -543,7 +547,7 @@ class GroupService {
     }
 
     final connectionOffer = await _connectionOfferRepository
-        .getConnectionOfferByOfferLink(channel.offerLink);
+        .findConnectionOfferByOfferLink(channel.offerLink);
 
     if (connectionOffer == null) {
       _logger.error(
@@ -579,7 +583,7 @@ class GroupService {
     );
 
     final groupChannel = await _channelService
-        .findChannelByOtherPartyPermanentChannelDid(group.did);
+        .getChannelByOtherPartyPermanentChannelDid(group.did);
     await _channelTransport.inviteToChannel(
       channel: groupChannel,
       participantDid: member.did,
@@ -603,7 +607,7 @@ class GroupService {
     // Re-read so the inauguration payload reflects the just-approved status and
     // any members added concurrently since the initial read.
     final freshGroup =
-        await _groupRepository.getGroupByOfferLink(channel.offerLink) ?? group;
+        await _groupRepository.findGroupByOfferLink(channel.offerLink) ?? group;
 
     final groupMemberInauguration = GroupMemberInauguration.create(
       from: channel.publishOfferDid,
@@ -667,7 +671,9 @@ class GroupService {
       name: methodName,
     );
 
-    final group = await _groupRepository.getGroupByOfferLink(channel.offerLink);
+    final group = await _groupRepository.findGroupByOfferLink(
+      channel.offerLink,
+    );
     if (group == null) {
       _logger.error(
         'Group not found for offer link: ${channel.offerLink}',
@@ -690,12 +696,12 @@ class GroupService {
     return group;
   }
 
-  Future<Group?> getGroupByOfferLink(String offerLink) {
-    return _groupRepository.getGroupByOfferLink(offerLink);
+  Future<Group?> findGroupByOfferLink(String offerLink) {
+    return _groupRepository.findGroupByOfferLink(offerLink);
   }
 
-  Future<Group?> getGroupById(String groupId) {
-    return _groupRepository.getGroupById(groupId);
+  Future<Group?> findGroupById(String groupId) {
+    return _groupRepository.findGroupById(groupId);
   }
 
   /// Removes [memberDid] from the group identified by [groupId].
@@ -739,7 +745,7 @@ class GroupService {
     required PermanentIdentity ownerIdentity,
   }) async {
     final groupChannel = await _channelService
-        .findChannelByOtherPartyPermanentChannelDid(group.did);
+        .getChannelByOtherPartyPermanentChannelDid(group.did);
     await _channelTransport.removeFromChannel(
       channel: groupChannel,
       participantDid: memberDid,
@@ -751,7 +757,7 @@ class GroupService {
     required String groupId,
     required String memberDid,
   }) async {
-    final group = await _groupRepository.getGroupById(groupId);
+    final group = await _groupRepository.findGroupById(groupId);
     if (group == null || group.ownerDid == null) {
       throw GroupException.notFoundError();
     }
@@ -799,14 +805,14 @@ class GroupService {
   }
 
   Future<void> _allowGroupToMessageGroupOwner({
-    required DidManager groupOwnerDid,
+    required DidManager groupOwnerDidManager,
     required String mediatorDid,
     required String groupDid,
   }) async {
-    final groupOwnerDidDocument = await groupOwnerDid.getDidDocument();
+    final groupOwnerDidDocument = await groupOwnerDidManager.getDidDocument();
 
     return _mediatorSDK.updateAcl(
-      ownerDidManager: groupOwnerDid,
+      ownerDidManager: groupOwnerDidManager,
       mediatorDid: mediatorDid,
       acl: AccessListAdd(
         ownerDid: groupOwnerDidDocument.id,
@@ -816,14 +822,14 @@ class GroupService {
   }
 
   Future<void> _removePermissionToGetMessagesFromGroup({
-    required DidManager memberDid,
+    required DidManager memberDidManager,
     required String mediatorDid,
     required String groupDid,
   }) async {
-    final memberDidDocument = await memberDid.getDidDocument();
+    final memberDidDocument = await memberDidManager.getDidDocument();
 
     return _mediatorSDK.updateAcl(
-      ownerDidManager: memberDid,
+      ownerDidManager: memberDidManager,
       mediatorDid: mediatorDid,
       acl: AccessListRemove(
         ownerDid: memberDidDocument.id,
@@ -840,7 +846,9 @@ class GroupService {
     );
 
     final memberDid = channel.permanentChannelDid!;
-    final group = await _groupRepository.getGroupByOfferLink(channel.offerLink);
+    final group = await _groupRepository.findGroupByOfferLink(
+      channel.offerLink,
+    );
     if (group == null) {
       _logger.warning(
         'Group not found for offer link: ${channel.offerLink}',
@@ -883,7 +891,7 @@ class GroupService {
     }
 
     final connectionOffer = await _connectionOfferRepository
-        .getConnectionOfferByOfferLink(channel.offerLink);
+        .findConnectionOfferByOfferLink(channel.offerLink);
     if (connectionOffer != null) {
       await _connectionService.markConnectionOfferAsDeleted(connectionOffer);
     }
@@ -892,7 +900,7 @@ class GroupService {
     await _removePermissionToGetMessagesFromGroup(
       groupDid: group.did,
       mediatorDid: channel.mediatorDid,
-      memberDid: memberIdentity.didManager,
+      memberDidManager: memberIdentity.didManager,
     );
 
     await _groupRepository.removeGroup(group);
@@ -907,7 +915,7 @@ class GroupService {
     final methodName = 'delete';
     _logger.info('Deleting group with ID: $groupId', name: methodName);
 
-    final group = await _groupRepository.getGroupById(groupId);
+    final group = await _groupRepository.findGroupById(groupId);
     if (group == null) {
       _logger.warning(
         'Group does not exist, skip deletion with ID: $groupId',

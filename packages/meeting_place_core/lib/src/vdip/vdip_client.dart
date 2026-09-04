@@ -122,7 +122,7 @@ class VdipClient {
       _wallet,
       senderDid,
     );
-    final channel = await _channelService.findChannelByDid(recipientDid);
+    final channel = await _channelService.getChannelByDid(recipientDid);
     final message = VdipRequestIssuanceMessage(
       id: const Uuid().v4(),
       from: senderDid,
@@ -170,7 +170,7 @@ class VdipClient {
       _wallet,
       senderDid,
     );
-    final channel = await _channelService.findChannelByDid(recipientDid);
+    final channel = await _channelService.getChannelByDid(recipientDid);
     final message = VdipIssuedCredentialMessage(
       id: const Uuid().v4(),
       from: senderDid,

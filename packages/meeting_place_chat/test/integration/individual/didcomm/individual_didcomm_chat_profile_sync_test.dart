@@ -149,7 +149,7 @@ void main() {
       await newBobChatSDK.sendChatContactDetailsUpdate(conciergeMessage);
 
       await aliceUpdate;
-      final aliceChannel = await fixture.aliceSDK.coreSDK.getChannelByDid(
+      final aliceChannel = await fixture.aliceSDK.coreSDK.findChannelByDid(
         fixture.aliceChannel.permanentChannelDid!,
       );
       expect(

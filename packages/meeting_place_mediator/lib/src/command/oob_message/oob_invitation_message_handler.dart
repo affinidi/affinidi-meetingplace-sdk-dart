@@ -34,7 +34,7 @@ class OobInvitationMessageHandler
     await _mediatorService.updateAcl(
       ownerDidManager: command.oobDidManager,
       mediatorDid: command.mediatorDid,
-      acl: AclSet.toPublic(ownerDid: didDocument.id),
+      acl: AccessListSet.toPublic(ownerDid: didDocument.id),
     );
 
     return OobInvitationMessageOutput(

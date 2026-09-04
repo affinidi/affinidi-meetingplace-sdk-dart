@@ -539,7 +539,7 @@ void main() {
 
         await repository.createConnectionOffer(connectionOffer);
 
-        final stored = await repository.getConnectionOfferByOfferLink(
+        final stored = await repository.findConnectionOfferByOfferLink(
           connectionOffer.offerLink,
         );
 
@@ -591,7 +591,7 @@ void main() {
 
       await repository.createGroup(group);
 
-      final stored = await repository.getGroupById(group.id);
+      final stored = await repository.findGroupById(group.id);
 
       expect(stored, isNotNull);
       expect(
@@ -644,7 +644,7 @@ void main() {
 
       await repository.addMemberIfAbsent(group.id, joiner);
 
-      final afterFirst = await repository.getGroupById(group.id);
+      final afterFirst = await repository.findGroupById(group.id);
       expect(afterFirst!.members.length, 2);
       final storedJoiner = afterFirst.members.firstWhere(
         (m) => m.did == 'did:example:joiner',
@@ -658,7 +658,7 @@ void main() {
         joiner.copyWith(status: model.GroupMemberStatus.approved),
       );
 
-      final afterSecond = await repository.getGroupById(group.id);
+      final afterSecond = await repository.findGroupById(group.id);
       expect(afterSecond!.members.length, 2);
       expect(
         afterSecond.members
@@ -701,7 +701,7 @@ void main() {
         model.GroupMemberStatus.approved,
       );
 
-      final stored = await repository.getGroupById(group.id);
+      final stored = await repository.findGroupById(group.id);
       expect(
         stored!.members.firstWhere((m) => m.did == 'did:example:alice').status,
         model.GroupMemberStatus.approved,
@@ -742,13 +742,13 @@ void main() {
 
       await repository.removeMember(group.id, 'did:example:alice');
 
-      final stored = await repository.getGroupById(group.id);
+      final stored = await repository.findGroupById(group.id);
       expect(stored!.members.length, 1);
       expect(stored.members.single.did, 'did:example:bob');
 
       // Removing an absent member is a no-op, not an error.
       await repository.removeMember(group.id, 'did:example:ghost');
-      final after = await repository.getGroupById(group.id);
+      final after = await repository.findGroupById(group.id);
       expect(after!.members.length, 1);
     });
 
@@ -790,7 +790,7 @@ void main() {
       await repository.createGroup(group);
 
       // Both writers read the SAME stale snapshot.
-      final staleSnapshot = (await repository.getGroupById(group.id))!.members;
+      final staleSnapshot = (await repository.findGroupById(group.id))!.members;
 
       // Writer A (admin approve): reads stale list, appends memberA.
       final memberA = pending('did:example:writer-a-member');
@@ -805,7 +805,7 @@ void main() {
       await repository.updateGroup(group.copyWith(members: listA));
       await repository.updateGroup(group.copyWith(members: listB));
 
-      final result = await repository.getGroupById(group.id);
+      final result = await repository.findGroupById(group.id);
       final dids = result!.members.map((m) => m.did).toSet();
 
       // Document the hazard: memberA written by writer A is LOST because
@@ -871,7 +871,7 @@ void main() {
         repository.addMemberIfAbsent(group.id, newMember),
       ]);
 
-      final result = await repository.getGroupById(group.id);
+      final result = await repository.findGroupById(group.id);
       expect(result, isNotNull);
       final members = result!.members;
 
@@ -950,7 +950,7 @@ void main() {
         ),
       );
 
-      final afterConcurrent = await repository.getGroupById(group.id);
+      final afterConcurrent = await repository.findGroupById(group.id);
       expect(
         afterConcurrent!.members
             .where((m) => m.did == duplicateJoiner.did)
@@ -965,7 +965,7 @@ void main() {
       // no-op.
       await repository.addMemberIfAbsent(group.id, duplicateJoiner);
 
-      final afterRepeat = await repository.getGroupById(group.id);
+      final afterRepeat = await repository.findGroupById(group.id);
       expect(
         afterRepeat!.members.where((m) => m.did == duplicateJoiner.did).length,
         1,

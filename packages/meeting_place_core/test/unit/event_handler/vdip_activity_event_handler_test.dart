@@ -99,7 +99,7 @@ void main() {
     );
 
     when(
-      () => mockChannelService.findChannelByDid(channelDid),
+      () => mockChannelService.getChannelByDid(channelDid),
     ).thenAnswer((_) async => channel);
 
     when(
@@ -248,7 +248,7 @@ void main() {
         )..messageSyncMarker = existingMarker;
 
         when(
-          () => mockChannelService.findChannelByDid(channelDid),
+          () => mockChannelService.getChannelByDid(channelDid),
         ).thenAnswer((_) async => channelWithMarker);
 
         when(
@@ -298,7 +298,7 @@ void main() {
       );
 
       when(
-        () => mockChannelService.findChannelByDid(channelDid),
+        () => mockChannelService.getChannelByDid(channelDid),
       ).thenAnswer((_) async => channelWithoutPermanentDid);
 
       expect(

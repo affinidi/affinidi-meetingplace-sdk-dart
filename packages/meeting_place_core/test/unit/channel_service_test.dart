@@ -35,20 +35,20 @@ void main() {
       verify(() => repository.createChannel(channel)).called(1);
     });
 
-    test('findChannelByDidOrNull returns channel if found', () async {
+    test('findChannelByDid returns channel if found', () async {
       when(
         () => repository.findChannelByDid(channel.id),
       ).thenAnswer((_) async => channel);
-      final found = await service.findChannelByDidOrNull(channel.id);
+      final found = await service.findChannelByDid(channel.id);
       expect(found, equals(channel));
     });
 
-    test('findChannelByDid throws if not found', () async {
+    test('getChannelByDid throws if not found', () async {
       when(
         () => repository.findChannelByDid('notfound'),
       ).thenAnswer((_) async => null);
       expect(
-        () => service.findChannelByDid('notfound'),
+        () => service.getChannelByDid('notfound'),
         throwsA(isA<ChannelServiceException>()),
       );
     });
@@ -65,25 +65,26 @@ void main() {
       verify(() => repository.deleteChannel(channel)).called(1);
     });
 
-    test('findChannelByOtherPartyPermanentChannelDidOrNull returns channel if '
+    test('findChannelByOtherPartyPermanentChannelDid returns channel if '
         'found', () async {
       when(
         () => repository.findChannelByOtherPartyPermanentChannelDid('otherDid'),
       ).thenAnswer((_) async => channel);
-      final found = await service
-          .findChannelByOtherPartyPermanentChannelDidOrNull('otherDid');
+      final found = await service.findChannelByOtherPartyPermanentChannelDid(
+        'otherDid',
+      );
       expect(found, equals(channel));
     });
 
     test(
-      'findChannelByOtherPartyPermanentChannelDid throws if not found',
+      'getChannelByOtherPartyPermanentChannelDid throws if not found',
       () async {
         when(
           () =>
               repository.findChannelByOtherPartyPermanentChannelDid('notfound'),
         ).thenAnswer((_) async => null);
         expect(
-          () => service.findChannelByOtherPartyPermanentChannelDid('notfound'),
+          () => service.getChannelByOtherPartyPermanentChannelDid('notfound'),
           throwsA(isA<ChannelServiceException>()),
         );
       },

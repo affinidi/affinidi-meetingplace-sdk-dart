@@ -24,7 +24,7 @@ class ProfileHashHandler {
     final incomingHash = event.content['profile_hash'] as String?;
     if (incomingHash == null) return;
 
-    final channel = await _coreSDK.getChannelByOtherPartyPermanentDid(
+    final channel = await _coreSDK.findChannelByOtherPartyPermanentDid(
       _otherPartyDid,
     );
     if (channel == null) return;

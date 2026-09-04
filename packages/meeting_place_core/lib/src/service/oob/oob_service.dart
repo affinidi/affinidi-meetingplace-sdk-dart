@@ -95,7 +95,7 @@ class OobService {
       _mediatorService.updateAcl(
         ownerDidManager: oobIdentity.didManager,
         mediatorDid: mediatorDid,
-        acl: AclSet.toPublic(ownerDid: oobIdentity.didDocument.id),
+        acl: AccessListSet.toPublic(ownerDid: oobIdentity.didDocument.id),
       ),
       _controlPlaneSDK.execute(
         CreateOobCommand(
@@ -256,7 +256,7 @@ class OobService {
     final mergedAttachments = [...?attachments, ...?builtAttachments];
 
     await _connectionService.sendAcceptOfferToMediator(
-      acceptOfferDid: acceptOfferIdentity.didManager,
+      acceptOfferDidManager: acceptOfferIdentity.didManager,
       permanentChannelDidDocument: permanentIdentity.didDocument,
       invitationMessage: invitationMessage.toPlainTextMessage(),
       mediatorDid: mediatorDid,
@@ -311,8 +311,8 @@ class OobService {
     );
 
     await _connectionService.sendConnectionRequestApprovalToMediator(
-      offerPublishedDid: session.didManager,
-      permanentChannelDid: permanentChannelDidManager,
+      offerPublishedDidManager: session.didManager,
+      permanentChannelDidManager: permanentChannelDidManager,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
       otherPartyAcceptOfferDid: message.from,
       outboundMessageId: session.oobInvitationMessage.id,
@@ -418,12 +418,12 @@ class OobService {
 
       _validateOobInvitation(invitationMessage, oobUri, type);
       return (invitationMessage, oob.mediatorDid);
-    } on ControlPlaneSDKException catch (e) {
-      if (e.code == ControlPlaneSDKErrorCode.oobNotFound.value) {
+    } on MeetingPlaceControlPlaneSDKException catch (e) {
+      if (e.code == MeetingPlaceControlPlaneSDKErrorCode.oobNotFound.value) {
         throw OobServiceException.notFound(oobUri: oobUri, innerException: e);
       }
 
-      if (e.code == ControlPlaneSDKErrorCode.networkError.value) {
+      if (e.code == MeetingPlaceControlPlaneSDKErrorCode.networkError.value) {
         throw OobServiceException.networkError(
           oobUri: oobUri,
           innerException: e,

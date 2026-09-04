@@ -14,7 +14,7 @@ class ConnectionOfferService {
 
   Future<void> ensureConnectionOfferIsClaimable(String offerLink) async {
     final connectionOffer = await _connectionOfferRepository
-        .getConnectionOfferByOfferLink(offerLink);
+        .findConnectionOfferByOfferLink(offerLink);
 
     if (connectionOffer == null) {
       return;
@@ -33,9 +33,7 @@ class ConnectionOfferService {
       return;
     }
 
-    final channel = await _channelService.findChannelByDidOrNull(
-      permanentChannelDid,
-    );
+    final channel = await _channelService.findChannelByDid(permanentChannelDid);
 
     if (channel?.isGroup == true && channel?.isInaugurated == true) {
       throw ConnectionOfferException.alreadyClaimedByClaimingPartyError();

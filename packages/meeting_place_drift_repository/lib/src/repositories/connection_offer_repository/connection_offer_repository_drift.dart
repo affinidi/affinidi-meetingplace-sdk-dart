@@ -84,7 +84,7 @@ class ConnectionOfferRepositoryDrift
 
   /// Finds a [model.ConnectionOffer] by its [offerLink].
   @override
-  Future<model.ConnectionOffer?> getConnectionOfferByOfferLink(
+  Future<model.ConnectionOffer?> findConnectionOfferByOfferLink(
     String offerLink,
   ) => _getConnectionOfferByPredicate(
     _database.connectionOffers.offerLink.equals(offerLink),
@@ -92,7 +92,7 @@ class ConnectionOfferRepositoryDrift
 
   /// Finds a [model.ConnectionOffer] by its [permanentChannelDid].
   @override
-  Future<model.ConnectionOffer?> getConnectionOfferByPermanentChannelDid(
+  Future<model.ConnectionOffer?> findConnectionOfferByPermanentChannelDid(
     String permanentChannelDid,
   ) => _getConnectionOfferByPredicate(
     _database.connectionOffers.permanentChannelDid.equals(permanentChannelDid),
@@ -102,7 +102,7 @@ class ConnectionOfferRepositoryDrift
   ///
   /// Only applicable for [model.GroupConnectionOffer]s.
   @override
-  Future<model.ConnectionOffer?> getConnectionOfferByGroupDid(
+  Future<model.ConnectionOffer?> findConnectionOfferByGroupDid(
     String groupDid,
   ) => _getConnectionOfferByPredicate(
     _database.groupConnectionOffers.groupDid.equals(groupDid),

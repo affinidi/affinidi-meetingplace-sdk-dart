@@ -58,7 +58,7 @@ class CallSignalHandler {
     );
 
     try {
-      final channel = await _sdk.getChannelByDid(signal.ownChannelDid);
+      final channel = await _sdk.findChannelByDid(signal.ownChannelDid);
       if (channel == null) {
         throw MeetingPlaceLiveKitCallOperationException(
           'No channel found for own DID ${signal.ownChannelDid.topAndTail()}',
@@ -152,7 +152,7 @@ class CallSignalHandler {
     var otherPartyChannelDid = signal.otherPartyPermanentChannelDid;
     if (otherPartyChannelDid == null) {
       try {
-        final channel = await _sdk.getChannelByDid(signal.ownChannelDid);
+        final channel = await _sdk.findChannelByDid(signal.ownChannelDid);
         otherPartyChannelDid = channel?.otherPartyPermanentChannelDid;
       } catch (e, stackTrace) {
         _logger.error(

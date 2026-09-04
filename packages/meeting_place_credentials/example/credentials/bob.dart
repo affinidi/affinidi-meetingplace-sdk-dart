@@ -20,7 +20,8 @@ Future<void> main() async {
   // ── 2. Register for DIDComm notifications ──────────────────────────────
   prettyPrintGreen('>>> Registering for DIDComm notifications');
   final notification = await coreSDK.registerForDIDCommNotifications();
-  final notificationDid = (await notification.recipientDid.getDidDocument()).id;
+  final notificationDid =
+      (await notification.recipientDidManager.getDidDocument()).id;
   prettyPrintYellow('Notification DID: $notificationDid');
 
   // ── 3. Set up credentials stream listeners ────────────────────────────
@@ -72,7 +73,7 @@ Future<void> main() async {
   // ── 6. Subscribe to mediator (notification DID for initial handshake) ──
   prettyPrintGreen('>>> Subscribing to mediator');
   final notificationStream = await coreSDK.subscribe(
-    DidCommSubscription(receiverDid: notificationDid),
+    DidCommSubscription(ownerDid: notificationDid),
   );
   notificationStream.stream.listen((data) async {
     final didcommMessage = data as DidCommIncomingMessage;
@@ -107,7 +108,7 @@ Future<void> main() async {
   await notificationStream.dispose();
   prettyPrintGreen('>>> Subscribing to channel DID for VDIP messages');
   final channelStream = await coreSDK.subscribe(
-    DidCommSubscription(receiverDid: bobChannel.permanentChannelDid!),
+    DidCommSubscription(ownerDid: bobChannel.permanentChannelDid!),
   );
   channelStream.stream.listen((data) async {
     final didcommMessage = data as DidCommIncomingMessage;

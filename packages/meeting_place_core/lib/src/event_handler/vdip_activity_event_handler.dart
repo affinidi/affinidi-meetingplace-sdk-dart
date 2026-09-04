@@ -47,7 +47,7 @@ class VdipActivityEventHandler {
       name: _logKey,
     );
 
-    final channel = await _channelService.findChannelByDid(channelActivity.did);
+    final channel = await _channelService.getChannelByDid(channelActivity.did);
     final permanentChannelDid = channel.permanentChannelDid;
     if (permanentChannelDid == null) {
       throw EventHandlerException.missingPermanentChannelDid(

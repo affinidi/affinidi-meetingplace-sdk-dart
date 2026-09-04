@@ -77,7 +77,7 @@ void main() {
     ).thenAnswer((_) async => mockDidManager);
 
     when(
-      () => mockChannelService.findChannelByDid(recipientDid),
+      () => mockChannelService.getChannelByDid(recipientDid),
     ).thenAnswer((_) async => channel);
 
     when(
@@ -189,7 +189,7 @@ void main() {
         options: const RequestCredentialsOptions(proposalId: 'proposal-1'),
       );
 
-      verify(() => mockChannelService.findChannelByDid(recipientDid)).called(1);
+      verify(() => mockChannelService.getChannelByDid(recipientDid)).called(1);
     });
 
     test(

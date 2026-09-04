@@ -208,10 +208,10 @@ void main() {
         ];
 
         when(
-          () => mockChannelService.findChannelByDid(_channelDid),
+          () => mockChannelService.getChannelByDid(_channelDid),
         ).thenAnswer((_) async => channel);
         when(
-          () => mockMatrixService.fetchHistory(
+          () => mockMatrixService.fetchEventHistory(
             channel: any(named: 'channel'),
             didManager: any(named: 'didManager'),
             since: any(named: 'since'),
@@ -234,10 +234,10 @@ void main() {
       final channel = _matrixChannel(messageSyncMarker: marker);
 
       when(
-        () => mockChannelService.findChannelByDid(_channelDid),
+        () => mockChannelService.getChannelByDid(_channelDid),
       ).thenAnswer((_) async => channel);
       when(
-        () => mockMatrixService.fetchHistory(
+        () => mockMatrixService.fetchEventHistory(
           channel: any(named: 'channel'),
           didManager: any(named: 'didManager'),
           since: any(named: 'since'),
@@ -249,7 +249,7 @@ void main() {
       await handler.process(channelActivity);
 
       final verification = verify(
-        () => mockMatrixService.fetchHistory(
+        () => mockMatrixService.fetchEventHistory(
           channel: any(named: 'channel'),
           didManager: any(named: 'didManager'),
           since: captureAny(named: 'since'),
@@ -266,10 +266,10 @@ void main() {
         final channel = _matrixChannel(messageSyncMarker: r'$prev');
 
         when(
-          () => mockChannelService.findChannelByDid(_channelDid),
+          () => mockChannelService.getChannelByDid(_channelDid),
         ).thenAnswer((_) async => channel);
         when(
-          () => mockMatrixService.fetchHistory(
+          () => mockMatrixService.fetchEventHistory(
             channel: any(named: 'channel'),
             didManager: any(named: 'didManager'),
             since: any(named: 'since'),
@@ -304,10 +304,10 @@ void main() {
         ];
 
         when(
-          () => mockChannelService.findChannelByDid(_channelDid),
+          () => mockChannelService.getChannelByDid(_channelDid),
         ).thenAnswer((_) async => channel);
         when(
-          () => mockMatrixService.fetchHistory(
+          () => mockMatrixService.fetchEventHistory(
             channel: any(named: 'channel'),
             didManager: any(named: 'didManager'),
             since: any(named: 'since'),
@@ -332,10 +332,10 @@ void main() {
         final events = [_editMessage(id: r'$edit1', replacesId: r'$original')];
 
         when(
-          () => mockChannelService.findChannelByDid(_channelDid),
+          () => mockChannelService.getChannelByDid(_channelDid),
         ).thenAnswer((_) async => channel);
         when(
-          () => mockMatrixService.fetchHistory(
+          () => mockMatrixService.fetchEventHistory(
             channel: any(named: 'channel'),
             didManager: any(named: 'didManager'),
             since: any(named: 'since'),
@@ -381,10 +381,10 @@ void main() {
       ];
 
       when(
-        () => mockChannelService.findChannelByDid(_channelDid),
+        () => mockChannelService.getChannelByDid(_channelDid),
       ).thenAnswer((_) async => channel);
       when(
-        () => mockMatrixService.fetchHistory(
+        () => mockMatrixService.fetchEventHistory(
           channel: any(named: 'channel'),
           didManager: any(named: 'didManager'),
           since: any(named: 'since'),
@@ -411,10 +411,10 @@ void main() {
       final events = [_encryptedEvent(id: r'$enc-newest')];
 
       when(
-        () => mockChannelService.findChannelByDid(_channelDid),
+        () => mockChannelService.getChannelByDid(_channelDid),
       ).thenAnswer((_) async => channel);
       when(
-        () => mockMatrixService.fetchHistory(
+        () => mockMatrixService.fetchEventHistory(
           channel: any(named: 'channel'),
           didManager: any(named: 'didManager'),
           since: any(named: 'since'),
@@ -452,10 +452,10 @@ void main() {
         ];
 
         when(
-          () => mockChannelService.findChannelByDid(_channelDid),
+          () => mockChannelService.getChannelByDid(_channelDid),
         ).thenAnswer((_) async => channel);
         when(
-          () => mockMatrixService.fetchHistory(
+          () => mockMatrixService.fetchEventHistory(
             channel: any(named: 'channel'),
             didManager: any(named: 'didManager'),
             since: any(named: 'since'),

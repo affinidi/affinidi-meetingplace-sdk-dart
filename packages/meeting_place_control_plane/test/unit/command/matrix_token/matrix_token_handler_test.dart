@@ -162,7 +162,8 @@ void main() {
                 .having(
                   (e) => e.code,
                   'code',
-                  ControlPlaneSDKErrorCode.matrixTokenInvalidResponse,
+                  MeetingPlaceControlPlaneSDKErrorCode
+                      .matrixTokenInvalidResponse,
                 )
                 .having(
                   (e) => e.message,
@@ -196,7 +197,8 @@ void main() {
                 .having(
                   (e) => e.code,
                   'code',
-                  ControlPlaneSDKErrorCode.matrixTokenInvalidResponse,
+                  MeetingPlaceControlPlaneSDKErrorCode
+                      .matrixTokenInvalidResponse,
                 )
                 .having((e) => e.message, 'message', 'Response data is null'),
           ),
@@ -216,7 +218,7 @@ void main() {
               .having(
                 (e) => e.code,
                 'code',
-                ControlPlaneSDKErrorCode.matrixTokenInvalidResponse,
+                MeetingPlaceControlPlaneSDKErrorCode.matrixTokenInvalidResponse,
               )
               .having(
                 (e) => e.message,
@@ -240,7 +242,7 @@ void main() {
           isA<MatrixTokenException>().having(
             (e) => e.code,
             'code',
-            ControlPlaneSDKErrorCode.matrixTokenInvalidResponse,
+            MeetingPlaceControlPlaneSDKErrorCode.matrixTokenInvalidResponse,
           ),
         ),
       );
@@ -264,7 +266,7 @@ void main() {
               .having(
                 (e) => e.code,
                 'code',
-                ControlPlaneSDKErrorCode.matrixTokenGeneric,
+                MeetingPlaceControlPlaneSDKErrorCode.matrixTokenGeneric,
               )
               .having((e) => e.innerException, 'innerException', dioError)
               .having(
@@ -294,7 +296,7 @@ void main() {
             isA<MatrixTokenException>().having(
               (e) => e.code,
               'code',
-              ControlPlaneSDKErrorCode.matrixTokenGeneric,
+              MeetingPlaceControlPlaneSDKErrorCode.matrixTokenGeneric,
             ),
           ),
         );

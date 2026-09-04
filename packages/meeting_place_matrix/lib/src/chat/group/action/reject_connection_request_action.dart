@@ -24,7 +24,7 @@ class RejectConnectionRequestAction implements GroupAction<Group> {
       );
     }
 
-    final channel = await _chatSDK.coreSDK.getChannelByDid(
+    final channel = await _chatSDK.coreSDK.findChannelByDid(
       message.data['memberDid'] as String,
     );
 

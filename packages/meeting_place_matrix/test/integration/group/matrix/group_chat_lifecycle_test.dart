@@ -33,7 +33,7 @@ void main() {
         where: (e) => e.groupDid == groupDid,
       );
 
-      final aliceChannel = await fixture.aliceSDK.getChannelByDid(
+      final aliceChannel = await fixture.aliceSDK.findChannelByDid(
         fixture.groupOwnerDidDocument.id,
       );
       await fixture.aliceSDK.leaveChannel(aliceChannel!);
@@ -64,7 +64,7 @@ void main() {
                 e.groupDid == groupDid && e.memberDid == fixture.bobMemberDid,
           );
 
-      final bobChannel = await fixture.bobSDK.getChannelByDid(
+      final bobChannel = await fixture.bobSDK.findChannelByDid(
         fixture.bobMemberDid,
       );
       await fixture.bobSDK.leaveChannel(bobChannel!);

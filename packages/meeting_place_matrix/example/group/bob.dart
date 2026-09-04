@@ -14,12 +14,13 @@ void main() async {
     await vod.init(libraryPath: getVodozemacLibraryPath());
   }
 
-  final bobSDK =
-      await initMatrixSDK(wallet: PersistentWallet(InMemoryKeyStore()));
+  final bobSDK = await initMatrixSDK(
+    wallet: PersistentWallet(InMemoryKeyStore()),
+  );
 
   final notification = await bobSDK.registerForDIDCommNotifications();
   final notificationDidDocument =
-      await notification.recipientDid.getDidDocument();
+      await notification.recipientDidManager.getDidDocument();
 
   final file = File('.example-output${Platform.pathSeparator}group.txt');
   final mnemonicBytes = file.readAsBytesSync();
@@ -43,7 +44,7 @@ void main() async {
     senderInfo: 'Bob',
   );
   final memberDidDocument =
-      await acceptOfferResult.permanentChannelDid.getDidDocument();
+      await acceptOfferResult.permanentChannelDidManager.getDidDocument();
   prettyPrintYellow('Group member DID ${memberDidDocument.id}');
 
   final waitForMembershipFinalised = Completer<ControlPlaneStreamEvent>();
@@ -55,10 +56,11 @@ void main() async {
   });
 
   final notificationStream = await bobSDK.subscribe(
-    DidCommSubscription(receiverDid: notificationDidDocument.id),
+    DidCommSubscription(ownerDid: notificationDidDocument.id),
   );
-  final notificationSubscription =
-      notificationStream.stream.listen((IncomingMessage message) async {
+  final notificationSubscription = notificationStream.stream.listen((
+    IncomingMessage message,
+  ) async {
     final didcommMessage = message as DidCommIncomingMessage;
     prettyJsonPrintYellow('Received message', didcommMessage.payload.toJson());
     await bobSDK.processControlPlaneEvents();

@@ -26,7 +26,7 @@ class MediatorAclService {
     await _mediatorSDK.updateAcl(
       ownerDidManager: didManager,
       mediatorDid: mediatorDid,
-      acl: AclSet.toPublic(ownerDid: didDocument.id),
+      acl: AccessListSet.toPublic(ownerDid: didDocument.id),
     );
   }
 

@@ -26,7 +26,8 @@ class AuthenticateException implements ControlPlaneException {
     return AuthenticateException._(
       message:
           'Authentication returned empty challenge for ${did.topAndTail()}',
-      code: ControlPlaneSDKErrorCode.authenticateEmptyChallengeReturned,
+      code: MeetingPlaceControlPlaneSDKErrorCode
+          .authenticateEmptyChallengeReturned,
       innerException: innerException,
     );
   }
@@ -41,7 +42,7 @@ class AuthenticateException implements ControlPlaneException {
   factory AuthenticateException.generic({Object? innerException}) {
     return AuthenticateException._(
       message: 'Authentication failed: ${innerException.toString()}.',
-      code: ControlPlaneSDKErrorCode.authenticateGeneric,
+      code: MeetingPlaceControlPlaneSDKErrorCode.authenticateGeneric,
       innerException: innerException,
     );
   }
@@ -59,7 +60,8 @@ class AuthenticateException implements ControlPlaneException {
   }) {
     return AuthenticateException._(
       message: 'Authentication failed: $message.',
-      code: ControlPlaneSDKErrorCode.authenticateInvalidResponseData,
+      code:
+          MeetingPlaceControlPlaneSDKErrorCode.authenticateInvalidResponseData,
       innerException: innerException,
     );
   }
@@ -67,7 +69,7 @@ class AuthenticateException implements ControlPlaneException {
   final String message;
 
   @override
-  final ControlPlaneSDKErrorCode code;
+  final MeetingPlaceControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;

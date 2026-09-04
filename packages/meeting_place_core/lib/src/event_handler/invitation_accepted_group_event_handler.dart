@@ -84,7 +84,7 @@ class InvitationGroupAcceptedEventHandler
 
     final group = await _findGroupByOfferLink(event.offerLink);
     final groupChannel = await channelService
-        .findChannelByOtherPartyPermanentChannelDid(group.did);
+        .getChannelByOtherPartyPermanentChannelDid(group.did);
 
     final invitationAcceptance = InvitationAcceptanceGroup.fromPlainTextMessage(
       message,
@@ -140,7 +140,7 @@ class InvitationGroupAcceptedEventHandler
   }
 
   Future<Group> _findGroupByOfferLink(String offerLink) async {
-    return await _groupRepository.getGroupByOfferLink(offerLink) ??
+    return await _groupRepository.findGroupByOfferLink(offerLink) ??
         (throw GroupException.notFoundError());
   }
 }

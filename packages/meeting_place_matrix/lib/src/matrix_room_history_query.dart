@@ -1,10 +1,10 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
 /// Fetch the most recent events from a Matrix room. The room is resolved
-/// from the channel owned by [receiverDid].
+/// from the channel owned by [ownerDid].
 class MatrixRoomHistoryQuery extends HistoryQuery {
   const MatrixRoomHistoryQuery({
-    required super.receiverDid,
+    required super.ownerDid,
     super.limit,
     this.since,
     this.updateChannelSyncMarker = true,

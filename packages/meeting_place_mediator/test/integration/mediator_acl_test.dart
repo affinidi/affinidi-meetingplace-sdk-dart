@@ -27,7 +27,7 @@ void main() {
 
     await fixture.sdk.updateAcl(
       ownerDidManager: fixture.didManagerA,
-      acl: AclSet.toPublic(ownerDid: recipientDidDoc.id),
+      acl: AccessListSet.toPublic(ownerDid: recipientDidDoc.id),
     );
 
     final subscription =

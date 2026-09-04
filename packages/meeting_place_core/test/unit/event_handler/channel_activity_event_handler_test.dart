@@ -88,7 +88,7 @@ void main() {
         );
 
         when(
-          () => mockChannelService.findChannelByDid(channelDid),
+          () => mockChannelService.getChannelByDid(channelDid),
         ).thenAnswer((_) async => channel);
 
         final unknownActivity = ChannelActivity(

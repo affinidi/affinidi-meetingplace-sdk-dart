@@ -89,7 +89,7 @@ class ControlPlaneSDK {
 
   final DidManager didManager;
   final String controlPlaneDid;
-  final String mediatorDid;
+  String mediatorDid;
   final ControlPlaneSDKOptions controlPlaneSDKConfig;
   final DidResolver didResolver;
   final ControlPlaneSDKLogger _logger;
@@ -110,15 +110,6 @@ class ControlPlaneSDK {
   /// platformType.
   set device(Device? device) {
     _device = device;
-  }
-
-  /// Setter method to set the value of [mediatorDid] variable of the
-  /// [ControlPlaneSDK] instance.
-  ///
-  /// **Parameters:**
-  /// - [mediatorDid]: The mediator DID string.
-  set mediatorDid(String mediatorDid) {
-    this.mediatorDid = mediatorDid;
   }
 
   /// Getter method to fetch the value of [device] variable of the
@@ -386,7 +377,7 @@ class ControlPlaneSDK {
   /// A wrapper method that ensures that errors are caught and thrown on the
   /// provided function that is executed during invocation. This includes proper
   /// logging and rethrowing of caught exceptions based on
-  /// [ControlPlaneSDKException].
+  /// [MeetingPlaceControlPlaneSDKException].
   ///
   /// **Parameters:**
   /// - [operation]: an asynchronous function to be executed.

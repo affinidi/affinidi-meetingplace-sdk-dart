@@ -21,7 +21,7 @@ class AcceptOfferGroupException implements ControlPlaneException {
   factory AcceptOfferGroupException.generic({Object? innerException}) {
     return AcceptOfferGroupException._(
       message: 'Offer acceptance group failed: ${innerException.toString()}.',
-      code: ControlPlaneSDKErrorCode.acceptOfferGroupGeneric,
+      code: MeetingPlaceControlPlaneSDKErrorCode.acceptOfferGroupGeneric,
       innerException: innerException,
     );
   }
@@ -29,7 +29,7 @@ class AcceptOfferGroupException implements ControlPlaneException {
   final String message;
 
   @override
-  final ControlPlaneSDKErrorCode code;
+  final MeetingPlaceControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;

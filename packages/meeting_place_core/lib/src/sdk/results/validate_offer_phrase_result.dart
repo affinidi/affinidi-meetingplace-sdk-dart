@@ -1,5 +1,4 @@
 class ValidateOfferPhraseResult {
-  ValidateOfferPhraseResult({required this.isAvailable, this.errorCode});
+  ValidateOfferPhraseResult({required this.isAvailable});
   final bool isAvailable;
-  final String? errorCode;
 }

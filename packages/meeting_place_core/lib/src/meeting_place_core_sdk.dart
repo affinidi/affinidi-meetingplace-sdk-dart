@@ -736,7 +736,7 @@ class MeetingPlaceCoreSDK {
       );
       _controlPlaneSDK.device = result.device;
       return RegisterForDidcommNotificationsResult(
-        recipientDid: result.recipientDid,
+        recipientDidManager: result.recipientDidManager,
         device: result.device,
       );
     });
@@ -902,8 +902,8 @@ class MeetingPlaceCoreSDK {
 
         return sdk.AcceptOfferResult(
           connectionOffer: result.connectionOffer as T,
-          acceptOfferDid: result.acceptOfferDid,
-          permanentChannelDid: result.permanentChannelDid,
+          acceptOfferDidManager: result.acceptOfferDidManager,
+          permanentChannelDidManager: result.permanentChannelDidManager,
         );
       }
 
@@ -917,8 +917,8 @@ class MeetingPlaceCoreSDK {
 
       return sdk.AcceptOfferResult(
         connectionOffer: result.connectionOffer as T,
-        acceptOfferDid: result.acceptOfferDid,
-        permanentChannelDid: result.permanentChannelDid,
+        acceptOfferDidManager: result.acceptOfferDidManager,
+        permanentChannelDidManager: result.permanentChannelDidManager,
       );
     });
   }
@@ -1102,9 +1102,9 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Returns:**
   /// - [ConnectionOffer] or `null`
-  Future<ConnectionOffer?> getConnectionOffer(String offerLink) {
+  Future<ConnectionOffer?> findConnectionOffer(String offerLink) {
     return _repositoryConfig.connectionOfferRepository
-        .getConnectionOfferByOfferLink(offerLink);
+        .findConnectionOfferByOfferLink(offerLink);
   }
 
   /// Marks connection offer as deleted - updates connection offer status to
@@ -1137,8 +1137,8 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Returns:**
   /// - [Group] or `null`
-  Future<Group?> getGroupByOfferLink(String offerLink) {
-    return _groupService.getGroupByOfferLink(offerLink);
+  Future<Group?> findGroupByOfferLink(String offerLink) {
+    return _groupService.findGroupByOfferLink(offerLink);
   }
 
   /// Returns group identified by [groupId] from storage.
@@ -1148,8 +1148,8 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Returns:**
   /// - [Group] or `null`
-  Future<Group?> getGroupById(String groupId) {
-    return _groupService.getGroupById(groupId);
+  Future<Group?> findGroupById(String groupId) {
+    return _groupService.findGroupById(groupId);
   }
 
   /// Updates an existing group in the repository by using repository method
@@ -1232,8 +1232,8 @@ class MeetingPlaceCoreSDK {
     }
   }
 
-  /// Fetches a channel entity from the repository by using repository method
-  /// `getChannelByDid` method.
+  /// Fetches a channel entity by [did], matched against either
+  /// `permanentChannelDid` or `otherPartyPermanentChannelDid`.
   ///
   /// **Parameters:**
   /// [did] - The DID to match the channel either by `permanentChannelDid` or
@@ -1241,22 +1241,35 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Returns:**
   /// - The matching [Channel] if found, or `null` if no match exists.
-  Future<Channel?> getChannelByDid(String did) {
-    return _channelService.findChannelByDidOrNull(did);
+  Future<Channel?> findChannelByDid(String did) {
+    return _channelService.findChannelByDid(did);
   }
 
-  /// Fetches a channel entity from the repository by using repository method
-  /// `findChannelByOtherPartyPermanentChannelDid` method.
+  /// Fetches a channel entity by [did], matched the same way as
+  /// [findChannelByDid].
+  ///
+  /// **Parameters:**
+  /// [did] - The DID to match the channel either by `permanentChannelDid` or
+  /// `otherPartyPermanentChannelDid`.
+  ///
+  /// **Returns:**
+  /// - The matching [Channel].
+  ///
+  /// **Throws:**
+  /// - An exception if no matching channel exists.
+  Future<Channel> getChannelByDid(String did) {
+    return _channelService.getChannelByDid(did);
+  }
+
+  /// Fetches a channel entity by the other party's permanent channel [did].
   ///
   /// **Parameters:**
   /// [did] - the other party's permanent channel DID.
   ///
   /// **Returns:**
   /// - The matching [Channel] if found, or `null` if no match exists.
-  Future<Channel?> getChannelByOtherPartyPermanentDid(String did) {
-    return _channelService.findChannelByOtherPartyPermanentChannelDidOrNull(
-      did,
-    );
+  Future<Channel?> findChannelByOtherPartyPermanentDid(String did) {
+    return _channelService.findChannelByOtherPartyPermanentChannelDid(did);
   }
 
   /// Updates an existing channel in the repository.
@@ -1274,8 +1287,8 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Returns:**
   /// - The resolved mediator DID as a string, or `null` if resolution fails.
-  Future<String?> getMediatorDidFromUrl(String mediatorEndpoint) {
-    return _mediatorSDK.getMediatorDidFromUrl(mediatorEndpoint);
+  Future<String?> findMediatorDidFromUrl(String mediatorEndpoint) {
+    return _mediatorSDK.findMediatorDidFromUrl(mediatorEndpoint);
   }
 
   /// Sends [fileBytes] as a media message on [channel]. The transport
@@ -1342,12 +1355,6 @@ class MeetingPlaceCoreSDK {
   }
 
   MeetingPlaceTransport get channelTransport => _channelTransport;
-
-  Future<Channel> findChannelByDid(String did) =>
-      _channelService.findChannelByDid(did);
-
-  Future<Channel?> findChannelByDidOrNull(String did) =>
-      _channelService.findChannelByDidOrNull(did);
 
   Future<void> updateMessageSyncMarker(Channel channel, String eventId) =>
       _channelService.updateMessageSyncMarker(channel, eventId);

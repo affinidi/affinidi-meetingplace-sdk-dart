@@ -17,13 +17,14 @@ void main() async {
     await vod.init(libraryPath: vodozemacLibraryPath);
   }
 
-  final bobSDK =
-      await initMatrixSDK(wallet: PersistentWallet(InMemoryKeyStore()));
+  final bobSDK = await initMatrixSDK(
+    wallet: PersistentWallet(InMemoryKeyStore()),
+  );
 
   prettyPrintGreen('>>> Calling SDK.registerForDIDCommNotifications');
   final notification = await bobSDK.registerForDIDCommNotifications();
   final notificationDidDocument =
-      await notification.recipientDid.getDidDocument();
+      await notification.recipientDidManager.getDidDocument();
 
   final outputDirectory = Directory('.example-output');
   final mnemonicBytes = File(
@@ -62,10 +63,11 @@ void main() async {
   });
 
   final notificationStream = await bobSDK.subscribe(
-    DidCommSubscription(receiverDid: notificationDidDocument.id),
+    DidCommSubscription(ownerDid: notificationDidDocument.id),
   );
-  final notificationSubscription =
-      notificationStream.stream.listen((IncomingMessage _) async {
+  final notificationSubscription = notificationStream.stream.listen((
+    IncomingMessage _,
+  ) async {
     await bobSDK.processControlPlaneEvents();
   });
 

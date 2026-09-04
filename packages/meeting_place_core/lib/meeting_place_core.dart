@@ -6,16 +6,16 @@ export 'package:didcomm/didcomm.dart'
 export 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     show
         ControlPlaneEventType,
-        ControlPlaneSDKErrorCode,
-        ControlPlaneSDKException,
         Device,
+        MeetingPlaceControlPlaneSDKErrorCode,
+        MeetingPlaceControlPlaneSDKException,
         MissingDeviceException,
         PlatformType;
 export 'package:meeting_place_mediator/meeting_place_mediator.dart'
     show
         AccessListAdd,
         AccessListRemove,
-        AclSet,
+        AccessListSet,
         MediatorStreamProcessingResult,
         MediatorStreamSubscriptionOptions,
         MeetingPlaceMediatorSDK,

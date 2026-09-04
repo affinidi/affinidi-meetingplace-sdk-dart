@@ -87,7 +87,7 @@ void main() {
 
   group('_onIncomingCallSignal', () {
     test('happy path: rings immediately with caller channel DID', () async {
-      when(() => mockSdk.getChannelByDid(ownDid)).thenAnswer(
+      when(() => mockSdk.findChannelByDid(ownDid)).thenAnswer(
         (_) async => _channel(ownDid: ownDid, otherPartyDid: callerDid),
       );
 
@@ -104,7 +104,7 @@ void main() {
     test(
       'drops signal when channel has no otherPartyPermanentChannelDid',
       () async {
-        when(() => mockSdk.getChannelByDid(ownDid)).thenAnswer(
+        when(() => mockSdk.findChannelByDid(ownDid)).thenAnswer(
           (_) async => _channel(ownDid: ownDid, otherPartyDid: null),
         );
 
@@ -121,7 +121,9 @@ void main() {
     );
 
     test('drops signal when no channel is found for own DID', () async {
-      when(() => mockSdk.getChannelByDid(ownDid)).thenAnswer((_) async => null);
+      when(
+        () => mockSdk.findChannelByDid(ownDid),
+      ).thenAnswer((_) async => null);
 
       final emitted = <IncomingAudioVideoCallEvent>[];
       final sub = plugin.incomingCalls.listen(emitted.add);
@@ -137,7 +139,7 @@ void main() {
 
   group('media type', () {
     test('emits the call with an audio media type', () async {
-      when(() => mockSdk.getChannelByDid(ownDid)).thenAnswer(
+      when(() => mockSdk.findChannelByDid(ownDid)).thenAnswer(
         (_) async => _channel(ownDid: ownDid, otherPartyDid: callerDid),
       );
 
@@ -158,7 +160,7 @@ void main() {
     });
 
     test('emits the call with a video media type', () async {
-      when(() => mockSdk.getChannelByDid(ownDid)).thenAnswer(
+      when(() => mockSdk.findChannelByDid(ownDid)).thenAnswer(
         (_) async => _channel(ownDid: ownDid, otherPartyDid: callerDid),
       );
 

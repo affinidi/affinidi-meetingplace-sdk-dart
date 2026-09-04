@@ -26,7 +26,7 @@ class ChannelInaugurationEventHandler
       name: _logKey,
     );
 
-    final channel = await channelService.findChannelByDid(event.did);
+    final channel = await channelService.getChannelByDid(event.did);
     final didManager = await findDidManager(channel);
 
     return processEvent(

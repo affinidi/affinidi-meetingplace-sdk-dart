@@ -77,7 +77,7 @@ void main() {
     when(() => repo.listMessages(_chatId)).thenAnswer((_) async => items);
   }
 
-  group('MeetingPlaceMatrixChatSDK.getCallChatItemByCallId', () {
+  group('MeetingPlaceMatrixChatSDK.findCallChatItemByCallId', () {
     test('returns the item whose call attachment matches callId', () async {
       final match = _callMessage(
         messageId: 'call-1',
@@ -86,7 +86,7 @@ void main() {
       );
       stubMessages([_plainMessage(), match]);
 
-      final result = await sdk.getCallChatItemByCallId(_callId);
+      final result = await sdk.findCallChatItemByCallId(_callId);
 
       expect(result?.messageId, 'call-1');
     });
@@ -104,7 +104,7 @@ void main() {
       );
       stubMessages([incoming, outgoing]);
 
-      final result = await sdk.getCallChatItemByCallId(_callId);
+      final result = await sdk.findCallChatItemByCallId(_callId);
 
       expect(result?.messageId, 'out-1');
     });
@@ -115,13 +115,13 @@ void main() {
         _callMessage(messageId: 'other', isFromMe: true, callId: 'room9@1'),
       ]);
 
-      final result = await sdk.getCallChatItemByCallId(_callId);
+      final result = await sdk.findCallChatItemByCallId(_callId);
 
       expect(result, isNull);
     });
 
     test('returns null for an empty callId without querying', () async {
-      final result = await sdk.getCallChatItemByCallId('');
+      final result = await sdk.findCallChatItemByCallId('');
 
       expect(result, isNull);
       verifyNever(() => repo.listMessages(any()));

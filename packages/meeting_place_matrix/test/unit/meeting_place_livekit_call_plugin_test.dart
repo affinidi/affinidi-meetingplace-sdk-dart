@@ -30,7 +30,7 @@ MockMeetingPlaceMatrixSDK _mockSdk() {
   when(() => sdk.matrixService).thenReturn(MockMatrixService());
   when(() => sdk.callSignals).thenAnswer((_) => const Stream.empty());
   when(
-    () => sdk.getChannelByOtherPartyPermanentDid(any()),
+    () => sdk.findChannelByOtherPartyPermanentDid(any()),
   ).thenThrow(Exception('stub: not needed for this test'));
   return sdk;
 }
@@ -98,7 +98,7 @@ void main() {
       when(() => sdk.matrixService).thenReturn(MockMatrixService());
       when(() => sdk.callSignals).thenAnswer((_) => const Stream.empty());
       when(
-        () => sdk.getChannelByOtherPartyPermanentDid('did:group'),
+        () => sdk.findChannelByOtherPartyPermanentDid('did:group'),
       ).thenAnswer(
         (_) async => Channel(
           offerLink: 'offer://group',
@@ -143,7 +143,7 @@ void main() {
       when(() => sdk.matrixService).thenReturn(MockMatrixService());
       when(() => sdk.callSignals).thenAnswer((_) => const Stream.empty());
       when(
-        () => sdk.getChannelByOtherPartyPermanentDid('did:group'),
+        () => sdk.findChannelByOtherPartyPermanentDid('did:group'),
       ).thenAnswer((_) async => null);
       plugin.initialize(sdk: sdk);
       addTearDown(plugin.dispose);
@@ -173,7 +173,7 @@ void main() {
 
       when(() => sdk.matrixService).thenReturn(matrixService);
       when(() => sdk.callSignals).thenAnswer((_) => signalController.stream);
-      when(() => sdk.getChannelByDid(ownDid)).thenAnswer(
+      when(() => sdk.findChannelByDid(ownDid)).thenAnswer(
         (_) async => Channel(
           offerLink: 'offer-link',
           publishOfferDid: 'did:key:publishOffer',
@@ -260,7 +260,7 @@ void main() {
 
         when(() => sdk.matrixService).thenReturn(matrixService);
         when(() => sdk.callSignals).thenAnswer((_) => signalController.stream);
-        when(() => sdk.getChannelByDid(ownDid)).thenAnswer(
+        when(() => sdk.findChannelByDid(ownDid)).thenAnswer(
           (_) async => Channel(
             offerLink: 'offer-link',
             publishOfferDid: 'did:key:publishOffer',
@@ -355,7 +355,7 @@ void main() {
 
         when(() => sdk.matrixService).thenReturn(matrixService);
         when(() => sdk.callSignals).thenAnswer((_) => signalController.stream);
-        when(() => sdk.getChannelByDid(ownDid)).thenAnswer(
+        when(() => sdk.findChannelByDid(ownDid)).thenAnswer(
           (_) async => Channel(
             offerLink: 'offer-link',
             publishOfferDid: 'did:key:publishOffer',
@@ -458,7 +458,7 @@ void main() {
 
         when(() => sdk.matrixService).thenReturn(matrixService);
         when(() => sdk.callSignals).thenAnswer((_) => signalController.stream);
-        when(() => sdk.getChannelByDid(ownDid)).thenAnswer(
+        when(() => sdk.findChannelByDid(ownDid)).thenAnswer(
           (_) async => Channel(
             offerLink: 'offer-link',
             publishOfferDid: 'did:key:publishOffer',
@@ -558,7 +558,7 @@ void main() {
 
         when(() => sdk.matrixService).thenReturn(matrixService);
         when(() => sdk.callSignals).thenAnswer((_) => signalController.stream);
-        when(() => sdk.getChannelByDid(ownDid)).thenAnswer(
+        when(() => sdk.findChannelByDid(ownDid)).thenAnswer(
           (_) async => Channel(
             offerLink: 'offer-link',
             publishOfferDid: 'did:key:publishOffer',
@@ -657,7 +657,7 @@ void main() {
 
         when(() => sdk.matrixService).thenReturn(matrixService);
         when(() => sdk.callSignals).thenAnswer((_) => signalController.stream);
-        when(() => sdk.getChannelByDid(ownDid)).thenAnswer(
+        when(() => sdk.findChannelByDid(ownDid)).thenAnswer(
           (_) async => Channel(
             offerLink: 'offer-link',
             publishOfferDid: 'did:key:publishOffer',
@@ -761,7 +761,7 @@ void main() {
 
         when(() => sdk.matrixService).thenReturn(matrixService);
         when(() => sdk.callSignals).thenAnswer((_) => signalController.stream);
-        when(() => sdk.getChannelByDid(ownDid)).thenAnswer(
+        when(() => sdk.findChannelByDid(ownDid)).thenAnswer(
           (_) async => Channel(
             offerLink: 'offer-link',
             publishOfferDid: 'did:key:publishOffer',
@@ -867,7 +867,7 @@ void main() {
 
         when(() => sdk.matrixService).thenReturn(matrixService);
         when(() => sdk.callSignals).thenAnswer((_) => signalController.stream);
-        when(() => sdk.getChannelByDid(ownDid)).thenAnswer(
+        when(() => sdk.findChannelByDid(ownDid)).thenAnswer(
           (_) async => Channel(
             offerLink: 'offer-link',
             publishOfferDid: 'did:key:publishOffer',
@@ -967,7 +967,7 @@ void main() {
 
         when(() => sdk.matrixService).thenReturn(matrixService);
         when(() => sdk.callSignals).thenAnswer((_) => signalController.stream);
-        when(() => sdk.getChannelByDid(ownDid)).thenAnswer(
+        when(() => sdk.findChannelByDid(ownDid)).thenAnswer(
           (_) async => Channel(
             offerLink: 'offer-link',
             publishOfferDid: 'did:key:publishOffer',
@@ -1067,7 +1067,7 @@ void main() {
 
         when(() => sdk.matrixService).thenReturn(matrixService);
         when(() => sdk.callSignals).thenAnswer((_) => signalController.stream);
-        when(() => sdk.getChannelByDid(ownDid)).thenAnswer(
+        when(() => sdk.findChannelByDid(ownDid)).thenAnswer(
           (_) async => Channel(
             offerLink: 'offer-link',
             publishOfferDid: 'did:key:publishOffer',

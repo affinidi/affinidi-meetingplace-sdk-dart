@@ -26,7 +26,7 @@ class FinaliseAcceptanceException implements ControlPlaneException {
   }) {
     return FinaliseAcceptanceException._(
       message: 'Finalise acceptance failed: ${innerException.toString()}.',
-      code: ControlPlaneSDKErrorCode.finaliseAcceptanceError,
+      code: MeetingPlaceControlPlaneSDKErrorCode.finaliseAcceptanceError,
       innerException: innerException,
     );
   }
@@ -41,7 +41,7 @@ class FinaliseAcceptanceException implements ControlPlaneException {
   factory FinaliseAcceptanceException.generic({Object? innerException}) {
     return FinaliseAcceptanceException._(
       message: 'Finalise acceptance failed: ${innerException.toString()}.',
-      code: ControlPlaneSDKErrorCode.finaliseAcceptanceGeneric,
+      code: MeetingPlaceControlPlaneSDKErrorCode.finaliseAcceptanceGeneric,
       innerException: innerException,
     );
   }
@@ -49,7 +49,7 @@ class FinaliseAcceptanceException implements ControlPlaneException {
   final String message;
 
   @override
-  final ControlPlaneSDKErrorCode code;
+  final MeetingPlaceControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;

@@ -111,7 +111,7 @@ void main() {
   group('sendTextMessage', () {
     test('returns sent status even when notification fails', () async {
       when(
-        () => core.getChannelByOtherPartyPermanentDid(any()),
+        () => core.findChannelByOtherPartyPermanentDid(any()),
       ).thenAnswer((_) async => _fakeChannel());
 
       when(() => core.sendMessage(any())).thenThrow(
@@ -138,7 +138,7 @@ void main() {
 
     test('persists message in repository', () async {
       when(
-        () => core.getChannelByOtherPartyPermanentDid(any()),
+        () => core.findChannelByOtherPartyPermanentDid(any()),
       ).thenAnswer((_) async => _fakeChannel());
 
       when(() => core.sendMessage(any())).thenAnswer((_) async => 'ok');

@@ -1,7 +1,7 @@
 /// Represents a control plane SDK exception.
-class ControlPlaneSDKException implements Exception {
-  /// Creates a [ControlPlaneSDKException] instance.
-  ControlPlaneSDKException({
+class MeetingPlaceControlPlaneSDKException implements Exception {
+  /// Creates a [MeetingPlaceControlPlaneSDKException] instance.
+  MeetingPlaceControlPlaneSDKException({
     required this.message,
     required this.code,
     required this.innerException,

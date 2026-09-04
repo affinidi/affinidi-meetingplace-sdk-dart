@@ -115,12 +115,14 @@ void main() {
       when(() => chatSDK.getChannel()).thenAnswer((_) async => _groupChannel());
 
       when(
-        () => coreSDK.getChannelByOtherPartyPermanentDid(any()),
+        () => coreSDK.findChannelByOtherPartyPermanentDid(any()),
       ).thenAnswer((_) async => _bobChannel());
       when(
         () => coreSDK.approveConnectionRequest(channel: any(named: 'channel')),
       ).thenAnswer((_) async => _bobChannel());
-      when(() => coreSDK.getGroupById(any())).thenAnswer((_) async => _group());
+      when(
+        () => coreSDK.findGroupById(any()),
+      ).thenAnswer((_) async => _group());
       when(
         () => coreSDK.sendMediaMessage(
           any(),
@@ -181,7 +183,7 @@ void main() {
     test('channel not found: throws and does not approve', () async {
       when(() => chatSDK.isGroupOwner).thenReturn(true);
       when(
-        () => coreSDK.getChannelByOtherPartyPermanentDid(any()),
+        () => coreSDK.findChannelByOtherPartyPermanentDid(any()),
       ).thenAnswer((_) async => null);
 
       await expectLater(

@@ -100,10 +100,10 @@ class GroupChatFixture {
     await fixture.aliceSDK.processControlPlaneEvents();
     await aliceSDKCompleter.future;
 
-    final bobChannel = await fixture.aliceSDK.getChannelByDid(
+    final bobChannel = await fixture.aliceSDK.findChannelByDid(
       fixture.bobMemberDid,
     );
-    final charlieChannel = await fixture.aliceSDK.getChannelByDid(
+    final charlieChannel = await fixture.aliceSDK.findChannelByDid(
       fixture.charlieMemberDid,
     );
 
@@ -128,7 +128,7 @@ class GroupChatFixture {
     await fixture.charlieSDK.processControlPlaneEvents();
     await charlieCompleter.future;
 
-    fixture.aliceGroup = (await fixture.aliceSDK.getGroupByOfferLink(
+    fixture.aliceGroup = (await fixture.aliceSDK.findGroupByOfferLink(
       fixture.publishOfferResult.connectionOffer.offerLink,
     ))!;
 
@@ -140,7 +140,7 @@ class GroupChatFixture {
       channelRepository: fixture.aliceChannelRepository,
     );
 
-    fixture.bobGroup = (await fixture.bobSDK.getGroupByOfferLink(
+    fixture.bobGroup = (await fixture.bobSDK.findGroupByOfferLink(
       fixture.publishOfferResult.connectionOffer.offerLink,
     ))!;
 
@@ -152,7 +152,7 @@ class GroupChatFixture {
       channelRepository: fixture.bobChannelRepository,
     );
 
-    fixture.charlieGroup = (await fixture.charlieSDK.getGroupByOfferLink(
+    fixture.charlieGroup = (await fixture.charlieSDK.findGroupByOfferLink(
       fixture.publishOfferResult.connectionOffer.offerLink,
     ))!;
 

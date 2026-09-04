@@ -15,7 +15,7 @@ void main() async {
   prettyPrintGreen('>>> Calling SDK.registerForDIDCommNotifications');
   final notification = await aliceSDK.registerForDIDCommNotifications();
   final notificationDidDocument =
-      await notification.recipientDid.getDidDocument();
+      await notification.recipientDidManager.getDidDocument();
   prettyPrintYellow('Notification DID ${notificationDidDocument.id}');
 
   prettyPrintGreen('>>> Calling SDK.publishOffer');
@@ -67,7 +67,7 @@ void main() async {
   // Alice listens to mediator stream using notification DID
   prettyPrintGreen('>>> Calling SDK.subscribe');
   final notificationStream = await aliceSDK.subscribe(
-    DidCommSubscription(receiverDid: notificationDidDocument.id),
+    DidCommSubscription(ownerDid: notificationDidDocument.id),
   );
 
   prettyPrintYellow('>>> Listen on notification stream');

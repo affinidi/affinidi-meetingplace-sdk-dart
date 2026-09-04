@@ -158,13 +158,13 @@ void main() async {
       await aliceSDK.processControlPlaneEvents();
       await aliceCompleter.future;
 
-      final channel = await aliceSDK.getChannelByDid(
+      final channel = await aliceSDK.findChannelByDid(
         result.connectionOffer.groupDid!,
       );
 
       await aliceSDK.approveConnectionRequest(channel: channel!);
 
-      final group = await aliceSDK.getGroupByOfferLink(
+      final group = await aliceSDK.findGroupByOfferLink(
         result.connectionOffer.offerLink,
       );
 
@@ -291,9 +291,9 @@ void main() async {
       await aliceSDK.processControlPlaneEvents();
       await aliceCompleter.future;
 
-      final charlieDidDoc = await acceptResultCharlie.permanentChannelDid
+      final charlieDidDoc = await acceptResultCharlie.permanentChannelDidManager
           .getDidDocument();
-      final charlieChannel = await aliceSDK.getChannelByDid(charlieDidDoc.id);
+      final charlieChannel = await aliceSDK.findChannelByDid(charlieDidDoc.id);
 
       final charlieCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
         charlieSDK,
@@ -307,10 +307,10 @@ void main() async {
       await charlieCompleter.future;
 
       final acceptResultBobChannelDid = await acceptResultBob
-          .permanentChannelDid
+          .permanentChannelDidManager
           .getDidDocument();
 
-      final bobChannel = await aliceSDK.getChannelByDid(
+      final bobChannel = await aliceSDK.findChannelByDid(
         acceptResultBobChannelDid.id,
       );
 
@@ -405,19 +405,19 @@ void main() async {
     final publishOfferDidDoc = await result.publishedOfferDidManager
         .getDidDocument();
 
-    final channel = await aliceSDK.getChannelByDid(
+    final channel = await aliceSDK.findChannelByDid(
       result.connectionOffer.groupDid!,
     );
 
     await aliceSDK.approveConnectionRequest(channel: channel!);
 
-    final group = await aliceSDK.getGroupByOfferLink(
+    final group = await aliceSDK.findGroupByOfferLink(
       result.connectionOffer.offerLink,
     );
 
     final messages = await bobSDK.fetchHistory(
       DidCommHistoryQuery(
-        receiverDid: acceptResult.connectionOffer.permanentChannelDid!,
+        ownerDid: acceptResult.connectionOffer.permanentChannelDid!,
       ),
     );
 
@@ -451,7 +451,7 @@ void main() async {
 
     await bobSDK.processControlPlaneEvents();
 
-    final newActual = await bobSDK.getConnectionOffer(
+    final newActual = await bobSDK.findConnectionOffer(
       result.connectionOffer.offerLink,
     );
 
@@ -497,13 +497,13 @@ void main() async {
     await aliceSDK.processControlPlaneEvents();
     await aliceCompleter.future;
 
-    final channel = await aliceSDK.getChannelByDid(
+    final channel = await aliceSDK.findChannelByDid(
       result.connectionOffer.groupDid!,
     );
 
     await aliceSDK.approveConnectionRequest(channel: channel!);
 
-    final group = await aliceSDK.getGroupByOfferLink(
+    final group = await aliceSDK.findGroupByOfferLink(
       result.connectionOffer.offerLink,
     );
     final actual = group!.members.firstWhere(
@@ -560,7 +560,7 @@ void main() async {
     await aliceSDK.processControlPlaneEvents();
     await aliceCompleter.future;
 
-    final channel = await aliceSDK.getChannelByDid(
+    final channel = await aliceSDK.findChannelByDid(
       result.connectionOffer.groupDid!,
     );
 
@@ -576,15 +576,15 @@ void main() async {
     await bobSDK.processControlPlaneEvents();
     await bobCompleter.future;
 
-    final bobMemberDidDic = await acceptResult.permanentChannelDid
+    final bobMemberDidDic = await acceptResult.permanentChannelDidManager
         .getDidDocument();
 
-    final bobChannel = await bobSDK.getChannelByDid(bobMemberDidDic.id);
+    final bobChannel = await bobSDK.findChannelByDid(bobMemberDidDic.id);
 
     await bobSDK.leaveChannel(bobChannel!);
-    final groupExp = await bobSDK.getGroupById(acceptConnectionOffer.groupId);
+    final groupExp = await bobSDK.findGroupById(acceptConnectionOffer.groupId);
 
-    final connectionExp = await bobSDK.getConnectionOffer(
+    final connectionExp = await bobSDK.findConnectionOffer(
       acceptResult.connectionOffer.offerLink,
     );
 
@@ -647,7 +647,7 @@ void main() async {
     await aliceSDK.processControlPlaneEvents();
     await aliceCompleter.future;
 
-    final channel = await aliceSDK.getChannelByDid(
+    final channel = await aliceSDK.findChannelByDid(
       result.connectionOffer.groupDid!,
     );
 
@@ -658,17 +658,17 @@ void main() async {
     final aliceMemberDidDoc = await result.groupOwnerDidManager!
         .getDidDocument();
 
-    final aliceChannel = await aliceSDK.getChannelByDid(aliceMemberDidDoc.id);
+    final aliceChannel = await aliceSDK.findChannelByDid(aliceMemberDidDoc.id);
     await aliceSDK.leaveChannel(aliceChannel!);
 
-    final groupExp = await aliceSDK.getGroupById(
+    final groupExp = await aliceSDK.findGroupById(
       acceptResult.connectionOffer.groupId,
     );
 
-    final expConnectionOffer = await aliceSDK.getConnectionOffer(
+    final expConnectionOffer = await aliceSDK.findConnectionOffer(
       result.connectionOffer.offerLink,
     );
-    final expChannel = await aliceSDK.getChannelByDid(aliceMemberDidDoc.id);
+    final expChannel = await aliceSDK.findChannelByDid(aliceMemberDidDoc.id);
 
     // Verify that connection offer has been marked as deleted
     expect(expConnectionOffer?.status, equals(ConnectionOfferStatus.deleted));
@@ -730,7 +730,7 @@ void main() async {
     await aliceSDK.processControlPlaneEvents();
     await aliceCompleter.future;
 
-    final channel = await aliceSDK.getChannelByDid(
+    final channel = await aliceSDK.findChannelByDid(
       result.connectionOffer.groupDid!,
     );
     await aliceSDK.approveConnectionRequest(channel: channel!);
@@ -738,7 +738,7 @@ void main() async {
     final groupId = acceptResult.connectionOffer.groupId;
     final bobDid = acceptResult.connectionOffer.permanentChannelDid!;
 
-    final groupBefore = await aliceSDK.getGroupById(
+    final groupBefore = await aliceSDK.findGroupById(
       result.connectionOffer.groupId,
     );
     expect(groupBefore!.members.length, equals(2));
@@ -774,7 +774,7 @@ void main() async {
       memberDid: bobDid,
     );
 
-    final groupAfter = await aliceSDK.getGroupById(
+    final groupAfter = await aliceSDK.findGroupById(
       result.connectionOffer.groupId,
     );
     expect(groupAfter!.members.length, equals(1));

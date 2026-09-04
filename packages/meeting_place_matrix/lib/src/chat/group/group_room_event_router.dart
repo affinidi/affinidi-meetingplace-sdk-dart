@@ -51,7 +51,7 @@ class GroupRoomEventRouter extends IncomingRoomEventRouter {
 
     final Group? persistedGroup;
     try {
-      persistedGroup = await _chatSDK.coreSDK.getGroupById(_chatSDK.group.id);
+      persistedGroup = await _chatSDK.coreSDK.findGroupById(_chatSDK.group.id);
     } catch (e, stackTrace) {
       _chatSDK.logger.error(
         'Failed to look up persisted group for join event',

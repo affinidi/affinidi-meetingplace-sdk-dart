@@ -93,7 +93,7 @@ class ChannelActivityEventHandler {
           '''Unhandled channel activity type: ${channelActivity.type} — forwarding to stream''',
           name: _logKey,
         );
-        final channel = await _channelService.findChannelByDid(
+        final channel = await _channelService.getChannelByDid(
           channelActivity.did,
         );
         return [channel];

@@ -120,7 +120,7 @@ class MeetingPlaceMediatorSDK {
   ///   - [AccessListAdd]: Grants new permissions to specified entities
   ///   - [AccessListRemove]: Revokes existing permissions from specified
   ///       entities
-  ///   - [AclSet]: Replaces the entire ACL with the provided permissions
+  ///   - [AccessListSet]: Replaces the entire ACL with the provided permissions
   /// - [mediatorDid]: Optional mediator DID to authenticate against. If not
   ///   provided, the SDK instance's default mediator DID will be used.
   Future<void> updateAcl({
@@ -167,7 +167,7 @@ class MeetingPlaceMediatorSDK {
   /// invitation is associated with the provided URL.
   ///
   /// Throws a [MediatorException] if there is an error during retrieval.
-  Future<OobInvitationMessage?> getOob(Uri oobUrl) {
+  Future<OobInvitationMessage?> findOob(Uri oobUrl) {
     return _withSdkExceptionHandling(() async {
       final output = await _execute(
         GetOobCommand(oobUrl: oobUrl),
@@ -352,9 +352,9 @@ class MeetingPlaceMediatorSDK {
   ///
   /// This method performs a GET request to `/.well-known/did` at the given
   /// [mediatorEndpoint] and returns the `mediatorDid` string if found.
-  Future<String?> getMediatorDidFromUrl(String mediatorEndpoint) {
+  Future<String?> findMediatorDidFromUrl(String mediatorEndpoint) {
     return _withSdkExceptionHandling(
-      () => _mediatorResolver.getMediatorDidFromUrl(mediatorEndpoint),
+      () => _mediatorResolver.findMediatorDidFromUrl(mediatorEndpoint),
     );
   }
 
@@ -378,7 +378,7 @@ class MeetingPlaceMediatorSDK {
       Error.throwWithStackTrace(
         MeetingPlaceMediatorSDKException(
           message: 'Failure on Mediator SDK exception',
-          code: MediatorSdkExceptionErrorCodes.generic.name,
+          code: MeetingPlaceMediatorSDKErrorCode.generic.value,
           innerException: e,
         ),
         stackTrace,

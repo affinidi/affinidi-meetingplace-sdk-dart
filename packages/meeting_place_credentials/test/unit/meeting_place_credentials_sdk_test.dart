@@ -138,7 +138,7 @@ void main() {
       ).thenAnswer((_) async => stored);
 
       expect(await sdk.listReceivedRCards(), [stored]);
-      expect(await sdk.getReceivedRCardBySubjectDid('did:key:peer'), stored);
+      expect(await sdk.findReceivedRCardBySubjectDid('did:key:peer'), stored);
 
       await sdk.updateReceivedRCardNotes('did:key:peer', 'hello');
       await sdk.deleteReceivedRCard('did:key:peer');
@@ -420,7 +420,7 @@ void main() {
       when(() => mockRepo.updateNotes(any(), any())).thenAnswer((_) async {});
       when(() => mockRepo.deleteBySubjectDid(any())).thenAnswer((_) async {});
       when(
-        () => mockCoreSDK.getChannelByOtherPartyPermanentDid(any()),
+        () => mockCoreSDK.findChannelByOtherPartyPermanentDid(any()),
       ).thenAnswer((_) async => null);
     });
 
@@ -675,7 +675,7 @@ void main() {
       final channel = MockChannel();
       when(() => channel.id).thenReturn('channel-1');
       when(
-        () => mockCoreSDK.getChannelByOtherPartyPermanentDid('did:key:sender'),
+        () => mockCoreSDK.findChannelByOtherPartyPermanentDid('did:key:sender'),
       ).thenAnswer((_) async => channel);
 
       vdipMessagesCtrl.add(
@@ -745,7 +745,7 @@ void main() {
       when(() => mockRepo.updateNotes(any(), any())).thenAnswer((_) async {});
       when(() => mockRepo.deleteBySubjectDid(any())).thenAnswer((_) async {});
       when(
-        () => mockCoreSDK.getChannelByOtherPartyPermanentDid(any()),
+        () => mockCoreSDK.findChannelByOtherPartyPermanentDid(any()),
       ).thenAnswer((_) async => null);
       sdk = MeetingPlaceCredentialsSDK(
         coreSDK: mockCoreSDK,
@@ -835,7 +835,7 @@ void main() {
       when(() => sendChannel.id).thenReturn('channel-id');
       when(() => sendChannel.permanentChannelDid).thenReturn(issuerDid);
       when(
-        () => mockCoreSDK.getChannelByOtherPartyPermanentDid(any()),
+        () => mockCoreSDK.findChannelByOtherPartyPermanentDid(any()),
       ).thenAnswer((_) async => sendChannel);
       when(
         () => mockCoreSDK.getDidManager(issuerDid),
@@ -874,7 +874,7 @@ void main() {
         when(() => sendChannel.id).thenReturn('channel-id');
         when(() => sendChannel.permanentChannelDid).thenReturn(issuerDid);
         when(
-          () => mockCoreSDK.getChannelByOtherPartyPermanentDid(any()),
+          () => mockCoreSDK.findChannelByOtherPartyPermanentDid(any()),
         ).thenAnswer((_) async => sendChannel);
         when(
           () => mockCoreSDK.getDidManager(issuerDid),
@@ -910,7 +910,7 @@ void main() {
         when(() => sendChannel.id).thenReturn('channel-id');
         when(() => sendChannel.permanentChannelDid).thenReturn(issuerDid);
         when(
-          () => mockCoreSDK.getChannelByOtherPartyPermanentDid(any()),
+          () => mockCoreSDK.findChannelByOtherPartyPermanentDid(any()),
         ).thenAnswer((_) async => sendChannel);
         when(
           () => mockCoreSDK.getDidManager(issuerDid),
@@ -953,7 +953,7 @@ void main() {
         when(() => sendChannel.id).thenReturn('channel-id');
         when(() => sendChannel.permanentChannelDid).thenReturn(issuerDid);
         when(
-          () => mockCoreSDK.getChannelByOtherPartyPermanentDid(any()),
+          () => mockCoreSDK.findChannelByOtherPartyPermanentDid(any()),
         ).thenAnswer((_) async => sendChannel);
         when(
           () => mockCoreSDK.getDidManager(issuerDid),
@@ -1209,13 +1209,13 @@ void main() {
       await sdk.closeCredentialStreams();
     });
 
-    test('getReceivedRCardBySubjectDid delegates to repository', () async {
+    test('findReceivedRCardBySubjectDid delegates to repository', () async {
       when(
         () => mockRepo.getBySubjectDid(stubCard.subjectDid),
       ).thenAnswer((_) async => stubCard);
       final sdk = buildSdk();
 
-      final result = await sdk.getReceivedRCardBySubjectDid(
+      final result = await sdk.findReceivedRCardBySubjectDid(
         stubCard.subjectDid,
       );
       expect(result, equals(stubCard));

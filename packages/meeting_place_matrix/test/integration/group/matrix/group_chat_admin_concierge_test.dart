@@ -33,7 +33,9 @@ void main() {
     await fixture.aliceSDK.processControlPlaneEvents();
     await completer.future;
 
-    final newGroup = await fixture.aliceSDK.getGroupById(fixture.aliceGroup.id);
+    final newGroup = await fixture.aliceSDK.findGroupById(
+      fixture.aliceGroup.id,
+    );
     final newAliceChatSDK = await initGroupChatSDK(
       coreSDK: fixture.aliceSDK,
       did: fixture.groupOwnerDidDocument.id,
@@ -75,7 +77,9 @@ void main() {
     await fixture.aliceSDK.processControlPlaneEvents();
     await completer.future;
 
-    final newGroup = await fixture.aliceSDK.getGroupById(fixture.aliceGroup.id);
+    final newGroup = await fixture.aliceSDK.findGroupById(
+      fixture.aliceGroup.id,
+    );
     final newAliceChatSDK = await initGroupChatSDK(
       coreSDK: fixture.aliceSDK,
       did: fixture.groupOwnerDidDocument.id,
@@ -95,10 +99,10 @@ void main() {
     await newAliceChatSDK.rejectConnectionRequest(conciergeMessage);
     await bobGroupUpdated;
 
-    final newMemberDidDoc = await acceptance.permanentChannelDid
+    final newMemberDidDoc = await acceptance.permanentChannelDidManager
         .getDidDocument();
 
-    final updatedGroup = await fixture.aliceSDK.getGroupById(
+    final updatedGroup = await fixture.aliceSDK.findGroupById(
       fixture.aliceGroup.id,
     );
     expect(conciergeMessage.status, ChatItemStatus.confirmed);

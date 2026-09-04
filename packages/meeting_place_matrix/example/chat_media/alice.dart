@@ -21,13 +21,14 @@ void main() async {
     await vod.init(libraryPath: vodozemacLibraryPath);
   }
 
-  final aliceSDK =
-      await initMatrixSDK(wallet: PersistentWallet(InMemoryKeyStore()));
+  final aliceSDK = await initMatrixSDK(
+    wallet: PersistentWallet(InMemoryKeyStore()),
+  );
 
   prettyPrintGreen('>>> Calling SDK.registerForDIDCommNotifications');
   final notification = await aliceSDK.registerForDIDCommNotifications();
   final notificationDidDocument =
-      await notification.recipientDid.getDidDocument();
+      await notification.recipientDidManager.getDidDocument();
   prettyPrintYellow('Notification DID ${notificationDidDocument.id}');
 
   prettyPrintGreen('>>> Calling SDK.publishOffer');
@@ -77,12 +78,13 @@ void main() async {
 
   prettyPrintGreen('>>> Calling SDK.subscribe');
   final notificationStream = await aliceSDK.subscribe(
-    DidCommSubscription(receiverDid: notificationDidDocument.id),
+    DidCommSubscription(ownerDid: notificationDidDocument.id),
   );
 
   prettyPrintYellow('>>> Listen on notification stream');
-  final notificationSubscription =
-      notificationStream.stream.listen((IncomingMessage message) async {
+  final notificationSubscription = notificationStream.stream.listen((
+    IncomingMessage message,
+  ) async {
     final didcommMessage = message as DidCommIncomingMessage;
     prettyJsonPrintYellow('Received message', didcommMessage.payload.toJson());
     await aliceSDK.processControlPlaneEvents();
@@ -124,16 +126,13 @@ void main() async {
     if (item.attachments.isEmpty) return;
 
     final attachment = item.attachments.single;
-    prettyJsonPrintYellow(
-      'Received media message',
-      {
-        'transportId': item.transportId,
-        'caption': item.value,
-        'filename': attachment.filename,
-        'mediaType': attachment.mediaType,
-        'byteCount': attachment.byteCount,
-      },
-    );
+    prettyJsonPrintYellow('Received media message', {
+      'transportId': item.transportId,
+      'caption': item.value,
+      'filename': attachment.filename,
+      'mediaType': attachment.mediaType,
+      'byteCount': attachment.byteCount,
+    });
 
     prettyPrintGreen(
       '>>> Calling MeetingPlaceChatSDK.downloadMedia(attachment)',
@@ -145,8 +144,6 @@ void main() async {
       '${attachment.filename ?? 'download.bin'}',
     );
     downloadedFile.writeAsBytesSync(bytes);
-    prettyPrintYellow(
-      'Wrote ${bytes.length} bytes to ${downloadedFile.path}',
-    );
+    prettyPrintYellow('Wrote ${bytes.length} bytes to ${downloadedFile.path}');
   });
 }

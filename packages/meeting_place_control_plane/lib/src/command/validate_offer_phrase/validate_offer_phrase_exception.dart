@@ -23,7 +23,8 @@ class ValidateOfferPhraseExceptions implements ControlPlaneException {
   }) {
     return ValidateOfferPhraseExceptions._(
       message: 'Register offer group exception: ${innerException.toString()}.',
-      code: ControlPlaneSDKErrorCode.validateOfferPhraseAuthentication,
+      code: MeetingPlaceControlPlaneSDKErrorCode
+          .validateOfferPhraseAuthentication,
       innerException: innerException,
     );
   }
@@ -38,7 +39,7 @@ class ValidateOfferPhraseExceptions implements ControlPlaneException {
   factory ValidateOfferPhraseExceptions.rateLimit({Object? innerException}) {
     return ValidateOfferPhraseExceptions._(
       message: 'Rate limit exceeded for phrase validation',
-      code: ControlPlaneSDKErrorCode.validateOfferPhraseRateLimit,
+      code: MeetingPlaceControlPlaneSDKErrorCode.validateOfferPhraseRateLimit,
       innerException: innerException,
     );
   }
@@ -53,7 +54,7 @@ class ValidateOfferPhraseExceptions implements ControlPlaneException {
   factory ValidateOfferPhraseExceptions.timeout({Object? innerException}) {
     return ValidateOfferPhraseExceptions._(
       message: 'Request timeout during phrase validation',
-      code: ControlPlaneSDKErrorCode.validateOfferPhraseTimeout,
+      code: MeetingPlaceControlPlaneSDKErrorCode.validateOfferPhraseTimeout,
       innerException: innerException,
     );
   }
@@ -68,7 +69,7 @@ class ValidateOfferPhraseExceptions implements ControlPlaneException {
   factory ValidateOfferPhraseExceptions.generic({Object? innerException}) {
     return ValidateOfferPhraseExceptions._(
       message: 'Unexpected error occurred',
-      code: ControlPlaneSDKErrorCode.validateOfferPhraseGeneric,
+      code: MeetingPlaceControlPlaneSDKErrorCode.validateOfferPhraseGeneric,
       innerException: innerException,
     );
   }
@@ -76,7 +77,7 @@ class ValidateOfferPhraseExceptions implements ControlPlaneException {
   final String message;
 
   @override
-  final ControlPlaneSDKErrorCode code;
+  final MeetingPlaceControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;

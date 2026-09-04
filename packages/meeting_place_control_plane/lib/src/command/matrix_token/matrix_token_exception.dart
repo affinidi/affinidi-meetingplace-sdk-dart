@@ -14,7 +14,7 @@ class MatrixTokenException implements ControlPlaneException {
   }) {
     return MatrixTokenException._(
       message: message,
-      code: ControlPlaneSDKErrorCode.matrixTokenInvalidResponse,
+      code: MeetingPlaceControlPlaneSDKErrorCode.matrixTokenInvalidResponse,
       innerException: innerException,
     );
   }
@@ -25,7 +25,7 @@ class MatrixTokenException implements ControlPlaneException {
   }) {
     return MatrixTokenException._(
       message: message,
-      code: ControlPlaneSDKErrorCode.matrixTokenGeneric,
+      code: MeetingPlaceControlPlaneSDKErrorCode.matrixTokenGeneric,
       innerException: innerException,
     );
   }
@@ -34,7 +34,7 @@ class MatrixTokenException implements ControlPlaneException {
   final String message;
 
   @override
-  final ControlPlaneSDKErrorCode code;
+  final MeetingPlaceControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;

@@ -33,7 +33,7 @@ class PendingApprovalsListener {
       if (group.did != event.channel.otherPartyPermanentChannelDid) return;
 
       await _mutex.protect(() async {
-        final updatedGroup = (await _chatSDK.coreSDK.getGroupById(group.id))!;
+        final updatedGroup = (await _chatSDK.coreSDK.findGroupById(group.id))!;
 
         final conciergeMessages = await PendingApprovalConciergeFactory(
           chatRepository: _chatSDK.chatRepository,

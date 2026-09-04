@@ -39,7 +39,7 @@ void main() async {
     expect(updatedConnectionOffer.status, ConnectionOfferStatus.deleted);
     expect(updatedConnectionOffer.isDeleted, isTrue);
 
-    final connectionOfferFromStorage = await aliceSDK.getConnectionOffer(
+    final connectionOfferFromStorage = await aliceSDK.findConnectionOffer(
       offer.connectionOffer.offerLink,
     );
 
@@ -66,7 +66,7 @@ void main() async {
     );
     await aliceSDK.markConnectionOfferAsDeleted(deletedConnectionOffer);
 
-    final connectionOfferFromStorage = await aliceSDK.getConnectionOffer(
+    final connectionOfferFromStorage = await aliceSDK.findConnectionOffer(
       offer.connectionOffer.offerLink,
     );
 
@@ -89,7 +89,7 @@ void main() async {
     );
 
     await aliceSDK.deleteConnectionOffer(offer.connectionOffer);
-    final actual = await aliceSDK.getConnectionOffer(
+    final actual = await aliceSDK.findConnectionOffer(
       offer.connectionOffer.offerLink,
     );
 

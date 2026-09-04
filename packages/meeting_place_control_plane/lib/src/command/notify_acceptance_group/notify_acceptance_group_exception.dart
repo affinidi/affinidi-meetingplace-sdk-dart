@@ -22,7 +22,7 @@ class NotifyAcceptanceGroupException implements ControlPlaneException {
     return NotifyAcceptanceGroupException._(
       message:
           'Notify acceptance group exception: ${innerException.toString()}.',
-      code: ControlPlaneSDKErrorCode.notifyAcceptanceGeneric,
+      code: MeetingPlaceControlPlaneSDKErrorCode.notifyAcceptanceGeneric,
       innerException: innerException,
     );
   }
@@ -30,7 +30,7 @@ class NotifyAcceptanceGroupException implements ControlPlaneException {
   final String message;
 
   @override
-  final ControlPlaneSDKErrorCode code;
+  final MeetingPlaceControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;

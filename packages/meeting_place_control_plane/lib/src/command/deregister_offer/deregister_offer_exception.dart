@@ -26,7 +26,7 @@ class DeregisterOfferException implements ControlPlaneException {
     return DeregisterOfferException._(
       message:
           '''Deregister offer failed: ${innerException.toString()}, status code: $statusCode, data: $data''',
-      code: ControlPlaneSDKErrorCode.deregisterOfferFailedError,
+      code: MeetingPlaceControlPlaneSDKErrorCode.deregisterOfferFailedError,
       innerException: innerException,
     );
   }
@@ -41,7 +41,7 @@ class DeregisterOfferException implements ControlPlaneException {
   factory DeregisterOfferException.generic({Object? innerException}) {
     return DeregisterOfferException._(
       message: 'Deregister offer failed: ${innerException.toString()}.',
-      code: ControlPlaneSDKErrorCode.deregisterOfferGeneric,
+      code: MeetingPlaceControlPlaneSDKErrorCode.deregisterOfferGeneric,
       innerException: innerException,
     );
   }
@@ -49,7 +49,7 @@ class DeregisterOfferException implements ControlPlaneException {
   final String message;
 
   @override
-  final ControlPlaneSDKErrorCode code;
+  final MeetingPlaceControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;

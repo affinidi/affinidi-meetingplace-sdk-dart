@@ -23,7 +23,7 @@ Future<void> main() async {
     prettyPrintGreen('>>> Registering DIDComm notifications');
     final notification = await sdk.registerForDIDCommNotifications();
     final notificationDidDocument =
-        await notification.recipientDid.getDidDocument();
+        await notification.recipientDidManager.getDidDocument();
 
     prettyPrintGreen('>>> Publishing an invitation offer');
     final publishOfferResult = await sdk.publishOffer(
@@ -48,26 +48,20 @@ Future<void> main() async {
       utf8.encode(publishOfferResult.connectionOffer.mnemonic),
     );
 
-    prettyJsonPrintYellow(
-      'Notification DID',
-      {'did': notificationDidDocument.id},
-    );
-    prettyJsonPrintYellow(
-      'Connection offer summary',
-      {
-        'offerName': publishOfferResult.connectionOffer.offerName,
-        'offerLink': publishOfferResult.connectionOffer.offerLink,
-        'publishOfferDid': publishOfferResult.connectionOffer.publishOfferDid,
-        'mediatorDid': publishOfferResult.connectionOffer.mediatorDid,
-        'transport': publishOfferResult.connectionOffer.transport.name,
-        'expiresAt':
-            publishOfferResult.connectionOffer.expiresAt?.toIso8601String(),
-      },
-    );
+    prettyJsonPrintYellow('Notification DID', {
+      'did': notificationDidDocument.id,
+    });
+    prettyJsonPrintYellow('Connection offer summary', {
+      'offerName': publishOfferResult.connectionOffer.offerName,
+      'offerLink': publishOfferResult.connectionOffer.offerLink,
+      'publishOfferDid': publishOfferResult.connectionOffer.publishOfferDid,
+      'mediatorDid': publishOfferResult.connectionOffer.mediatorDid,
+      'transport': publishOfferResult.connectionOffer.transport.name,
+      'expiresAt':
+          publishOfferResult.connectionOffer.expiresAt?.toIso8601String(),
+    });
 
-    prettyPrintYellow(
-      'Wrote offer mnemonic to ${mnemonicFile.path}',
-    );
+    prettyPrintYellow('Wrote offer mnemonic to ${mnemonicFile.path}');
     prettyPrintYellow('Next steps:');
     prettyPrintYellow(
       '1. Open the generated mnemonic file and accept it '
@@ -85,7 +79,8 @@ Future<void> main() async {
     prettyPrint('');
     prettyPrintRed('Expected setup:');
     prettyPrint(
-        '- optional: a local .env file in packages/meeting_place_matrix');
+      '- optional: a local .env file in packages/meeting_place_matrix',
+    );
     prettyPrint('- required: MEDIATOR_DID');
     prettyPrint('- required: CONTROL_PLANE_DID');
     prettyPrint('- required: MATRIX_HOMESERVER');

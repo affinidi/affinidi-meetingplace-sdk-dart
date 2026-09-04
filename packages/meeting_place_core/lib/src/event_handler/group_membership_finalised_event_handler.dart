@@ -75,7 +75,7 @@ class GroupMembershipFinalisedEventHandler
       );
     }
 
-    final channel = await channelService.findChannelByDid(permanentChannelDid);
+    final channel = await channelService.getChannelByDid(permanentChannelDid);
     final didManager = await connectionManager.getDidManagerForDid(
       wallet,
       permanentChannelDid,
@@ -167,7 +167,7 @@ class GroupMembershipFinalisedEventHandler
       didManager: didManager,
     );
 
-    final initialMatrixSyncMarker = await _channelTransport.getLastEventId(
+    final initialMatrixSyncMarker = await _channelTransport.findLastEventId(
       channel: channel,
       didManager: didManager,
     );
@@ -270,7 +270,7 @@ class GroupMembershipFinalisedEventHandler
       ),
 
       _allowGroupToSendMessagesToPermanetChannelDid(
-        permanentChannelDid: didManager,
+        permanentChannelDidManager: didManager,
         mediatorDid: mediatorDid,
         groupDid: groupDid,
       ),
@@ -278,12 +278,12 @@ class GroupMembershipFinalisedEventHandler
   }
 
   Future<void> _allowGroupToSendMessagesToPermanetChannelDid({
-    required DidManager permanentChannelDid,
+    required DidManager permanentChannelDidManager,
     required String mediatorDid,
     required String groupDid,
   }) async {
     final methodName = '_allowGroupToSendMessagesToPermanentChannelDid';
-    final permanentChannelDidDocument = await permanentChannelDid
+    final permanentChannelDidDocument = await permanentChannelDidManager
         .getDidDocument();
 
     logger.info(
@@ -293,7 +293,7 @@ class GroupMembershipFinalisedEventHandler
       name: methodName,
     );
     return mediatorService.updateAcl(
-      ownerDidManager: permanentChannelDid,
+      ownerDidManager: permanentChannelDidManager,
       mediatorDid: mediatorDid,
       acl: AccessListAdd(
         ownerDid: permanentChannelDidDocument.id,
@@ -385,7 +385,7 @@ class GroupMembershipFinalisedEventHandler
   }
 
   Future<Group> _findGroupByOfferLink(String offerLink) async {
-    return await _groupRepository.getGroupByOfferLink(offerLink) ??
+    return await _groupRepository.findGroupByOfferLink(offerLink) ??
         (throw GroupException.notFoundError());
   }
 }

@@ -101,7 +101,7 @@ class _OobServiceMocks {
   final acceptOfferDidDoc = MockDidDocument();
   final permanentChannelDidDoc = MockDidDocument();
 
-  void stubGetOobThrows(ControlPlaneSDKException exception) {
+  void stubGetOobThrows(MeetingPlaceControlPlaneSDKException exception) {
     when(
       () => controlPlaneSDK.execute<GetOobCommandOutput>(
         any(that: isA<GetOobCommand>()),
@@ -141,9 +141,9 @@ void main() {
   });
 
   group('OobService', () {
-    test('throws invalidOobResponse when ControlPlaneSDKException has unknown '
-        'code', () async {
-      final exception = ControlPlaneSDKException(
+    test('throws invalidOobResponse when '
+        'MeetingPlaceControlPlaneSDKException has unknown code', () async {
+      final exception = MeetingPlaceControlPlaneSDKException(
         message: 'Unknown error',
         code: 'some_unknown_code',
         innerException: Exception('inner'),
@@ -163,28 +163,26 @@ void main() {
       );
     });
 
-    test(
-      'throws networkError when ControlPlaneSDKException is networkError',
-      () async {
-        final exception = ControlPlaneSDKException(
-          message: 'Network error',
-          code: ControlPlaneSDKErrorCode.networkError.value,
-          innerException: Exception('inner'),
-        );
-        final oobServiceMocks = _OobServiceMocks()..stubGetOobThrows(exception);
-        final oobService = oobServiceMocks.buildService();
+    test('throws networkError when '
+        'MeetingPlaceControlPlaneSDKException is networkError', () async {
+      final exception = MeetingPlaceControlPlaneSDKException(
+        message: 'Network error',
+        code: MeetingPlaceControlPlaneSDKErrorCode.networkError.value,
+        innerException: Exception('inner'),
+      );
+      final oobServiceMocks = _OobServiceMocks()..stubGetOobThrows(exception);
+      final oobService = oobServiceMocks.buildService();
 
-        expect(
-          () => oobServiceMocks.callAcceptOobFlow(oobService),
-          throwsA(
-            isA<OobServiceException>().having(
-              (e) => e.code,
-              'code',
-              MeetingPlaceCoreSDKErrorCode.networkError,
-            ),
+      expect(
+        () => oobServiceMocks.callAcceptOobFlow(oobService),
+        throwsA(
+          isA<OobServiceException>().having(
+            (e) => e.code,
+            'code',
+            MeetingPlaceCoreSDKErrorCode.networkError,
           ),
-        );
-      },
-    );
+        ),
+      );
+    });
   });
 }

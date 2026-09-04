@@ -1,7 +1,7 @@
 import '../../meeting_place_core.dart' show MeetingPlaceTransport;
 
-/// Options controlling the behaviour of a [MeetingPlaceTransport.subscribe]
-/// call.
+/// Options controlling the behaviour of a
+/// [MeetingPlaceTransport.subscribeToEvents] call.
 class TransportSubscriptionOptions {
   const TransportSubscriptionOptions({
     this.excludeSelf = false,

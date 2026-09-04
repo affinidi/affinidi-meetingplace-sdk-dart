@@ -77,7 +77,7 @@ abstract interface class MeetingPlaceTransport {
   /// transport user IDs back to DIDs — the implementation
   /// resolves [TransportEvent.senderDid] using these candidates before emitting
   /// each event.
-  Stream<TransportEvent> subscribe({
+  Stream<TransportEvent> subscribeToEvents({
     required Channel channel,
     required DidManager didManager,
     TransportSubscriptionOptions? options,
@@ -89,7 +89,7 @@ abstract interface class MeetingPlaceTransport {
   /// [since] is a cursor; if null, the most recent events are returned.
   /// [forceSync] asks transports that support remote sync to process pending
   /// state before reading history.
-  Future<List<TransportEvent>> fetchHistory({
+  Future<List<TransportEvent>> fetchEventHistory({
     required Channel channel,
     required DidManager didManager,
     int? limit,

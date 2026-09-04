@@ -46,7 +46,7 @@ class NopTransport implements MeetingPlaceTransport {
   }) async {}
 
   @override
-  Stream<TransportEvent> subscribe({
+  Stream<TransportEvent> subscribeToEvents({
     required Channel channel,
     required DidManager didManager,
     TransportSubscriptionOptions? options,
@@ -54,7 +54,7 @@ class NopTransport implements MeetingPlaceTransport {
   }) => const Stream.empty();
 
   @override
-  Future<List<TransportEvent>> fetchHistory({
+  Future<List<TransportEvent>> fetchEventHistory({
     required Channel channel,
     required DidManager didManager,
     int? limit,

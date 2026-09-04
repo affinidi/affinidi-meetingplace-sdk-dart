@@ -19,8 +19,9 @@ class RejectConnectionRequestAction implements GroupAction<Group> {
         'Only group owners can reject connection requests.',
         name: 'rejectConnectionRequest',
       );
-      throw Exception(
-        'Only group owners are allowed to reject connection requests',
+      throw MeetingPlaceChatSDKException(
+        message: 'Only group owners are allowed to reject connection requests',
+        code: MeetingPlaceChatSDKErrorCode.invalidParticipant,
       );
     }
 
@@ -31,7 +32,10 @@ class RejectConnectionRequestAction implements GroupAction<Group> {
     if (channel == null) {
       const error = 'Channel does not exist';
       _chatSDK.logger.error(error, name: 'rejectConnectionRequest');
-      throw Exception(error);
+      throw MeetingPlaceChatSDKException(
+        message: error,
+        code: MeetingPlaceChatSDKErrorCode.channelNotFound,
+      );
     }
 
     final updatedGroup = await _chatSDK.coreSDK.rejectConnectionRequest(

@@ -80,7 +80,9 @@ class GroupMatrixChatSDK extends MeetingPlaceMatrixChatSDK
   @protected
   void assertCanSend() {
     if (group.isDeleted) {
-      throw StateError('Cannot send messages: group has been deleted');
+      throw MeetingPlaceChatSDKException.operationNotSupported(
+        operation: 'Sending messages to a deleted group',
+      );
     }
   }
 

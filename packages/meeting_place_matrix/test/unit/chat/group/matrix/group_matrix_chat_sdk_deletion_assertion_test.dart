@@ -48,13 +48,9 @@ void main() {
 
     Matcher throwsDeletedStateError() => throwsA(
       isA<MeetingPlaceChatSDKException>().having(
-        (e) => e.innerException,
-        'innerException',
-        isA<StateError>().having(
-          (e) => e.message,
-          'message',
-          contains('group has been deleted'),
-        ),
+        (e) => e.code,
+        'code',
+        MeetingPlaceChatSDKErrorCode.operationNotSupported,
       ),
     );
 

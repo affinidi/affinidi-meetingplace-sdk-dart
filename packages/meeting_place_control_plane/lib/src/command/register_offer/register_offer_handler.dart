@@ -109,7 +109,7 @@ class RegisterOfferHandler
       ..mediatorDid = mediatorForOffer.mediatorDid
       ..mediatorEndpoint = mediatorForOffer.mediatorEndpoint
       ..mediatorWSSEndpoint = mediatorForOffer.mediatorWSSEndpoint
-      ..customPhrase = command.customPhrase
+      ..customPhrase = command.customMnemonic
       ..transport = command.transport.value
       ..score = command.score;
 
@@ -146,7 +146,7 @@ class RegisterOfferHandler
       if (e is DioException && e.response?.statusCode == HttpStatus.conflict) {
         _logger.error(
           'Offer with the same mnemonic already exists: '
-          '${command.customPhrase}',
+          '${command.customMnemonic}',
           error: e,
           stackTrace: stackTrace,
         );

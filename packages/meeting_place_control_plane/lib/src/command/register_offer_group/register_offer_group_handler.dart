@@ -113,7 +113,7 @@ class RegisterOfferGroupHandler
       ..mediatorDid = mediatorForOffer.mediatorDid
       ..mediatorEndpoint = mediatorForOffer.mediatorEndpoint
       ..mediatorWSSEndpoint = mediatorForOffer.mediatorWSSEndpoint
-      ..customPhrase = command.customPhrase
+      ..customPhrase = command.customMnemonic
       ..metadata = command.metadata
       ..adminDid = command.adminDid
       ..memberContactCard = base64Url.encode(utf8.encode('{}'));
@@ -147,7 +147,7 @@ class RegisterOfferGroupHandler
       if (e is DioException && e.response?.statusCode == HttpStatus.conflict) {
         _logger.error(
           'Offer group with the same mnemonic already exists: '
-          '${command.customPhrase}',
+          '${command.customMnemonic}',
           error: e,
           stackTrace: stackTrace,
         );

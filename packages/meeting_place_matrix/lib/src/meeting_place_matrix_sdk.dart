@@ -347,8 +347,8 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   );
 
   @override
-  Future<ValidateOfferPhraseResult> validateOfferPhrase(String phrase) =>
-      _coreSDK.validateOfferPhrase(phrase);
+  Future<ValidateOfferPhraseResult> validateOfferPhrase(String mnemonic) =>
+      _coreSDK.validateOfferPhrase(mnemonic);
 
   @override
   Future<Device> registerForPushNotifications(String deviceToken) =>
@@ -370,7 +370,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     required SDKConnectionOfferType type,
     required ContactCard contactCard,
     required String offerDescription,
-    String? customPhrase,
+    String? customMnemonic,
     DateTime? validUntil,
     int? maximumUsage,
     String? mediatorDid,
@@ -383,7 +383,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     type: type,
     contactCard: contactCard,
     offerDescription: offerDescription,
-    customPhrase: customPhrase,
+    customMnemonic: customMnemonic,
     validUntil: validUntil,
     maximumUsage: maximumUsage,
     mediatorDid: mediatorDid,

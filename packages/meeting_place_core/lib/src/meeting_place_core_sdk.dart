@@ -684,18 +684,18 @@ class MeetingPlaceCoreSDK {
   /// system.
   ///
   /// **Parameters:**
-  /// - [phrase] - The offer phrase to be checked for availability.
+  /// - [mnemonic] - The offer mnemonic to be checked for availability.
   ///
   /// **Returns:**
   /// - A [sdk.ValidateOfferPhraseResult] object which provides isAvailable flag
   ///   that shows whether the offer
-  /// phrase is already in use.
+  /// mnemonic is already in use.
   Future<sdk.ValidateOfferPhraseResult> validateOfferPhrase(
-    String phrase,
+    String mnemonic,
   ) async {
     return _withSdkExceptionHandling(() async {
       final result = await _controlPlaneSDK.execute(
-        ValidateOfferPhraseCommand(phrase: phrase.trim()),
+        ValidateOfferPhraseCommand(mnemonic: mnemonic.trim()),
       );
 
       return sdk.ValidateOfferPhraseResult(isAvailable: result.isAvailable);
@@ -760,9 +760,9 @@ class MeetingPlaceCoreSDK {
   /// - [offerDescription] - Description of the offer to indicate the purpose of
   /// the offer.
   ///
-  /// - [customPhrase] - A custom phrase or keyword to help your offer be found
-  /// more easily by specific searches on MeetingPlace. If not provided, a
-  /// generic mnemonic will be used.
+  /// - [customMnemonic] - A custom phrase or keyword to help your offer be
+  /// found more easily by specific searches on MeetingPlace. If not
+  /// provided, a generic mnemonic will be used.
   ///
   /// - [validUntil] - The date and time when the offer expires.
   /// Once this date is reached, the offer will no longer be available.
@@ -792,7 +792,7 @@ class MeetingPlaceCoreSDK {
     required sdk.SDKConnectionOfferType type,
     required ContactCard contactCard,
     required String offerDescription,
-    String? customPhrase,
+    String? customMnemonic,
     DateTime? validUntil,
     int? maximumUsage,
     String? mediatorDid,
@@ -806,7 +806,7 @@ class MeetingPlaceCoreSDK {
           .createGroup(
             offerName: offerName,
             offerDescription: offerDescription,
-            customPhrase: customPhrase,
+            customMnemonic: customMnemonic,
             validUntil: validUntil,
             maximumUsage: maximumUsage,
             mediatorDid: mediatorDid ?? _mediatorDid,
@@ -829,7 +829,7 @@ class MeetingPlaceCoreSDK {
           type: type == SDKConnectionOfferType.outreachInvitation
               ? ConnectionOfferType.meetingPlaceOutreachInvitation
               : ConnectionOfferType.meetingPlaceInvitation,
-          customPhrase: customPhrase,
+          customMnemonic: customMnemonic,
           validUntil: validUntil,
           maximumUsage: maximumUsage,
           mediatorDid: mediatorDid,

@@ -23,6 +23,7 @@ import 'service/connection_manager/connection_manager.dart';
 import 'service/connection_offer/connection_offer_service.dart';
 import 'service/connection_service.dart';
 import 'service/control_plane_event_service.dart';
+import 'service/direct_connection/direct_connection_service.dart';
 import 'service/group.dart';
 import 'service/identity/did_web_document_service.dart';
 import 'service/identity/identity_service.dart';
@@ -30,7 +31,6 @@ import 'service/mediator/mediator_acl_service.dart';
 import 'service/mediator/mediator_service.dart';
 import 'service/message/message_service.dart';
 import 'service/notification_service/notification_service.dart';
-import 'service/oob/oob_service.dart';
 import 'service/outreach/outreach_service.dart';
 import 'transport/nop_transport.dart';
 import 'utils/cached_did_resolver.dart';
@@ -147,7 +147,7 @@ class MeetingPlaceCoreSDK {
     required GroupService groupService,
     required NotificationService notificationService,
     required OutreachService outreachService,
-    required OobService oobService,
+    required DirectConnectionService directConnectionService,
     required ChannelService channelService,
     required String mediatorDid,
     required String controlPlaneDid,
@@ -170,7 +170,7 @@ class MeetingPlaceCoreSDK {
        _groupService = groupService,
        _notificationService = notificationService,
        _outreachService = outreachService,
-       _oobService = oobService,
+       _directConnectionService = directConnectionService,
        _channelService = channelService,
        _mediatorDid = mediatorDid,
        _controlPlaneDid = controlPlaneDid,
@@ -199,7 +199,7 @@ class MeetingPlaceCoreSDK {
   final GroupService _groupService;
   final NotificationService _notificationService;
   final OutreachService _outreachService;
-  final OobService _oobService;
+  final DirectConnectionService _directConnectionService;
   final ChannelService _channelService;
   final MeetingPlaceCoreSDKOptions _options;
   final SDKErrorHandler _sdkErrorHandler;
@@ -450,7 +450,7 @@ class MeetingPlaceCoreSDK {
       didResolver: didResolver,
     );
 
-    final oobService = OobService(
+    final directConnectionService = DirectConnectionService(
       wallet: wallet,
       mediatorService: mediatorService,
       connectionService: connectionService,
@@ -496,7 +496,7 @@ class MeetingPlaceCoreSDK {
       groupService: groupService,
       notificationService: notificationService,
       outreachService: outreachService,
-      oobService: oobService,
+      directConnectionService: directConnectionService,
       channelService: channelService,
       mediatorDid: mediatorDid,
       controlPlaneDid: controlPlaneDid,
@@ -607,16 +607,19 @@ class MeetingPlaceCoreSDK {
     });
   }
 
-  /// Creates an Out-Of-Band invitation for a User.
+  /// Creates a direct connection invitation for a User, without going
+  /// through the control plane's discovery/matching mechanism.
   ///
   /// **Parameters:**
-  /// - [request] - A [sdk.CreateOobFlowRequest] describing the invitation to
-  ///   create.
+  /// - [request] - A [sdk.CreateDirectConnectionRequest] describing the
+  ///   invitation to create.
   ///
-  /// Returns [OobOfferSession]
-  Future<OobOfferSession> createOobFlow(sdk.CreateOobFlowRequest request) {
+  /// Returns [DirectConnectionOfferSession]
+  Future<DirectConnectionOfferSession> createDirectConnection(
+    sdk.CreateDirectConnectionRequest request,
+  ) {
     return _withSdkExceptionHandling(() {
-      return _oobService.createOobFlow(
+      return _directConnectionService.createDirectConnection(
         contactCard: request.contactCard,
         type: request.type,
         did: request.did,
@@ -626,17 +629,19 @@ class MeetingPlaceCoreSDK {
     });
   }
 
-  /// Accepts an Out-Of-Band invitation created by a User.
+  /// Accepts a direct connection invitation created by a User.
   ///
   /// **Parameters:**
-  /// - [request] - A [sdk.AcceptOobFlowRequest] describing the invitation to
-  ///   accept.
+  /// - [request] - A [sdk.AcceptDirectConnectionRequest] describing the
+  ///   invitation to accept.
   ///
-  /// Returns [OobAcceptanceSession]
-  Future<OobAcceptanceSession> acceptOobFlow(sdk.AcceptOobFlowRequest request) {
+  /// Returns [DirectConnectionAcceptanceSession]
+  Future<DirectConnectionAcceptanceSession> acceptDirectConnection(
+    sdk.AcceptDirectConnectionRequest request,
+  ) {
     return _withSdkExceptionHandling(() {
-      return _oobService.acceptOobFlow(
-        request.oobUrl,
+      return _directConnectionService.acceptDirectConnection(
+        request.directConnectionUrl,
         did: request.did,
         type: request.type,
         contactCard: request.contactCard,

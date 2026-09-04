@@ -2,10 +2,10 @@ import 'package:didcomm/didcomm.dart' show Attachment;
 
 import '../../protocol/contact_card/contact_card.dart';
 
-/// Parameters for `MeetingPlaceCoreSDK.acceptOobFlow`.
-class AcceptOobFlowRequest {
-  const AcceptOobFlowRequest({
-    required this.oobUrl,
+/// Parameters for `MeetingPlaceCoreSDK.acceptDirectConnection`.
+class AcceptDirectConnectionRequest {
+  const AcceptDirectConnectionRequest({
+    required this.directConnectionUrl,
     required this.contactCard,
     this.type,
     this.externalRef,
@@ -13,8 +13,8 @@ class AcceptOobFlowRequest {
     this.attachments,
   });
 
-  /// The OOB URL being accepted.
-  final Uri oobUrl;
+  /// The direct connection URL being accepted.
+  final Uri directConnectionUrl;
 
   /// An object that contains information about who is accepting the offer.
   /// This helps others know whom they are connecting with and provides
@@ -24,7 +24,7 @@ class AcceptOobFlowRequest {
   /// Type of the out-of-band invitation.
   final String? type;
 
-  /// Application-specific data that is passed through to internal oob
+  /// Application-specific data that is passed through to internal
   /// entity and can be referenced later for tracking or identification
   /// purposes. [externalRef] is accessible on the current device only.
   final String? externalRef;

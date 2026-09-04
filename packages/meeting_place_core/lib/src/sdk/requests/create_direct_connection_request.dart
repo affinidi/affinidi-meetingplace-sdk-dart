@@ -1,8 +1,8 @@
 import '../../protocol/contact_card/contact_card.dart';
 
-/// Parameters for `MeetingPlaceCoreSDK.createOobFlow`.
-class CreateOobFlowRequest {
-  const CreateOobFlowRequest({
+/// Parameters for `MeetingPlaceCoreSDK.createDirectConnection`.
+class CreateDirectConnectionRequest {
+  const CreateDirectConnectionRequest({
     required this.contactCard,
     this.type,
     this.did,
@@ -26,7 +26,7 @@ class CreateOobFlowRequest {
   /// configured in the current instance.
   final String? mediatorDid;
 
-  /// Application-specific data that is passed through to internal oob
+  /// Application-specific data that is passed through to internal
   /// entity and can be referenced later for tracking or identification
   /// purposes. [externalRef] is accessible on the current device only.
   final String? externalRef;

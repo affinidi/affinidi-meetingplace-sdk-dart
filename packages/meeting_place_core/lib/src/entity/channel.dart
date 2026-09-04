@@ -19,7 +19,7 @@ enum ChannelStatus {
   inaugurated,
 }
 
-enum ChannelType { individual, group, oob }
+enum ChannelType { individual, group, directConnection }
 
 /// Transport used for message exchange on a channel.
 enum ChannelTransport { didcomm, matrix }
@@ -181,8 +181,8 @@ class Channel {
   /// Check if the channel is of type individual.
   bool get isIndividual => type == ChannelType.individual;
 
-  /// Check if the channel is of type out-of-band.
-  bool get isOob => type == ChannelType.oob;
+  /// Check if the channel is of type direct connection.
+  bool get isDirectConnection => type == ChannelType.directConnection;
 
   /// Check if the channel is of type group.
   bool get isGroup => type == ChannelType.group;

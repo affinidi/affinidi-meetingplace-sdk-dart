@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../service/oob/oob_service_exception.dart';
+import '../../../service/direct_connection/direct_connection_service_exception.dart';
 import 'oob_invitation_message_body.dart';
 
 class OobInvitationMessage {
@@ -17,7 +17,9 @@ class OobInvitationMessage {
       return OobInvitationMessage.fromJson({...json, ...additionalProps});
       // ignore: avoid_catching_errors
     } on TypeError catch (e) {
-      throw OobServiceException.malformedInvitation(innerException: e);
+      throw DirectConnectionServiceException.malformedInvitation(
+        innerException: e,
+      );
     }
   }
 
@@ -59,7 +61,9 @@ class OobInvitationMessage {
       );
       // ignore: avoid_catching_errors
     } on TypeError catch (e) {
-      throw OobServiceException.malformedInvitation(innerException: e);
+      throw DirectConnectionServiceException.malformedInvitation(
+        innerException: e,
+      );
     }
   }
 

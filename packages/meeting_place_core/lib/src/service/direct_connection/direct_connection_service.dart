@@ -16,14 +16,14 @@ import '../connection_manager/connection_manager.dart';
 import '../connection_service.dart';
 import '../identity/identity_service.dart';
 import '../mediator/mediator_service.dart';
-import 'oob_service_exception.dart';
-import 'session/oob_acceptance_session.dart';
-import 'session/oob_offer_session.dart';
-import 'stream/oob_stream.dart';
-import 'stream/oob_stream_data.dart';
+import 'direct_connection_service_exception.dart';
+import 'session/direct_connection_acceptance_session.dart';
+import 'session/direct_connection_offer_session.dart';
+import 'stream/direct_connection_stream.dart';
+import 'stream/direct_connection_stream_data.dart';
 
-class OobService {
-  OobService({
+class DirectConnectionService {
+  DirectConnectionService({
     required Wallet wallet,
     required MediatorService mediatorService,
     required ConnectionService connectionService,
@@ -59,27 +59,32 @@ class OobService {
   final OnBuildAttachmentsCallback? _onBuildAttachments;
   final MeetingPlaceCoreSDKLogger _logger;
 
-  static final String _logKey = 'OobService';
+  static final String _logKey = 'DirectConnectionService';
 
-  Future<OobOfferSession> createOobFlow({
+  Future<DirectConnectionOfferSession> createDirectConnection({
     required ContactCard contactCard,
     required String mediatorDid,
     String? type,
     String? did,
     String? externalRef,
   }) async {
-    _logger.info('Started creating OOB invitation', name: _logKey);
+    _logger.info(
+      'Started creating direct connection invitation',
+      name: _logKey,
+    );
 
-    // Create OOB data
-    final oobIdentity = await _identityService.createEphemeralIdentity(_wallet);
-    final oobMessage = OobInvitationMessage.create(
-      from: oobIdentity.didDocument.id,
+    // Create direct connection data
+    final offerIdentity = await _identityService.createEphemeralIdentity(
+      _wallet,
+    );
+    final invitationMessage = OobInvitationMessage.create(
+      from: offerIdentity.didDocument.id,
       type: type,
     );
 
     _logger.info(
-      '''Setup OOB invitation for ${oobIdentity.didDocument.id.topAndTail()} on
-      $mediatorDid''',
+      '''Setup direct connection invitation for
+      ${offerIdentity.didDocument.id.topAndTail()} on $mediatorDid''',
       name: _logKey,
     );
 
@@ -87,46 +92,46 @@ class OobService {
     // subscribing to messages. This ensures authentication occurs only once,
     // even though the following operations run in parallel.
     await _mediatorService.authenticate(
-      didManager: oobIdentity.didManager,
+      didManager: offerIdentity.didManager,
       mediatorDid: mediatorDid,
     );
 
     final (_, oobOutput, subscription) = await (
       _mediatorService.updateAcl(
-        ownerDidManager: oobIdentity.didManager,
+        ownerDidManager: offerIdentity.didManager,
         mediatorDid: mediatorDid,
-        acl: AccessListSet.toPublic(ownerDid: oobIdentity.didDocument.id),
+        acl: AccessListSet.toPublic(ownerDid: offerIdentity.didDocument.id),
       ),
       _controlPlaneSDK.execute(
         CreateOobCommand(
-          oobInvitationMessage: oobMessage.toPlainTextMessage(),
+          oobInvitationMessage: invitationMessage.toPlainTextMessage(),
           mediatorDid: mediatorDid,
         ),
       ),
       _mediatorService.subscribe(
-        didManager: oobIdentity.didManager,
+        didManager: offerIdentity.didManager,
         mediatorDid: mediatorDid,
       ),
     ).wait;
 
     _logger.info(
-      'OOB invitation created with URL: ${oobOutput.oobUrl}',
+      'Direct connection invitation created with URL: ${oobOutput.oobUrl}',
       name: _logKey,
     );
 
-    final oobStream = OobStream(
+    final directConnectionStream = DirectConnectionStream(
       onDispose: subscription.dispose,
       logger: _logger,
     );
 
-    final session = OobOfferSession(
-      didManager: oobIdentity.didManager,
-      didDocument: oobIdentity.didDocument,
-      oobInvitationMessage: oobMessage,
-      oobUrl: Uri.parse(oobOutput.oobUrl),
+    final session = DirectConnectionOfferSession(
+      didManager: offerIdentity.didManager,
+      didDocument: offerIdentity.didDocument,
+      oobInvitationMessage: invitationMessage,
+      directConnectionUrl: Uri.parse(oobOutput.oobUrl),
       contactCard: contactCard,
       mediatorDid: mediatorDid,
-      stream: oobStream,
+      stream: directConnectionStream,
     );
 
     subscription.listen((mediatorMessage) async {
@@ -144,7 +149,7 @@ class OobService {
       await _processInvitationAcceptance(
         message,
         session: session,
-        stream: oobStream,
+        stream: directConnectionStream,
         existingPermanentChannelDid: did,
         externalRef: externalRef,
         onAttachmentsReceived: _onAttachmentsReceived,
@@ -154,16 +159,16 @@ class OobService {
     });
 
     _logger.info(
-      ''''Listening for messages on mediator channel $mediatorDid and OOB DID
-      ${oobIdentity.didDocument.id.topAndTail()}''',
+      '''Listening for messages on mediator channel $mediatorDid and direct
+      connection DID ${offerIdentity.didDocument.id.topAndTail()}''',
       name: _logKey,
     );
 
     return session;
   }
 
-  Future<OobAcceptanceSession> acceptOobFlow(
-    Uri oobUri, {
+  Future<DirectConnectionAcceptanceSession> acceptDirectConnection(
+    Uri directConnectionUri, {
     required ContactCard contactCard,
     required String mediatorDid,
     String? type,
@@ -171,7 +176,10 @@ class OobService {
     String? did,
     List<Attachment>? attachments,
   }) async {
-    _logger.info('Started accepting OOB invitation', name: _logKey);
+    _logger.info(
+      'Started accepting direct connection invitation',
+      name: _logKey,
+    );
 
     final acceptOfferIdentity = await _identityService.createEphemeralIdentity(
       _wallet,
@@ -181,8 +189,8 @@ class OobService {
         ? await _identityService.getPermanentIdentity(_wallet, did)
         : await _identityService.createPermanentIdentity(_wallet);
 
-    final (invitationMessage, mediatorDid) = await _fetchOobInvitation(
-      oobUri: oobUri,
+    final (invitationMessage, mediatorDid) = await _fetchInvitation(
+      directConnectionUri: directConnectionUri,
       type: type,
     );
 
@@ -194,7 +202,7 @@ class OobService {
       outboundMessageId: invitationMessage.id,
       acceptOfferDid: acceptOfferIdentity.didDocument.id,
       permanentChannelDid: permanentIdentity.didDocument.id,
-      type: ChannelType.oob,
+      type: ChannelType.directConnection,
       isConnectionInitiator: false,
       contactCard: contactCard,
       externalRef: externalRef,
@@ -206,16 +214,16 @@ class OobService {
       mediatorDid: mediatorDid,
     );
 
-    final oobStream = OobStream(
+    final directConnectionStream = DirectConnectionStream(
       onDispose: streamSubscription.dispose,
       logger: _logger,
     );
 
-    final session = OobAcceptanceSession(
+    final session = DirectConnectionAcceptanceSession(
       channel: channel,
       permanentChannelDidManager: permanentIdentity.didManager,
       permanentChannelDidDocument: permanentIdentity.didDocument,
-      stream: oobStream,
+      stream: directConnectionStream,
       mediatorDid: mediatorDid,
     );
 
@@ -240,7 +248,7 @@ class OobService {
       await _processConnectionRequestApproval(
         message,
         session: session,
-        stream: oobStream,
+        stream: directConnectionStream,
         existingPermanentChannelDid: did,
         externalRef: externalRef,
         onAttachmentsReceived: _onAttachmentsReceived,
@@ -270,8 +278,8 @@ class OobService {
 
   Future<void> _processInvitationAcceptance(
     InvitationAcceptance message, {
-    required OobOfferSession session,
-    required OobStream stream,
+    required DirectConnectionOfferSession session,
+    required DirectConnectionStream stream,
     String? existingPermanentChannelDid,
     String? externalRef,
     void Function(Channel, List<Attachment>)? onAttachmentsReceived,
@@ -297,7 +305,7 @@ class OobService {
       permanentChannelDid: permanentChannelDidDoc.id,
       otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
       status: ChannelStatus.inaugurated,
-      type: ChannelType.oob,
+      type: ChannelType.directConnection,
       isConnectionInitiator: true,
       contactCard: session.contactCard,
       otherPartyContactCard: message.contactCard,
@@ -324,7 +332,8 @@ class OobService {
     await _channelService.persistChannel(channel);
 
     _logger.info(
-      'OOB invitation accepted, channel created with ID: ${channel.id}',
+      'Direct connection invitation accepted, channel created with ID: '
+      '${channel.id}',
       name: _logKey,
     );
 
@@ -341,7 +350,7 @@ class OobService {
     }
 
     stream.pushEvent(
-      OobStreamData(
+      DirectConnectionStreamData(
         eventType: EventType.connectionSetup,
         message: message.toPlainTextMessage(),
         channel: channel,
@@ -351,8 +360,8 @@ class OobService {
 
   Future<void> _processConnectionRequestApproval(
     ConnectionRequestApproval message, {
-    required OobAcceptanceSession session,
-    required OobStream stream,
+    required DirectConnectionAcceptanceSession session,
+    required DirectConnectionStream stream,
     String? existingPermanentChannelDid,
     String? externalRef,
     void Function(Channel, List<Attachment>)? onAttachmentsReceived,
@@ -368,12 +377,13 @@ class OobService {
       ),
     );
 
-    await _channelService.markOobChannelInauguratedForNonConnectionInitiator(
-      session.channel,
-      outboundMessageId: message.parentThreadId,
-      otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
-      otherPartyContactCard: message.contactCard,
-    );
+    await _channelService
+        .markDirectConnectionChannelInauguratedForNonConnectionInitiator(
+          session.channel,
+          outboundMessageId: message.parentThreadId,
+          otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+          otherPartyContactCard: message.contactCard,
+        );
 
     final attachments = message.attachments;
     if (attachments != null && attachments.isNotEmpty) {
@@ -388,7 +398,7 @@ class OobService {
     );
 
     stream.pushEvent(
-      OobStreamData(
+      DirectConnectionStreamData(
         eventType: EventType.connectionAccepted,
         message: message.toPlainTextMessage(),
         channel: session.channel,
@@ -396,73 +406,81 @@ class OobService {
     );
 
     _logger.info(
-      'OOB invitation accepted, channel created with ID: ${session.channel.id}',
+      'Direct connection invitation accepted, channel created with ID: '
+      '${session.channel.id}',
       name: _logKey,
     );
   }
 
-  Future<(OobInvitationMessage, String)> _fetchOobInvitation({
-    required Uri oobUri,
+  Future<(OobInvitationMessage, String)> _fetchInvitation({
+    required Uri directConnectionUri,
     String? type,
   }) async {
-    _logger.info('Fetching OOB invitation via HTTP GET', name: _logKey);
+    _logger.info(
+      'Fetching direct connection invitation via HTTP GET',
+      name: _logKey,
+    );
 
     try {
       // TODO: handle errors here
-      final oobId = oobUri.pathSegments.last;
+      final oobId = directConnectionUri.pathSegments.last;
       final oob = await _controlPlaneSDK.execute(GetOobCommand(oobId: oobId));
 
       final invitationMessage = OobInvitationMessage.fromBase64(
         oob.invitationMessage,
       );
 
-      _validateOobInvitation(invitationMessage, oobUri, type);
+      _validateInvitation(invitationMessage, directConnectionUri, type);
       return (invitationMessage, oob.mediatorDid);
     } on MeetingPlaceControlPlaneSDKException catch (e) {
       if (e.code == MeetingPlaceControlPlaneSDKErrorCode.oobNotFound.value) {
-        throw OobServiceException.notFound(oobUri: oobUri, innerException: e);
-      }
-
-      if (e.code == MeetingPlaceControlPlaneSDKErrorCode.networkError.value) {
-        throw OobServiceException.networkError(
-          oobUri: oobUri,
+        throw DirectConnectionServiceException.notFound(
+          directConnectionUri: directConnectionUri,
           innerException: e,
         );
       }
 
-      throw OobServiceException.invalidOobResponse(innerException: e);
+      if (e.code == MeetingPlaceControlPlaneSDKErrorCode.networkError.value) {
+        throw DirectConnectionServiceException.networkError(
+          directConnectionUri: directConnectionUri,
+          innerException: e,
+        );
+      }
+
+      throw DirectConnectionServiceException.invalidResponse(innerException: e);
     } catch (e, stackTrace) {
       _logger.error(
-        'Failed to fetch OOB invitation from $oobUri, error: $e',
+        'Failed to fetch direct connection invitation from '
+        '$directConnectionUri, error: $e',
         name: _logKey,
         stackTrace: stackTrace,
       );
 
-      if (e is OobServiceException) {
+      if (e is DirectConnectionServiceException) {
         rethrow;
       }
 
       Error.throwWithStackTrace(
-        OobServiceException.generic(oobUri: oobUri),
+        DirectConnectionServiceException.generic(
+          directConnectionUri: directConnectionUri,
+        ),
         stackTrace,
       );
     }
   }
 
-  void _validateOobInvitation(
+  void _validateInvitation(
     OobInvitationMessage invitationMessage,
-    Uri oobUri,
+    Uri directConnectionUri,
     String? type,
   ) {
     if (type != null && invitationMessage.body.goalCode != type) {
-      _logger.error(
-        '''OOB invitation type ${invitationMessage.body.goalCode} does not
-        match expected type $type''',
-        name: _logKey,
-      );
+      _logger.error('''Direct connection invitation type
+        ${invitationMessage.body.goalCode} does not match expected type
+        $type''', name: _logKey);
 
-      throw OobServiceException.invalidOobType(
-        oobUri: oobUri,
+      throw DirectConnectionServiceException.invalidType(
+        directConnectionUri: directConnectionUri,
         expectedType: type,
         actualType: invitationMessage.body.goalCode,
       );

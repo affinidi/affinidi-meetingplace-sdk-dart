@@ -58,11 +58,11 @@ enum MeetingPlaceCoreSDKErrorCode {
   channelInvalidType('channel_invalid_type'),
   channelMissingPermanentChannelDid('channel_missing_permanent_channel_did'),
 
-  // oob
-  oobInvalidData('oob_invalid_data'),
-  oobMalformedInvitation('oob_malformed_invitation'),
-  oobNotFound('oob_not_found'),
-  oobInvalidType('oob_invalid_type'),
+  // direct connection
+  directConnectionInvalidData('direct_connection_invalid_data'),
+  directConnectionMalformedInvitation('direct_connection_malformed_invitation'),
+  directConnectionNotFound('direct_connection_not_found'),
+  directConnectionInvalidType('direct_connection_invalid_type'),
 
   // others
   mediatorAclMissingChannelDids('mediator_acl_missing_channel_dids'),

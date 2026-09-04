@@ -4,32 +4,35 @@ import '../../../../meeting_place_core.dart';
 
 typedef OnDisposeCallback = FutureOr<void> Function();
 
-class OobStream implements CoreSDKStreamSubscription<OobStreamData, void> {
-  OobStream({
+class DirectConnectionStream
+    implements CoreSDKStreamSubscription<DirectConnectionStreamData, void> {
+  DirectConnectionStream({
     OnDisposeCallback? onDispose,
     required MeetingPlaceCoreSDKLogger logger,
   }) : _onDispose = onDispose,
        _logger = logger;
 
   final OnDisposeCallback? _onDispose;
-  final List<OobStreamData> _eventBuffer = <OobStreamData>[];
+  final List<DirectConnectionStreamData> _eventBuffer =
+      <DirectConnectionStreamData>[];
   final MeetingPlaceCoreSDKLogger _logger;
 
-  StreamController<OobStreamData>? _streamController;
+  StreamController<DirectConnectionStreamData>? _streamController;
   Timer? _timeoutTimer;
 
   @override
-  Stream<OobStreamData> get stream => _controller.stream;
+  Stream<DirectConnectionStreamData> get stream => _controller.stream;
 
   @override
   bool get isClosed => _controller.isClosed;
 
-  StreamController<OobStreamData> get _controller =>
-      _streamController ??= StreamController<OobStreamData>.broadcast();
+  StreamController<DirectConnectionStreamData> get _controller =>
+      _streamController ??=
+          StreamController<DirectConnectionStreamData>.broadcast();
 
   @override
-  StreamSubscription<OobStreamData> listen(
-    void Function(OobStreamData) onData, {
+  StreamSubscription<DirectConnectionStreamData> listen(
+    void Function(DirectConnectionStreamData) onData, {
     Function? onError,
     void Function()? onDone,
     bool? cancelOnError,
@@ -54,7 +57,7 @@ class OobStream implements CoreSDKStreamSubscription<OobStreamData, void> {
     return streamSubscription;
   }
 
-  void pushEvent(OobStreamData data) {
+  void pushEvent(DirectConnectionStreamData data) {
     if (_controller.isClosed) {
       _logger.info('Event skipped due to closed stream');
       return;
@@ -71,7 +74,7 @@ class OobStream implements CoreSDKStreamSubscription<OobStreamData, void> {
   }
 
   @override
-  StreamSubscription<OobStreamData> timeout(
+  StreamSubscription<DirectConnectionStreamData> timeout(
     Duration timeLimit,
     void Function()? onTimeout,
   ) {

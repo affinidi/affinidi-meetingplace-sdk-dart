@@ -23,8 +23,8 @@ void main() async {
 
   prettyPrintGreen('>>> Calling SDK.registerForDIDCommNotifications');
   final notification = await bobSDK.registerForDIDCommNotifications();
-  final notificationDidDocument =
-      await notification.recipientDidManager.getDidDocument();
+  final notificationDidDocument = await notification.recipientDidManager
+      .getDidDocument();
 
   final outputDirectory = Directory('.example-output');
   final mnemonicBytes = File(
@@ -37,15 +37,17 @@ void main() async {
   );
 
   prettyPrintGreen('>>> Calling SDK.acceptOffer');
-  final acceptOfferResult = await bobSDK.acceptOffer(AcceptOfferRequest(
-    connectionOffer: findOfferResult.connectionOffer!,
-    contactCard: ContactCard(
-      did: 'did:test:bob',
-      type: 'individual',
-      contactInfo: {},
+  final acceptOfferResult = await bobSDK.acceptOffer(
+    AcceptOfferRequest(
+      connectionOffer: findOfferResult.connectionOffer!,
+      contactCard: ContactCard(
+        did: 'did:test:bob',
+        type: 'individual',
+        contactInfo: {},
+      ),
+      senderInfo: 'Bob',
     ),
-    senderInfo: 'Bob',
-  ));
+  );
   prettyJsonPrintYellow(
     'Acceptance details',
     acceptOfferResult.connectionOffer.toJson(),

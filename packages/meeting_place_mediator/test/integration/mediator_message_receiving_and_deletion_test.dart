@@ -18,10 +18,12 @@ void main() {
     setUp(() async {
       fixture = await MediatorIntegrationFixture.create();
 
-      await fixture.sdk.fetchMessages(FetchMessagesRequest(
-        didManager: fixture.didManagerB,
-        deleteOnRetrieve: true,
-      ));
+      await fixture.sdk.fetchMessages(
+        FetchMessagesRequest(
+          didManager: fixture.didManagerB,
+          deleteOnRetrieve: true,
+        ),
+      );
 
       final senderDidDoc = await fixture.didManagerA.getDidDocument();
       recipientDidDoc = await fixture.didManagerB.getDidDocument();
@@ -49,11 +51,13 @@ void main() {
         subscription = await fixture.sdk.subscribeToMessages(
           fixture.didManagerB,
         );
-        await fixture.sdk.sendMessage(MediatorMessageRequest(
-          message: messageToSend,
-          senderDidManager: fixture.didManagerA,
-          recipientDidDocument: recipientDidDoc,
-        ));
+        await fixture.sdk.sendMessage(
+          MediatorMessageRequest(
+            message: messageToSend,
+            senderDidManager: fixture.didManagerA,
+            recipientDidDocument: recipientDidDoc,
+          ),
+        );
 
         final waitForMessage = Completer<PlainTextMessage>();
         subscription.listen((PlainTextMessage msg) {
@@ -70,38 +74,47 @@ void main() {
     );
 
     test('Message retrievable via fetch', () async {
-      await fixture.sdk.sendMessage(MediatorMessageRequest(
-        message: messageToSend,
-        senderDidManager: fixture.didManagerA,
-        recipientDidDocument: recipientDidDoc,
-      ));
+      await fixture.sdk.sendMessage(
+        MediatorMessageRequest(
+          message: messageToSend,
+          senderDidManager: fixture.didManagerA,
+          recipientDidDocument: recipientDidDoc,
+        ),
+      );
 
       subscription = await fixture.sdk.subscribeToMessages(fixture.didManagerB);
 
-      final fetchResult = await fixture.sdk.fetchMessages(FetchMessagesRequest(
-        didManager: fixture.didManagerB,
-        deleteOnRetrieve: false,
-      ));
-      final matches =
-          fetchResult.where((r) => r.message?.id == messageToSend.id).toList();
+      final fetchResult = await fixture.sdk.fetchMessages(
+        FetchMessagesRequest(
+          didManager: fixture.didManagerB,
+          deleteOnRetrieve: false,
+        ),
+      );
+      final matches = fetchResult
+          .where((r) => r.message?.id == messageToSend.id)
+          .toList();
       expect(matches.length, equals(1));
       expect(matches.first.message!.id, equals(messageToSend.id));
     });
 
     test('Message is not deleted if no listener was attached', () async {
-      await fixture.sdk.sendMessage(MediatorMessageRequest(
-        message: messageToSend,
-        senderDidManager: fixture.didManagerA,
-        recipientDidDocument: recipientDidDoc,
-      ));
+      await fixture.sdk.sendMessage(
+        MediatorMessageRequest(
+          message: messageToSend,
+          senderDidManager: fixture.didManagerA,
+          recipientDidDocument: recipientDidDoc,
+        ),
+      );
 
       subscription = await fixture.sdk.subscribeToMessages(fixture.didManagerB);
       await Future<void>.delayed(const Duration(seconds: 2));
 
-      final fetchResult = await fixture.sdk.fetchMessages(FetchMessagesRequest(
-        didManager: fixture.didManagerB,
-        deleteOnRetrieve: false,
-      ));
+      final fetchResult = await fixture.sdk.fetchMessages(
+        FetchMessagesRequest(
+          didManager: fixture.didManagerB,
+          deleteOnRetrieve: false,
+        ),
+      );
 
       final actual = fetchResult.firstWhere(
         (r) => r.message?.type == messageToSend.type,
@@ -128,19 +141,23 @@ void main() {
         return MediatorStreamProcessingResult(keepMessage: false);
       });
 
-      await fixture.sdk.sendMessage(MediatorMessageRequest(
-        message: messageToSend,
-        senderDidManager: fixture.didManagerA,
-        recipientDidDocument: recipientDidDoc,
-      ));
+      await fixture.sdk.sendMessage(
+        MediatorMessageRequest(
+          message: messageToSend,
+          senderDidManager: fixture.didManagerA,
+          recipientDidDocument: recipientDidDoc,
+        ),
+      );
 
       await messageReceivedCompleter.future;
       await Future<void>.delayed(const Duration(seconds: 2));
 
-      final fetchResult = await fixture.sdk.fetchMessages(FetchMessagesRequest(
-        didManager: fixture.didManagerB,
-        deleteOnRetrieve: false,
-      ));
+      final fetchResult = await fixture.sdk.fetchMessages(
+        FetchMessagesRequest(
+          didManager: fixture.didManagerB,
+          deleteOnRetrieve: false,
+        ),
+      );
 
       final actual = fetchResult.where(
         (r) => r.message?.id == messageToSend.id,
@@ -172,28 +189,32 @@ void main() {
         },
       );
 
-      await fixture.sdk.sendMessage(MediatorMessageRequest(
-        message: messageToSend,
-        senderDidManager: fixture.didManagerA,
-        recipientDidDocument: recipientDidDoc,
-      ));
+      await fixture.sdk.sendMessage(
+        MediatorMessageRequest(
+          message: messageToSend,
+          senderDidManager: fixture.didManagerA,
+          recipientDidDocument: recipientDidDoc,
+        ),
+      );
 
       await waitForError.future;
       await Future<void>.delayed(const Duration(seconds: 2));
 
-      final fetchResult = await fixture.sdk.fetchMessages(FetchMessagesRequest(
-        didManager: fixture.didManagerB,
-        deleteOnRetrieve: false,
-      ));
+      final fetchResult = await fixture.sdk.fetchMessages(
+        FetchMessagesRequest(
+          didManager: fixture.didManagerB,
+          deleteOnRetrieve: false,
+        ),
+      );
 
-      final matches =
-          fetchResult.where((r) => r.message?.id == messageToSend.id).toList();
+      final matches = fetchResult
+          .where((r) => r.message?.id == messageToSend.id)
+          .toList();
 
       expect(matches.isNotEmpty, isTrue);
     });
 
-    test(
-        'Subsequent messages are processed even if previous listener threw an '
+    test('Subsequent messages are processed even if previous listener threw an '
         'error', () async {
       subscription = await fixture.sdk.subscribeToMessages(
         fixture.didManagerB,
@@ -234,26 +255,32 @@ void main() {
           }
         },
       );
-      await fixture.sdk.sendMessage(MediatorMessageRequest(
-        message: messageToSend,
-        senderDidManager: fixture.didManagerA,
-        recipientDidDocument: recipientDidDoc,
-      ));
+      await fixture.sdk.sendMessage(
+        MediatorMessageRequest(
+          message: messageToSend,
+          senderDidManager: fixture.didManagerA,
+          recipientDidDocument: recipientDidDoc,
+        ),
+      );
 
       await waitForError.future;
 
-      await fixture.sdk.sendMessage(MediatorMessageRequest(
-        message: messageToBeProcessed,
-        senderDidManager: fixture.didManagerA,
-        recipientDidDocument: recipientDidDoc,
-      ));
+      await fixture.sdk.sendMessage(
+        MediatorMessageRequest(
+          message: messageToBeProcessed,
+          senderDidManager: fixture.didManagerA,
+          recipientDidDocument: recipientDidDoc,
+        ),
+      );
 
       await waitForMessageToBeProcessed.future;
 
-      final fetchResult = await fixture.sdk.fetchMessages(FetchMessagesRequest(
-        didManager: fixture.didManagerB,
-        deleteOnRetrieve: false,
-      ));
+      final fetchResult = await fixture.sdk.fetchMessages(
+        FetchMessagesRequest(
+          didManager: fixture.didManagerB,
+          deleteOnRetrieve: false,
+        ),
+      );
 
       final actual = fetchResult.where(
         (r) => r.message?.id == messageToBeProcessed.id,

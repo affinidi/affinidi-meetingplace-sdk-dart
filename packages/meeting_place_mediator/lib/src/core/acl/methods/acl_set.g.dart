@@ -13,7 +13,4 @@ AccessListSet _$AccessListSetFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$AccessListSetToJson(AccessListSet instance) =>
-    <String, dynamic>{
-      'did_hash': instance.ownerDid,
-      'acls': instance.acls,
-    };
+    <String, dynamic>{'did_hash': instance.ownerDid, 'acls': instance.acls};

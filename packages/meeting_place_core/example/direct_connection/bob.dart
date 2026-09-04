@@ -15,9 +15,7 @@ void main() async {
     'direct-connection-url.txt',
   ).readAsBytesSync();
 
-  final directConnectionUri = Uri.parse(
-    utf8.decode(directConnectionUrlBytes),
-  );
+  final directConnectionUri = Uri.parse(utf8.decode(directConnectionUrlBytes));
   prettyPrintYellow('Direct connection uri: ${directConnectionUri.toString()}');
   final bobSDK = await initSDK(wallet: PersistentWallet(InMemoryKeyStore()));
   final bobWaitFor = Completer<Channel>();

@@ -19,21 +19,22 @@ void main() async {
   );
 
   final notification = await aliceSDK.registerForDIDCommNotifications();
-  final notificationDidDocument =
-      await notification.recipientDidManager.getDidDocument();
+  final notificationDidDocument = await notification.recipientDidManager
+      .getDidDocument();
 
-  final publishOfferResult =
-      await aliceSDK.publishOffer<GroupConnectionOffer>(PublishOfferRequest(
-    offerName: 'Example group offer',
-    offerDescription: 'Example group offer with Matrix provisioning.',
-    contactCard: ContactCard(
-      did: 'did:test:alice',
-      type: 'individual',
-      contactInfo: <String, dynamic>{},
+  final publishOfferResult = await aliceSDK.publishOffer<GroupConnectionOffer>(
+    PublishOfferRequest(
+      offerName: 'Example group offer',
+      offerDescription: 'Example group offer with Matrix provisioning.',
+      contactCard: ContactCard(
+        did: 'did:test:alice',
+        type: 'individual',
+        contactInfo: <String, dynamic>{},
+      ),
+      type: SDKConnectionOfferType.groupInvitation,
+      validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
     ),
-    type: SDKConnectionOfferType.groupInvitation,
-    validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
-  ));
+  );
 
   final groupOwnerDidManager = publishOfferResult.groupOwnerDidManager;
   if (groupOwnerDidManager == null) {
@@ -83,6 +84,7 @@ void main() async {
   );
 
   await aliceSDK.approveConnectionRequest(
-      ApproveConnectionRequestParams(channel: waitingChannel));
+    ApproveConnectionRequestParams(channel: waitingChannel),
+  );
   await notificationSubscription.cancel();
 }

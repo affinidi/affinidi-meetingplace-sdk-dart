@@ -62,7 +62,8 @@ void main() async {
               e is MeetingPlaceMediatorSDKException &&
               e.code ==
                   MeetingPlaceMediatorSDKErrorCode
-                      .subscribeToWebsocketError.value,
+                      .subscribeToWebsocketError
+                      .value,
         ),
       ),
     );
@@ -89,14 +90,16 @@ void main() async {
     final didDocument = await recipientDidManager.getDidDocument();
 
     expect(
-      () => mediatorSDK.sendMessage(MediatorMessageRequest(
-        message: PlainTextMessage(
-          id: const Uuid().v4(),
-          type: Uri.parse('https://example.com/type/test-message'),
+      () => mediatorSDK.sendMessage(
+        MediatorMessageRequest(
+          message: PlainTextMessage(
+            id: const Uuid().v4(),
+            type: Uri.parse('https://example.com/type/test-message'),
+          ),
+          senderDidManager: didManager,
+          recipientDidDocument: didDocument,
         ),
-        senderDidManager: didManager,
-        recipientDidDocument: didDocument,
-      )),
+      ),
       throwsA(
         predicate(
           (e) =>

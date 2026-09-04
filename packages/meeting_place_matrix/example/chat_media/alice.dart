@@ -27,23 +27,25 @@ void main() async {
 
   prettyPrintGreen('>>> Calling SDK.registerForDIDCommNotifications');
   final notification = await aliceSDK.registerForDIDCommNotifications();
-  final notificationDidDocument =
-      await notification.recipientDidManager.getDidDocument();
+  final notificationDidDocument = await notification.recipientDidManager
+      .getDidDocument();
   prettyPrintYellow('Notification DID ${notificationDidDocument.id}');
 
   prettyPrintGreen('>>> Calling SDK.publishOffer');
-  final publishOfferResult = await aliceSDK.publishOffer(PublishOfferRequest(
-    offerName: 'Example media offer',
-    offerDescription: 'Example offer for media exchange.',
-    contactCard: ContactCard(
-      did: 'did:test:alice',
-      type: 'individual',
-      contactInfo: {},
+  final publishOfferResult = await aliceSDK.publishOffer(
+    PublishOfferRequest(
+      offerName: 'Example media offer',
+      offerDescription: 'Example offer for media exchange.',
+      contactCard: ContactCard(
+        did: 'did:test:alice',
+        type: 'individual',
+        contactInfo: {},
+      ),
+      type: SDKConnectionOfferType.invitation,
+      validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
+      transport: ChannelTransport.matrix,
     ),
-    type: SDKConnectionOfferType.invitation,
-    validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
-    transport: ChannelTransport.matrix,
-  ));
+  );
 
   final outputDirectory = Directory('.example-output')
     ..createSync(recursive: true);
@@ -94,10 +96,9 @@ void main() async {
   final receivedEvent = await waitForInvitationAccept.future;
 
   prettyPrintGreen('>>> Calling SDK.approveConnectionRequest');
-  final channel =
-      await aliceSDK.approveConnectionRequest(ApproveConnectionRequestParams(
-    channel: receivedEvent.channel,
-  ));
+  final channel = await aliceSDK.approveConnectionRequest(
+    ApproveConnectionRequestParams(channel: receivedEvent.channel),
+  );
 
   prettyPrintYellow(
     '=== Waiting for Bob to send channel inauguration message...',

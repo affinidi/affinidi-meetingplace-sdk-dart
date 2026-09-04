@@ -52,17 +52,20 @@ void main() {
     expect(chatSDK, isA<IndividualMatrixChatSDK>());
   });
 
-  test('individual chat SDK instance for channel type oob', () async {
-    final channel = getChannel(ChannelType.oob);
-    final actual = await MeetingPlaceMatrixChatSDK.initialiseFromChannel(
-      channel,
-      coreSDK: coreSDK,
-      chatRepository: ChatRepositoryImpl(storage: InMemoryStorage()),
-      options: MeetingPlaceChatSDKOptions(),
-    );
+  test(
+    'individual chat SDK instance for channel type directConnection',
+    () async {
+      final channel = getChannel(ChannelType.directConnection);
+      final actual = await MeetingPlaceMatrixChatSDK.initialiseFromChannel(
+        channel,
+        coreSDK: coreSDK,
+        chatRepository: ChatRepositoryImpl(storage: InMemoryStorage()),
+        options: MeetingPlaceChatSDKOptions(),
+      );
 
-    expect(actual, isA<IndividualMatrixChatSDK>());
-  });
+      expect(actual, isA<IndividualMatrixChatSDK>());
+    },
+  );
 
   test('group chat SDK instance for channel type group', () async {
     final channel = getChannel(ChannelType.group);

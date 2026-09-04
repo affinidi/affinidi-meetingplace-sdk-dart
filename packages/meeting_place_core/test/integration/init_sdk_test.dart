@@ -34,7 +34,13 @@ void main() async {
             type: SDKConnectionOfferType.invitation,
           ),
         ),
-        throwsA(isA<MissingDeviceException>()),
+        throwsA(
+          isA<MeetingPlaceControlPlaneSDKException>().having(
+            (e) => e.code,
+            'code',
+            MeetingPlaceControlPlaneSDKErrorCode.missingDevice.value,
+          ),
+        ),
       );
     },
   );

@@ -42,6 +42,7 @@ import 'core/device/device.dart';
 import 'core/sdk_error_handler.dart';
 import 'loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import 'loggers/meeting_place_control_plane_sdk_logger.dart';
+import 'meeting_place_control_plane_sdk_error_code.dart';
 import 'meeting_place_control_plane_sdk_exception.dart';
 import 'meeting_place_control_plane_sdk_options.dart';
 
@@ -122,10 +123,16 @@ class MeetingPlaceControlPlaneSDK {
   /// platformType.
   ///
   /// **Throws:**
-  /// - [MissingDeviceException]: An exception thrown when device is null.
+  /// - [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.missingDevice] when device is
+  /// null.
   Device get device {
     if (_device == null) {
-      throw MissingDeviceException();
+      throw MeetingPlaceControlPlaneSDKException(
+        message: 'Device has not been set on this SDK instance.',
+        code: MeetingPlaceControlPlaneSDKErrorCode.missingDevice.value,
+        innerException: MissingDeviceException(),
+      );
     }
     return _device!;
   }

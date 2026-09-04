@@ -89,7 +89,10 @@ class NotificationService {
       }
 
       await _registerDeviceOnControlPlaneAPI(deviceToken, platformType);
-    } on MissingDeviceException {
+    } on MeetingPlaceControlPlaneSDKException catch (e) {
+      if (e.code != MeetingPlaceControlPlaneSDKErrorCode.missingDevice.value) {
+        rethrow;
+      }
       await _registerDeviceOnControlPlaneAPI(deviceToken, platformType);
     }
 

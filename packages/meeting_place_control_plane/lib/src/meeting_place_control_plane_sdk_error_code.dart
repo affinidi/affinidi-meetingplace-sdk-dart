@@ -98,6 +98,9 @@ enum MeetingPlaceControlPlaneSDKErrorCode {
     'upload_did_web_document_already_registered',
   ),
 
+  // device codes
+  missingDevice('missing_device'),
+
   // others
   networkError('network_error'),
   generic('generic');

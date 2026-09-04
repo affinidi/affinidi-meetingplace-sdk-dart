@@ -1256,8 +1256,10 @@ class MeetingPlaceCoreSDK {
 
   MeetingPlaceTransport get channelTransport => _channelTransport;
 
-  Future<void> updateMessageSyncMarker(Channel channel, String eventId) =>
-      _channelService.updateMessageSyncMarker(channel, eventId);
+  Future<void> updateMessageSyncMarker(
+    sdk.UpdateMessageSyncMarkerRequest request,
+  ) =>
+      _channelService.updateMessageSyncMarker(request.channel, request.eventId);
 
   Future<void> notifyChannel(ChannelNotification notification) =>
       _messageService.notifyChannel(notification);

@@ -471,8 +471,9 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   Future<Channel> getChannelByDid(String did) => _coreSDK.getChannelByDid(did);
 
   @override
-  Future<void> updateMessageSyncMarker(Channel channel, String eventId) =>
-      _coreSDK.updateMessageSyncMarker(channel, eventId);
+  Future<void> updateMessageSyncMarker(
+    UpdateMessageSyncMarkerRequest request,
+  ) => _coreSDK.updateMessageSyncMarker(request);
 
   @override
   Future<void> notifyChannel(ChannelNotification notification) =>
@@ -556,7 +557,12 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
           // Matrix history is newest-first by DAG position. The marker is used
           // as an event-id anchor, so it must follow DAG order.
           final newestEvent = events.first;
-          await _coreSDK.updateMessageSyncMarker(channel, newestEvent.id);
+          await _coreSDK.updateMessageSyncMarker(
+            UpdateMessageSyncMarkerRequest(
+              channel: channel,
+              eventId: newestEvent.id,
+            ),
+          );
         }
 
         return Future.wait(

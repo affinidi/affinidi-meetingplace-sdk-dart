@@ -32,12 +32,13 @@ class MediatorService {
     required this.didResolver,
     required MeetingPlaceMediatorSDKOptions options,
     MeetingPlaceMediatorSDKLogger? logger,
-  })  : _options = options,
-        _logger = logger ??
-            DefaultMeetingPlaceMediatorSDKLogger(
-              className: _className,
-              sdkName: sdkName,
-            );
+  }) : _options = options,
+       _logger =
+           logger ??
+           DefaultMeetingPlaceMediatorSDKLogger(
+             className: _className,
+             sdkName: sdkName,
+           );
   static const String _className = 'MediatorService';
 
   final SendMessageQueue sendMessageQueue = SendMessageQueue();
@@ -67,8 +68,9 @@ class MediatorService {
 
     final authenticationKeyId = didDocument.authentication.first.id;
 
-    final keyAgreementKeyId = didDocument.matchKeysInKeyAgreement(
-        otherDidDocuments: [mediatorDidDocument]).first;
+    final keyAgreementKeyId = didDocument
+        .matchKeysInKeyAgreement(otherDidDocuments: [mediatorDidDocument])
+        .first;
 
     return retry(() async {
       _logger.info(
@@ -98,10 +100,10 @@ class MediatorService {
           ),
           liveDeliveryChangeMessageOptions:
               const LiveDeliveryChangeMessageOptions(
-            shouldSend: true,
-            shouldSign: true,
-            shouldEncrypt: true,
-          ),
+                shouldSend: true,
+                shouldSign: true,
+                shouldEncrypt: true,
+              ),
         ),
         authorizationProvider: await _getAuthorizationProvider(
           mediatorDidDocument: mediatorDidDocument,
@@ -502,8 +504,8 @@ class MediatorService {
             startFrom = startFrom == null
                 ? messageCreatedTime.toUtc()
                 : (messageCreatedTime.toUtc().isAfter(startFrom!.toUtc())
-                    ? messageCreatedTime.toUtc()
-                    : startFrom);
+                      ? messageCreatedTime.toUtc()
+                      : startFrom);
           }
 
           _logger.info(
@@ -624,8 +626,9 @@ class MediatorService {
   }
 
   String _getCacheKey(DidDocument mediatorDidDocument, String did) {
-    final mediatorDidDocumentHash =
-        md5.convert(utf8.encode(jsonEncode(mediatorDidDocument))).toString();
+    final mediatorDidDocumentHash = md5
+        .convert(utf8.encode(jsonEncode(mediatorDidDocument)))
+        .toString();
     return '$mediatorDidDocumentHash-$did';
   }
 

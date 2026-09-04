@@ -107,15 +107,17 @@ class ChatRepositoryImpl implements ChatRepository {
     int? limit,
   }) async {
     final messages = await listMessages(chatId);
-    final filtered = messages
-        .whereType<Message>()
-        .where(
-          (m) => m.attachments.any(
-            (a) => a.metadata?[VoiceMessageMetadata.mediaKindKey] == mediaKind,
-          ),
-        )
-        .toList()
-      ..sort((a, b) => b.dateCreated.compareTo(a.dateCreated));
+    final filtered =
+        messages
+            .whereType<Message>()
+            .where(
+              (m) => m.attachments.any(
+                (a) =>
+                    a.metadata?[VoiceMessageMetadata.mediaKindKey] == mediaKind,
+              ),
+            )
+            .toList()
+          ..sort((a, b) => b.dateCreated.compareTo(a.dateCreated));
     return limit != null && filtered.length > limit
         ? filtered.sublist(0, limit)
         : filtered;

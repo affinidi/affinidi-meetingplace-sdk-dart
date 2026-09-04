@@ -30,7 +30,7 @@ The Matrix SDK is part of the Meeting Place SDK toolkit and enables a safe and s
 
 ## Requirements
 
-- Dart SDK `^3.8.0`
+- Dart SDK `^3.10.0`
 - A Matrix homeserver
 - The Matrix encryption runtime must be initialized before the first Matrix login
 - For audio/video calling: a LiveKit and LiveKit JWT service that issues call tokens

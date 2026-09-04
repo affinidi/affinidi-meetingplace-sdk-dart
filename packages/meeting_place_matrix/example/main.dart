@@ -22,8 +22,8 @@ Future<void> main() async {
 
     prettyPrintGreen('>>> Registering DIDComm notifications');
     final notification = await sdk.registerForDIDCommNotifications();
-    final notificationDidDocument =
-        await notification.recipientDidManager.getDidDocument();
+    final notificationDidDocument = await notification.recipientDidManager
+        .getDidDocument();
 
     prettyPrintGreen('>>> Publishing an invitation offer');
     final publishOfferResult = await sdk.publishOffer(
@@ -57,8 +57,8 @@ Future<void> main() async {
       'publishOfferDid': publishOfferResult.connectionOffer.publishOfferDid,
       'mediatorDid': publishOfferResult.connectionOffer.mediatorDid,
       'transport': publishOfferResult.connectionOffer.transport.name,
-      'expiresAt':
-          publishOfferResult.connectionOffer.expiresAt?.toIso8601String(),
+      'expiresAt': publishOfferResult.connectionOffer.expiresAt
+          ?.toIso8601String(),
     });
 
     prettyPrintYellow('Wrote offer mnemonic to ${mnemonicFile.path}');

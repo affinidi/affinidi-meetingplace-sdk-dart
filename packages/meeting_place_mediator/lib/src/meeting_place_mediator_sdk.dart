@@ -28,13 +28,14 @@ class MeetingPlaceMediatorSDK {
         const MeetingPlaceMediatorSDKOptions(),
     MediatorResolver? mediatorResolver,
     MeetingPlaceMediatorSDKLogger? logger,
-  })  : _mediatorDid = mediatorDid,
-        _options = options,
-        _logger = logger ??
-            DefaultMeetingPlaceMediatorSDKLogger(
-              className: className,
-              sdkName: sdkName,
-            ) {
+  }) : _mediatorDid = mediatorDid,
+       _options = options,
+       _logger =
+           logger ??
+           DefaultMeetingPlaceMediatorSDKLogger(
+             className: className,
+             sdkName: sdkName,
+           ) {
     _mediatorService = MediatorService(
       didResolver: didResolver,
       options: _options,
@@ -44,8 +45,10 @@ class MeetingPlaceMediatorSDK {
     _mediatorResolver = mediatorResolver ?? MediatorResolver(logger: _logger);
 
     _dispatcher = CommandDispatcher();
-    _dispatcher.registerHandler<OobInvitationMessageCommand,
-        OobInvitationMessageOutput>(
+    _dispatcher.registerHandler<
+      OobInvitationMessageCommand,
+      OobInvitationMessageOutput
+    >(
       OobInvitationMessageHandler(
         mediatorService: _mediatorService,
         didResolver: didResolver,
@@ -294,7 +297,8 @@ class MeetingPlaceMediatorSDK {
         deleteOnRetrieve: deleteOnRetrieve,
         startFrom: startFrom,
         fetchMessagesBatchSize: fetchMessagesBatchSize,
-        expectedMessageWrappingTypes: expectedMessageWrappingTypes ??
+        expectedMessageWrappingTypes:
+            expectedMessageWrappingTypes ??
             _options.expectedMessageWrappingTypes,
       );
 

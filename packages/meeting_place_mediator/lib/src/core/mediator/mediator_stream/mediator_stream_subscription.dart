@@ -20,16 +20,17 @@ class MediatorStreamSubscription {
     required Duration? deleteMessageDelay,
     required List<MessageWrappingType> messageWrappingTypes,
     MeetingPlaceMediatorSDKLogger? logger,
-  })  : _client = client,
-        _didManager = didManager,
-        _deleteMessageDelay = deleteMessageDelay,
-        _messageWrappingTypes = messageWrappingTypes,
-        _messageQueue = MessageQueue(client: client, logger: logger),
-        _logger = logger ??
-            DefaultMeetingPlaceMediatorSDKLogger(
-              className: _className,
-              sdkName: sdkName,
-            );
+  }) : _client = client,
+       _didManager = didManager,
+       _deleteMessageDelay = deleteMessageDelay,
+       _messageWrappingTypes = messageWrappingTypes,
+       _messageQueue = MessageQueue(client: client, logger: logger),
+       _logger =
+           logger ??
+           DefaultMeetingPlaceMediatorSDKLogger(
+             className: _className,
+             sdkName: sdkName,
+           );
 
   static const String _className = 'MediatorStreamSubscription';
   static final Mutex _reconnectMutex = Mutex();
@@ -105,7 +106,7 @@ class MediatorStreamSubscription {
 
   MediatorStreamSubscription listen(
     FutureOr<MediatorStreamProcessingResult> Function(PlainTextMessage)
-        onData, {
+    onData, {
     Function? onError,
     void Function()? onDone,
     bool? cancelOnError,

@@ -21,7 +21,7 @@ class NotifyAcceptanceException implements ControlPlaneException {
   factory NotifyAcceptanceException.generic({Object? innerException}) {
     return NotifyAcceptanceException._(
       message: 'Notify acceptance exception: ${innerException.toString()}.',
-      code: ControlPlaneSDKErrorCode.notifyAcceptanceGeneric,
+      code: MeetingPlaceControlPlaneSDKErrorCode.notifyAcceptanceGeneric,
       innerException: innerException,
     );
   }
@@ -29,7 +29,7 @@ class NotifyAcceptanceException implements ControlPlaneException {
   final String message;
 
   @override
-  final ControlPlaneSDKErrorCode code;
+  final MeetingPlaceControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;

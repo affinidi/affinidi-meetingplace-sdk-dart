@@ -21,7 +21,7 @@ class RegisterDeviceException implements ControlPlaneException {
   factory RegisterDeviceException.generic({Object? innerException}) {
     return RegisterDeviceException._(
       message: 'Register device exception: ${innerException.toString()}.',
-      code: ControlPlaneSDKErrorCode.registerDeviceGeneric,
+      code: MeetingPlaceControlPlaneSDKErrorCode.registerDeviceGeneric,
       innerException: innerException,
     );
   }
@@ -29,7 +29,7 @@ class RegisterDeviceException implements ControlPlaneException {
   final String message;
 
   @override
-  final ControlPlaneSDKErrorCode code;
+  final MeetingPlaceControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;

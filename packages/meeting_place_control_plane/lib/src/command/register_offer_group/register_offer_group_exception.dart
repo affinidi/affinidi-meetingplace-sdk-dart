@@ -21,7 +21,7 @@ class RegisterOfferGroupException implements ControlPlaneException {
   factory RegisterOfferGroupException.generic({Object? innerException}) {
     return RegisterOfferGroupException._(
       message: 'Register offer group exception: ${innerException.toString()}.',
-      code: ControlPlaneSDKErrorCode.registerOfferGroupGeneric,
+      code: MeetingPlaceControlPlaneSDKErrorCode.registerOfferGroupGeneric,
       innerException: innerException,
     );
   }
@@ -36,7 +36,8 @@ class RegisterOfferGroupException implements ControlPlaneException {
   factory RegisterOfferGroupException.mediatorNotSet() {
     return RegisterOfferGroupException._(
       message: 'Register offer group exception: mediator not set.',
-      code: ControlPlaneSDKErrorCode.registerOfferGroupMediatorNotSet,
+      code:
+          MeetingPlaceControlPlaneSDKErrorCode.registerOfferGroupMediatorNotSet,
     );
   }
 
@@ -52,7 +53,8 @@ class RegisterOfferGroupException implements ControlPlaneException {
       message:
           'Register offer group exception: Offer with the same mnemonic '
           'already exists.',
-      code: ControlPlaneSDKErrorCode.registerOfferGroupMnemonicInUse,
+      code:
+          MeetingPlaceControlPlaneSDKErrorCode.registerOfferGroupMnemonicInUse,
     );
   }
 
@@ -60,7 +62,7 @@ class RegisterOfferGroupException implements ControlPlaneException {
   final String message;
 
   @override
-  final ControlPlaneSDKErrorCode code;
+  final MeetingPlaceControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;

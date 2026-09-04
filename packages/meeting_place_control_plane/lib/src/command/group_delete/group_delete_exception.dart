@@ -21,7 +21,7 @@ class GroupDeleteException implements ControlPlaneException {
   factory GroupDeleteException.generic({Object? innerException}) {
     return GroupDeleteException._(
       message: 'Group delete exception: ${innerException.toString()}.',
-      code: ControlPlaneSDKErrorCode.groupDeleteGeneric,
+      code: MeetingPlaceControlPlaneSDKErrorCode.groupDeleteGeneric,
       innerException: innerException,
     );
   }
@@ -29,7 +29,7 @@ class GroupDeleteException implements ControlPlaneException {
   final String message;
 
   @override
-  final ControlPlaneSDKErrorCode code;
+  final MeetingPlaceControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;

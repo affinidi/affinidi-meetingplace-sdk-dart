@@ -377,7 +377,7 @@ class ControlPlaneSDK {
   /// A wrapper method that ensures that errors are caught and thrown on the
   /// provided function that is executed during invocation. This includes proper
   /// logging and rethrowing of caught exceptions based on
-  /// [ControlPlaneSDKException].
+  /// [MeetingPlaceControlPlaneSDKException].
   ///
   /// **Parameters:**
   /// - [operation]: an asynchronous function to be executed.

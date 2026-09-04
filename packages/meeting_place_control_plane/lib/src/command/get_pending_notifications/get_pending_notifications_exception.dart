@@ -26,7 +26,7 @@ class GetPendingNotificationsException implements ControlPlaneException {
       message:
           'Get pending notifications exception: Invalid or empty '
           'notification payload.',
-      code: ControlPlaneSDKErrorCode
+      code: MeetingPlaceControlPlaneSDKErrorCode
           .getPendingNotificationsNotificationPayloadError,
       innerException: innerException,
     );
@@ -43,7 +43,7 @@ class GetPendingNotificationsException implements ControlPlaneException {
     return GetPendingNotificationsException._(
       message:
           'Get pending notifications exception: ${innerException.toString()}.',
-      code: ControlPlaneSDKErrorCode.getPendingNotificationsGeneric,
+      code: MeetingPlaceControlPlaneSDKErrorCode.getPendingNotificationsGeneric,
       innerException: innerException,
     );
   }
@@ -51,7 +51,7 @@ class GetPendingNotificationsException implements ControlPlaneException {
   final String message;
 
   @override
-  final ControlPlaneSDKErrorCode code;
+  final MeetingPlaceControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;

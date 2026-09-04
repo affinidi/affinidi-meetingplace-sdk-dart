@@ -89,7 +89,8 @@ void main() {
           isA<UploadDidWebDocumentException>().having(
             (e) => e.code,
             'code',
-            ControlPlaneSDKErrorCode.uploadDidWebDocumentAlreadyRegistered,
+            MeetingPlaceControlPlaneSDKErrorCode
+                .uploadDidWebDocumentAlreadyRegistered,
           ),
         ),
       );
@@ -115,7 +116,8 @@ void main() {
               .having(
                 (e) => e.code,
                 'code',
-                ControlPlaneSDKErrorCode.uploadDidWebDocumentGeneric,
+                MeetingPlaceControlPlaneSDKErrorCode
+                    .uploadDidWebDocumentGeneric,
               )
               .having((e) => e.innerException, 'innerException', dioException),
         ),
@@ -139,7 +141,8 @@ void main() {
               .having(
                 (e) => e.code,
                 'code',
-                ControlPlaneSDKErrorCode.uploadDidWebDocumentGeneric,
+                MeetingPlaceControlPlaneSDKErrorCode
+                    .uploadDidWebDocumentGeneric,
               )
               .having((e) => e.innerException, 'innerException', error),
         ),

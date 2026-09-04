@@ -33,7 +33,7 @@ class SDKErrorHandler {
         name: methodName,
       );
       Error.throwWithStackTrace(
-        ControlPlaneSDKException(
+        MeetingPlaceControlPlaneSDKException(
           message: e.message,
           code: e.code.value,
           innerException: e.innerException ?? e,
@@ -51,9 +51,9 @@ class SDKErrorHandler {
 
       if (!_networkErrorTypes.contains(e.type)) {
         Error.throwWithStackTrace(
-          ControlPlaneSDKException(
+          MeetingPlaceControlPlaneSDKException(
             message: e.toString(),
-            code: ControlPlaneSDKErrorCode.generic.value,
+            code: MeetingPlaceControlPlaneSDKErrorCode.generic.value,
             innerException: e,
           ),
           stackTrace,
@@ -61,9 +61,9 @@ class SDKErrorHandler {
       }
 
       Error.throwWithStackTrace(
-        ControlPlaneSDKException(
+        MeetingPlaceControlPlaneSDKException(
           message: e.toString(),
-          code: ControlPlaneSDKErrorCode.networkError.value,
+          code: MeetingPlaceControlPlaneSDKErrorCode.networkError.value,
           innerException: e,
         ),
         stackTrace,
@@ -77,9 +77,9 @@ class SDKErrorHandler {
         name: '_throwGeneric',
       );
       Error.throwWithStackTrace(
-        ControlPlaneSDKException(
+        MeetingPlaceControlPlaneSDKException(
           message: e.toString(),
-          code: ControlPlaneSDKErrorCode.generic.value,
+          code: MeetingPlaceControlPlaneSDKErrorCode.generic.value,
           innerException: e,
         ),
         stackTrace,

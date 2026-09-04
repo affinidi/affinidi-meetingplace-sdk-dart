@@ -21,7 +21,7 @@ class GroupNotifyChannelException implements ControlPlaneException {
   factory GroupNotifyChannelException.generic({Object? innerException}) {
     return GroupNotifyChannelException._(
       message: 'Group notify channel exception: ${innerException.toString()}.',
-      code: ControlPlaneSDKErrorCode.groupNotifyChannelGeneric,
+      code: MeetingPlaceControlPlaneSDKErrorCode.groupNotifyChannelGeneric,
       innerException: innerException,
     );
   }
@@ -29,7 +29,7 @@ class GroupNotifyChannelException implements ControlPlaneException {
   final String message;
 
   @override
-  final ControlPlaneSDKErrorCode code;
+  final MeetingPlaceControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;

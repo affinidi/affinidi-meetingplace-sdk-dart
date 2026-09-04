@@ -418,12 +418,12 @@ class OobService {
 
       _validateOobInvitation(invitationMessage, oobUri, type);
       return (invitationMessage, oob.mediatorDid);
-    } on ControlPlaneSDKException catch (e) {
-      if (e.code == ControlPlaneSDKErrorCode.oobNotFound.value) {
+    } on MeetingPlaceControlPlaneSDKException catch (e) {
+      if (e.code == MeetingPlaceControlPlaneSDKErrorCode.oobNotFound.value) {
         throw OobServiceException.notFound(oobUri: oobUri, innerException: e);
       }
 
-      if (e.code == ControlPlaneSDKErrorCode.networkError.value) {
+      if (e.code == MeetingPlaceControlPlaneSDKErrorCode.networkError.value) {
         throw OobServiceException.networkError(
           oobUri: oobUri,
           innerException: e,

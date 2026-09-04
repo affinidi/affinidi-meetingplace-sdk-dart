@@ -21,7 +21,7 @@ class CreateOobException implements ControlPlaneException {
   factory CreateOobException.generic({Object? innerException}) {
     return CreateOobException._(
       message: 'Create oob exception: ${innerException.toString()}.',
-      code: ControlPlaneSDKErrorCode.createOobGeneric,
+      code: MeetingPlaceControlPlaneSDKErrorCode.createOobGeneric,
       innerException: innerException,
     );
   }
@@ -29,7 +29,7 @@ class CreateOobException implements ControlPlaneException {
   final String message;
 
   @override
-  final ControlPlaneSDKErrorCode code;
+  final MeetingPlaceControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;

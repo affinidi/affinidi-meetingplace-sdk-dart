@@ -23,7 +23,7 @@ class GroupDeregisterException implements ControlPlaneException {
     return GroupDeregisterException._(
       message:
           'Group deregister member exception: ${innerException.toString()}.',
-      code: ControlPlaneSDKErrorCode.groupDeregisterMemberGeneric,
+      code: MeetingPlaceControlPlaneSDKErrorCode.groupDeregisterMemberGeneric,
       innerException: innerException,
     );
   }
@@ -31,7 +31,7 @@ class GroupDeregisterException implements ControlPlaneException {
   final String message;
 
   @override
-  final ControlPlaneSDKErrorCode code;
+  final MeetingPlaceControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;

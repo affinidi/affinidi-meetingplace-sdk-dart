@@ -11,7 +11,7 @@ class NotifyOutreachException implements ControlPlaneException {
   factory NotifyOutreachException.generic({Object? innerException}) {
     return NotifyOutreachException(
       message: 'Notify outreach exception: ${innerException.toString()}.',
-      code: ControlPlaneSDKErrorCode.notifyOutreachGeneric,
+      code: MeetingPlaceControlPlaneSDKErrorCode.notifyOutreachGeneric,
       innerException: innerException,
     );
   }
@@ -19,7 +19,7 @@ class NotifyOutreachException implements ControlPlaneException {
   final String message;
 
   @override
-  final ControlPlaneSDKErrorCode code;
+  final MeetingPlaceControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;

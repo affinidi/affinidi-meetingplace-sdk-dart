@@ -35,37 +35,37 @@ void main() {
       );
     });
 
-    test(
-      'should handle ControlPlaneException and throw ControlPlaneSDKException',
-      () async {
-        final controlPlaneException = AcceptOfferException.limitExceededError();
+    test('should handle ControlPlaneException and throw '
+        'MeetingPlaceControlPlaneSDKException', () async {
+      final controlPlaneException = AcceptOfferException.limitExceededError();
 
-        expect(
-          () => errorHandler.handleError<void>(
-            () async => throw controlPlaneException,
-          ),
-          throwsA(
-            isA<ControlPlaneSDKException>()
-                .having(
-                  (e) => e.message,
-                  'message',
-                  'Offer acceptance failed: the maximum number of allowed '
-                      'offer usages has been reached.',
-                )
-                .having(
-                  (e) => e.code,
-                  'code',
-                  ControlPlaneSDKErrorCode.acceptOfferLimitExceeded.value,
-                )
-                .having(
-                  (e) => e.innerException,
-                  'innerException',
-                  controlPlaneException,
-                ),
-          ),
-        );
-      },
-    );
+      expect(
+        () => errorHandler.handleError<void>(
+          () async => throw controlPlaneException,
+        ),
+        throwsA(
+          isA<MeetingPlaceControlPlaneSDKException>()
+              .having(
+                (e) => e.message,
+                'message',
+                'Offer acceptance failed: the maximum number of allowed '
+                    'offer usages has been reached.',
+              )
+              .having(
+                (e) => e.code,
+                'code',
+                MeetingPlaceControlPlaneSDKErrorCode
+                    .acceptOfferLimitExceeded
+                    .value,
+              )
+              .having(
+                (e) => e.innerException,
+                'innerException',
+                controlPlaneException,
+              ),
+        ),
+      );
+    });
 
     group('Network error handling', () {
       final networkErrorTypes = [
@@ -88,11 +88,11 @@ void main() {
             () =>
                 errorHandler.handleError<void>(() async => throw dioException),
             throwsA(
-              isA<ControlPlaneSDKException>()
+              isA<MeetingPlaceControlPlaneSDKException>()
                   .having(
                     (e) => e.code,
                     'code',
-                    ControlPlaneSDKErrorCode.networkError.value,
+                    MeetingPlaceControlPlaneSDKErrorCode.networkError.value,
                   )
                   .having(
                     (e) => e.innerException,
@@ -116,44 +116,41 @@ void main() {
       expect(
         () => errorHandler.handleError<void>(() async => throw dioException),
         throwsA(
-          isA<ControlPlaneSDKException>()
+          isA<MeetingPlaceControlPlaneSDKException>()
               .having(
                 (e) => e.code,
                 'code',
-                ControlPlaneSDKErrorCode.generic.value,
+                MeetingPlaceControlPlaneSDKErrorCode.generic.value,
               )
               .having((e) => e.innerException, 'innerException', dioException),
         ),
       );
     });
 
-    test(
-      'should handle generic exception and throw ControlPlaneSDKException',
-      () async {
-        // Arrange
-        final genericException = Exception('Generic error');
+    test('should handle generic exception and throw '
+        'MeetingPlaceControlPlaneSDKException', () async {
+      // Arrange
+      final genericException = Exception('Generic error');
 
-        // Act & Assert
-        expect(
-          () => errorHandler.handleError<void>(
-            () async => throw genericException,
-          ),
-          throwsA(
-            isA<ControlPlaneSDKException>()
-                .having(
-                  (e) => e.code,
-                  'code',
-                  ControlPlaneSDKErrorCode.generic.value,
-                )
-                .having(
-                  (e) => e.innerException,
-                  'innerException',
-                  genericException,
-                )
-                .having((e) => e.message, 'message', contains('Generic error')),
-          ),
-        );
-      },
-    );
+      // Act & Assert
+      expect(
+        () =>
+            errorHandler.handleError<void>(() async => throw genericException),
+        throwsA(
+          isA<MeetingPlaceControlPlaneSDKException>()
+              .having(
+                (e) => e.code,
+                'code',
+                MeetingPlaceControlPlaneSDKErrorCode.generic.value,
+              )
+              .having(
+                (e) => e.innerException,
+                'innerException',
+                genericException,
+              )
+              .having((e) => e.message, 'message', contains('Generic error')),
+        ),
+      );
+    });
   });
 }

@@ -25,7 +25,7 @@ class SDKErrorHandler {
         ),
         stackTrace,
       );
-    } on ControlPlaneSDKException catch (e, stackTrace) {
+    } on MeetingPlaceControlPlaneSDKException catch (e, stackTrace) {
       _logger.error(
         'Failed to execute ControlPlane SDK operation:',
         error: e,

@@ -18,7 +18,8 @@ class UploadDidWebDocumentException implements ControlPlaneException {
   factory UploadDidWebDocumentException.alreadyRegistered() {
     return UploadDidWebDocumentException._(
       message: 'DID document upload failed: already registered.',
-      code: ControlPlaneSDKErrorCode.uploadDidWebDocumentAlreadyRegistered,
+      code: MeetingPlaceControlPlaneSDKErrorCode
+          .uploadDidWebDocumentAlreadyRegistered,
     );
   }
 
@@ -32,7 +33,7 @@ class UploadDidWebDocumentException implements ControlPlaneException {
   factory UploadDidWebDocumentException.generic({Object? innerException}) {
     return UploadDidWebDocumentException._(
       message: 'DID document upload failed.',
-      code: ControlPlaneSDKErrorCode.uploadDidWebDocumentGeneric,
+      code: MeetingPlaceControlPlaneSDKErrorCode.uploadDidWebDocumentGeneric,
       innerException: innerException,
     );
   }
@@ -41,7 +42,7 @@ class UploadDidWebDocumentException implements ControlPlaneException {
   final String message;
 
   @override
-  final ControlPlaneSDKErrorCode code;
+  final MeetingPlaceControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;

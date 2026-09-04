@@ -21,7 +21,7 @@ class QueryOfferException implements ControlPlaneException {
   factory QueryOfferException.generic({Object? innerException}) {
     return QueryOfferException._(
       message: 'Query offer exception: ${innerException.toString()}.',
-      code: ControlPlaneSDKErrorCode.queryOfferOfferGeneric,
+      code: MeetingPlaceControlPlaneSDKErrorCode.queryOfferOfferGeneric,
       innerException: innerException,
     );
   }
@@ -29,7 +29,7 @@ class QueryOfferException implements ControlPlaneException {
   final String message;
 
   @override
-  final ControlPlaneSDKErrorCode code;
+  final MeetingPlaceControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;

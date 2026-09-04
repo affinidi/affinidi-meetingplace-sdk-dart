@@ -27,7 +27,7 @@ class DeletePendingNotificationsException implements ControlPlaneException {
     return DeletePendingNotificationsException._(
       message:
           '''Delete pending notifications failed: ${innerException.toString()}, deleted notification ids: ${deletedNotificationIds.join(',')}''',
-      code: ControlPlaneSDKErrorCode
+      code: MeetingPlaceControlPlaneSDKErrorCode
           .deletePendingNotificationsDeletionFailedError,
       innerException: innerException,
     );
@@ -45,7 +45,8 @@ class DeletePendingNotificationsException implements ControlPlaneException {
   }) {
     return DeletePendingNotificationsException._(
       message: 'Authentication failed: ${innerException.toString()}.',
-      code: ControlPlaneSDKErrorCode.deletePendingNotificationsGeneric,
+      code: MeetingPlaceControlPlaneSDKErrorCode
+          .deletePendingNotificationsGeneric,
       innerException: innerException,
     );
   }
@@ -53,7 +54,7 @@ class DeletePendingNotificationsException implements ControlPlaneException {
   final String message;
 
   @override
-  final ControlPlaneSDKErrorCode code;
+  final MeetingPlaceControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;

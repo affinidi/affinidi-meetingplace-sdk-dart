@@ -21,7 +21,7 @@ class AcceptOfferException implements ControlPlaneException {
     return AcceptOfferException._(
       message:
           '''Offer acceptance failed: the maximum number of allowed offer usages has been reached.''',
-      code: ControlPlaneSDKErrorCode.acceptOfferLimitExceeded,
+      code: MeetingPlaceControlPlaneSDKErrorCode.acceptOfferLimitExceeded,
       innerException: innerException,
     );
   }
@@ -36,7 +36,7 @@ class AcceptOfferException implements ControlPlaneException {
   factory AcceptOfferException.alreadyAcceptedError({Object? innerException}) {
     return AcceptOfferException._(
       message: 'Offer acceptance failed: offer has already been accepted.',
-      code: ControlPlaneSDKErrorCode.acceptOfferAlreadyAccepted,
+      code: MeetingPlaceControlPlaneSDKErrorCode.acceptOfferAlreadyAccepted,
       innerException: innerException,
     );
   }
@@ -51,7 +51,7 @@ class AcceptOfferException implements ControlPlaneException {
   factory AcceptOfferException.generic({Object? innerException}) {
     return AcceptOfferException._(
       message: 'Offer acceptance failed: ${innerException.toString()}.',
-      code: ControlPlaneSDKErrorCode.acceptOfferGeneric,
+      code: MeetingPlaceControlPlaneSDKErrorCode.acceptOfferGeneric,
       innerException: innerException,
     );
   }
@@ -59,7 +59,7 @@ class AcceptOfferException implements ControlPlaneException {
   final String message;
 
   @override
-  final ControlPlaneSDKErrorCode code;
+  final MeetingPlaceControlPlaneSDKErrorCode code;
 
   @override
   final Object? innerException;

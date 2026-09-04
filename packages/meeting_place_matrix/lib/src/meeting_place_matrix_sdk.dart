@@ -211,7 +211,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     required RepositoryConfig repositoryConfig,
     required MatrixConfig config,
     MeetingPlaceMatrixSDKOptions options = const MeetingPlaceMatrixSDKOptions(),
-    MeetingPlaceCoreSDKLogger? logger,
+    MeetingPlaceMatrixSDKLogger? logger,
     matrix.WebRTCDelegate? rtcDelegate,
     LiveKitRoomFactory? roomFactory,
   }) async {
@@ -227,10 +227,9 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
         final svc = MatrixService(
           config: config,
           controlPlaneSDK: controlPlaneSDK,
-          // TODO(SR): Inject correct logger instance.
-          logger: DefaultMeetingPlaceMatrixSDKLogger(
-            className: 'MatrixService',
-          ),
+          logger:
+              logger ??
+              DefaultMeetingPlaceMatrixSDKLogger(className: 'MatrixService'),
         );
         matrixServiceRef = svc;
         return MatrixTransport(matrixService: svc);

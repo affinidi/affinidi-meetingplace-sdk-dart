@@ -438,8 +438,7 @@ class ConnectionService {
 
     final recipientDid = invitationMessage.from!;
     final recipientDidDocument = await _didResolver.resolveDid(recipientDid);
-    final acceptOfferDidDocument = await acceptOfferDidManager
-        .getDidDocument();
+    final acceptOfferDidDocument = await acceptOfferDidManager.getDidDocument();
 
     await _mediatorAclService.addToAcl(
       didManager: acceptOfferDidManager,

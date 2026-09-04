@@ -437,11 +437,11 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   }
 
   @override
-  Future<void> closeChannelAttachmentsStream() =>
-      _coreSDK.closeChannelAttachmentsStream();
+  Future<void> disposeChannelAttachmentsStream() =>
+      _coreSDK.disposeChannelAttachmentsStream();
 
   @override
-  Future<void> closeVdipStream() => _coreSDK.closeVdipStream();
+  Future<void> disposeVdipStream() => _coreSDK.disposeVdipStream();
 
   @override
   Future<List<String>> deleteControlPlaneEvents() =>

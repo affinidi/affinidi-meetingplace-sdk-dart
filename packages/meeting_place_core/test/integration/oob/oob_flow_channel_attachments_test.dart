@@ -57,14 +57,14 @@ void main() {
       expect(received, isEmpty);
     });
 
-    test('stream is done after closeChannelAttachmentsStream', () async {
+    test('stream is done after disposeChannelAttachmentsStream', () async {
       final fixture = await OobFlowFixture.create();
 
       final doneFuture = fixture.aliceSDK.channelAttachments
           .listen((_) {})
           .asFuture<void>();
 
-      await fixture.aliceSDK.closeChannelAttachmentsStream();
+      await fixture.aliceSDK.disposeChannelAttachmentsStream();
 
       await expectLater(doneFuture, completes);
     });

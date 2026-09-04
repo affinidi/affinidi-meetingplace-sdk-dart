@@ -1018,35 +1018,43 @@ class MeetingPlaceCoreSDK {
   /// Closes the control plane events stream.
   ///
   /// After calling this, no further events will be emitted on
-  /// [controlPlaneEventsStream]. Call this when the SDK is no longer needed
-  /// (e.g. on sign-out) to release resources.
+  /// [controlPlaneEventsStream]. Individually callable for narrower
+  /// teardown; [dispose] calls this as part of releasing all SDK resources.
   void disposeControlPlaneEventsStream() {
     _controlPlaneEventStreamManager.dispose();
-  }
-
-  /// Releases all resources held by the SDK: closes the control plane
-  /// events stream. Safe to call multiple times. After dispose the SDK instance
-  /// must not be used further.
-  Future<void> dispose() async {
-    _controlPlaneEventStreamManager.dispose();
-    await _messagingService.dispose();
   }
 
   /// Closes the [channelAttachments] broadcast stream.
   ///
   /// After calling this, no further events will be emitted on
-  /// [channelAttachments]. Call this when the SDK is no longer needed
-  /// (e.g. on sign-out) to release resources.
-  Future<void> closeChannelAttachmentsStream() {
+  /// [channelAttachments]. Individually callable for narrower teardown;
+  /// [dispose] calls this as part of releasing all SDK resources.
+  Future<void> disposeChannelAttachmentsStream() {
     return _channelAttachmentsController.close();
   }
 
   /// Disposes the [VdipClient] and closes the [vdip] incoming-messages stream.
   ///
-  /// Call this when the SDK is no longer needed (e.g. on sign-out) to
-  /// release resources held by the VDIP subsystem.
-  Future<void> closeVdipStream() {
+  /// Individually callable for narrower teardown — for example,
+  /// `MeetingPlaceCredentialsSDK` calls this on its own without disposing
+  /// the rest of the SDK. [dispose] also calls this as part of releasing
+  /// all SDK resources.
+  Future<void> disposeVdipStream() {
     return _vdipClient.dispose();
+  }
+
+  /// Releases all resources held by the SDK: closes the control plane
+  /// events stream, the [channelAttachments] stream, the VDIP stream, and
+  /// disposes the messaging service. Safe to call multiple times, and safe
+  /// to call regardless of whether [disposeControlPlaneEventsStream],
+  /// [disposeChannelAttachmentsStream], or [disposeVdipStream] were already
+  /// called individually. After dispose the SDK instance must not be used
+  /// further.
+  Future<void> dispose() async {
+    disposeControlPlaneEventsStream();
+    await disposeChannelAttachmentsStream();
+    await disposeVdipStream();
+    await _messagingService.dispose();
   }
 
   /// A method that deletes all pending discovery events.

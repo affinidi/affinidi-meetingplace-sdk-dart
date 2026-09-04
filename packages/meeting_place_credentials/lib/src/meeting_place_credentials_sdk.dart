@@ -319,7 +319,7 @@ class MeetingPlaceCredentialsSDK {
       await _credentialsVdipStreamManager.close();
       await _receivedRCardsController.close();
       await _rCardRejectionsController.close();
-      await _coreSDK.closeVdipStream();
+      await _coreSDK.disposeVdipStream();
       return;
     }
 

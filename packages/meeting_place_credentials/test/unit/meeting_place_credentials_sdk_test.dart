@@ -1082,7 +1082,7 @@ void main() {
       when(
         () => mockCoreSDK.channelAttachments,
       ).thenAnswer((_) => channelAttachmentsCtrl.stream);
-      when(() => mockCoreSDK.closeVdipStream()).thenAnswer((_) async {});
+      when(() => mockCoreSDK.disposeVdipStream()).thenAnswer((_) async {});
       mockRepo = MockRCardRepository();
       when(() => mockRepo.upsert(any())).thenAnswer((_) async {});
       when(() => mockRepo.watchAll()).thenAnswer((_) => const Stream.empty());

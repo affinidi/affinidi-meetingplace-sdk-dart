@@ -14,8 +14,9 @@ void main() async {
     await vod.init(libraryPath: getVodozemacLibraryPath());
   }
 
-  final aliceSDK =
-      await initMatrixSDK(wallet: PersistentWallet(InMemoryKeyStore()));
+  final aliceSDK = await initMatrixSDK(
+    wallet: PersistentWallet(InMemoryKeyStore()),
+  );
 
   final notification = await aliceSDK.registerForDIDCommNotifications();
   final notificationDidDocument =
@@ -45,9 +46,7 @@ void main() async {
     ..createSync(recursive: true);
   File(
     '${outputDirectory.path}${Platform.pathSeparator}group.txt',
-  ).writeAsBytesSync(
-    utf8.encode(publishOfferResult.connectionOffer.mnemonic),
-  );
+  ).writeAsBytesSync(utf8.encode(publishOfferResult.connectionOffer.mnemonic));
 
   prettyJsonPrintYellow(
     'Group connection offer',
@@ -65,8 +64,9 @@ void main() async {
   final notificationStream = await aliceSDK.subscribe(
     DidCommSubscription(ownerDid: notificationDidDocument.id),
   );
-  final notificationSubscription =
-      notificationStream.stream.listen((IncomingMessage message) async {
+  final notificationSubscription = notificationStream.stream.listen((
+    IncomingMessage message,
+  ) async {
     final didcommMessage = message as DidCommIncomingMessage;
     prettyJsonPrintYellow('Received message', didcommMessage.payload.toJson());
     await aliceSDK.processControlPlaneEvents();

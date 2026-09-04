@@ -113,7 +113,8 @@ class ConnectionOfferRepositoryImpl implements ConnectionOfferRepository {
 
   @override
   Future<ConnectionOffer?> findConnectionOfferByGroupDid(
-      String groupDid) async {
+    String groupDid,
+  ) async {
     final offerLink = await _storage.get<String>(
       '$connectionGroupRelationPrefix$groupDid',
     );

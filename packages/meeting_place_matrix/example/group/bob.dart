@@ -14,8 +14,9 @@ void main() async {
     await vod.init(libraryPath: getVodozemacLibraryPath());
   }
 
-  final bobSDK =
-      await initMatrixSDK(wallet: PersistentWallet(InMemoryKeyStore()));
+  final bobSDK = await initMatrixSDK(
+    wallet: PersistentWallet(InMemoryKeyStore()),
+  );
 
   final notification = await bobSDK.registerForDIDCommNotifications();
   final notificationDidDocument =
@@ -57,8 +58,9 @@ void main() async {
   final notificationStream = await bobSDK.subscribe(
     DidCommSubscription(ownerDid: notificationDidDocument.id),
   );
-  final notificationSubscription =
-      notificationStream.stream.listen((IncomingMessage message) async {
+  final notificationSubscription = notificationStream.stream.listen((
+    IncomingMessage message,
+  ) async {
     final didcommMessage = message as DidCommIncomingMessage;
     prettyJsonPrintYellow('Received message', didcommMessage.payload.toJson());
     await bobSDK.processControlPlaneEvents();

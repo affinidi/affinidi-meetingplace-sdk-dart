@@ -1288,7 +1288,7 @@ class MeetingPlaceCoreSDK {
   /// **Returns:**
   /// - The resolved mediator DID as a string, or `null` if resolution fails.
   Future<String?> findMediatorDidFromUrl(String mediatorEndpoint) {
-    return _mediatorSDK.getMediatorDidFromUrl(mediatorEndpoint);
+    return _mediatorSDK.findMediatorDidFromUrl(mediatorEndpoint);
   }
 
   /// Sends [fileBytes] as a media message on [channel]. The transport

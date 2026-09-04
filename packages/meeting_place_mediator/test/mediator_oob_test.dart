@@ -29,7 +29,7 @@ void main() {
   test('Mediator SDK returns OOB details', () async {
     final expDid = await didManager.getDidDocument();
     final oob = await sdk.createOob(didManager, getMediatorDid());
-    final invitationMessage = await sdk.getOob(oob);
+    final invitationMessage = await sdk.findOob(oob);
 
     expect(invitationMessage?.from, equals(expDid.id));
     expect(invitationMessage?.body?['goal_code'], equals('connect'));
@@ -39,7 +39,7 @@ void main() {
 
   test('Mediator SDK returns null if oob is not found', () async {
     final oob = await sdk.createOob(didManager, getMediatorDid());
-    final invitationMessage = await sdk.getOob(Uri.parse('$oob-not-found'));
+    final invitationMessage = await sdk.findOob(Uri.parse('$oob-not-found'));
     expect(invitationMessage, isNull);
   });
 }

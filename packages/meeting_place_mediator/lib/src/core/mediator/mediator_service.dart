@@ -167,7 +167,7 @@ class MediatorService {
     return mediatorClient.createOob(message);
   }
 
-  Future<String?> getOob(Uri oobUrl) async {
+  Future<String?> findOob(Uri oobUrl) async {
     late Response<Map<String, dynamic>> response;
 
     try {
@@ -179,11 +179,11 @@ class MediatorService {
       );
     } catch (e, stackTrace) {
       _logger.error('Failed to fetch OOB invitation from $oobUrl after retries',
-          error: e, stackTrace: stackTrace, name: 'getOob');
+          error: e, stackTrace: stackTrace, name: 'findOob');
       if (ErrorHandlerUtils.isRetryableError(e)) {
         _logger.error(
           'Network error while fetching OOB invitation from $oobUrl. ',
-          name: 'getOob',
+          name: 'findOob',
         );
         Error.throwWithStackTrace(
           MediatorException.oobNetworkError(
@@ -205,11 +205,11 @@ class MediatorService {
 
     if (response.data?['data'] == null ||
         response.statusCode != HttpStatus.ok) {
-      _logger.warning('OOB invitation not found at $oobUrl', name: 'getOob');
+      _logger.warning('OOB invitation not found at $oobUrl', name: 'findOob');
       return null;
     }
 
-    _logger.info('Fetched OOB invitation from $oobUrl', name: 'getOob');
+    _logger.info('Fetched OOB invitation from $oobUrl', name: 'findOob');
     return response.data!['data'] as String;
   }
 

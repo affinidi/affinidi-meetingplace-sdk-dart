@@ -97,7 +97,7 @@ void main() async {
     await Future<void>.delayed(const Duration(seconds: 4));
     final messages = await bobSDK.fetchHistory(
       DidCommHistoryQuery(
-        receiverDid: bobOfferFinalisedChannel.permanentChannelDid!,
+        ownerDid: bobOfferFinalisedChannel.permanentChannelDid!,
       ),
     );
 

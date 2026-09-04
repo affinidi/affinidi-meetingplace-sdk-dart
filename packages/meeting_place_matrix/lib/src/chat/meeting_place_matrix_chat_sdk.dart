@@ -263,7 +263,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   Future<StreamSubscription<MatrixRoomEvent>> subscribeToMatrixRoom() async {
     final handle = await coreSDK.subscribe(
       MatrixRoomSubscription(
-        receiverDid: did,
+        ownerDid: did,
         options: const TransportSubscriptionOptions(excludeSelf: true),
       ),
     );
@@ -820,7 +820,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   ) async {
     final historyEvents = await coreSDK.fetchHistory(
       MatrixRoomHistoryQuery(
-        receiverDid: did,
+        ownerDid: did,
         since: bootstrapCursor,
         updateChannelSyncMarker: false,
       ),

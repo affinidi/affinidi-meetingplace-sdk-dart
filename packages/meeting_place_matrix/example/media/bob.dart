@@ -62,7 +62,7 @@ void main() async {
   });
 
   final notificationStream = await bobSDK.subscribe(
-    DidCommSubscription(receiverDid: notificationDidDocument.id),
+    DidCommSubscription(ownerDid: notificationDidDocument.id),
   );
   final notificationSubscription =
       notificationStream.stream.listen((IncomingMessage _) async {

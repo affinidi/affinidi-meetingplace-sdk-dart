@@ -154,7 +154,7 @@ class MessagingService {
     switch (subscription) {
       case DidCommSubscription s:
         final sub = await _didcomm.subscribeToMediator(
-          s.receiverDid,
+          s.ownerDid,
           mediatorDid: s.mediatorDid,
         );
         return _DidCommIncomingMessageHandle(
@@ -176,7 +176,7 @@ class MessagingService {
     switch (query) {
       case DidCommHistoryQuery q:
         final messages = await _didcomm.fetchMessages(
-          did: q.receiverDid,
+          did: q.ownerDid,
           mediatorDid: q.mediatorDid,
           deleteOnRetrieve: q.deleteOnRetrieve,
           deleteFailedMessages: q.deleteFailedMessages,

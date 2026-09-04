@@ -92,7 +92,7 @@ class IndividualDidcommChatSDK extends BaseChatSDK
 
   Future<StreamSubscription<IncomingMessage>> _subscribe() async {
     _subscriptionHandle = await coreSDK.subscribe(
-      DidCommSubscription(receiverDid: did, mediatorDid: mediatorDid),
+      DidCommSubscription(ownerDid: did, mediatorDid: mediatorDid),
     );
 
     return _subscriptionHandle!.stream

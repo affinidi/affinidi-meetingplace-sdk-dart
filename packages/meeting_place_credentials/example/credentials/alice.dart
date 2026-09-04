@@ -106,7 +106,7 @@ Future<void> main() async {
   // until the permanent channel is established, then switch to the channel DID.
   prettyPrintGreen('>>> Subscribing to mediator');
   final notificationStream = await coreSDK.subscribe(
-    DidCommSubscription(receiverDid: notificationDid),
+    DidCommSubscription(ownerDid: notificationDid),
   );
   notificationStream.stream.listen((data) async {
     final didcommMessage = data as DidCommIncomingMessage;
@@ -144,7 +144,7 @@ Future<void> main() async {
   await notificationStream.dispose();
   prettyPrintGreen('>>> Subscribing to channel DID for VDIP messages');
   final channelStream = await coreSDK.subscribe(
-    DidCommSubscription(receiverDid: aliceChannel.permanentChannelDid!),
+    DidCommSubscription(ownerDid: aliceChannel.permanentChannelDid!),
   );
   channelStream.stream.listen((data) async {
     final didcommMessage = data as DidCommIncomingMessage;

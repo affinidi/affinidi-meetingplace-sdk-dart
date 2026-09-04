@@ -577,8 +577,8 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   ) async {
     switch (subscription) {
       case MatrixRoomSubscription s:
-        final channel = await _coreSDK.getChannelByDid(s.receiverDid);
-        final didManager = await _coreSDK.getDidManager(s.receiverDid);
+        final channel = await _coreSDK.getChannelByDid(s.ownerDid);
+        final didManager = await _coreSDK.getDidManager(s.ownerDid);
         final participantDids = await _senderDidResolver.fetchParticipantDids(
           channel,
         );
@@ -590,7 +590,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
         );
         final mapped = stream
             .asyncMap((e) async {
-              return _toMatrixIncoming(e, s.receiverDid);
+              return _toMatrixIncoming(e, s.ownerDid);
             })
             .where((e) => e != null)
             .cast<MatrixIncomingMessage>();
@@ -632,8 +632,8 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   Future<List<IncomingMessage>> fetchHistory(HistoryQuery query) async {
     switch (query) {
       case MatrixRoomHistoryQuery q:
-        final channel = await _coreSDK.getChannelByDid(q.receiverDid);
-        final didManager = await _coreSDK.getDidManager(q.receiverDid);
+        final channel = await _coreSDK.getChannelByDid(q.ownerDid);
+        final didManager = await _coreSDK.getDidManager(q.ownerDid);
         final events = await _coreSDK.channelTransport.fetchEventHistory(
           channel: channel,
           didManager: didManager,
@@ -649,7 +649,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
         }
 
         return Future.wait(
-          events.map((e) => _toMatrixIncoming(e, q.receiverDid)),
+          events.map((e) => _toMatrixIncoming(e, q.ownerDid)),
         ).then((mapped) => mapped.whereType<MatrixIncomingMessage>().toList());
       case DidCommHistoryQuery _:
         return _coreSDK.fetchHistory(query);
@@ -660,12 +660,12 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
 
   Future<MatrixIncomingMessage?> _toMatrixIncoming(
     TransportEvent e,
-    String receiverDid,
+    String ownerDid,
   ) async {
     final resolved =
         e.senderDid ??
         await _senderDidResolver.resolve(
-          receiverDid: receiverDid,
+          ownerDid: ownerDid,
           matrixUserId: e.metadata?['sender_id'] as String,
         );
     if (resolved == null) return null;

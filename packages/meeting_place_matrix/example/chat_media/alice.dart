@@ -77,7 +77,7 @@ void main() async {
 
   prettyPrintGreen('>>> Calling SDK.subscribe');
   final notificationStream = await aliceSDK.subscribe(
-    DidCommSubscription(receiverDid: notificationDidDocument.id),
+    DidCommSubscription(ownerDid: notificationDidDocument.id),
   );
 
   prettyPrintYellow('>>> Listen on notification stream');

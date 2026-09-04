@@ -147,7 +147,7 @@ class MatrixTransport implements MeetingPlaceTransport {
           e.senderDid ??
           _resolveSenderDid(
             matrixUserId: e.userId,
-            receiverDid: (await didManager.getDidDocument()).id,
+            ownerDid: (await didManager.getDidDocument()).id,
             participantDids: participantDids,
             serverName: _matrixService.homeserver.host,
           );
@@ -314,13 +314,13 @@ class MatrixTransport implements MeetingPlaceTransport {
 
   String? _resolveSenderDid({
     required String matrixUserId,
-    required String receiverDid,
+    required String ownerDid,
     required List<String> participantDids,
     required String serverName,
   }) {
     bool matches(String did) =>
         deriveMatrixUserId(did, serverName) == matrixUserId;
-    if (matches(receiverDid)) return receiverDid;
+    if (matches(ownerDid)) return ownerDid;
     for (final did in participantDids) {
       if (matches(did)) return did;
     }

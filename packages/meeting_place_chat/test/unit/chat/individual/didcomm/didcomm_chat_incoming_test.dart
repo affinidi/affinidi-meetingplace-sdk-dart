@@ -72,7 +72,7 @@ void main() {
       ),
     );
     registerFallbackValue(
-      const DidCommSubscription(receiverDid: '', mediatorDid: ''),
+      const DidCommSubscription(ownerDid: '', mediatorDid: ''),
     );
     registerFallbackValue(_fakeChannel());
   });

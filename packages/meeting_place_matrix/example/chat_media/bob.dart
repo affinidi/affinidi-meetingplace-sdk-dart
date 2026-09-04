@@ -75,7 +75,7 @@ void main() async {
 
   prettyPrintGreen('>>> Calling SDK.subscribe');
   final notificationStream = await bobSDK.subscribe(
-    DidCommSubscription(receiverDid: notificationDidDocument.id),
+    DidCommSubscription(ownerDid: notificationDidDocument.id),
   );
 
   prettyPrintYellow('>>> Listen on notification stream');

@@ -14,14 +14,14 @@ class MatrixSenderDidResolver {
   final MatrixService _matrixService;
 
   Future<String?> resolve({
-    required String receiverDid,
+    required String ownerDid,
     required String matrixUserId,
   }) async {
-    final channel = await _coreSDK.findChannelByDid(receiverDid);
+    final channel = await _coreSDK.findChannelByDid(ownerDid);
     if (channel == null) return null;
 
     final serverName = _matrixService.homeserver.host;
-    final candidates = [receiverDid, ...await fetchParticipantDids(channel)];
+    final candidates = [ownerDid, ...await fetchParticipantDids(channel)];
     return resolveSenderDidFromCandidates(
       matrixUserId: matrixUserId,
       serverName: serverName,

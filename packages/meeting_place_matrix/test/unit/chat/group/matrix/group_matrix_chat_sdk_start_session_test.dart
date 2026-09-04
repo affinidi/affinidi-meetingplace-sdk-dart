@@ -143,7 +143,7 @@ void main() {
   setUpAll(() {
     registerFallbackValue(
       const MatrixRoomSubscription(
-        receiverDid: '',
+        ownerDid: '',
         options: TransportSubscriptionOptions(excludeSelf: true),
       ),
     );

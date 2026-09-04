@@ -86,11 +86,11 @@ void main() {
   setUpAll(() {
     registerFallbackValue(
       const MatrixRoomSubscription(
-        receiverDid: '',
+        ownerDid: '',
         options: TransportSubscriptionOptions(excludeSelf: true),
       ),
     );
-    registerFallbackValue(const MatrixRoomHistoryQuery(receiverDid: ''));
+    registerFallbackValue(const MatrixRoomHistoryQuery(ownerDid: ''));
     registerFallbackValue(_FakeOutgoingMessage());
     registerFallbackValue(_fakeChannel());
     registerFallbackValue(

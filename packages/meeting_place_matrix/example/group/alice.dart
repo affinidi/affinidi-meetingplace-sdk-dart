@@ -63,7 +63,7 @@ void main() async {
   });
 
   final notificationStream = await aliceSDK.subscribe(
-    DidCommSubscription(receiverDid: notificationDidDocument.id),
+    DidCommSubscription(ownerDid: notificationDidDocument.id),
   );
   final notificationSubscription =
       notificationStream.stream.listen((IncomingMessage message) async {

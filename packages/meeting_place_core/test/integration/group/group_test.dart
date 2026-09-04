@@ -417,7 +417,7 @@ void main() async {
 
     final messages = await bobSDK.fetchHistory(
       DidCommHistoryQuery(
-        receiverDid: acceptResult.connectionOffer.permanentChannelDid!,
+        ownerDid: acceptResult.connectionOffer.permanentChannelDid!,
       ),
     );
 

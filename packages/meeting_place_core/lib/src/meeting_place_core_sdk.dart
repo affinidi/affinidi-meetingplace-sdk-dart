@@ -1109,14 +1109,12 @@ class MeetingPlaceCoreSDK {
         .getConnectionOffersByExternalRef(externalRef);
   }
 
-  /// Updates the VRC score for the given [offers] on the Control Plane.
-  ///
-  /// [score] — the new trust score (VRC count) to set.
-  /// [offers] — the published [ConnectionOffer] objects to update.
-  Future<UpdateOffersScoreResult> updateOffersScore({
-    required int score,
-    required List<ConnectionOffer> offers,
-  }) {
+  /// Updates the VRC score for the offers in [request] on the Control Plane.
+  Future<UpdateOffersScoreResult> updateOffersScore(
+    sdk.UpdateOffersScoreRequest request,
+  ) {
+    final score = request.score;
+    final offers = request.offers;
     return _withSdkExceptionHandling(() async {
       final mnemonics = offers.map((o) => o.mnemonic).toList();
       final output = await _controlPlaneSDK.execute(
@@ -1139,26 +1137,20 @@ class MeetingPlaceCoreSDK {
     });
   }
 
-  /// Updates the VRC score for [offers] in local storage only, without calling
-  /// the control plane API.
+  /// Updates the VRC score for the offers in [request] in local storage only,
+  /// without calling the control plane API.
   ///
   /// Use this for accepted (non-owned) offers where the local user cannot
   /// update the score remotely — for example, when B accepted A's published
   /// offer and needs to reflect an updated VRC count without owning the
   /// mnemonic on the control plane.
-  ///
-  /// **Parameters:**
-  /// - [score] — the new trust score (VRC count) to persist locally.
-  /// - [offers] — the accepted [ConnectionOffer] objects to update in the
-  ///   local repository.
-  Future<void> updateOffersScoreLocally({
-    required int score,
-    required List<ConnectionOffer> offers,
-  }) async {
-    final offersSnapshot = offers.toList(growable: false);
+  Future<void> updateOffersScoreLocally(
+    sdk.UpdateOffersScoreRequest request,
+  ) async {
+    final offersSnapshot = request.offers.toList(growable: false);
     for (final offer in offersSnapshot) {
       await _repositoryConfig.connectionOfferRepository.updateConnectionOffer(
-        offer.copyWith(score: score),
+        offer.copyWith(score: request.score),
       );
     }
   }

@@ -457,16 +457,13 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   ) => _coreSDK.getConnectionOffersByExternalRef(externalRef);
 
   @override
-  Future<UpdateOffersScoreResult> updateOffersScore({
-    required int score,
-    required List<ConnectionOffer> offers,
-  }) => _coreSDK.updateOffersScore(score: score, offers: offers);
+  Future<UpdateOffersScoreResult> updateOffersScore(
+    UpdateOffersScoreRequest request,
+  ) => _coreSDK.updateOffersScore(request);
 
   @override
-  Future<void> updateOffersScoreLocally({
-    required int score,
-    required List<ConnectionOffer> offers,
-  }) => _coreSDK.updateOffersScoreLocally(score: score, offers: offers);
+  Future<void> updateOffersScoreLocally(UpdateOffersScoreRequest request) =>
+      _coreSDK.updateOffersScoreLocally(request);
 
   @override
   Future<Channel?> findChannelByDid(String did) =>

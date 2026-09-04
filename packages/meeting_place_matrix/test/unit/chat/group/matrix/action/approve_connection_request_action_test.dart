@@ -20,6 +20,9 @@ class _FakeChannel extends Fake implements Channel {}
 class _FakeApproveConnectionRequestParams extends Fake
     implements ApproveConnectionRequestParams {}
 
+class _FakeSendMediaMessageRequest extends Fake
+    implements SendMediaMessageRequest {}
+
 class _FakeChatItem extends Fake implements ChatItem {}
 
 class _FakeOutgoingMessage extends Fake implements OutgoingMessage {}
@@ -90,6 +93,7 @@ void main() {
   setUpAll(() {
     registerFallbackValue(_FakeChannel());
     registerFallbackValue(_FakeApproveConnectionRequestParams());
+    registerFallbackValue(_FakeSendMediaMessageRequest());
     registerFallbackValue(_FakeChatItem());
     registerFallbackValue(Uint8List(0));
     registerFallbackValue(_FakeOutgoingMessage());
@@ -128,13 +132,7 @@ void main() {
         () => coreSDK.findGroupById(any()),
       ).thenAnswer((_) async => _group());
       when(
-        () => coreSDK.sendMediaMessage(
-          any(),
-          any(),
-          contentType: any(named: 'contentType'),
-          filename: any(named: 'filename'),
-          extraContent: any(named: 'extraContent'),
-        ),
+        () => coreSDK.sendMediaMessage(any()),
       ).thenAnswer((_) async => 'evt-1');
       when(() => coreSDK.sendMessage(any())).thenAnswer((_) async => null);
 

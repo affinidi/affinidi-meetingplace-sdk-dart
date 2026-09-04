@@ -1195,26 +1195,19 @@ class MeetingPlaceCoreSDK {
     return _mediatorSDK.findMediatorDidFromUrl(mediatorEndpoint);
   }
 
-  /// Sends [fileBytes] as a media message on [channel]. The transport
-  /// is selected from [Channel.transport]; encryption, upload, and messaging
-  /// are delegated to the underlying transport.
-  Future<String?> sendMediaMessage(
-    Channel channel,
-    Uint8List fileBytes, {
-    required String contentType,
-    String? filename,
-    String? caption,
-    Map<String, dynamic>? extraContent,
-    ChannelNotification? notification,
-  }) {
+  /// Sends [sdk.SendMediaMessageRequest.fileBytes] as a media message on
+  /// [sdk.SendMediaMessageRequest.channel]. The transport is selected from
+  /// [Channel.transport]; encryption, upload, and messaging are delegated
+  /// to the underlying transport.
+  Future<String?> sendMediaMessage(sdk.SendMediaMessageRequest request) {
     return _messagingService.sendMediaMessage(
-      channel,
-      fileBytes,
-      contentType: contentType,
-      filename: filename,
-      caption: caption,
-      extraContent: extraContent,
-      notification: notification,
+      request.channel,
+      request.fileBytes,
+      contentType: request.contentType,
+      filename: request.filename,
+      caption: request.caption,
+      extraContent: request.extraContent,
+      notification: request.notification,
     );
   }
 

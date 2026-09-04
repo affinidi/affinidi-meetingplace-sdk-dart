@@ -89,11 +89,13 @@ void main() async {
 
   prettyPrintGreen('>>> Calling SDK.sendMediaMessage');
   final eventId = await aliceSDK.sendMediaMessage(
-    channel,
-    fileBytes,
-    contentType: 'text/plain',
-    filename: 'greeting.txt',
-    caption: 'Hello from Alice!',
+    SendMediaMessageRequest(
+      channel: channel,
+      fileBytes: fileBytes,
+      contentType: 'text/plain',
+      filename: 'greeting.txt',
+      caption: 'Hello from Alice!',
+    ),
   );
   prettyPrintYellow('Sent media event id: $eventId');
 

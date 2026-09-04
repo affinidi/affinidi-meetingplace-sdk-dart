@@ -463,23 +463,8 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
       _coreSDK.findMediatorDidFromUrl(mediatorEndpoint);
 
   @override
-  Future<String?> sendMediaMessage(
-    Channel channel,
-    Uint8List fileBytes, {
-    required String contentType,
-    String? filename,
-    String? caption,
-    Map<String, dynamic>? extraContent,
-    ChannelNotification? notification,
-  }) => _coreSDK.sendMediaMessage(
-    channel,
-    fileBytes,
-    contentType: contentType,
-    filename: filename,
-    caption: caption,
-    extraContent: extraContent,
-    notification: notification,
-  );
+  Future<String?> sendMediaMessage(SendMediaMessageRequest request) =>
+      _coreSDK.sendMediaMessage(request);
 
   @override
   Future<Uint8List> downloadMedia(Channel channel, MediaReference reference) =>

@@ -1005,8 +1005,9 @@ class MeetingPlaceCoreSDK {
   }
 
   /// Releases all resources held by the SDK: closes the control plane
-  /// events stream, the [channelAttachments] stream, the VDIP stream, and
-  /// disposes the messaging service. Safe to call multiple times, and safe
+  /// events stream, the [channelAttachments] stream, the VDIP stream,
+  /// disposes the messaging service, and disposes the underlying
+  /// mediator and control plane SDKs. Safe to call multiple times, and safe
   /// to call regardless of whether [disposeControlPlaneEventsStream],
   /// [disposeChannelAttachmentsStream], or [disposeVdipStream] were already
   /// called individually. After dispose the SDK instance must not be used
@@ -1016,6 +1017,8 @@ class MeetingPlaceCoreSDK {
     await disposeChannelAttachmentsStream();
     await disposeVdipStream();
     await _messagingService.dispose();
+    await _mediatorSDK.dispose();
+    await _controlPlaneSDK.dispose();
   }
 
   /// A method that deletes all pending discovery events.

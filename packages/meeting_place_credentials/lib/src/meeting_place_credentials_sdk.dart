@@ -243,7 +243,7 @@ class MeetingPlaceCredentialsSDK {
 
   /// Returns the persisted R-Card whose sender DID matches [subjectDid],
   /// or `null` if no such record exists.
-  Future<RCard?> getReceivedRCardBySubjectDid(String subjectDid) =>
+  Future<RCard?> findReceivedRCardBySubjectDid(String subjectDid) =>
       _rCardRepository.getBySubjectDid(subjectDid);
 
   /// Updates the [RCard.notes] field for the R-Card identified by
@@ -290,7 +290,7 @@ class MeetingPlaceCredentialsSDK {
   Future<List<Vrc>> listVrcs() => _vrcRepository.listAll();
 
   /// Returns the persisted VRC identified by [id].
-  Future<Vrc?> getVrcById(String id) => _vrcRepository.getById(id);
+  Future<Vrc?> findVrcById(String id) => _vrcRepository.getById(id);
 
   /// Returns the persisted VRCs where the holder DID matches [holderDid].
   Future<List<Vrc>> listVrcsByHolderDid(String holderDid) =>

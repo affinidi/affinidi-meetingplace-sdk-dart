@@ -138,7 +138,7 @@ void main() {
       ).thenAnswer((_) async => stored);
 
       expect(await sdk.listReceivedRCards(), [stored]);
-      expect(await sdk.getReceivedRCardBySubjectDid('did:key:peer'), stored);
+      expect(await sdk.findReceivedRCardBySubjectDid('did:key:peer'), stored);
 
       await sdk.updateReceivedRCardNotes('did:key:peer', 'hello');
       await sdk.deleteReceivedRCard('did:key:peer');
@@ -1209,13 +1209,13 @@ void main() {
       await sdk.closeCredentialStreams();
     });
 
-    test('getReceivedRCardBySubjectDid delegates to repository', () async {
+    test('findReceivedRCardBySubjectDid delegates to repository', () async {
       when(
         () => mockRepo.getBySubjectDid(stubCard.subjectDid),
       ).thenAnswer((_) async => stubCard);
       final sdk = buildSdk();
 
-      final result = await sdk.getReceivedRCardBySubjectDid(
+      final result = await sdk.findReceivedRCardBySubjectDid(
         stubCard.subjectDid,
       );
       expect(result, equals(stubCard));

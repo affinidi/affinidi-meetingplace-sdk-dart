@@ -378,7 +378,7 @@ class MeetingPlaceMediatorSDK {
       Error.throwWithStackTrace(
         MeetingPlaceMediatorSDKException(
           message: 'Failure on Mediator SDK exception',
-          code: MediatorSdkExceptionErrorCodes.generic.name,
+          code: MeetingPlaceMediatorSDKErrorCode.generic.value,
           innerException: e,
         ),
         stackTrace,

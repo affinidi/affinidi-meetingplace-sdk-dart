@@ -1,7 +1,7 @@
 import 'exception/matrix_sdk_exception.dart';
 import 'meeting_place_matrix_sdk_error_code.dart';
 
-class MatrixServiceException implements MatrixSDKException {
+class MatrixServiceException implements MeetingPlaceMatrixSDKException {
   factory MatrixServiceException.loginFailed({Object? innerException}) {
     return MatrixServiceException(
       message: 'Matrix login failed',

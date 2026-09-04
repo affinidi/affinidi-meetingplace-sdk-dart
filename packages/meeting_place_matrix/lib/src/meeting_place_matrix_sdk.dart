@@ -33,7 +33,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   MeetingPlaceMatrixSDK._({
     required MeetingPlaceCoreSDK coreSDK,
     required this.matrixService,
-    required MeetingPlaceMatrixSdkOptions options,
+    required MeetingPlaceMatrixSDKOptions options,
     MeetingPlaceLiveKitCallPlugin? callPlugin,
   }) : _coreSDK = coreSDK,
        _callPlugin = callPlugin,
@@ -48,7 +48,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   final MatrixSenderDidResolver _senderDidResolver;
   final CallSignalMapper _callSignalMapper;
   final MeetingPlaceLiveKitCallPlugin? _callPlugin;
-  final MeetingPlaceMatrixSdkOptions _options;
+  final MeetingPlaceMatrixSDKOptions _options;
 
   /// The underlying [MatrixService] — exposed for matrix-specific consumers
   /// (e.g. `meeting_place_matrix`) that need VoIP or OpenID token
@@ -210,7 +210,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     required Wallet wallet,
     required RepositoryConfig repositoryConfig,
     required MatrixConfig config,
-    MeetingPlaceMatrixSdkOptions options = const MeetingPlaceMatrixSdkOptions(),
+    MeetingPlaceMatrixSDKOptions options = const MeetingPlaceMatrixSDKOptions(),
     MeetingPlaceCoreSDKLogger? logger,
     matrix.WebRTCDelegate? rtcDelegate,
     LiveKitRoomFactory? roomFactory,
@@ -284,7 +284,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   VdipClient get vdip => _coreSDK.vdip;
 
   @override
-  MeetingPlaceMatrixSdkOptions get options => _options;
+  MeetingPlaceMatrixSDKOptions get options => _options;
 
   @override
   Stream<ChannelAttachmentEvent> get channelAttachments =>

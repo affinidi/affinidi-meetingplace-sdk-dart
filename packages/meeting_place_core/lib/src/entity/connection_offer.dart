@@ -165,18 +165,9 @@ class ConnectionOffer {
     );
   }
 
-  ConnectionOffer accepted({
-    required String outboundMessageId,
-    required String acceptOfferDid,
-    required String otherPartyPermanentChannelDid,
-  }) {
-    return copyWith(
-      outboundMessageId: outboundMessageId,
-      acceptOfferDid: acceptOfferDid,
-      otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
-    );
-  }
-
+  /// Populates the permanent channel DIDs once both parties have exchanged
+  /// them. Does not change [status] — see [finalised] for the transition
+  /// that also marks the offer as finalised.
   ConnectionOffer finalise({
     required String permanentChannelDid,
     required String otherPartyPermanentChannelDid,
@@ -187,6 +178,10 @@ class ConnectionOffer {
     );
   }
 
+  /// Records the notification tokens exchanged during finalisation and
+  /// transitions [status] to [ConnectionOfferStatus.finalised]. Compare with
+  /// [finalise], which only populates the permanent channel DIDs without
+  /// changing [status].
   ConnectionOffer finalised({
     required String notificationToken,
     required String outboundMessageId,
@@ -201,20 +196,6 @@ class ConnectionOffer {
       otherPartyNotificationToken: otherPartyNotificationToken,
       status: ConnectionOfferStatus.finalised,
     );
-  }
-
-  ConnectionOffer channelInauguration({
-    required String notificationToken,
-    required String otherPartyPermanentChannelDid,
-  }) {
-    return copyWith(
-      notificationToken: notificationToken,
-      otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
-    );
-  }
-
-  ConnectionOffer inaugurateChannelDone({required String notificationToken}) {
-    return copyWith(notificationToken: notificationToken);
   }
 
   ConnectionOffer markAsDeleted() {

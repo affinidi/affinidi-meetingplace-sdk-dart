@@ -38,7 +38,7 @@ MatrixRoomEvent _outcomeEvent({
   senderDid: senderDid,
   userId: userId ?? (senderDid == null ? '@unknown:server' : null),
   roomId: '!room:server',
-  content: {if (outcome != null) MatrixEventField.callOutcome: outcome},
+  content: {MatrixEventField.callOutcome: ?outcome},
   timestamp: timestamp,
 );
 

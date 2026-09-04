@@ -44,9 +44,14 @@ class MessageQueue {
         name: 'scheduleDeletion',
       );
 
-      unawaited(_client.deleteMessages(messageIds: [messageHash]).then((_) =>
-          _logger.info('Message $messageHash deleted immediately',
-              name: 'scheduleDeletion')));
+      unawaited(
+        _client.deleteMessages(messageIds: [messageHash]).then(
+          (_) => _logger.info(
+            'Message $messageHash deleted immediately',
+            name: 'scheduleDeletion',
+          ),
+        ),
+      );
 
       return;
     }
@@ -67,11 +72,8 @@ class MessageQueue {
     Duration delay,
   ) {
     final methodName = 'scheduleAction';
-    _logger.info(
-      '''Started scheduling delete message action in
-      ${delay.inMilliseconds} milliseconds''',
-      name: methodName,
-    );
+    _logger.info('''Started scheduling delete message action in
+      ${delay.inMilliseconds} milliseconds''', name: methodName);
     _clearSchedule();
 
     _scheduledTimer = Timer(delay, () async {

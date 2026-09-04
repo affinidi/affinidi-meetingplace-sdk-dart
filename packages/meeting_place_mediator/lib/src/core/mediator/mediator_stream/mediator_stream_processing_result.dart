@@ -1,7 +1,5 @@
 class MediatorStreamProcessingResult {
-  MediatorStreamProcessingResult({
-    required this.keepMessage,
-  });
+  MediatorStreamProcessingResult({required this.keepMessage});
 
   final bool keepMessage;
 }

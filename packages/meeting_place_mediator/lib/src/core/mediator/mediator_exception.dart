@@ -165,6 +165,15 @@ class MediatorException implements IMediatorException {
     );
   }
 
+  /// Indicates an attempt to initialize a stream subscription that has
+  /// already been closed (disposed).
+  factory MediatorException.subscriptionClosedError() {
+    return MediatorException(
+      message: 'Mediator Error: Cannot initialize a closed subscription.',
+      code: MeetingPlaceMediatorSDKErrorCode.subscriptionClosedError,
+    );
+  }
+
   /// Indicates a network error occurred while fetching the OOB invitation.
   ///
   /// **Parameters:**

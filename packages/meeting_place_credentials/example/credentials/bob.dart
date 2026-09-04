@@ -20,7 +20,8 @@ Future<void> main() async {
   // ── 2. Register for DIDComm notifications ──────────────────────────────
   prettyPrintGreen('>>> Registering for DIDComm notifications');
   final notification = await coreSDK.registerForDIDCommNotifications();
-  final notificationDid = (await notification.recipientDid.getDidDocument()).id;
+  final notificationDid =
+      (await notification.recipientDidManager.getDidDocument()).id;
   prettyPrintYellow('Notification DID: $notificationDid');
 
   // ── 3. Set up credentials stream listeners ────────────────────────────

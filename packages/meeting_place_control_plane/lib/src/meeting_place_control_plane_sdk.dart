@@ -391,4 +391,19 @@ class MeetingPlaceControlPlaneSDK {
   Future<T> _withSdkExceptionHandling<T>(Future<T> Function() operation) async {
     return _sdkErrorHandler.handleError(operation);
   }
+
+  /// Releases resources held by this SDK instance, closing the underlying
+  /// HTTP client. Safe to call whether or not the SDK has been initialized.
+  Future<void> dispose() async {
+    if (_initializing != null) {
+      try {
+        await _initializing;
+      } catch (_) {
+        // Initialization failed; nothing was set up to dispose.
+      }
+    }
+    if (isInitialized) {
+      _controlPlaneApiClient.close();
+    }
+  }
 }

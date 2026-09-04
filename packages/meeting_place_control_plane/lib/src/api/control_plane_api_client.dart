@@ -49,6 +49,9 @@ class ControlPlaneApiClient {
 
   api_client.DefaultApi get client => _mpxClient.getDefaultApi();
 
+  /// Closes the underlying [Dio] HTTP client, releasing its connection pool.
+  void close() => _mpxClient.dio.close();
+
   /// Creates and initializes an instance of [ControlPlaneApiClient].
   ///
   /// This static method sets up all necessary member variables and

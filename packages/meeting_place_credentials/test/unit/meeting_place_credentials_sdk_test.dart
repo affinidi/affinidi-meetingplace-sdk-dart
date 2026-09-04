@@ -1265,6 +1265,35 @@ void main() {
 
       await sdk.dispose();
     });
+
+    test(
+      'listReceivedRCards wraps a raw repository error as '
+      'MeetingPlaceCredentialsSDKException with the generic code',
+      () async {
+        final repositoryError = Exception('database unavailable');
+        when(() => mockRepo.listAll()).thenThrow(repositoryError);
+        final sdk = buildSdk();
+
+        await expectLater(
+          sdk.listReceivedRCards(),
+          throwsA(
+            isA<MeetingPlaceCredentialsSDKException>()
+                .having(
+                  (e) => e.code,
+                  'code',
+                  MeetingPlaceCredentialsSDKErrorCode.generic,
+                )
+                .having(
+                  (e) => e.innerException,
+                  'innerException',
+                  repositoryError,
+                ),
+          ),
+        );
+
+        await sdk.dispose();
+      },
+    );
   });
 
   group('MeetingPlaceCredentialsSDK R-Card VDIP pending cache', () {

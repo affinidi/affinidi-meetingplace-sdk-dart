@@ -243,23 +243,30 @@ class MeetingPlaceCredentialsSDK {
 
   /// Returns a snapshot of all persisted R-Cards, ordered by
   /// [RCard.receivedAt] descending.
-  Future<List<RCard>> listReceivedRCards() => _rCardRepository.listAll();
+  Future<List<RCard>> listReceivedRCards() =>
+      _withSdkExceptionHandling(_rCardRepository.listAll);
 
   /// Returns the persisted R-Card whose sender DID matches [subjectDid],
   /// or `null` if no such record exists.
   Future<RCard?> findReceivedRCardBySubjectDid(String subjectDid) =>
-      _rCardRepository.getBySubjectDid(subjectDid);
+      _withSdkExceptionHandling(
+        () => _rCardRepository.getBySubjectDid(subjectDid),
+      );
 
   /// Updates the [RCard.notes] field for the R-Card identified by
   /// [subjectDid]. Pass `null` to clear the notes.
   ///
   /// Does nothing if no record with [subjectDid] exists.
   Future<void> updateReceivedRCardNotes(String subjectDid, String? notes) =>
-      _rCardRepository.updateNotes(subjectDid, notes);
+      _withSdkExceptionHandling(
+        () => _rCardRepository.updateNotes(subjectDid, notes),
+      );
 
   /// Removes the persisted R-Card identified by [subjectDid].
   Future<void> deleteReceivedRCard(String subjectDid) =>
-      _rCardRepository.deleteBySubjectDid(subjectDid);
+      _withSdkExceptionHandling(
+        () => _rCardRepository.deleteBySubjectDid(subjectDid),
+      );
 
   /// A broadcast stream that emits a [VrcRequest] for each incoming
   /// VDIP request-issuance message.
@@ -291,22 +298,29 @@ class MeetingPlaceCredentialsSDK {
   Stream<List<Vrc>> watchVrcs() => _vrcRepository.watchAll();
 
   /// Returns a snapshot of all persisted VRCs.
-  Future<List<Vrc>> listVrcs() => _vrcRepository.listAll();
+  Future<List<Vrc>> listVrcs() =>
+      _withSdkExceptionHandling(_vrcRepository.listAll);
 
   /// Returns the persisted VRC identified by [id].
-  Future<Vrc?> findVrcById(String id) => _vrcRepository.getById(id);
+  Future<Vrc?> findVrcById(String id) =>
+      _withSdkExceptionHandling(() => _vrcRepository.getById(id));
 
   /// Returns the persisted VRCs where the holder DID matches [holderDid].
   Future<List<Vrc>> listVrcsByHolderDid(String holderDid) =>
-      _vrcRepository.listByHolderDid(holderDid);
+      _withSdkExceptionHandling(
+        () => _vrcRepository.listByHolderDid(holderDid),
+      );
 
   /// Returns the number of persisted VRCs where the holder DID matches
   /// [holderDid].
   Future<int> countVrcsByHolderDid(String holderDid) =>
-      _vrcRepository.countByHolderDid(holderDid);
+      _withSdkExceptionHandling(
+        () => _vrcRepository.countByHolderDid(holderDid),
+      );
 
   /// Removes the persisted VRC identified by [id].
-  Future<void> deleteVrc(String id) => _vrcRepository.deleteById(id);
+  Future<void> deleteVrc(String id) =>
+      _withSdkExceptionHandling(() => _vrcRepository.deleteById(id));
 
   /// Releases resources held by this SDK instance: cancels all internal
   /// stream subscriptions and closes their controllers.
@@ -333,6 +347,27 @@ class MeetingPlaceCredentialsSDK {
     await _credentialsVdipStreamManager.close();
   }
 
+  /// Runs [operation], converting any error it throws that is not already a
+  /// [MeetingPlaceCredentialsSDKException] into one with
+  /// [MeetingPlaceCredentialsSDKErrorCode.generic], so every method on this
+  /// SDK throws the same unified exception type.
+  Future<T> _withSdkExceptionHandling<T>(Future<T> Function() operation) async {
+    try {
+      return await operation();
+    } on MeetingPlaceCredentialsSDKException {
+      rethrow;
+    } catch (e, stackTrace) {
+      Error.throwWithStackTrace(
+        MeetingPlaceCredentialsSDKException(
+          message: 'Failure on Credentials SDK exception',
+          code: MeetingPlaceCredentialsSDKErrorCode.generic,
+          innerException: e,
+        ),
+        stackTrace,
+      );
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // R-Card operations
   // ---------------------------------------------------------------------------
@@ -341,30 +376,32 @@ class MeetingPlaceCredentialsSDK {
   /// [SendRCardRequest.channel] via VDIP.
   ///
   /// Returns the sent [RCard] so callers can display or store the issued card.
-  Future<RCard> sendRCard(SendRCardRequest request) async {
-    final channel = request.channel;
-    final subjectDid = request.subjectDid;
-    final issuerDid = channel.permanentChannelDid;
-    if (issuerDid == null || issuerDid.isEmpty) {
-      throw MeetingPlaceCredentialsSDKException.sendRCardMissingChannelDid();
-    }
-    final vc = await RCardBuilder.build(
-      issuerDid: issuerDid,
-      subjectDid: subjectDid,
-      subject: request.card,
-      issuerDidManager: request.issuerDidManager,
-    );
-    await _coreSDK.vdip.issueCredential(channel: channel, credential: vc);
-    final vcBlob = jsonEncode(vc.toJson());
-    return RCard(
-      subjectDid: subjectDid,
-      vcBlob: vcBlob,
-      issuerDid: issuerDid,
-      version: RCardConstants.receivedRCardVersion,
-      issuanceDate: vc.validFrom?.toUtc() ?? DateTime.now().toUtc(),
-      receivedAt: DateTime.now().toUtc(),
-    );
-  }
+  Future<RCard> sendRCard(SendRCardRequest request) =>
+      _withSdkExceptionHandling(() async {
+        final channel = request.channel;
+        final subjectDid = request.subjectDid;
+        final issuerDid = channel.permanentChannelDid;
+        if (issuerDid == null || issuerDid.isEmpty) {
+          throw MeetingPlaceCredentialsSDKException
+              .sendRCardMissingChannelDid();
+        }
+        final vc = await RCardBuilder.build(
+          issuerDid: issuerDid,
+          subjectDid: subjectDid,
+          subject: request.card,
+          issuerDidManager: request.issuerDidManager,
+        );
+        await _coreSDK.vdip.issueCredential(channel: channel, credential: vc);
+        final vcBlob = jsonEncode(vc.toJson());
+        return RCard(
+          subjectDid: subjectDid,
+          vcBlob: vcBlob,
+          issuerDid: issuerDid,
+          version: RCardConstants.receivedRCardVersion,
+          issuanceDate: vc.validFrom?.toUtc() ?? DateTime.now().toUtc(),
+          receivedAt: DateTime.now().toUtc(),
+        );
+      });
 
   // ---------------------------------------------------------------------------
   // Parsing
@@ -375,14 +412,15 @@ class MeetingPlaceCredentialsSDK {
   /// Returns `null` if the blob is not a valid, signature-verified R-Card.
   ///
   /// - [vcBlob] — the raw serialised VC JSON string.
-  Future<RCard?> parseRCard({required String vcBlob}) async {
-    final result = await _rCardParser.parse(vcBlob: vcBlob);
-    return result is RCardParseSuccess ? result.rCard : null;
-  }
+  Future<RCard?> parseRCard({required String vcBlob}) =>
+      _withSdkExceptionHandling(() async {
+        final result = await _rCardParser.parse(vcBlob: vcBlob);
+        return result is RCardParseSuccess ? result.rCard : null;
+      });
 
   /// Parses and validates a VRC from a raw VC blob string.
   Future<ParsedVerifiableCredential?> parseVrc({required String vcBlob}) {
-    return _vrcParser.parse(vcBlob: vcBlob);
+    return _withSdkExceptionHandling(() => _vrcParser.parse(vcBlob: vcBlob));
   }
 
   /// Parses and stores a VRC for the given [StoreVrcRequest.referenceId].
@@ -390,21 +428,22 @@ class MeetingPlaceCredentialsSDK {
   /// Throws [MeetingPlaceCredentialsSDKException] with
   /// [MeetingPlaceCredentialsSDKErrorCode.vrcInvalidCredential] if
   /// [StoreVrcRequest.vcBlob] cannot be parsed as a valid VRC.
-  Future<Vrc> storeVrc(StoreVrcRequest params) async {
-    final parsed = await parseVrc(vcBlob: params.vcBlob);
-    if (parsed == null) {
-      throw MeetingPlaceCredentialsSDKException.vrcInvalidCredential();
-    }
+  Future<Vrc> storeVrc(StoreVrcRequest params) =>
+      _withSdkExceptionHandling(() async {
+        final parsed = await parseVrc(vcBlob: params.vcBlob);
+        if (parsed == null) {
+          throw MeetingPlaceCredentialsSDKException.vrcInvalidCredential();
+        }
 
-    final vrc = parsed.toVrc(
-      referenceId: params.referenceId,
-      verifiedAt: params.verifiedAt,
-      receivedAt: params.receivedAt,
-      credentialFormat: params.credentialFormat,
-    );
-    await _vrcRepository.upsert(vrc);
-    return vrc;
-  }
+        final vrc = parsed.toVrc(
+          referenceId: params.referenceId,
+          verifiedAt: params.verifiedAt,
+          receivedAt: params.receivedAt,
+          credentialFormat: params.credentialFormat,
+        );
+        await _vrcRepository.upsert(vrc);
+        return vrc;
+      });
 
   // ---------------------------------------------------------------------------
   // Outbound VRC operations
@@ -418,20 +457,24 @@ class MeetingPlaceCredentialsSDK {
   /// party asking to be named as the counterpart when the other side issues
   /// a VRC in response, not the party issuing a credential right now.
   Future<void> requestVrcExchange(RequestVrcExchangeParams params) =>
-      _vrcClient.requestExchange(
-        channelDid: params.channelDid,
-        requesterDid: params.requesterDid,
-        requesterName: params.requesterName,
+      _withSdkExceptionHandling(
+        () => _vrcClient.requestExchange(
+          channelDid: params.channelDid,
+          requesterDid: params.requesterDid,
+          requesterName: params.requesterName,
+        ),
       );
 
   /// Builds and sends a VRC over VDIP for the given
   /// [SendVrcRequest.channelDid].
-  Future<String> sendVrc(SendVrcRequest params) => _vrcClient.sendVrc(
-    channelDid: params.channelDid,
-    issuerDid: params.issuerDid,
-    issuerName: params.issuerName,
-    peerDid: params.peerDid,
-    peerName: params.peerName,
+  Future<String> sendVrc(SendVrcRequest params) => _withSdkExceptionHandling(
+    () => _vrcClient.sendVrc(
+      channelDid: params.channelDid,
+      issuerDid: params.issuerDid,
+      issuerName: params.issuerName,
+      peerDid: params.peerDid,
+      peerName: params.peerName,
+    ),
   );
 
   // ---------------------------------------------------------------------------
@@ -441,13 +484,15 @@ class MeetingPlaceCredentialsSDK {
   /// Handles the credentials-protocol outcome of receiving a VRC request.
   Future<VrcRequestProcessingResult> handleReceivedVrcRequest(
     ReceivedVrcRequestParams params,
-  ) => _vrcProtocolHandler.handleReceivedVrcRequest(
-    permanentChannelDid: params.permanentChannelDid,
-    request: params.request,
-    hasVrcExchangeInitiated: params.hasVrcExchangeInitiated,
-    isConnectionInitiator: params.isConnectionInitiator,
-    issuerDid: params.issuerDid,
-    issuerName: params.issuerName,
+  ) => _withSdkExceptionHandling(
+    () => _vrcProtocolHandler.handleReceivedVrcRequest(
+      permanentChannelDid: params.permanentChannelDid,
+      request: params.request,
+      hasVrcExchangeInitiated: params.hasVrcExchangeInitiated,
+      isConnectionInitiator: params.isConnectionInitiator,
+      issuerDid: params.issuerDid,
+      issuerName: params.issuerName,
+    ),
   );
 
   /// Handles the credentials-protocol outcome of receiving a VRC.
@@ -455,12 +500,14 @@ class MeetingPlaceCredentialsSDK {
   /// Returns [VrcProcessingResultIgnored] when the exchange is already
   /// completed, so callers do not need a pre-guard.
   Future<VrcProcessingResult> handleReceivedVrc(ReceivedVrcParams params) =>
-      _vrcProtocolHandler.handleReceivedVrc(
-        permanentChannelDid: params.permanentChannelDid,
-        vcBlob: params.vcBlob,
-        exchangeState: params.exchangeState,
-        issuerDid: params.issuerDid,
-        issuerName: params.issuerName,
+      _withSdkExceptionHandling(
+        () => _vrcProtocolHandler.handleReceivedVrc(
+          permanentChannelDid: params.permanentChannelDid,
+          vcBlob: params.vcBlob,
+          exchangeState: params.exchangeState,
+          issuerDid: params.issuerDid,
+          issuerName: params.issuerName,
+        ),
       );
 
   Future<void> _persistReceivedVrc(VrcIssuance vrcIssuance) async {

@@ -11,6 +11,7 @@ import 'package:ssi/ssi.dart';
 import '../meeting_place_matrix.dart';
 import 'call/call_signal_mapper.dart';
 import 'call/ongoing_group_call_mapper.dart';
+import 'exception/sdk_exception_mapper.dart';
 import 'matrix_incoming_message.dart';
 import 'matrix_outgoing_message.dart';
 import 'matrix_room_history_query.dart';
@@ -175,19 +176,46 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
       return;
     }
 
-    final channel = await _coreSDK.findChannelByOtherPartyPermanentDid(
-      groupChannelDid,
+    final context = await _withSdkExceptionHandling(
+      () => _resolveOngoingGroupCallContext(groupChannelDid),
     );
-    if (channel == null || !channel.isGroup) {
+    if (context == null) {
       yield null;
       return;
     }
 
+    yield* matrixService
+        .watchActiveCallMemberships(
+          didManager: context.didManager,
+          roomId: context.roomId,
+        )
+        .map(
+          (memberships) => buildOngoingGroupCall(
+            memberships: memberships,
+            ownChannelDid: context.ownChannelDid,
+            serverName: context.serverName,
+            candidateDids: context.candidateDids,
+          ),
+        );
+  }
+
+  Future<
+    ({
+      DidManager didManager,
+      String roomId,
+      String serverName,
+      String ownChannelDid,
+      Set<String> candidateDids,
+    })?
+  >
+  _resolveOngoingGroupCallContext(String groupChannelDid) async {
+    final channel = await _coreSDK.findChannelByOtherPartyPermanentDid(
+      groupChannelDid,
+    );
+    if (channel == null || !channel.isGroup) return null;
+
     final ownChannelDid = channel.permanentChannelDid;
-    if (ownChannelDid == null) {
-      yield null;
-      return;
-    }
+    if (ownChannelDid == null) return null;
 
     final didManager = await _coreSDK.getDidManager(ownChannelDid);
     final roomId = await matrixService.resolveRoomIdForChannel(
@@ -198,16 +226,13 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     final memberDids = await _senderDidResolver.fetchParticipantDids(channel);
     final candidateDids = <String>{ownChannelDid, ...memberDids};
 
-    yield* matrixService
-        .watchActiveCallMemberships(didManager: didManager, roomId: roomId)
-        .map(
-          (memberships) => buildOngoingGroupCall(
-            memberships: memberships,
-            ownChannelDid: ownChannelDid,
-            serverName: serverName,
-            candidateDids: candidateDids,
-          ),
-        );
+    return (
+      didManager: didManager,
+      roomId: roomId,
+      serverName: serverName,
+      ownChannelDid: ownChannelDid,
+      candidateDids: candidateDids,
+    );
   }
 
   static Future<MeetingPlaceMatrixSDK> create({
@@ -489,24 +514,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   ) async {
     switch (subscription) {
       case MatrixRoomSubscription s:
-        final channel = await _coreSDK.getChannelByDid(s.ownerDid);
-        final didManager = await _coreSDK.getDidManager(s.ownerDid);
-        final participantDids = await _senderDidResolver.fetchParticipantDids(
-          channel,
-        );
-        final stream = _coreSDK.channelTransport.subscribeToEvents(
-          channel: channel,
-          didManager: didManager,
-          options: s.options,
-          participantDids: participantDids,
-        );
-        final mapped = stream
-            .asyncMap((e) async {
-              return _toMatrixIncoming(e, s.ownerDid);
-            })
-            .where((e) => e != null)
-            .cast<MatrixIncomingMessage>();
-        return _MatrixIncomingMessageHandle(mapped);
+        return _withSdkExceptionHandling(() => _subscribeToMatrixRoom(s));
       case DidCommSubscription _:
         return _coreSDK.subscribe(subscription);
       default:
@@ -514,64 +522,108 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     }
   }
 
+  Future<IncomingMessageHandle> _subscribeToMatrixRoom(
+    MatrixRoomSubscription s,
+  ) async {
+    final channel = await _coreSDK.getChannelByDid(s.ownerDid);
+    final didManager = await _coreSDK.getDidManager(s.ownerDid);
+    final participantDids = await _senderDidResolver.fetchParticipantDids(
+      channel,
+    );
+    final stream = _coreSDK.channelTransport.subscribeToEvents(
+      channel: channel,
+      didManager: didManager,
+      options: s.options,
+      participantDids: participantDids,
+    );
+    final mapped = stream
+        .asyncMap((e) async {
+          return _toMatrixIncoming(e, s.ownerDid);
+        })
+        .where((e) => e != null)
+        .cast<MatrixIncomingMessage>();
+    return _MatrixIncomingMessageHandle(mapped);
+  }
+
   @override
   Future<String?> sendMessage(OutgoingMessage message) async {
     switch (message) {
       case MatrixOutgoingMessage m:
-        final channel = await _coreSDK.getChannelByDid(m.senderDid);
-        final didManager = await _coreSDK.getDidManager(m.senderDid);
-        final eventId = await _coreSDK.channelTransport.sendEvent(
-          channel: channel,
-          type: m.type,
-          content: m.content,
-          didManager: didManager,
-        );
-        final notification = m.notification;
-        if (notification != null) {
-          unawaited(
-            _coreSDK
-                .notifyChannel(notification)
-                .catchError((Object _, StackTrace _) {}),
-          );
-        }
-        return eventId;
+        return _withSdkExceptionHandling(() => _sendMatrixMessage(m));
       default:
         return _coreSDK.sendMessage(message);
     }
+  }
+
+  Future<String?> _sendMatrixMessage(MatrixOutgoingMessage m) async {
+    final channel = await _coreSDK.getChannelByDid(m.senderDid);
+    final didManager = await _coreSDK.getDidManager(m.senderDid);
+    final eventId = await _coreSDK.channelTransport.sendEvent(
+      channel: channel,
+      type: m.type,
+      content: m.content,
+      didManager: didManager,
+    );
+    final notification = m.notification;
+    if (notification != null) {
+      unawaited(
+        _coreSDK
+            .notifyChannel(notification)
+            .catchError((Object _, StackTrace _) {}),
+      );
+    }
+    return eventId;
   }
 
   @override
   Future<List<IncomingMessage>> fetchHistory(HistoryQuery query) async {
     switch (query) {
       case MatrixRoomHistoryQuery q:
-        final channel = await _coreSDK.getChannelByDid(q.ownerDid);
-        final didManager = await _coreSDK.getDidManager(q.ownerDid);
-        final events = await _coreSDK.channelTransport.fetchEventHistory(
-          channel: channel,
-          didManager: didManager,
-          limit: q.limit,
-          since: q.since,
-        );
-
-        if (q.updateChannelSyncMarker && events.isNotEmpty) {
-          // Matrix history is newest-first by DAG position. The marker is used
-          // as an event-id anchor, so it must follow DAG order.
-          final newestEvent = events.first;
-          await _coreSDK.updateMessageSyncMarker(
-            UpdateMessageSyncMarkerRequest(
-              channel: channel,
-              eventId: newestEvent.id,
-            ),
-          );
-        }
-
-        return Future.wait(
-          events.map((e) => _toMatrixIncoming(e, q.ownerDid)),
-        ).then((mapped) => mapped.whereType<MatrixIncomingMessage>().toList());
+        return _withSdkExceptionHandling(() => _fetchMatrixHistory(q));
       case DidCommHistoryQuery _:
         return _coreSDK.fetchHistory(query);
       default:
         return _coreSDK.fetchHistory(query);
+    }
+  }
+
+  Future<List<IncomingMessage>> _fetchMatrixHistory(
+    MatrixRoomHistoryQuery q,
+  ) async {
+    final channel = await _coreSDK.getChannelByDid(q.ownerDid);
+    final didManager = await _coreSDK.getDidManager(q.ownerDid);
+    final events = await _coreSDK.channelTransport.fetchEventHistory(
+      channel: channel,
+      didManager: didManager,
+      limit: q.limit,
+      since: q.since,
+    );
+
+    if (q.updateChannelSyncMarker && events.isNotEmpty) {
+      // Matrix history is newest-first by DAG position. The marker is used
+      // as an event-id anchor, so it must follow DAG order.
+      final newestEvent = events.first;
+      await _coreSDK.updateMessageSyncMarker(
+        UpdateMessageSyncMarkerRequest(
+          channel: channel,
+          eventId: newestEvent.id,
+        ),
+      );
+    }
+
+    return Future.wait(
+      events.map((e) => _toMatrixIncoming(e, q.ownerDid)),
+    ).then((mapped) => mapped.whereType<MatrixIncomingMessage>().toList());
+  }
+
+  /// Runs [operation], converting any error it throws that is not already a
+  /// [MeetingPlaceMatrixSDKException] into one, so every matrix-specific
+  /// method on this SDK throws the same unified exception type.
+  Future<T> _withSdkExceptionHandling<T>(Future<T> Function() operation) async {
+    try {
+      return await operation();
+    } catch (e, stackTrace) {
+      Error.throwWithStackTrace(toMatrixSdkException(e), stackTrace);
     }
   }
 

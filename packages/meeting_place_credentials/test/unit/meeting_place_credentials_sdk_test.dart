@@ -643,8 +643,7 @@ void main() {
       );
 
       final vrc = await sdk.storeVrc(
-        vcBlob: signedVrcBlob,
-        referenceId: 'channel-1',
+        StoreVrcParams(vcBlob: signedVrcBlob, referenceId: 'channel-1'),
       );
 
       expect(vrc, isNotNull);
@@ -661,7 +660,9 @@ void main() {
       );
 
       await expectLater(
-        () => sdk.storeVrc(vcBlob: 'not-a-vrc', referenceId: 'channel-1'),
+        () => sdk.storeVrc(
+          const StoreVrcParams(vcBlob: 'not-a-vrc', referenceId: 'channel-1'),
+        ),
         throwsA(isA<MeetingPlaceCredentialsSDKException>()),
       );
     });
@@ -770,10 +771,12 @@ void main() {
         );
 
         final outcome = await sdk.handleReceivedVrcRequest(
-          permanentChannelDid: 'channel-1',
-          request: request,
-          hasVrcExchangeInitiated: false,
-          isConnectionInitiator: true,
+          ReceivedVrcRequestParams(
+            permanentChannelDid: 'channel-1',
+            request: request,
+            hasVrcExchangeInitiated: false,
+            isConnectionInitiator: true,
+          ),
         );
 
         expect(outcome, isA<VrcRequestProcessingResultPromptRequired>());
@@ -791,10 +794,12 @@ void main() {
         );
 
         final outcome = await sdk.handleReceivedVrcRequest(
-          permanentChannelDid: 'channel-1',
-          request: request,
-          hasVrcExchangeInitiated: true,
-          isConnectionInitiator: false,
+          ReceivedVrcRequestParams(
+            permanentChannelDid: 'channel-1',
+            request: request,
+            hasVrcExchangeInitiated: true,
+            isConnectionInitiator: false,
+          ),
         );
 
         expect(outcome, isA<VrcRequestProcessingResultWaiting>());
@@ -816,12 +821,14 @@ void main() {
       'handleReceivedVrc returns completed when request already received',
       () async {
         final outcome = await sdk.handleReceivedVrc(
-          permanentChannelDid: 'channel-1',
-          vcBlob: signedVrcBlob,
-          exchangeState: const VrcExchangeState(
-            hasVrcExchangeInitiated: false,
-            hasVrcRequestReceived: true,
-            isConnectionInitiator: false,
+          ReceivedVrcParams(
+            permanentChannelDid: 'channel-1',
+            vcBlob: signedVrcBlob,
+            exchangeState: const VrcExchangeState(
+              hasVrcExchangeInitiated: false,
+              hasVrcRequestReceived: true,
+              isConnectionInitiator: false,
+            ),
           ),
         );
 
@@ -856,12 +863,14 @@ void main() {
         },
       );
       final outcome = await sdk.handleReceivedVrcRequest(
-        permanentChannelDid: 'did:key:peer',
-        request: request,
-        hasVrcExchangeInitiated: true,
-        isConnectionInitiator: true,
-        issuerDid: issuerDid,
-        issuerName: 'Alice',
+        ReceivedVrcRequestParams(
+          permanentChannelDid: 'did:key:peer',
+          request: request,
+          hasVrcExchangeInitiated: true,
+          isConnectionInitiator: true,
+          issuerDid: issuerDid,
+          issuerName: 'Alice',
+        ),
       );
 
       expect(outcome, isA<VrcRequestProcessingResultIssued>());
@@ -888,15 +897,17 @@ void main() {
         ).thenAnswer((_) async {});
 
         final outcome = await sdk.handleReceivedVrc(
-          permanentChannelDid: 'did:key:peer',
-          vcBlob: signedVrcBlob,
-          exchangeState: const VrcExchangeState(
-            hasVrcExchangeInitiated: true,
-            hasVrcRequestReceived: false,
-            isConnectionInitiator: true,
+          ReceivedVrcParams(
+            permanentChannelDid: 'did:key:peer',
+            vcBlob: signedVrcBlob,
+            exchangeState: const VrcExchangeState(
+              hasVrcExchangeInitiated: true,
+              hasVrcRequestReceived: false,
+              isConnectionInitiator: true,
+            ),
+            issuerDid: issuerDid,
+            issuerName: 'Alice',
           ),
-          issuerDid: issuerDid,
-          issuerName: 'Alice',
         );
 
         expect(outcome, isA<VrcProcessingResultReciprocated>());
@@ -924,18 +935,20 @@ void main() {
         ).thenAnswer((_) async {});
 
         final outcome = await sdk.handleReceivedVrcRequest(
-          permanentChannelDid: 'did:key:peer',
-          request: VrcRequest(
-            senderDid: 'did:key:sender',
-            credentialMetaData: {
-              VrcConstants.requestMetadataKeyIdentityDid: 'did:key:peer',
-              VrcConstants.requestMetadataKeyIdentityName: 'Bob',
-            },
+          ReceivedVrcRequestParams(
+            permanentChannelDid: 'did:key:peer',
+            request: VrcRequest(
+              senderDid: 'did:key:sender',
+              credentialMetaData: {
+                VrcConstants.requestMetadataKeyIdentityDid: 'did:key:peer',
+                VrcConstants.requestMetadataKeyIdentityName: 'Bob',
+              },
+            ),
+            hasVrcExchangeInitiated: true,
+            isConnectionInitiator: true,
+            issuerDid: issuerDid,
+            issuerName: 'Alice',
           ),
-          hasVrcExchangeInitiated: true,
-          isConnectionInitiator: true,
-          issuerDid: issuerDid,
-          issuerName: 'Alice',
         );
 
         expect(outcome, isA<VrcRequestProcessingResultIssued>());
@@ -967,15 +980,17 @@ void main() {
         ).thenAnswer((_) async {});
 
         final outcome = await sdk.handleReceivedVrc(
-          permanentChannelDid: 'did:key:peer',
-          vcBlob: signedVrcBlob,
-          exchangeState: const VrcExchangeState(
-            hasVrcExchangeInitiated: true,
-            hasVrcRequestReceived: false,
-            isConnectionInitiator: true,
+          ReceivedVrcParams(
+            permanentChannelDid: 'did:key:peer',
+            vcBlob: signedVrcBlob,
+            exchangeState: const VrcExchangeState(
+              hasVrcExchangeInitiated: true,
+              hasVrcRequestReceived: false,
+              isConnectionInitiator: true,
+            ),
+            issuerDid: issuerDid,
+            issuerName: 'Alice',
           ),
-          issuerDid: issuerDid,
-          issuerName: 'Alice',
         );
 
         expect(outcome, isA<VrcProcessingResultReciprocated>());

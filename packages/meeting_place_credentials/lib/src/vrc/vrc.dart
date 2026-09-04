@@ -8,5 +8,6 @@ export 'model/vrc_party.dart';
 export 'model/vrc_processing_result.dart';
 export 'model/vrc_request.dart';
 export 'model/vrc_request_processing_result.dart';
+export 'params/params.dart';
 export 'parser/vrc_parser.dart';
 export 'repository/vrc_repository.dart';

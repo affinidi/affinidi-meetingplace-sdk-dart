@@ -18,11 +18,13 @@ import 'rcard/r_card_vdip_stream_manager.dart';
 import 'rcard/repository/r_card_repository.dart';
 import 'shared/credentials_vdip_stream_manager.dart';
 import 'vrc/model/vrc.dart';
-import 'vrc/model/vrc_exchange_state.dart';
 import 'vrc/model/vrc_issuance.dart';
 import 'vrc/model/vrc_processing_result.dart';
 import 'vrc/model/vrc_request.dart';
 import 'vrc/model/vrc_request_processing_result.dart';
+import 'vrc/params/received_vrc_params.dart';
+import 'vrc/params/received_vrc_request_params.dart';
+import 'vrc/params/store_vrc_params.dart';
 import 'vrc/parser/vrc_parser.dart';
 import 'vrc/repository/vrc_repository.dart';
 import 'vrc/vrc_exchange_client.dart';
@@ -387,28 +389,22 @@ class MeetingPlaceCredentialsSDK {
     return _vrcParser.parse(vcBlob: vcBlob);
   }
 
-  /// Parses and stores a VRC for the given [referenceId].
+  /// Parses and stores a VRC for the given [StoreVrcParams.referenceId].
   ///
   /// Throws [MeetingPlaceCredentialsSDKException] with
-  /// [MeetingPlaceCredentialsSDKErrorCode.vrcInvalidCredential] if [vcBlob]
-  /// cannot be parsed as a valid VRC.
-  Future<Vrc> storeVrc({
-    required String vcBlob,
-    required String referenceId,
-    DateTime? verifiedAt,
-    DateTime? receivedAt,
-    String? credentialFormat,
-  }) async {
-    final parsed = await parseVrc(vcBlob: vcBlob);
+  /// [MeetingPlaceCredentialsSDKErrorCode.vrcInvalidCredential] if
+  /// [StoreVrcParams.vcBlob] cannot be parsed as a valid VRC.
+  Future<Vrc> storeVrc(StoreVrcParams params) async {
+    final parsed = await parseVrc(vcBlob: params.vcBlob);
     if (parsed == null) {
       throw MeetingPlaceCredentialsSDKException.vrcInvalidCredential();
     }
 
     final vrc = parsed.toVrc(
-      referenceId: referenceId,
-      verifiedAt: verifiedAt,
-      receivedAt: receivedAt,
-      credentialFormat: credentialFormat,
+      referenceId: params.referenceId,
+      verifiedAt: params.verifiedAt,
+      receivedAt: params.receivedAt,
+      credentialFormat: params.credentialFormat,
     );
     await _vrcRepository.upsert(vrc);
     return vrc;
@@ -453,39 +449,29 @@ class MeetingPlaceCredentialsSDK {
   // ---------------------------------------------------------------------------
 
   /// Handles the credentials-protocol outcome of receiving a VRC request.
-  Future<VrcRequestProcessingResult> handleReceivedVrcRequest({
-    required String permanentChannelDid,
-    required VrcRequest request,
-    required bool hasVrcExchangeInitiated,
-    required bool isConnectionInitiator,
-    String? issuerDid,
-    String? issuerName,
-  }) => _vrcProtocolHandler.handleReceivedVrcRequest(
-    permanentChannelDid: permanentChannelDid,
-    request: request,
-    hasVrcExchangeInitiated: hasVrcExchangeInitiated,
-    isConnectionInitiator: isConnectionInitiator,
-    issuerDid: issuerDid,
-    issuerName: issuerName,
+  Future<VrcRequestProcessingResult> handleReceivedVrcRequest(
+    ReceivedVrcRequestParams params,
+  ) => _vrcProtocolHandler.handleReceivedVrcRequest(
+    permanentChannelDid: params.permanentChannelDid,
+    request: params.request,
+    hasVrcExchangeInitiated: params.hasVrcExchangeInitiated,
+    isConnectionInitiator: params.isConnectionInitiator,
+    issuerDid: params.issuerDid,
+    issuerName: params.issuerName,
   );
 
   /// Handles the credentials-protocol outcome of receiving a VRC.
   ///
   /// Returns [VrcProcessingResultIgnored] when the exchange is already
   /// completed, so callers do not need a pre-guard.
-  Future<VrcProcessingResult> handleReceivedVrc({
-    required String permanentChannelDid,
-    required String vcBlob,
-    required VrcExchangeState exchangeState,
-    String? issuerDid,
-    String? issuerName,
-  }) => _vrcProtocolHandler.handleReceivedVrc(
-    permanentChannelDid: permanentChannelDid,
-    vcBlob: vcBlob,
-    exchangeState: exchangeState,
-    issuerDid: issuerDid,
-    issuerName: issuerName,
-  );
+  Future<VrcProcessingResult> handleReceivedVrc(ReceivedVrcParams params) =>
+      _vrcProtocolHandler.handleReceivedVrc(
+        permanentChannelDid: params.permanentChannelDid,
+        vcBlob: params.vcBlob,
+        exchangeState: params.exchangeState,
+        issuerDid: params.issuerDid,
+        issuerName: params.issuerName,
+      );
 
   Future<void> _persistReceivedVrc(VrcIssuance vrcIssuance) async {
     final channel = await _coreSDK.findChannelByOtherPartyPermanentDid(

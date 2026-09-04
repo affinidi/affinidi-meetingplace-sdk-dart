@@ -18,6 +18,7 @@ import 'loggers/logger_adapter.dart';
 import 'sdk/sdk.dart' as sdk;
 import 'sdk/sdk_error_handler.dart';
 import 'service/channel/channel_service.dart';
+import 'service/channel/channel_service_exception.dart';
 import 'service/connection_manager/connection_manager.dart';
 import 'service/connection_offer/connection_offer_service.dart';
 import 'service/connection_service.dart';
@@ -580,8 +581,10 @@ class MeetingPlaceCoreSDK {
   /// method.
   ///
   /// Returns a [DidManager] instance
-  Future<DidManager> generateDid() async {
-    return _connectionManager.generateDid(wallet);
+  Future<DidManager> generateDid() {
+    return _withSdkExceptionHandling(
+      () => _connectionManager.generateDid(wallet),
+    );
   }
 
   /// Retrieves an existing [DidManager] for the specified DID string.
@@ -722,49 +725,54 @@ class MeetingPlaceCoreSDK {
   /// DID manager.
   Future<sdk.PublishOfferResult<T>> publishOffer<T extends ConnectionOffer>(
     sdk.PublishOfferRequest request,
-  ) async {
-    if (request.type == sdk.SDKConnectionOfferType.groupInvitation) {
-      final (connectionOffer, publishedOfferDid, ownerDid) = await _groupService
-          .createGroup(
+  ) {
+    return _withSdkExceptionHandling(() async {
+      if (request.type == sdk.SDKConnectionOfferType.groupInvitation) {
+        final (
+          connectionOffer,
+          publishedOfferDid,
+          ownerDid,
+        ) = await _groupService.createGroup(
+          offerName: request.offerName,
+          offerDescription: request.offerDescription,
+          customMnemonic: request.customMnemonic,
+          validUntil: request.validUntil,
+          maximumUsage: request.maximumUsage,
+          mediatorDid: request.mediatorDid ?? _mediatorDid,
+          externalRef: request.externalRef,
+          metadata: request.metadata,
+          card: request.contactCard,
+        );
+        return sdk.PublishOfferResult(
+          connectionOffer: connectionOffer as T,
+          publishedOfferDidManager: publishedOfferDid,
+          groupOwnerDidManager: ownerDid,
+        );
+      }
+
+      final (connectionOffer, publishedOfferDid) = await _connectionService
+          .publishOffer(
+            wallet: wallet,
             offerName: request.offerName,
             offerDescription: request.offerDescription,
+            type: request.type == SDKConnectionOfferType.outreachInvitation
+                ? ConnectionOfferType.meetingPlaceOutreachInvitation
+                : ConnectionOfferType.meetingPlaceInvitation,
             customMnemonic: request.customMnemonic,
             validUntil: request.validUntil,
             maximumUsage: request.maximumUsage,
             mediatorDid: request.mediatorDid ?? _mediatorDid,
             externalRef: request.externalRef,
-            metadata: request.metadata,
-            card: request.contactCard,
+            contactCard: request.contactCard,
+            transport: request.transport,
+            score: request.score,
           );
+
       return sdk.PublishOfferResult(
         connectionOffer: connectionOffer as T,
         publishedOfferDidManager: publishedOfferDid,
-        groupOwnerDidManager: ownerDid,
       );
-    }
-
-    final (connectionOffer, publishedOfferDid) = await _connectionService
-        .publishOffer(
-          wallet: wallet,
-          offerName: request.offerName,
-          offerDescription: request.offerDescription,
-          type: request.type == SDKConnectionOfferType.outreachInvitation
-              ? ConnectionOfferType.meetingPlaceOutreachInvitation
-              : ConnectionOfferType.meetingPlaceInvitation,
-          customMnemonic: request.customMnemonic,
-          validUntil: request.validUntil,
-          maximumUsage: request.maximumUsage,
-          mediatorDid: request.mediatorDid,
-          externalRef: request.externalRef,
-          contactCard: request.contactCard,
-          transport: request.transport,
-          score: request.score,
-        );
-
-    return sdk.PublishOfferResult(
-      connectionOffer: connectionOffer as T,
-      publishedOfferDidManager: publishedOfferDid,
-    );
+    });
   }
 
   /// Attempts to locate a previously published offer on MeetingPlace.
@@ -887,7 +895,9 @@ class MeetingPlaceCoreSDK {
         return _groupService.rejectMembershipRequest(channel);
       }
 
-      throw Exception('Not implemented');
+      throw ChannelServiceException.actionNotAllowed(
+        action: 'rejectConnectionRequest for a non-group channel',
+      );
     });
   }
 
@@ -1195,7 +1205,9 @@ class MeetingPlaceCoreSDK {
   /// **Returns:**
   /// - The resolved mediator DID as a string, or `null` if resolution fails.
   Future<String?> findMediatorDidFromUrl(String mediatorEndpoint) {
-    return _mediatorSDK.findMediatorDidFromUrl(mediatorEndpoint);
+    return _withSdkExceptionHandling(
+      () => _mediatorSDK.findMediatorDidFromUrl(mediatorEndpoint),
+    );
   }
 
   /// Sends [sdk.SendMediaMessageRequest.fileBytes] as a media message on
@@ -1203,14 +1215,16 @@ class MeetingPlaceCoreSDK {
   /// [Channel.transport]; encryption, upload, and messaging are delegated
   /// to the underlying transport.
   Future<String?> sendMediaMessage(sdk.SendMediaMessageRequest request) {
-    return _messagingService.sendMediaMessage(
-      request.channel,
-      request.fileBytes,
-      contentType: request.contentType,
-      filename: request.filename,
-      caption: request.caption,
-      extraContent: request.extraContent,
-      notification: request.notification,
+    return _withSdkExceptionHandling(
+      () => _messagingService.sendMediaMessage(
+        request.channel,
+        request.fileBytes,
+        contentType: request.contentType,
+        filename: request.filename,
+        caption: request.caption,
+        extraContent: request.extraContent,
+        notification: request.notification,
+      ),
     );
   }
 
@@ -1249,11 +1263,13 @@ class MeetingPlaceCoreSDK {
   /// and continue consuming messages from the server.
   Future<IncomingMessageHandle> subscribe(
     IncomingMessageSubscription subscription,
-  ) => _messagingService.subscribe(subscription);
+  ) => _withSdkExceptionHandling(
+    () => _messagingService.subscribe(subscription),
+  );
 
   /// Fetches historical messages for the given [query].
   Future<List<IncomingMessage>> fetchHistory(HistoryQuery query) =>
-      _messagingService.fetchHistory(query);
+      _withSdkExceptionHandling(() => _messagingService.fetchHistory(query));
 
   Future<T> _withSdkExceptionHandling<T>(Future<T> Function() operation) async {
     return _sdkErrorHandler.handleError(operation);
@@ -1263,11 +1279,17 @@ class MeetingPlaceCoreSDK {
 
   Future<void> updateMessageSyncMarker(
     sdk.UpdateMessageSyncMarkerRequest request,
-  ) =>
-      _channelService.updateMessageSyncMarker(request.channel, request.eventId);
+  ) => _withSdkExceptionHandling(
+    () => _channelService.updateMessageSyncMarker(
+      request.channel,
+      request.eventId,
+    ),
+  );
 
   Future<void> notifyChannel(ChannelNotification notification) =>
-      _messageService.notifyChannel(notification);
+      _withSdkExceptionHandling(
+        () => _messageService.notifyChannel(notification),
+      );
 
   static Uri _didWebBaseHostFromControlPlaneDid(String controlPlaneDid) {
     var domain = controlPlaneDid.replaceFirst('did:web:', '');

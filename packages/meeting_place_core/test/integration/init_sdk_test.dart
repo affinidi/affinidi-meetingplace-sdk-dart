@@ -35,7 +35,7 @@ void main() async {
           ),
         ),
         throwsA(
-          isA<MeetingPlaceControlPlaneSDKException>().having(
+          isA<MeetingPlaceCoreSDKException>().having(
             (e) => e.code,
             'code',
             MeetingPlaceControlPlaneSDKErrorCode.missingDevice.value,
@@ -102,7 +102,13 @@ void main() async {
           type: SDKConnectionOfferType.groupInvitation,
         ),
       ),
-      throwsA(isA<UnimplementedError>()),
+      throwsA(
+        isA<MeetingPlaceCoreSDKException>().having(
+          (e) => e.innerException,
+          'innerException',
+          isA<UnimplementedError>(),
+        ),
+      ),
     );
   });
 

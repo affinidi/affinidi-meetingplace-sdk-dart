@@ -13,9 +13,9 @@ class AclManagement extends AclManagementMessage {
     required AclBody body,
     int expiresInSeconds = 60, // TODO: make value configurable
   }) : super(
-          id: const Uuid().v4(),
-          to: to,
-          body: body.toJson(),
-          expiresTime: getExpiresTime(expiresInSeconds),
-        );
+         id: const Uuid().v4(),
+         to: to,
+         body: body.toJson(),
+         expiresTime: getExpiresTime(expiresInSeconds),
+       );
 }

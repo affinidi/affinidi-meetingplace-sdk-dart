@@ -83,8 +83,9 @@ void main() {
         didManager: fixture.didManagerB,
         deleteOnRetrieve: false,
       );
-      final matches =
-          fetchResult.where((r) => r.message?.id == messageToSend.id).toList();
+      final matches = fetchResult
+          .where((r) => r.message?.id == messageToSend.id)
+          .toList();
       expect(matches.length, equals(1));
       expect(matches.first.message!.id, equals(messageToSend.id));
     });
@@ -187,14 +188,14 @@ void main() {
         deleteOnRetrieve: false,
       );
 
-      final matches =
-          fetchResult.where((r) => r.message?.id == messageToSend.id).toList();
+      final matches = fetchResult
+          .where((r) => r.message?.id == messageToSend.id)
+          .toList();
 
       expect(matches.isNotEmpty, isTrue);
     });
 
-    test(
-        'Subsequent messages are processed even if previous listener threw an '
+    test('Subsequent messages are processed even if previous listener threw an '
         'error', () async {
       subscription = await fixture.sdk.subscribeToMessages(
         fixture.didManagerB,

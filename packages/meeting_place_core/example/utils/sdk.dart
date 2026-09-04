@@ -21,7 +21,8 @@ String getMediatorDid() =>
     (throw Exception('MEDIATOR_DID not set in environment'));
 
 String getVodozemacLibraryPath() {
-  final override = Platform.environment['VODOZEMAC_LIBRARY_PATH'] ??
+  final override =
+      Platform.environment['VODOZEMAC_LIBRARY_PATH'] ??
       env['VODOZEMAC_LIBRARY_PATH'];
   if (override != null) return override;
   if (Platform.isMacOS) return 'example/libvodozemac_bindings_dart.dylib';
@@ -33,9 +34,9 @@ String getVodozemacLibraryPath() {
 }
 
 Config getConfig() => Config(
-      mediatorDid: getMediatorDid(),
-      controlPlaneDid: getControlPlaneDid(),
-    );
+  mediatorDid: getMediatorDid(),
+  controlPlaneDid: getControlPlaneDid(),
+);
 
 RepositoryConfig getRepositoryConfig() {
   final storage = InMemoryStorage();

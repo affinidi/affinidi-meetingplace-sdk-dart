@@ -10,13 +10,15 @@ import 'oob_invitation_message_output.dart';
 
 class OobInvitationMessageHandler
     implements
-        MediatorCommandHandler<OobInvitationMessageCommand,
-            OobInvitationMessageOutput> {
+        MediatorCommandHandler<
+          OobInvitationMessageCommand,
+          OobInvitationMessageOutput
+        > {
   OobInvitationMessageHandler({
     required MediatorService mediatorService,
     required DidResolver didResolver,
-  })  : _mediatorService = mediatorService,
-        _didResolver = didResolver;
+  }) : _mediatorService = mediatorService,
+       _didResolver = didResolver;
   final MediatorService _mediatorService;
   final DidResolver _didResolver;
 

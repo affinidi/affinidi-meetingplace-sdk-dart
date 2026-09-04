@@ -62,7 +62,8 @@ void main() async {
               e is MeetingPlaceMediatorSDKException &&
               e.code ==
                   MeetingPlaceMediatorSDKErrorCode
-                      .subscribeToWebsocketError.value,
+                      .subscribeToWebsocketError
+                      .value,
         ),
       ),
     );

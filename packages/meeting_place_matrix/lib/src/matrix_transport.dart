@@ -114,7 +114,7 @@ class MatrixTransport implements MeetingPlaceTransport {
   }
 
   @override
-  Stream<TransportEvent> subscribe({
+  Stream<TransportEvent> subscribeToEvents({
     required Channel channel,
     required DidManager didManager,
     TransportSubscriptionOptions? options,
@@ -182,7 +182,7 @@ class MatrixTransport implements MeetingPlaceTransport {
   }
 
   @override
-  Future<List<TransportEvent>> fetchHistory({
+  Future<List<TransportEvent>> fetchEventHistory({
     required Channel channel,
     required DidManager didManager,
     int? limit,

@@ -122,7 +122,7 @@ void main() {
       ).thenAnswer((_) => Stream.fromIterable([joinEvent]));
 
       final events = await transport
-          .subscribe(
+          .subscribeToEvents(
             channel: _matrixChannel(),
             didManager: didManager,
             participantDids: [aliceDid, bobDid],
@@ -156,7 +156,7 @@ void main() {
         ).thenAnswer((_) => Stream.fromIterable([messageEvent]));
 
         final events = await transport
-            .subscribe(
+            .subscribeToEvents(
               channel: _matrixChannel(),
               didManager: didManager,
               participantDids: [aliceDid, bobDid],
@@ -403,7 +403,7 @@ void main() {
         ),
       ).thenAnswer((_) async => const <MatrixRoomEvent>[]);
 
-      await transport.fetchHistory(
+      await transport.fetchEventHistory(
         channel: _groupMatrixChannel(),
         didManager: didManager,
         since: r'$prev',
@@ -438,7 +438,7 @@ void main() {
         ),
       ).thenAnswer((_) async => const <MatrixRoomEvent>[]);
 
-      await transport.fetchHistory(
+      await transport.fetchEventHistory(
         channel: _groupMatrixChannel(),
         didManager: didManager,
         since: r'$prev',

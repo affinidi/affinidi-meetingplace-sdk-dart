@@ -582,7 +582,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
         final participantDids = await _senderDidResolver.fetchParticipantDids(
           channel,
         );
-        final stream = _coreSDK.channelTransport.subscribe(
+        final stream = _coreSDK.channelTransport.subscribeToEvents(
           channel: channel,
           didManager: didManager,
           options: s.options,
@@ -634,7 +634,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
       case MatrixRoomHistoryQuery q:
         final channel = await _coreSDK.getChannelByDid(q.receiverDid);
         final didManager = await _coreSDK.getDidManager(q.receiverDid);
-        final events = await _coreSDK.channelTransport.fetchHistory(
+        final events = await _coreSDK.channelTransport.fetchEventHistory(
           channel: channel,
           didManager: didManager,
           limit: q.limit,

@@ -301,6 +301,138 @@ void main() {
         ),
       );
     });
+
+    test('calls onBuildAttachments with a channel that has a permanent '
+        'channel DID', () async {
+      setUpCommonMocks(ChannelTransport.didcomm);
+      final channel = createChannel(transport: ChannelTransport.didcomm);
+
+      Channel? capturedChannel;
+      final serviceWithHook = ConnectionService(
+        connectionManager: mockConnectionManager,
+        connectionOfferRepository: mockOfferRepo,
+        controlPlaneSDK: mockControlPlaneSDK,
+        mediatorSDK: mockMediatorSDK,
+        mediatorAclService: mockMediatorAclService,
+        identityService: mockIdentityService,
+        offerService: mockOfferService,
+        didResolver: mockDidResolver,
+        channelService: mockChannelService,
+        channelTransport: mockMeetingPlaceTransport,
+        onBuildAttachments: (channel, getDidManager) async {
+          capturedChannel = channel;
+          return null;
+        },
+      );
+
+      await serviceWithHook.approveConnectionRequest(
+        wallet: mockWallet,
+        channel: channel,
+      );
+
+      expect(capturedChannel, isNotNull);
+      expect(capturedChannel!.permanentChannelDid, equals(permanentDid));
+    });
+
+    test("attaches onBuildAttachments' result to the sent "
+        'ConnectionRequestApproval message', () async {
+      setUpCommonMocks(ChannelTransport.didcomm);
+      final channel = createChannel(transport: ChannelTransport.didcomm);
+      final builtAttachment = Attachment(
+        id: 'built-attachment',
+        data: AttachmentData(base64: 'YnVpbHQ='),
+      );
+
+      final serviceWithHook = ConnectionService(
+        connectionManager: mockConnectionManager,
+        connectionOfferRepository: mockOfferRepo,
+        controlPlaneSDK: mockControlPlaneSDK,
+        mediatorSDK: mockMediatorSDK,
+        mediatorAclService: mockMediatorAclService,
+        identityService: mockIdentityService,
+        offerService: mockOfferService,
+        didResolver: mockDidResolver,
+        channelService: mockChannelService,
+        channelTransport: mockMeetingPlaceTransport,
+        onBuildAttachments: (channel, getDidManager) async => [builtAttachment],
+      );
+
+      await serviceWithHook.approveConnectionRequest(
+        wallet: mockWallet,
+        channel: channel,
+      );
+
+      final captured = verify(
+        () => mockMediatorSDK.sendMessage(
+          captureAny(),
+          senderDidManager: any(named: 'senderDidManager'),
+          recipientDidDocument: any(named: 'recipientDidDocument'),
+          mediatorDid: any(named: 'mediatorDid'),
+          next: any(named: 'next'),
+        ),
+      ).captured;
+
+      final sentMessage = captured.single as PlainTextMessage;
+      expect(
+        sentMessage.attachments?.map((a) => a.id),
+        contains(builtAttachment.id),
+      );
+    });
+
+    test(
+      "merges onBuildAttachments' result with manually supplied attachments",
+      () async {
+        setUpCommonMocks(ChannelTransport.didcomm);
+        final channel = createChannel(transport: ChannelTransport.didcomm);
+        final builtAttachment = Attachment(
+          id: 'built-attachment',
+          data: AttachmentData(base64: 'YnVpbHQ='),
+        );
+        final manualAttachment = Attachment(
+          id: 'manual-attachment',
+          data: AttachmentData(base64: 'bWFudWFs'),
+        );
+
+        final serviceWithHook = ConnectionService(
+          connectionManager: mockConnectionManager,
+          connectionOfferRepository: mockOfferRepo,
+          controlPlaneSDK: mockControlPlaneSDK,
+          mediatorSDK: mockMediatorSDK,
+          mediatorAclService: mockMediatorAclService,
+          identityService: mockIdentityService,
+          offerService: mockOfferService,
+          didResolver: mockDidResolver,
+          channelService: mockChannelService,
+          channelTransport: mockMeetingPlaceTransport,
+          onBuildAttachments: (channel, getDidManager) async => [
+            builtAttachment,
+          ],
+        );
+
+        await serviceWithHook.approveConnectionRequest(
+          wallet: mockWallet,
+          channel: channel,
+          attachments: [manualAttachment],
+        );
+
+        final captured = verify(
+          () => mockMediatorSDK.sendMessage(
+            captureAny(),
+            senderDidManager: any(named: 'senderDidManager'),
+            recipientDidDocument: any(named: 'recipientDidDocument'),
+            mediatorDid: any(named: 'mediatorDid'),
+            next: any(named: 'next'),
+          ),
+        ).captured;
+
+        final sentMessage = captured.single as PlainTextMessage;
+        final attachmentIds = sentMessage.attachments?.map((a) => a.id).toSet();
+        expect(
+          attachmentIds,
+          containsAll([builtAttachment.id, manualAttachment.id]),
+        );
+      },
+    );
   });
 
   group('unlink', () {

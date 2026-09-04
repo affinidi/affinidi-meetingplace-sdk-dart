@@ -29,11 +29,14 @@ class OobFlowFixture {
     );
   }
 
-  static Future<OobFlowFixture> create() async {
+  static Future<OobFlowFixture> create({
+    MeetingPlaceCoreSDKOptions? aliceOptions,
+    MeetingPlaceCoreSDKOptions? bobOptions,
+  }) async {
     final fixture = OobFlowFixture._();
 
-    fixture.aliceSDK = await initSDKInstance();
-    fixture.bobSDK = await initSDKInstance();
+    fixture.aliceSDK = await initSDKInstance(options: aliceOptions);
+    fixture.bobSDK = await initSDKInstance(options: bobOptions);
 
     return fixture;
   }

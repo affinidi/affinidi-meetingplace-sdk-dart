@@ -47,7 +47,7 @@ Future<(MeetingPlaceCoreSDK, MeetingPlaceCredentialsSDK)> initSDKBundle({
   final coreSDK = await MeetingPlaceCoreSDK.create(
     wallet: wallet,
     repositoryConfig: _coreRepositoryConfig(storage: storage),
-    config: Config(
+    config: MeetingPlaceCoreConfig(
       mediatorDid: getMediatorDid(),
       controlPlaneDid: getControlPlaneDid(),
     ),

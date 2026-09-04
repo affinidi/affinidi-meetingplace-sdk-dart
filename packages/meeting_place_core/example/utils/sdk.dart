@@ -32,7 +32,7 @@ String getVodozemacLibraryPath() {
   );
 }
 
-Config getConfig() => Config(
+MeetingPlaceCoreConfig getConfig() => MeetingPlaceCoreConfig(
       mediatorDid: getMediatorDid(),
       controlPlaneDid: getControlPlaneDid(),
     );

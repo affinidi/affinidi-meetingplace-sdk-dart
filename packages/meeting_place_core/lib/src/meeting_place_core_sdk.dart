@@ -75,7 +75,7 @@ import 'utils/cached_did_resolver.dart';
 /// final sdk = MeetingPlaceCoreSDK.create(
 ///   wallet: wallet,
 ///   repositoryConfig: repositoryConfig,
-///   config: Config(
+///   config: MeetingPlaceCoreConfig(
 ///     mediatorDid: '<YOUR-MEDIATOR-DID:.well-known>',
 ///     controlPlaneDid: '<YOUR-CONTROL-PLANE-DID>',
 ///   ),
@@ -234,7 +234,7 @@ class MeetingPlaceCoreSDK {
   static Future<MeetingPlaceCoreSDK> create({
     required Wallet wallet,
     required RepositoryConfig repositoryConfig,
-    required Config config,
+    required MeetingPlaceCoreConfig config,
     MeetingPlaceTransport Function(MeetingPlaceControlPlaneSDK)?
     channelTransportFactory,
     MeetingPlaceCoreSDKOptions options = const MeetingPlaceCoreSDKOptions(),

@@ -33,7 +33,7 @@ Future<MeetingPlaceCoreSDK> initCoreSDKInstance({
       channelRepository:
           channelRepository ?? ChannelRepositoryImpl(storage: storage),
     ),
-    config: Config(
+    config: MeetingPlaceCoreConfig(
       mediatorDid: getMediatorDid(),
       controlPlaneDid: getControlPlaneDid(),
     ),

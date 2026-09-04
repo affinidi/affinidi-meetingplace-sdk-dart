@@ -1,7 +1,7 @@
 import 'package:matrix/matrix.dart' show DatabaseApi;
 import 'package:meeting_place_core/meeting_place_core.dart';
 
-class MatrixConfig extends Config {
+class MatrixConfig extends MeetingPlaceCoreConfig {
   MatrixConfig({
     required super.mediatorDid,
     required super.controlPlaneDid,

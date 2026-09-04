@@ -9,8 +9,6 @@ enum FindOfferResultErrorCode {
   final String value;
 }
 
-class OfferNotFoundException implements Exception {}
-
 class FindOfferResult {
   FindOfferResult({required this.connectionOffer, this.errorCode});
   final ConnectionOffer? connectionOffer;

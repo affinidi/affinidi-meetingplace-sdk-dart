@@ -9,7 +9,7 @@ import '../loggers/meeting_place_core_sdk_logger.dart';
 
 class ControlPlaneEventService {
   ControlPlaneEventService({
-    required ControlPlaneSDK controlPlaneSDK,
+    required MeetingPlaceControlPlaneSDK controlPlaneSDK,
     required ControlPlaneEventManager discoveryEventManager,
     MeetingPlaceCoreSDKLogger? logger,
   }) : _controlPlaneSDK = controlPlaneSDK,
@@ -19,7 +19,7 @@ class ControlPlaneEventService {
 
   static const String _className = 'DiscoveryEventService';
 
-  final ControlPlaneSDK _controlPlaneSDK;
+  final MeetingPlaceControlPlaneSDK _controlPlaneSDK;
   final ControlPlaneEventManager _discoveryEventManager;
   final MeetingPlaceCoreSDKLogger _logger;
   final List<String> _queue = [];

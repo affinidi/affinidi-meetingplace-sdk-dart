@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
-    show ChannelActivity, ControlPlaneSDK;
+    show ChannelActivity, MeetingPlaceControlPlaneSDK;
 
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
@@ -297,7 +297,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   MeetingPlaceTransport get channelTransport => _coreSDK.channelTransport;
 
   @override
-  ControlPlaneSDK get controlPlaneSDK => _coreSDK.controlPlaneSDK;
+  MeetingPlaceControlPlaneSDK get controlPlaneSDK => _coreSDK.controlPlaneSDK;
 
   @override
   MeetingPlaceMediatorSDK get mediator => _coreSDK.mediator;

@@ -1,20 +1,21 @@
 import 'dart:developer' as developer;
 
 import '../constants/sdk_constants.dart' as constants;
-import 'control_plane_sdk_logger.dart';
+import 'meeting_place_control_plane_sdk_logger.dart';
 
 /// Default console logger implementation using `dart:developer`.
 ///
 /// This logger outputs logs to the console with a consistent format.
-class DefaultControlPlaneSDKLogger implements ControlPlaneSDKLogger {
+class DefaultMeetingPlaceControlPlaneSDKLogger
+    implements MeetingPlaceControlPlaneSDKLogger {
   /// Creates a logger with an optional [className] identifying the logging
   /// source.
   ///
   /// [className] defaults to 'DefaultDiscoverySdkLogger'.
   /// [sdkName] is used as the log name in `dart:developer` and defaults to
   /// 'DISC_SDK'.
-  DefaultControlPlaneSDKLogger({
-    this.className = 'DefaultControlPlaneSDKLogger',
+  DefaultMeetingPlaceControlPlaneSDKLogger({
+    this.className = 'DefaultMeetingPlaceControlPlaneSDKLogger',
     this.sdkName = constants.sdkName,
   });
 

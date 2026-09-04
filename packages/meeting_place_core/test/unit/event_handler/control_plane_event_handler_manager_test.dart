@@ -141,7 +141,7 @@ void main() {
       wallet: mockWallet,
       mediatorSDK: MockMeetingPlaceMediatorSDK(),
       mediatorService: mockMediatorService,
-      controlPlaneSDK: MockControlPlaneSDK(),
+      controlPlaneSDK: MockMeetingPlaceControlPlaneSDK(),
       connectionService: MockConnectionService(),
       connectionManager: mockConnectionManager,
       connectionOfferRepository: MockConnectionOfferRepository(),

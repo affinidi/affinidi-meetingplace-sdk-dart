@@ -36,26 +36,28 @@ import 'command/register_offer_group/register_offer_group_handler.dart';
 import 'command/update_offers_score/update_offers_score_handler.dart';
 import 'command/validate_offer_phrase/validate_offer_phrase_handler.dart';
 import 'constants/sdk_constants.dart';
-import 'control_plane_sdk_exception.dart';
-import 'control_plane_sdk_options.dart';
 import 'core/command/command.dart';
 import 'core/command/command_dispatcher.dart';
 import 'core/device/device.dart';
 import 'core/sdk_error_handler.dart';
-import 'loggers/control_plane_sdk_logger.dart';
-import 'loggers/default_control_plane_sdk_logger.dart';
+import 'loggers/default_meeting_place_control_plane_sdk_logger.dart';
+import 'loggers/meeting_place_control_plane_sdk_logger.dart';
+import 'meeting_place_control_plane_sdk_exception.dart';
+import 'meeting_place_control_plane_sdk_options.dart';
 
 class MissingDeviceException implements Exception {}
 
-/// The **ControlPlaneSDK** provides the libraries to enable the discovery of
-/// other participants to establish a connection and communicate securely.
+/// The **MeetingPlaceControlPlaneSDK** provides the libraries to enable the
+/// discovery of other participants to establish a connection and
+/// communicate securely.
 ///
 /// It enables participants to publish a connection offer to allow other
 /// participants to communicate directly or through group chat.
 /// Through discovery, organisations and AI agents can publish their
 /// connection offers to allow users to connect and start using their services.
-class ControlPlaneSDK {
-  /// The constructor used to create an instance of **ControlPlaneSDK**.
+class MeetingPlaceControlPlaneSDK {
+  /// The constructor used to create an instance of
+  /// **MeetingPlaceControlPlaneSDK**.
   ///
   /// **Parameters:**
   /// - [didManager]: The did manager object.
@@ -65,17 +67,17 @@ class ControlPlaneSDK {
   /// - [didResolver]: The did resolver object.
   ///
   /// **Returns:**
-  /// - An instance of [ControlPlaneSDK].
-  ControlPlaneSDK({
+  /// - An instance of [MeetingPlaceControlPlaneSDK].
+  MeetingPlaceControlPlaneSDK({
     required this.didManager,
     required this.controlPlaneDid,
     required this.mediatorDid,
     required this.didResolver,
-    this.controlPlaneSDKConfig = const ControlPlaneSDKOptions(),
-    ControlPlaneSDKLogger? logger,
+    this.controlPlaneSDKConfig = const MeetingPlaceControlPlaneSDKOptions(),
+    MeetingPlaceControlPlaneSDKLogger? logger,
   }) : _logger =
            logger ??
-           DefaultControlPlaneSDKLogger(
+           DefaultMeetingPlaceControlPlaneSDKLogger(
              className: className,
              sdkName: sdkName,
            ) {
@@ -85,14 +87,14 @@ class ControlPlaneSDK {
     );
   }
 
-  static const String className = 'ControlPlaneSDK';
+  static const String className = 'MeetingPlaceControlPlaneSDK';
 
   final DidManager didManager;
   final String controlPlaneDid;
   String mediatorDid;
-  final ControlPlaneSDKOptions controlPlaneSDKConfig;
+  final MeetingPlaceControlPlaneSDKOptions controlPlaneSDKConfig;
   final DidResolver didResolver;
-  final ControlPlaneSDKLogger _logger;
+  final MeetingPlaceControlPlaneSDKLogger _logger;
 
   late final SDKErrorHandler _sdkErrorHandler;
   late final ControlPlaneApiClient _controlPlaneApiClient;
@@ -103,7 +105,7 @@ class ControlPlaneSDK {
   bool isInitialized = false;
 
   /// Setter method that sets the value of [Device] variable of the
-  /// [ControlPlaneSDK] instance.
+  /// [MeetingPlaceControlPlaneSDK] instance.
   ///
   /// **Parameters:**
   /// - [device]: A [Device] object that defines the deviceToken string and its
@@ -113,7 +115,7 @@ class ControlPlaneSDK {
   }
 
   /// Getter method to fetch the value of [device] variable of the
-  /// [ControlPlaneSDK] instance.
+  /// [MeetingPlaceControlPlaneSDK] instance.
   ///
   /// **Returns:**
   /// - [device]: A [Device] object that defines the deviceToken string and its
@@ -129,7 +131,8 @@ class ControlPlaneSDK {
   }
 
   /// Private method that initialises the ControlPlaneApiClient.
-  /// This is invoked by a public method within the [ControlPlaneSDK].
+  /// This is invoked by a public method within the
+  /// [MeetingPlaceControlPlaneSDK].
   Future<void> _init() async {
     _dispatcher = CommandDispatcher();
     _controlPlaneApiClient = await ControlPlaneApiClient.init(
@@ -337,13 +340,14 @@ class ControlPlaneSDK {
 
   /// The method that executes a provided [DiscoveryCommand].
   ///
-  /// This method checks first if the [ControlPlaneSDK] instance has been
-  /// initialised before executing the provided command using the
+  /// This method checks first if the [MeetingPlaceControlPlaneSDK] instance
+  /// has been initialised before executing the provided command using the
   /// [CommandDispatcher].
   ///
   /// **Parameters:**
-  /// - [DiscoveryCommand<T>]: The ControlPlaneSDK command with an overloaded
-  /// generic class that extends the [DiscoveryCommand] parent class.
+  /// - [DiscoveryCommand<T>]: The MeetingPlaceControlPlaneSDK command with an
+  /// overloaded generic class that extends the [DiscoveryCommand] parent
+  /// class.
   ///
   /// **Returns:**
   /// - A discovery command result depending on the provided [DiscoveryCommand].

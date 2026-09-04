@@ -8,7 +8,8 @@ import 'package:test/test.dart';
 
 class MockDio extends Mock implements Dio {}
 
-class MockControlPlaneSDK extends Mock implements ControlPlaneSDK {}
+class MockMeetingPlaceControlPlaneSDK extends Mock
+    implements MeetingPlaceControlPlaneSDK {}
 
 class MockRequestInterceptorHandler extends Mock
     implements RequestInterceptorHandler {}
@@ -27,7 +28,7 @@ class FakeDioException extends Fake implements DioException {}
 void main() {
   late RefreshAuthCredentialsInterceptor interceptor;
   late MockDio mockDio;
-  late MockControlPlaneSDK mockControlPlaneSDK;
+  late MockMeetingPlaceControlPlaneSDK mockControlPlaneSDK;
   late MockRequestInterceptorHandler mockRequestHandler;
   late MockErrorInterceptorHandler mockErrorHandler;
 
@@ -42,7 +43,7 @@ void main() {
 
   setUp(() {
     mockDio = MockDio();
-    mockControlPlaneSDK = MockControlPlaneSDK();
+    mockControlPlaneSDK = MockMeetingPlaceControlPlaneSDK();
     mockRequestHandler = MockRequestInterceptorHandler();
     mockErrorHandler = MockErrorInterceptorHandler();
 

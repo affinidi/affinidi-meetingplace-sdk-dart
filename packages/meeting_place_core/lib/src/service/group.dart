@@ -36,7 +36,7 @@ class GroupService {
     required ConnectionOfferService offerService,
     required ConnectionService connectionService,
     required IdentityService identityService,
-    required cp.ControlPlaneSDK controlPlaneSDK,
+    required cp.MeetingPlaceControlPlaneSDK controlPlaneSDK,
     required MeetingPlaceMediatorSDK mediatorSDK,
     required MeetingPlaceTransport channelTransport,
     required DidResolver didResolver,
@@ -69,7 +69,7 @@ class GroupService {
   final DidResolver _didResolver;
   final MeetingPlaceCoreSDKLogger _logger;
 
-  final cp.ControlPlaneSDK _controlPlaneSDK;
+  final cp.MeetingPlaceControlPlaneSDK _controlPlaneSDK;
   final MeetingPlaceMediatorSDK _mediatorSDK;
   final MeetingPlaceTransport _channelTransport;
 

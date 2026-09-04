@@ -88,7 +88,8 @@ class _MockConnectionService extends Mock implements ConnectionService {}
 
 class _MockIdentityService extends Mock implements IdentityService {}
 
-class _MockControlPlaneSDK extends Mock implements cp.ControlPlaneSDK {}
+class _MockMeetingPlaceControlPlaneSDK extends Mock
+    implements cp.MeetingPlaceControlPlaneSDK {}
 
 class _MockMediatorSDK extends Mock implements MeetingPlaceMediatorSDK {}
 
@@ -200,7 +201,7 @@ void main() {
     late _MockConnectionOfferRepository connectionOfferRepository;
     late _MockChannelService channelService;
     late _MockIdentityService identityService;
-    late _MockControlPlaneSDK controlPlaneSDK;
+    late _MockMeetingPlaceControlPlaneSDK controlPlaneSDK;
     late _MockMediatorSDK mediatorSDK;
     late _MockMeetingPlaceTransport channelTransport;
     late _MockDidResolver didResolver;
@@ -252,7 +253,7 @@ void main() {
       connectionOfferRepository = _MockConnectionOfferRepository();
       channelService = _MockChannelService();
       identityService = _MockIdentityService();
-      controlPlaneSDK = _MockControlPlaneSDK();
+      controlPlaneSDK = _MockMeetingPlaceControlPlaneSDK();
       mediatorSDK = _MockMediatorSDK();
       channelTransport = _MockMeetingPlaceTransport();
       didResolver = _MockDidResolver();

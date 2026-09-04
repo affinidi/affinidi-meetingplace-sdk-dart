@@ -1,6 +1,6 @@
 /// Control Plane SDK configuration settings.
-class ControlPlaneSDKOptions {
-  const ControlPlaneSDKOptions({
+class MeetingPlaceControlPlaneSDKOptions {
+  const MeetingPlaceControlPlaneSDKOptions({
     this.maxRetries = 3,
     this.maxRetriesDelay = const Duration(milliseconds: 2000),
     this.connectTimeout = const Duration(milliseconds: 30000),

@@ -19,7 +19,8 @@ class _MockConnectionManager extends Mock implements ConnectionManager {}
 class _MockConnectionOfferRepository extends Mock
     implements ConnectionOfferRepository {}
 
-class _MockControlPlaneSDK extends Mock implements cp.ControlPlaneSDK {}
+class _MockMeetingPlaceControlPlaneSDK extends Mock
+    implements cp.MeetingPlaceControlPlaneSDK {}
 
 class _MockMediatorSDK extends Mock implements MeetingPlaceMediatorSDK {}
 
@@ -50,7 +51,7 @@ class _FakeChannel extends Fake implements Channel {}
 void main() {
   late _MockConnectionManager mockConnectionManager;
   late _MockConnectionOfferRepository mockOfferRepo;
-  late _MockControlPlaneSDK mockControlPlaneSDK;
+  late _MockMeetingPlaceControlPlaneSDK mockControlPlaneSDK;
   late _MockMediatorSDK mockMediatorSDK;
   late _MockMediatorAclService mockMediatorAclService;
   late _MockIdentityService mockIdentityService;
@@ -64,7 +65,7 @@ void main() {
   setUp(() {
     mockConnectionManager = _MockConnectionManager();
     mockOfferRepo = _MockConnectionOfferRepository();
-    mockControlPlaneSDK = _MockControlPlaneSDK();
+    mockControlPlaneSDK = _MockMeetingPlaceControlPlaneSDK();
     mockMediatorSDK = _MockMediatorSDK();
     mockMediatorAclService = _MockMediatorAclService();
     mockIdentityService = _MockIdentityService();

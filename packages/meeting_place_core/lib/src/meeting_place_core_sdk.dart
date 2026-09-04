@@ -107,8 +107,8 @@ class MeetingPlaceCoreSDK {
   ///   this service.
   /// - `mediatorSDK` (`MediatorSDK`): Instance of the mediator SDK used for
   ///   routing messages.
-  /// - `controlPlaneSDK` (`ControlPlaneSDK`): Instance of the control plane
-  ///   SDK for discovering other agents.
+  /// - `controlPlaneSDK` (`MeetingPlaceControlPlaneSDK`): Instance of the
+  ///   control plane SDK for discovering other agents.
   /// - `connectionManager` (`ConnectionManager`): Manages connections between
   ///   agents.
   /// - `connectionService` (`ConnectionService`): Service that handles
@@ -136,7 +136,7 @@ class MeetingPlaceCoreSDK {
     required this.wallet,
     required RepositoryConfig repositoryConfig,
     required MeetingPlaceMediatorSDK mediatorSDK,
-    required ControlPlaneSDK controlPlaneSDK,
+    required MeetingPlaceControlPlaneSDK controlPlaneSDK,
     required ConnectionManager connectionManager,
     required ConnectionService connectionService,
     required ControlPlaneEventService controlPlaneEventService,
@@ -188,7 +188,7 @@ class MeetingPlaceCoreSDK {
   final Wallet wallet;
   final RepositoryConfig _repositoryConfig;
   final MeetingPlaceMediatorSDK _mediatorSDK;
-  final ControlPlaneSDK _controlPlaneSDK;
+  final MeetingPlaceControlPlaneSDK _controlPlaneSDK;
   final ConnectionManager _connectionManager;
   final ConnectionService _connectionService;
   final ControlPlaneEventService _controlPlaneEventService;
@@ -223,7 +223,7 @@ class MeetingPlaceCoreSDK {
   /// - [config]: Base SDK configuration (provides mediatorDid and
   ///   controlPlaneDid).
   /// - [channelTransportFactory]: Optional factory that receives the
-  ///   internally-created [ControlPlaneSDK] and returns the
+  ///   internally-created [MeetingPlaceControlPlaneSDK] and returns the
   ///   [MeetingPlaceTransport] for channel operations. If omitted, channel
   ///   operations are no-ops.
   /// - [options]: Instance of [MeetingPlaceCoreSDKOptions]
@@ -235,7 +235,8 @@ class MeetingPlaceCoreSDK {
     required Wallet wallet,
     required RepositoryConfig repositoryConfig,
     required Config config,
-    MeetingPlaceTransport Function(ControlPlaneSDK)? channelTransportFactory,
+    MeetingPlaceTransport Function(MeetingPlaceControlPlaneSDK)?
+    channelTransportFactory,
     MeetingPlaceCoreSDKOptions options = const MeetingPlaceCoreSDKOptions(),
     MeetingPlaceCoreSDKLogger? logger,
   }) async {
@@ -255,9 +256,9 @@ class MeetingPlaceCoreSDK {
     mpxLogger.info('Starting Core SDK initialization', name: methodName);
 
     final controlPlaneLogger = LoggerAdapter(
-      className: ControlPlaneSDK.className,
+      className: MeetingPlaceControlPlaneSDK.className,
       sdkName: controlPlaneSDKName,
-      logger: logger ?? DefaultControlPlaneSDKLogger(),
+      logger: logger ?? DefaultMeetingPlaceControlPlaneSDKLogger(),
     );
 
     final mediatorLogger = LoggerAdapter(
@@ -287,12 +288,12 @@ class MeetingPlaceCoreSDK {
 
     final didManager = await connectionManager.generateRootDid(wallet);
 
-    final controlPlaneSDK = ControlPlaneSDK(
+    final controlPlaneSDK = MeetingPlaceControlPlaneSDK(
       didManager: didManager,
       controlPlaneDid: controlPlaneDid,
       mediatorDid: mediatorDid,
       didResolver: didResolver,
-      controlPlaneSDKConfig: ControlPlaneSDKOptions(
+      controlPlaneSDKConfig: MeetingPlaceControlPlaneSDKOptions(
         maxRetries: options.maxRetries,
         maxRetriesDelay: options.maxRetriesDelay,
         connectTimeout: options.connectTimeout,
@@ -508,8 +509,8 @@ class MeetingPlaceCoreSDK {
     return init;
   }
 
-  /// Returns instance of used low level [ControlPlaneSDK].
-  ControlPlaneSDK get controlPlaneSDK => _controlPlaneSDK;
+  /// Returns instance of used low level [MeetingPlaceControlPlaneSDK].
+  MeetingPlaceControlPlaneSDK get controlPlaneSDK => _controlPlaneSDK;
 
   /// Returns instance of used low level [MeetingPlaceMediatorSDK].
   ///
@@ -550,7 +551,7 @@ class MeetingPlaceCoreSDK {
   /// when no mediator DID is provided explicitly.
   ///
   /// The updated mediator DID is also propagated to the lower-level
-  /// [ControlPlaneSDK] and [MeetingPlaceMediatorSDK].
+  /// [MeetingPlaceControlPlaneSDK] and [MeetingPlaceMediatorSDK].
   ///
   /// **Parameters:**
   /// - [mediatorDid] — The new mediator DID to set as the default.
@@ -563,8 +564,8 @@ class MeetingPlaceCoreSDK {
 
   /// Updates the [Device] used for subsequent method invocations.
   ///
-  /// A [Device] is required by [ControlPlaneSDK] to send push notifications
-  /// to the corresponding device.
+  /// A [Device] is required by [MeetingPlaceControlPlaneSDK] to send push
+  /// notifications to the corresponding device.
   ///
   /// **Parameters:**
   /// - [device] — The device instance to use for subsequent method invocations.

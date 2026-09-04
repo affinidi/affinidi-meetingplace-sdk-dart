@@ -30,7 +30,7 @@ class OobService {
     required ConnectionManager connectionManager,
     required IdentityService identityService,
     required ChannelService channelService,
-    required ControlPlaneSDK controlPlaneSDK,
+    required MeetingPlaceControlPlaneSDK controlPlaneSDK,
     required ControlPlaneEventStreamManager controlPlaneEventStreamManager,
     required MeetingPlaceCoreSDKLogger logger,
     void Function(Channel, List<Attachment>)? onAttachmentsReceived,
@@ -54,7 +54,7 @@ class OobService {
   final IdentityService _identityService;
   final ChannelService _channelService;
   final ControlPlaneEventStreamManager _controlPlaneEventStreamManager;
-  final ControlPlaneSDK _controlPlaneSDK;
+  final MeetingPlaceControlPlaneSDK _controlPlaneSDK;
   final void Function(Channel, List<Attachment>)? _onAttachmentsReceived;
   final OnBuildAttachmentsCallback? _onBuildAttachments;
   final MeetingPlaceCoreSDKLogger _logger;

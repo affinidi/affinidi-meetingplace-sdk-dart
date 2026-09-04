@@ -23,7 +23,8 @@ class MockDidManager extends Mock implements DidManager {
 
 class MockWallet extends Mock implements Wallet {}
 
-class MockControlPlaneSDK extends Mock implements ControlPlaneSDK {}
+class MockMeetingPlaceControlPlaneSDK extends Mock
+    implements MeetingPlaceControlPlaneSDK {}
 
 class MockIdentityService extends Mock implements IdentityService {}
 

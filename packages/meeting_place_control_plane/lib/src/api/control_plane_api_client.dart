@@ -3,9 +3,9 @@ import 'package:dio/dio.dart';
 import 'package:ssi/ssi.dart';
 
 import '../constants/sdk_constants.dart';
-import '../control_plane_sdk.dart';
-import '../loggers/control_plane_sdk_logger.dart';
-import '../loggers/default_control_plane_sdk_logger.dart';
+import '../loggers/default_meeting_place_control_plane_sdk_logger.dart';
+import '../loggers/meeting_place_control_plane_sdk_logger.dart';
+import '../meeting_place_control_plane_sdk.dart';
 import 'api_client.dart' as api_client;
 import 'control_plane_api_client_options.dart';
 import 'idle_timeout_configurator_stub.dart'
@@ -13,8 +13,8 @@ import 'idle_timeout_configurator_stub.dart'
 import 'refresh_auth_credentials_interceptor.dart';
 import 'retry_interceptor.dart';
 
-/// A class that is used to handle the API calls for [ControlPlaneSDK] using
-/// [Dio].
+/// A class that is used to handle the API calls for
+/// [MeetingPlaceControlPlaneSDK] using [Dio].
 class ControlPlaneApiClient {
   /// Create an instance of the [ControlPlaneApiClient] class.
   ///
@@ -22,9 +22,9 @@ class ControlPlaneApiClient {
   ControlPlaneApiClient._({
     required Dio dio,
     required String basePath,
-    required ControlPlaneSDK controlPlaneSDK,
+    required MeetingPlaceControlPlaneSDK controlPlaneSDK,
     required String controlPlaneDid,
-    required ControlPlaneSDKLogger logger,
+    required MeetingPlaceControlPlaneSDKLogger logger,
   }) : _mpxClient = api_client.ControlPlaneApi(
          basePath: basePath,
          dio: dio,
@@ -43,7 +43,7 @@ class ControlPlaneApiClient {
   static const String _className = 'ControlPlaneApiClient';
 
   final api_client.ControlPlaneApi _mpxClient;
-  final ControlPlaneSDKLogger _logger;
+  final MeetingPlaceControlPlaneSDKLogger _logger;
 
   Dio get dio => _mpxClient.dio;
 
@@ -56,14 +56,17 @@ class ControlPlaneApiClient {
   /// required for a fully functional [ControlPlaneApiClient] instance.
   static Future<ControlPlaneApiClient> init({
     required ControlPlaneApiClientOptions options,
-    required ControlPlaneSDK controlPlaneSDK,
+    required MeetingPlaceControlPlaneSDK controlPlaneSDK,
     DidResolver? didResolver,
-    ControlPlaneSDKLogger? logger,
+    MeetingPlaceControlPlaneSDKLogger? logger,
   }) async {
     final methodName = 'init';
     final effectiveLogger =
         logger ??
-        DefaultControlPlaneSDKLogger(className: _className, sdkName: sdkName);
+        DefaultMeetingPlaceControlPlaneSDKLogger(
+          className: _className,
+          sdkName: sdkName,
+        );
 
     effectiveLogger.info(
       'Started initializing ControlPlaneApiClient with options: '

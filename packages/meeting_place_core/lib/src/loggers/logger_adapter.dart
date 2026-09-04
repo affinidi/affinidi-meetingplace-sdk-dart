@@ -6,7 +6,7 @@ import '../../meeting_place_core.dart';
 class LoggerAdapter<T>
     implements
         MeetingPlaceCoreSDKLogger,
-        ControlPlaneSDKLogger,
+        MeetingPlaceControlPlaneSDKLogger,
         MeetingPlaceMediatorSDKLogger {
   LoggerAdapter({
     required this.className,
@@ -25,8 +25,11 @@ class LoggerAdapter<T>
         message,
         name: _formatName(name),
       );
-    } else if (_logger is ControlPlaneSDKLogger) {
-      (_logger as ControlPlaneSDKLogger).info(message, name: _formatName(name));
+    } else if (_logger is MeetingPlaceControlPlaneSDKLogger) {
+      (_logger as MeetingPlaceControlPlaneSDKLogger).info(
+        message,
+        name: _formatName(name),
+      );
     } else if (_logger is MeetingPlaceMediatorSDKLogger) {
       (_logger as MeetingPlaceMediatorSDKLogger).info(
         message,
@@ -42,8 +45,8 @@ class LoggerAdapter<T>
         message,
         name: _formatName(name),
       );
-    } else if (_logger is ControlPlaneSDKLogger) {
-      (_logger as ControlPlaneSDKLogger).warning(
+    } else if (_logger is MeetingPlaceControlPlaneSDKLogger) {
+      (_logger as MeetingPlaceControlPlaneSDKLogger).warning(
         message,
         name: _formatName(name),
       );
@@ -69,8 +72,8 @@ class LoggerAdapter<T>
         stackTrace: stackTrace,
         name: _formatName(name),
       );
-    } else if (_logger is ControlPlaneSDKLogger) {
-      (_logger as ControlPlaneSDKLogger).error(
+    } else if (_logger is MeetingPlaceControlPlaneSDKLogger) {
+      (_logger as MeetingPlaceControlPlaneSDKLogger).error(
         message,
         error: error,
         stackTrace: stackTrace,
@@ -93,8 +96,8 @@ class LoggerAdapter<T>
         message,
         name: _formatName(name),
       );
-    } else if (_logger is ControlPlaneSDKLogger) {
-      (_logger as ControlPlaneSDKLogger).debug(
+    } else if (_logger is MeetingPlaceControlPlaneSDKLogger) {
+      (_logger as MeetingPlaceControlPlaneSDKLogger).debug(
         message,
         name: _formatName(name),
       );

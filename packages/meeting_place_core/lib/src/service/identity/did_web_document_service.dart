@@ -9,14 +9,14 @@ import 'package:uuid/uuid.dart';
 
 class DidWebDocumentService {
   DidWebDocumentService({
-    required ControlPlaneSDK controlPlaneSDK,
+    required MeetingPlaceControlPlaneSDK controlPlaneSDK,
     required DidManager rootDidManager,
     String? audience,
   }) : _controlPlaneSDK = controlPlaneSDK,
        _rootDidManager = rootDidManager,
        _audience = audience ?? 'https://controlplane.example.com';
 
-  final ControlPlaneSDK _controlPlaneSDK;
+  final MeetingPlaceControlPlaneSDK _controlPlaneSDK;
   final DidManager _rootDidManager;
   final String _audience;
   static const int _expiryDuration = 300; // 5 minutes in seconds

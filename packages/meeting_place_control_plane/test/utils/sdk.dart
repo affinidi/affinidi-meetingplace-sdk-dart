@@ -1,18 +1,18 @@
 import 'dart:io';
 
 import 'package:dotenv/dotenv.dart';
-import 'package:meeting_place_control_plane/src/control_plane_sdk.dart';
+import 'package:meeting_place_control_plane/src/meeting_place_control_plane_sdk.dart';
 import 'package:ssi/ssi.dart';
 
 final env = DotEnv(includePlatformEnvironment: true)..load(['test/.env']);
 
-Future<ControlPlaneSDK> initSDKInstance() async {
+Future<MeetingPlaceControlPlaneSDK> initSDKInstance() async {
   final wallet = PersistentWallet(InMemoryKeyStore());
   final didManager = DidKeyManager(wallet: wallet, store: InMemoryDidStore());
 
   await didManager.addVerificationMethod((await wallet.generateKey()).id);
 
-  return ControlPlaneSDK(
+  return MeetingPlaceControlPlaneSDK(
     didManager: didManager,
     controlPlaneDid: getControlPlaneDid(),
     mediatorDid: getMediatorDid(),

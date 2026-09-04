@@ -48,7 +48,7 @@ class ControlPlaneEventManager {
     required Wallet wallet,
     required MeetingPlaceMediatorSDK mediatorSDK,
     required MediatorService mediatorService,
-    required ControlPlaneSDK controlPlaneSDK,
+    required MeetingPlaceControlPlaneSDK controlPlaneSDK,
     required ConnectionService connectionService,
     required ConnectionManager connectionManager,
     required ConnectionOfferRepository connectionOfferRepository,

@@ -35,7 +35,8 @@ class _MockConnectionService extends Mock implements ConnectionService {}
 
 class _MockIdentityService extends Mock implements IdentityService {}
 
-class _MockControlPlaneSDK extends Mock implements cp.ControlPlaneSDK {}
+class _MockMeetingPlaceControlPlaneSDK extends Mock
+    implements cp.MeetingPlaceControlPlaneSDK {}
 
 class _MockMediatorSDK extends Mock implements MeetingPlaceMediatorSDK {}
 
@@ -118,7 +119,7 @@ void main() {
         offerService: _MockConnectionOfferService(),
         connectionService: _MockConnectionService(),
         identityService: _MockIdentityService(),
-        controlPlaneSDK: _MockControlPlaneSDK(),
+        controlPlaneSDK: _MockMeetingPlaceControlPlaneSDK(),
         mediatorSDK: _MockMediatorSDK(),
         channelTransport: _MockMeetingPlaceTransport(),
         didResolver: _MockDidResolver(),
@@ -230,7 +231,7 @@ void main() {
         offerService: _MockConnectionOfferService(),
         connectionService: _MockConnectionService(),
         identityService: identityService,
-        controlPlaneSDK: _MockControlPlaneSDK(),
+        controlPlaneSDK: _MockMeetingPlaceControlPlaneSDK(),
         mediatorSDK: mediatorSDK,
         channelTransport: meetingPlaceTransport,
         didResolver: _MockDidResolver(),
@@ -322,7 +323,7 @@ void main() {
     late _MockChannelService channelService;
     late _MockMeetingPlaceTransport channelTransport;
     late _MockMediatorSDK mediatorSDK;
-    late _MockControlPlaneSDK controlPlaneSDK;
+    late _MockMeetingPlaceControlPlaneSDK controlPlaneSDK;
     late _MockDidResolver didResolver;
     late GroupService service;
 
@@ -343,7 +344,7 @@ void main() {
       channelService = _MockChannelService();
       channelTransport = _MockMeetingPlaceTransport();
       mediatorSDK = _MockMediatorSDK();
-      controlPlaneSDK = _MockControlPlaneSDK();
+      controlPlaneSDK = _MockMeetingPlaceControlPlaneSDK();
       didResolver = _MockDidResolver();
 
       service = GroupService(
@@ -568,7 +569,7 @@ void main() {
         offerService: _MockConnectionOfferService(),
         connectionService: _MockConnectionService(),
         identityService: _MockIdentityService(),
-        controlPlaneSDK: _MockControlPlaneSDK(),
+        controlPlaneSDK: _MockMeetingPlaceControlPlaneSDK(),
         mediatorSDK: _MockMediatorSDK(),
         channelTransport: _MockMeetingPlaceTransport(),
         didResolver: _MockDidResolver(),

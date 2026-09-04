@@ -6,11 +6,11 @@ import 'exception/control_plane_exception.dart';
 
 class SDKErrorHandler {
   SDKErrorHandler({
-    required ControlPlaneSDKLogger logger,
+    required MeetingPlaceControlPlaneSDKLogger logger,
     required this.controlPlaneDid,
   }) : _logger = logger;
 
-  final ControlPlaneSDKLogger _logger;
+  final MeetingPlaceControlPlaneSDKLogger _logger;
   final String controlPlaneDid;
 
   final _networkErrorTypes = [

@@ -28,11 +28,11 @@ class GetOobHandler
     required ControlPlaneApiClient apiClient,
     required this.mediatorDid,
     required this.didResolver,
-    ControlPlaneSDKLogger? logger,
+    MeetingPlaceControlPlaneSDKLogger? logger,
   }) : _apiClient = apiClient,
        _logger =
            logger ??
-           DefaultControlPlaneSDKLogger(
+           DefaultMeetingPlaceControlPlaneSDKLogger(
              className: _className,
              sdkName: sdkName,
            );
@@ -41,7 +41,7 @@ class GetOobHandler
   final ControlPlaneApiClient _apiClient;
   final String mediatorDid;
   final DidResolver didResolver;
-  final ControlPlaneSDKLogger _logger;
+  final MeetingPlaceControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
   ///

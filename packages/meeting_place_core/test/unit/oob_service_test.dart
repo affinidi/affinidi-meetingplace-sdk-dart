@@ -21,7 +21,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
-class MockControlPlaneSDK extends Mock implements ControlPlaneSDK {}
+class MockMeetingPlaceControlPlaneSDK extends Mock
+    implements MeetingPlaceControlPlaneSDK {}
 
 class MockConnectionManager extends Mock implements ConnectionManager {}
 
@@ -92,7 +93,7 @@ class _OobServiceMocks {
   final controlPlaneEventStreamManager = MockControlPlaneEventStreamManager();
   final logger = MockLogger();
 
-  final controlPlaneSDK = MockControlPlaneSDK();
+  final controlPlaneSDK = MockMeetingPlaceControlPlaneSDK();
   final connectionManager = MockConnectionManager();
 
   final acceptOfferDidManager = MockDidManager();

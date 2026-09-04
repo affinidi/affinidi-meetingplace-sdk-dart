@@ -41,7 +41,7 @@ class ConnectionService {
   ConnectionService({
     required ConnectionManager connectionManager,
     required ConnectionOfferRepository connectionOfferRepository,
-    required ControlPlaneSDK controlPlaneSDK,
+    required MeetingPlaceControlPlaneSDK controlPlaneSDK,
     required MeetingPlaceMediatorSDK mediatorSDK,
     required MediatorAclService mediatorAclService,
     required IdentityService identityService,
@@ -74,7 +74,7 @@ class ConnectionService {
   final ChannelService _channelService;
   final MeetingPlaceMediatorSDK _mediatorSDK;
   final MediatorAclService _mediatorAclService;
-  final ControlPlaneSDK _controlPlaneSDK;
+  final MeetingPlaceControlPlaneSDK _controlPlaneSDK;
   final DidResolver _didResolver;
   final MeetingPlaceTransport _channelTransport;
   final OnBuildAttachmentsCallback? _onBuildAttachments;

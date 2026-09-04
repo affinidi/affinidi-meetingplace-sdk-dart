@@ -6,8 +6,8 @@ import '../../api/api_client.dart';
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
-import '../../loggers/control_plane_sdk_logger.dart';
-import '../../loggers/default_control_plane_sdk_logger.dart';
+import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
+import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
 import 'deregister_notification.dart';
 import 'deregister_notification_error_code.dart';
 import 'deregister_notification_exception.dart';
@@ -30,18 +30,18 @@ class DeregisterNotificationHandler
   /// - [apiClient] - An instance of discovery api client object.
   DeregisterNotificationHandler({
     required ControlPlaneApiClient apiClient,
-    ControlPlaneSDKLogger? logger,
+    MeetingPlaceControlPlaneSDKLogger? logger,
   }) : _apiClient = apiClient,
        _logger =
            logger ??
-           DefaultControlPlaneSDKLogger(
+           DefaultMeetingPlaceControlPlaneSDKLogger(
              className: _className,
              sdkName: sdkName,
            );
   static const String _className = 'DeregisterNotificationHandler';
 
   final ControlPlaneApiClient _apiClient;
-  final ControlPlaneSDKLogger _logger;
+  final MeetingPlaceControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
   ///

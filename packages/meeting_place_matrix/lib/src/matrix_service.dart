@@ -27,7 +27,7 @@ import 'services/matrix_room_service.dart';
 class MatrixService {
   MatrixService({
     required MatrixConfig config,
-    required ControlPlaneSDK controlPlaneSDK,
+    required MeetingPlaceControlPlaneSDK controlPlaneSDK,
     required MeetingPlaceMatrixSDKLogger logger,
     MatrixSessionManager? sessionManager,
   }) : _controlPlaneSDK = controlPlaneSDK,
@@ -47,7 +47,7 @@ class MatrixService {
   }
 
   /// Control plane SDK for executing commands to obtain Matrix JWTs.
-  final ControlPlaneSDK _controlPlaneSDK;
+  final MeetingPlaceControlPlaneSDK _controlPlaneSDK;
 
   /// Manages Matrix sessions, including client instances and token refresh.
   final MatrixSessionManager _sessionManager;

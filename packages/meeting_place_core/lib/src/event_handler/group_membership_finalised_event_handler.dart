@@ -32,14 +32,14 @@ class GroupMembershipFinalisedEventHandler
     required super.mediatorService,
     required super.logger,
     required super.options,
-    required ControlPlaneSDK controlPlaneSDK,
+    required MeetingPlaceControlPlaneSDK controlPlaneSDK,
     required MeetingPlaceTransport channelTransport,
     required GroupRepository groupRepository,
   }) : _groupRepository = groupRepository,
        _controlPlaneSDK = controlPlaneSDK,
        _channelTransport = channelTransport;
 
-  final ControlPlaneSDK _controlPlaneSDK;
+  final MeetingPlaceControlPlaneSDK _controlPlaneSDK;
   final GroupRepository _groupRepository;
   final MeetingPlaceTransport _channelTransport;
 

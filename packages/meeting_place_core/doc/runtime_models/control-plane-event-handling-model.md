@@ -25,7 +25,7 @@ sequenceDiagram
     participant App
     participant SDK
     participant Service as ControlPlaneEventService
-    participant CP as ControlPlaneSDK
+    participant CP as MeetingPlaceControlPlaneSDK
     participant Manager as ControlPlaneEventManager
     participant Handler
     participant Mediator

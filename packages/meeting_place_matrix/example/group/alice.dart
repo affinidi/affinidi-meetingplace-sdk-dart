@@ -82,6 +82,7 @@ void main() async {
     waitingChannel.toJson(),
   );
 
-  await aliceSDK.approveConnectionRequest(channel: waitingChannel);
+  await aliceSDK.approveConnectionRequest(
+      ApproveConnectionRequestParams(channel: waitingChannel));
   await notificationSubscription.cancel();
 }

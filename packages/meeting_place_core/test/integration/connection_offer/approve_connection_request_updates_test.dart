@@ -172,7 +172,7 @@ void main() {
       );
 
       final result = await fixture.aliceSDK.approveConnectionRequest(
-        channel: channelBeforeCall,
+        ApproveConnectionRequestParams(channel: channelBeforeCall),
       );
 
       expect(result, equals(channelBeforeCall));

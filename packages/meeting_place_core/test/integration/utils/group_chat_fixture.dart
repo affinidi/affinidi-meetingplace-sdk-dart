@@ -86,7 +86,7 @@ class GroupChatFixture {
         .findChannelByOtherPartyPermanentDid(bobMemberDidDoc.id);
 
     await fixture.aliceSDK.approveConnectionRequest(
-      channel: aliceToBobChannel!,
+      ApproveConnectionRequestParams(channel: aliceToBobChannel!),
     );
 
     final charlieMemberDidDoc = await charlieAcceptance
@@ -96,7 +96,7 @@ class GroupChatFixture {
         .findChannelByOtherPartyPermanentDid(charlieMemberDidDoc.id);
 
     await fixture.aliceSDK.approveConnectionRequest(
-      channel: aliceToCharlieChannel!,
+      ApproveConnectionRequestParams(channel: aliceToCharlieChannel!),
     );
 
     final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(

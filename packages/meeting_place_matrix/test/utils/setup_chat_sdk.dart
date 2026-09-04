@@ -104,7 +104,7 @@ class SetupChatSdk {
     final invitationChannel = await waitForInvitationAccept.future;
 
     final aliceChannel = await aliceSDK.coreSDK.approveConnectionRequest(
-      channel: invitationChannel,
+      ApproveConnectionRequestParams(channel: invitationChannel),
     );
 
     await bobSDK.coreSDK.processControlPlaneEvents();

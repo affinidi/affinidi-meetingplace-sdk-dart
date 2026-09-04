@@ -105,7 +105,9 @@ class ApproveConnectionRequestFixture {
 
     fixture.aliceApprovedChannel = await fixture.aliceSDK
         .approveConnectionRequest(
-          channel: fixture.aliceInvitationAcceptChannel,
+          ApproveConnectionRequestParams(
+            channel: fixture.aliceInvitationAcceptChannel,
+          ),
         );
 
     await fixture.bobSDK.processControlPlaneEvents();

@@ -125,7 +125,7 @@ Future<void> main() async {
 
   prettyPrintGreen('>>> Bob accepted - approving connection request');
   aliceChannel = await coreSDK.approveConnectionRequest(
-    channel: invitationEvent.channel,
+    ApproveConnectionRequestParams(channel: invitationEvent.channel),
   );
   prettyPrintYellow('Alice channel DID : ${aliceChannel.permanentChannelDid}');
   prettyPrintYellow(

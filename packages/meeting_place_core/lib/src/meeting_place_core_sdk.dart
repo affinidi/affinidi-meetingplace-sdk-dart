@@ -851,16 +851,17 @@ class MeetingPlaceCoreSDK {
   /// informing the new member about approval.
   ///
   /// **Parameters:**
-  /// - [channel] - DID of member requesting membership
-  /// - [attachments] - Optional list of attachments (e.g., R-Card credentials)
-  ///   to include in the connection approval message
+  /// - [params] - A [sdk.ApproveConnectionRequestParams] describing the
+  ///   channel to approve and any attachments to include.
   ///
   /// **Returns:**
   /// Returns updated [Channel] instance.
-  Future<Channel> approveConnectionRequest({
-    required Channel channel,
-    List<Attachment>? attachments,
-  }) async {
+  Future<Channel> approveConnectionRequest(
+    sdk.ApproveConnectionRequestParams params,
+  ) async {
+    final channel = params.channel;
+    final attachments = params.attachments;
+
     return _withSdkExceptionHandling(() async {
       return channel.isGroup
           ? await _groupService.approveMembershipRequest(channel: channel)

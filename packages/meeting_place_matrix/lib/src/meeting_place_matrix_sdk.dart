@@ -359,13 +359,9 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   ) => _coreSDK.acceptOffer(request);
 
   @override
-  Future<Channel> approveConnectionRequest({
-    required Channel channel,
-    List<Attachment>? attachments,
-  }) => _coreSDK.approveConnectionRequest(
-    channel: channel,
-    attachments: attachments,
-  );
+  Future<Channel> approveConnectionRequest(
+    ApproveConnectionRequestParams params,
+  ) => _coreSDK.approveConnectionRequest(params);
 
   @override
   Future<Group> rejectConnectionRequest({required Channel channel}) =>

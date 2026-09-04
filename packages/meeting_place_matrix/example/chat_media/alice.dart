@@ -94,9 +94,10 @@ void main() async {
   final receivedEvent = await waitForInvitationAccept.future;
 
   prettyPrintGreen('>>> Calling SDK.approveConnectionRequest');
-  final channel = await aliceSDK.approveConnectionRequest(
+  final channel =
+      await aliceSDK.approveConnectionRequest(ApproveConnectionRequestParams(
     channel: receivedEvent.channel,
-  );
+  ));
 
   prettyPrintYellow(
     '=== Waiting for Bob to send channel inauguration message...',

@@ -43,7 +43,9 @@ class ApproveConnectionRequestAction implements GroupAction<Group> {
       ),
     );
 
-    await _chatSDK.coreSDK.approveConnectionRequest(channel: channel);
+    await _chatSDK.coreSDK.approveConnectionRequest(
+      ApproveConnectionRequestParams(channel: channel),
+    );
 
     final updatedGroup = (await _chatSDK.coreSDK.findGroupById(
       _chatSDK.group.id,

@@ -74,7 +74,7 @@ void main() async {
     aliceInvitationAcceptChannel = await waitForInvitationAccept.future;
 
     aliceApprovedChannel = await aliceSDK.approveConnectionRequest(
-      channel: aliceInvitationAcceptChannel,
+      ApproveConnectionRequestParams(channel: aliceInvitationAcceptChannel),
     );
 
     await bobSDK.processControlPlaneEvents();

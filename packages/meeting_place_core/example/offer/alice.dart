@@ -87,7 +87,8 @@ void main() async {
   prettyJsonPrintYellow('Channel:', receivedEvent.channel);
 
   prettyPrintGreen('>>> Calling SDK.approveConnectionRequest');
-  await aliceSDK.approveConnectionRequest(channel: receivedEvent.channel);
+  await aliceSDK.approveConnectionRequest(
+      ApproveConnectionRequestParams(channel: receivedEvent.channel));
 
   prettyPrintYellow(
     '=== Waiting for Bob to send channel inauguraten message...',

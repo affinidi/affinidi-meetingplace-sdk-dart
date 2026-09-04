@@ -113,8 +113,12 @@ class GroupChatFixture {
       fixture.charlieMemberDid,
     );
 
-    await fixture.aliceSDK.approveConnectionRequest(channel: bobChannel!);
-    await fixture.aliceSDK.approveConnectionRequest(channel: charlieChannel!);
+    await fixture.aliceSDK.approveConnectionRequest(
+      ApproveConnectionRequestParams(channel: bobChannel!),
+    );
+    await fixture.aliceSDK.approveConnectionRequest(
+      ApproveConnectionRequestParams(channel: charlieChannel!),
+    );
 
     final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       fixture.bobSDK,

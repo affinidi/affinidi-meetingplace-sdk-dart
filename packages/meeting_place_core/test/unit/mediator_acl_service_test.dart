@@ -360,14 +360,14 @@ void main() {
       ).captured;
 
       expect(captured[0], mockDidManager);
-      final capturedAcl = captured[1] as AclSet;
+      final capturedAcl = captured[1] as AccessListSet;
 
       final expectedOwnerDidHash = sha256
           .convert(utf8.encode(ownerDid))
           .toString();
 
       expect(capturedAcl.ownerDid, expectedOwnerDidHash);
-      expect(capturedAcl.acls, AclSet.publicAclFlag);
+      expect(capturedAcl.acls, AccessListSet.publicAclFlag);
       expect(captured[2], mediatorDid);
     });
   });

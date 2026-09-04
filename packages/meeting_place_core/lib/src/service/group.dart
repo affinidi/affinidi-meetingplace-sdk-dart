@@ -111,7 +111,7 @@ class GroupService {
     await _mediatorSDK.updateAcl(
       mediatorDid: mediatorDid,
       ownerDidManager: oobDidManager,
-      acl: AclSet.toPublic(ownerDid: oobDidDoc.id),
+      acl: AccessListSet.toPublic(ownerDid: oobDidDoc.id),
     );
 
     final result = await _controlPlaneSDK.execute(

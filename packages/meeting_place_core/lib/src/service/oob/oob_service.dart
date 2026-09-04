@@ -95,7 +95,7 @@ class OobService {
       _mediatorService.updateAcl(
         ownerDidManager: oobIdentity.didManager,
         mediatorDid: mediatorDid,
-        acl: AclSet.toPublic(ownerDid: oobIdentity.didDocument.id),
+        acl: AccessListSet.toPublic(ownerDid: oobIdentity.didDocument.id),
       ),
       _controlPlaneSDK.execute(
         CreateOobCommand(

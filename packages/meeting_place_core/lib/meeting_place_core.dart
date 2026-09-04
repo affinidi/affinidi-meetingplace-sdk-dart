@@ -15,7 +15,7 @@ export 'package:meeting_place_mediator/meeting_place_mediator.dart'
     show
         AccessListAdd,
         AccessListRemove,
-        AclSet,
+        AccessListSet,
         MediatorStreamProcessingResult,
         MediatorStreamSubscriptionOptions,
         MeetingPlaceMediatorSDK,

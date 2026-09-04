@@ -120,7 +120,7 @@ class MeetingPlaceMediatorSDK {
   ///   - [AccessListAdd]: Grants new permissions to specified entities
   ///   - [AccessListRemove]: Revokes existing permissions from specified
   ///       entities
-  ///   - [AclSet]: Replaces the entire ACL with the provided permissions
+  ///   - [AccessListSet]: Replaces the entire ACL with the provided permissions
   /// - [mediatorDid]: Optional mediator DID to authenticate against. If not
   ///   provided, the SDK instance's default mediator DID will be used.
   Future<void> updateAcl({

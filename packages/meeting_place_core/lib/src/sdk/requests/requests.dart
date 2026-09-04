@@ -2,6 +2,7 @@ export 'accept_offer_request.dart';
 export 'accept_oob_flow_request.dart';
 export 'approve_connection_request_params.dart';
 export 'create_oob_flow_request.dart';
+export 'download_media_request.dart';
 export 'publish_offer_request.dart';
 export 'register_for_didcomm_notifications_request.dart';
 export 'remove_member_from_group_request.dart';

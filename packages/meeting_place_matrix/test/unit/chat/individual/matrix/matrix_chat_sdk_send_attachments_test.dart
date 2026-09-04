@@ -19,6 +19,8 @@ class _MockChatRepository extends Mock implements ChatRepository {}
 class _FakeSendMediaMessageRequest extends Fake
     implements SendMediaMessageRequest {}
 
+class _FakeDownloadMediaRequest extends Fake implements DownloadMediaRequest {}
+
 const _aliceDid = 'did:test:alice';
 const _bobDid = 'did:test:bob';
 const _mediatorDid = 'did:test:mediator';
@@ -55,6 +57,7 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(_FakeSendMediaMessageRequest());
+    registerFallbackValue(_FakeDownloadMediaRequest());
     registerFallbackValue(
       Message(
         chatId: '',
@@ -471,9 +474,7 @@ void main() {
       'delegates to coreSDK.downloadMedia with MatrixEventMediaReference',
       () async {
         final bytes = Uint8List.fromList([1, 2, 3, 4]);
-        when(
-          () => core.downloadMedia(any(), any()),
-        ).thenAnswer((_) async => bytes);
+        when(() => core.downloadMedia(any())).thenAnswer((_) async => bytes);
 
         final attachment = ChatAttachment(
           id: 'attachment-1',
@@ -487,9 +488,9 @@ void main() {
 
         expect(result, bytes);
         final captured = verify(
-          () => core.downloadMedia(captureAny(), captureAny()),
+          () => core.downloadMedia(captureAny()),
         ).captured;
-        final reference = captured[1];
+        final reference = (captured.single as DownloadMediaRequest).reference;
         expect(reference, isA<MatrixEventMediaReference>());
         expect((reference as MatrixEventMediaReference).eventId, '\$event-id');
       },

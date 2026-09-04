@@ -464,8 +464,8 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
       _coreSDK.sendMediaMessage(request);
 
   @override
-  Future<Uint8List> downloadMedia(Channel channel, MediaReference reference) =>
-      _coreSDK.downloadMedia(channel, reference);
+  Future<Uint8List> downloadMedia(DownloadMediaRequest request) =>
+      _coreSDK.downloadMedia(request);
 
   @override
   Future<Channel> getChannelByDid(String did) => _coreSDK.getChannelByDid(did);

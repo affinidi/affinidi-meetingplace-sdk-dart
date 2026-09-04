@@ -89,8 +89,10 @@ void main() async {
 
   prettyPrintGreen('>>> Calling SDK.downloadMedia');
   final bytes = await bobSDK.downloadMedia(
-    channel,
-    MatrixEventMediaReference(eventId),
+    DownloadMediaRequest(
+      channel: channel,
+      reference: MatrixEventMediaReference(eventId),
+    ),
   );
 
   prettyPrintYellow('Downloaded ${bytes.length} bytes');

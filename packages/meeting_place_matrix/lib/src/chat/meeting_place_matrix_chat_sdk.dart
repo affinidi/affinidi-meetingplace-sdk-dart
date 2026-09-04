@@ -374,7 +374,12 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
       );
     }
     final channel = await getChannel();
-    return coreSDK.downloadMedia(channel, MatrixEventMediaReference(eventId));
+    return coreSDK.downloadMedia(
+      DownloadMediaRequest(
+        channel: channel,
+        reference: MatrixEventMediaReference(eventId),
+      ),
+    );
   }
 
   /// Sends an `m.read` receipt for [messageId], marking it as delivered.

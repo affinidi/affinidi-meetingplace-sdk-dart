@@ -85,7 +85,7 @@ The Meeting Place SDK also leverages other Affinidi open-sourced SDKS, such as 
 
 ## Requirements
 
-- Dart SDK `>=3.8.0 <4.0.0`
+- Dart SDK `>=3.10.0 <4.0.0`
 
 ## Database Encryption
 

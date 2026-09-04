@@ -265,7 +265,6 @@ abstract class BaseChatSDK {
     chatStream.dispose();
   }
 
-  @protected
   Future<Channel> getChannel() => withSdkExceptionHandling(() async {
     return await coreSDK.findChannelByOtherPartyPermanentDid(otherPartyDid) ??
         (throw MeetingPlaceChatSDKException.channelNotFound(

@@ -120,7 +120,7 @@
 
 ## 0.0.1-dev.38
 
- - **FEAT**: increase HTTP idle timeout for control plane requests (FTL-27059) (#174).
+ - **FEAT**: increase HTTP idle timeout for control plane requests (#174).
 
 ## 0.0.1-dev.37
 

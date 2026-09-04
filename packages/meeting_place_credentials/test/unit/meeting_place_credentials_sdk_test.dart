@@ -84,27 +84,27 @@ void main() {
           vrcRepository: mockVrcRepo,
         );
         expect(sdk.receivedRCards, same(sdk.receivedRCards));
-        await sdk.closeCredentialStreams();
+        await sdk.dispose();
       },
     );
 
-    test('closeCredentialStreams() completes without error', () async {
+    test('dispose() completes without error', () async {
       final sdk = MeetingPlaceCredentialsSDK(
         coreSDK: mockCoreSDK,
         rCardRepository: mockRepo,
         vrcRepository: mockVrcRepo,
       );
-      await expectLater(sdk.closeCredentialStreams(), completes);
+      await expectLater(sdk.dispose(), completes);
     });
 
-    test('closeCredentialStreams() is idempotent'
+    test('dispose() is idempotent'
         ' — does not throw on second call', () async {
       final sdk = MeetingPlaceCredentialsSDK(
         coreSDK: mockCoreSDK,
         rCardRepository: mockRepo,
         vrcRepository: mockVrcRepo,
       );
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('watchReceivedRCards delegates to repository', () async {
@@ -225,7 +225,7 @@ void main() {
       verify(() => mockRepo.upsert(any())).called(1);
 
       await sub.cancel();
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('ignores unrelated attachments', () async {
@@ -253,7 +253,7 @@ void main() {
       verifyNever(() => mockRepo.upsert(any()));
 
       await sub.cancel();
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('empty attachment list does not emit', () async {
@@ -275,7 +275,7 @@ void main() {
 
       expect(emitted, isEmpty);
       await sub.cancel();
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('invalid R-Card attachment emits a stream error', () async {
@@ -306,7 +306,7 @@ void main() {
       expect(errors, hasLength(1));
       expect(errors.first, isA<FormatException>());
       await sub.cancel();
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('rCardRejections surfaces rejections from the channel path', () async {
@@ -335,7 +335,7 @@ void main() {
       expect(rejections, hasLength(1));
       expect(rejections.first.source, RCardRejectionSource.channel);
       await sub.cancel();
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('rCardRejections surfaces rejections from the VDIP path', () async {
@@ -368,7 +368,7 @@ void main() {
       expect(rejections.first.reason, RCardRejectionReason.missingSender);
       expect(rejections.first.source, RCardRejectionSource.vdip);
       await sub.cancel();
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
   });
 
@@ -467,7 +467,7 @@ void main() {
       expect(sdk.consumePendingVrcRequest('did:key:sender'), isNull);
 
       await sub.cancel();
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('ignores VRC requests without sender DID', () async {
@@ -492,7 +492,7 @@ void main() {
       expect(sdk.consumePendingVrcRequest('did:key:sender'), isNull);
 
       await sub.cancel();
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('emits a parsed VRC and caches it by sender DID', () async {
@@ -525,7 +525,7 @@ void main() {
       expect(sdk.consumePendingVrc('did:key:sender'), isNull);
 
       await sub.cancel();
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('ignores invalid VRC payloads', () async {
@@ -554,7 +554,7 @@ void main() {
       expect(sdk.consumePendingVrc('did:key:sender'), isNull);
 
       await sub.cancel();
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
   });
 
@@ -693,7 +693,7 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 100));
 
       verify(() => mockVrcRepo.upsert(any())).called(greaterThanOrEqualTo(1));
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
   });
 
@@ -814,7 +814,7 @@ void main() {
       );
       final result = await sdk.parseRCard(vcBlob: rCardVcBlob);
       expect(result, isNull);
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test(
@@ -1036,7 +1036,7 @@ void main() {
       );
       final result = await sdk.parseVrc(vcBlob: '');
       expect(result, isNull);
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('returns null for non-VRC blob', () async {
@@ -1047,7 +1047,7 @@ void main() {
       );
       final result = await sdk.parseVrc(vcBlob: 'not-json');
       expect(result, isNull);
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('returns null for VRC without proof', () async {
@@ -1058,7 +1058,7 @@ void main() {
       );
       final result = await sdk.parseVrc(vcBlob: vrcBlobWithoutProof);
       expect(result, isNull);
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
   });
 
@@ -1137,7 +1137,7 @@ void main() {
         ),
       ).called(1);
 
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('throws MeetingPlaceCredentialsSDKException when channel lacks'
@@ -1161,7 +1161,7 @@ void main() {
         throwsA(isA<MeetingPlaceCredentialsSDKException>()),
       );
 
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
   });
 
@@ -1211,7 +1211,7 @@ void main() {
       sdk.watchReceivedRCards();
       verify(() => mockRepo.watchAll()).called(1);
 
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('listReceivedRCards delegates to repository.listAll', () async {
@@ -1221,7 +1221,7 @@ void main() {
       final result = await sdk.listReceivedRCards();
       expect(result, equals([stubCard]));
 
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('findReceivedRCardBySubjectDid delegates to repository', () async {
@@ -1235,7 +1235,7 @@ void main() {
       );
       expect(result, equals(stubCard));
 
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('updateReceivedRCardNotes delegates to repository', () async {
@@ -1247,7 +1247,7 @@ void main() {
       await sdk.updateReceivedRCardNotes(stubCard.subjectDid, 'note');
       verify(() => mockRepo.updateNotes(stubCard.subjectDid, 'note')).called(1);
 
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('deleteReceivedRCard delegates to repository', () async {
@@ -1259,7 +1259,7 @@ void main() {
       await sdk.deleteReceivedRCard(stubCard.subjectDid);
       verify(() => mockRepo.deleteBySubjectDid(stubCard.subjectDid)).called(1);
 
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
   });
 
@@ -1346,7 +1346,7 @@ void main() {
         expect(sdk.consumePendingRCard(issuerDid), isNull);
 
         await sub.cancel();
-        await sdk.closeCredentialStreams();
+        await sdk.dispose();
       },
     );
 
@@ -1361,7 +1361,7 @@ void main() {
 
         expect(sdk.consumePendingRCard(issuerDid), isNull);
 
-        await sdk.closeCredentialStreams();
+        await sdk.dispose();
       },
     );
 
@@ -1392,7 +1392,7 @@ void main() {
       expect(cached, isNotNull);
       expect(cached!.issuerDid, issuerDid);
 
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
   });
 }

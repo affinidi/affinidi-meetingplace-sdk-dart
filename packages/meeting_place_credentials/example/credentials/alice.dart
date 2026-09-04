@@ -209,7 +209,7 @@ Future<void> main() async {
 
   // ── 13. Clean up ───────────────────────────────────────────────────────────
   await channelStream.dispose();
-  await credentialsSDK.closeCredentialStreams();
+  await credentialsSDK.dispose();
 
   final storedRCards = await credentialsSDK.listReceivedRCards();
   final storedVrcs = await credentialsSDK.listVrcs();

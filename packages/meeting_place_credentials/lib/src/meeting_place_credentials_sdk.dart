@@ -306,8 +306,9 @@ class MeetingPlaceCredentialsSDK {
   /// Removes the persisted VRC identified by [id].
   Future<void> deleteVrc(String id) => _vrcRepository.deleteById(id);
 
-  /// Cancels all internal stream subscriptions.
-  Future<void> closeCredentialStreams() async {
+  /// Releases resources held by this SDK instance: cancels all internal
+  /// stream subscriptions and closes their controllers.
+  Future<void> dispose() async {
     if (!_receivedRCardsController.isClosed) {
       await _persistenceSubscription.cancel();
       await _rCardVdipSubscription.cancel();

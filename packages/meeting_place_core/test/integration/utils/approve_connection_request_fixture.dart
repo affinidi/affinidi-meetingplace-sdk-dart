@@ -71,9 +71,11 @@ class ApproveConnectionRequestFixture {
     );
 
     await fixture.bobSDK.acceptOffer(
-      connectionOffer: findOfferResult.connectionOffer!,
-      contactCard: fixture.bobContactCard,
-      senderInfo: 'Bob',
+      AcceptOfferRequest(
+        connectionOffer: findOfferResult.connectionOffer!,
+        contactCard: fixture.bobContactCard,
+        senderInfo: 'Bob',
+      ),
     );
 
     final waitForInvitationAccept = Completer<Channel>();

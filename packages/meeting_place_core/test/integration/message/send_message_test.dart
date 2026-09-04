@@ -49,9 +49,11 @@ void main() async {
       },
     );
     await bobSDK.acceptOffer(
-      connectionOffer: findOfferResult.connectionOffer!,
-      contactCard: bobCard,
-      senderInfo: 'Bob',
+      AcceptOfferRequest(
+        connectionOffer: findOfferResult.connectionOffer!,
+        contactCard: bobCard,
+        senderInfo: 'Bob',
+      ),
     );
 
     final waitForInvitationAccept = Completer<Channel>();

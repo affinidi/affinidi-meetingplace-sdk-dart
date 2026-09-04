@@ -37,7 +37,7 @@ void main() async {
   );
 
   prettyPrintGreen('>>> Calling SDK.acceptOffer');
-  final acceptOfferResult = await bobSDK.acceptOffer(
+  final acceptOfferResult = await bobSDK.acceptOffer(AcceptOfferRequest(
     connectionOffer: findOfferResult.connectionOffer!,
     contactCard: ContactCard(
       did: 'did:test:bob',
@@ -45,7 +45,7 @@ void main() async {
       contactInfo: {},
     ),
     senderInfo: 'Bob',
-  );
+  ));
   prettyJsonPrintYellow(
     'Acceptance details',
     acceptOfferResult.connectionOffer.toJson(),

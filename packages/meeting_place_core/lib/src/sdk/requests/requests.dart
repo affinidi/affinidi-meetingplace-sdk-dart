@@ -1,3 +1,4 @@
+export 'accept_offer_request.dart';
 export 'accept_oob_flow_request.dart';
 export 'create_oob_flow_request.dart';
 export 'publish_offer_request.dart';

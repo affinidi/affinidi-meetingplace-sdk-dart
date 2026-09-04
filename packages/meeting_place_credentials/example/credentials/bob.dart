@@ -87,13 +87,15 @@ Future<void> main() async {
   prettyPrintGreen(">>> Accepting Alice's offer");
   final findOfferResult = await coreSDK.findOffer(mnemonic: mnemonic);
   await coreSDK.acceptOffer(
-    connectionOffer: findOfferResult.connectionOffer!,
-    contactCard: ContactCard(
-      did: 'did:example:bob',
-      type: 'individual',
-      contactInfo: {},
+    AcceptOfferRequest(
+      connectionOffer: findOfferResult.connectionOffer!,
+      contactCard: ContactCard(
+        did: 'did:example:bob',
+        type: 'individual',
+        contactInfo: {},
+      ),
+      senderInfo: 'Bob',
     ),
-    senderInfo: 'Bob',
   );
   prettyPrintYellow('Offer accepted - waiting for Alice to approve...');
 

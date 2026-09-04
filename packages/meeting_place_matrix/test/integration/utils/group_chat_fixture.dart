@@ -65,24 +65,28 @@ class GroupChatFixture {
       mnemonic: fixture.publishOfferResult.connectionOffer.mnemonic,
     );
     final bobAcceptance = await fixture.bobSDK.acceptOffer(
-      connectionOffer: bobFindOfferResult.connectionOffer!,
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:bob',
-        contactInfo: ContactCardFixture.bobPrimaryCardInfo,
+      AcceptOfferRequest(
+        connectionOffer: bobFindOfferResult.connectionOffer!,
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:bob',
+          contactInfo: ContactCardFixture.bobPrimaryCardInfo,
+        ),
+        senderInfo: 'Bob',
       ),
-      senderInfo: 'Bob',
     );
 
     final charlieFindOfferResult = await fixture.charlieSDK.findOffer(
       mnemonic: fixture.publishOfferResult.connectionOffer.mnemonic,
     );
     final charlieAcceptance = await fixture.charlieSDK.acceptOffer(
-      connectionOffer: charlieFindOfferResult.connectionOffer!,
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:charlie',
-        contactInfo: ContactCardFixture.charliePrimaryCardInfo,
+      AcceptOfferRequest(
+        connectionOffer: charlieFindOfferResult.connectionOffer!,
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:charlie',
+          contactInfo: ContactCardFixture.charliePrimaryCardInfo,
+        ),
+        senderInfo: 'Charlie',
       ),
-      senderInfo: 'Charlie',
     );
 
     fixture.bobMemberDid =
@@ -200,12 +204,14 @@ class GroupChatFixture {
     final sdk = await initCoreSDKInstance();
 
     final acceptance = await sdk.acceptOffer(
-      connectionOffer: publishOfferResult.connectionOffer,
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:charlie',
-        contactInfo: ContactCardFixture.charliePrimaryCardInfo,
+      AcceptOfferRequest(
+        connectionOffer: publishOfferResult.connectionOffer,
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:charlie',
+          contactInfo: ContactCardFixture.charliePrimaryCardInfo,
+        ),
+        senderInfo: 'Charlie',
       ),
-      senderInfo: 'Charlie',
     );
 
     return (sdk, acceptance);

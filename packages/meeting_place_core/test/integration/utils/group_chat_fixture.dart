@@ -53,15 +53,19 @@ class GroupChatFixture {
         );
 
     final bobAcceptance = await fixture.bobSDK.acceptOffer(
-      connectionOffer: publishOfferResult.connectionOffer,
-      contactCard: bobCard,
-      senderInfo: 'Bob',
+      AcceptOfferRequest(
+        connectionOffer: publishOfferResult.connectionOffer,
+        contactCard: bobCard,
+        senderInfo: 'Bob',
+      ),
     );
 
     final charlieAcceptance = await fixture.charlieSDK.acceptOffer(
-      connectionOffer: publishOfferResult.connectionOffer,
-      contactCard: charlieCard,
-      senderInfo: 'Bob',
+      AcceptOfferRequest(
+        connectionOffer: publishOfferResult.connectionOffer,
+        contactCard: charlieCard,
+        senderInfo: 'Bob',
+      ),
     );
 
     final aliceSDKCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(

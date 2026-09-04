@@ -789,27 +789,19 @@ class MeetingPlaceCoreSDK {
   /// Accepts an offer published by another party.
   ///
   /// **Parameters:**
-  /// - [ConnectionOffer] - Connection offer object.
-  ///
-  /// - [contactCard] - A [ContactCard that contains information about who is
-  ///   accepting the offer. This helps the offeree to know who accepted it.
-  ///
-  /// - [senderInfo] - Value to be shown in notification message to the other
-  ///   party.
-  ///
-  /// - [externalRef] - Application-specific data that is passed through to
-  ///   internal entities, such as connection offers and channels, and can be
-  ///   referenced later for tracking or identification purposes. [externalRef]
-  ///   is accessible on the current device only.
+  /// - [request] - A [sdk.AcceptOfferRequest] describing the offer to
+  ///   accept.
   ///
   /// **Returns:**
   /// - A [sdk.AcceptOfferResult] object
-  Future<sdk.AcceptOfferResult<T>> acceptOffer<T extends ConnectionOffer>({
-    required T connectionOffer,
-    required ContactCard contactCard,
-    required String senderInfo,
-    String? externalRef,
-  }) async {
+  Future<sdk.AcceptOfferResult<T>> acceptOffer<T extends ConnectionOffer>(
+    sdk.AcceptOfferRequest<T> request,
+  ) async {
+    final connectionOffer = request.connectionOffer;
+    final contactCard = request.contactCard;
+    final senderInfo = request.senderInfo;
+    final externalRef = request.externalRef;
+
     return _withSdkExceptionHandling(() async {
       if (connectionOffer is GroupConnectionOffer) {
         final result = await _groupService.acceptGroupOffer(

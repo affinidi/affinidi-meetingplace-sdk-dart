@@ -48,9 +48,11 @@ void main() {
     );
 
     await bobSDK.acceptOffer(
-      connectionOffer: findOfferResult.connectionOffer!,
-      contactCard: bobCard,
-      senderInfo: 'Bob',
+      AcceptOfferRequest(
+        connectionOffer: findOfferResult.connectionOffer!,
+        contactCard: bobCard,
+        senderInfo: 'Bob',
+      ),
     );
 
     final completer = Completer<void>();
@@ -99,9 +101,11 @@ void main() {
         },
       );
       final acceptOfferResult = await bobSDK.acceptOffer(
-        connectionOffer: actual.connectionOffer,
-        contactCard: bobCard,
-        senderInfo: 'Bob',
+        AcceptOfferRequest(
+          connectionOffer: actual.connectionOffer,
+          contactCard: bobCard,
+          senderInfo: 'Bob',
+        ),
       );
 
       expect(

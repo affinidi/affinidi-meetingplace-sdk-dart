@@ -354,17 +354,9 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
       _coreSDK.findOffer(mnemonic: mnemonic);
 
   @override
-  Future<AcceptOfferResult<T>> acceptOffer<T extends ConnectionOffer>({
-    required T connectionOffer,
-    required ContactCard contactCard,
-    required String senderInfo,
-    String? externalRef,
-  }) => _coreSDK.acceptOffer(
-    connectionOffer: connectionOffer,
-    contactCard: contactCard,
-    senderInfo: senderInfo,
-    externalRef: externalRef,
-  );
+  Future<AcceptOfferResult<T>> acceptOffer<T extends ConnectionOffer>(
+    AcceptOfferRequest<T> request,
+  ) => _coreSDK.acceptOffer(request);
 
   @override
   Future<Channel> approveConnectionRequest({

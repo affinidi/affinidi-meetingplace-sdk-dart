@@ -49,21 +49,25 @@ void main() {
     );
 
     await bobSDK.acceptOffer(
-      connectionOffer: findOfferResult.connectionOffer!,
-      contactCard: bobCard,
-      senderInfo: 'Bob',
+      AcceptOfferRequest(
+        connectionOffer: findOfferResult.connectionOffer!,
+        contactCard: bobCard,
+        senderInfo: 'Bob',
+      ),
     );
 
     expect(
       () => charlieSDK.acceptOffer(
-        connectionOffer: findOfferResult.connectionOffer!,
-        contactCard: ContactCardFixture.getContactCardFixture(
-          did: 'did:test:charlie',
-          contactInfo: {
-            'n': {'given': 'Charlie', 'surname': 'A.'},
-          },
+        AcceptOfferRequest(
+          connectionOffer: findOfferResult.connectionOffer!,
+          contactCard: ContactCardFixture.getContactCardFixture(
+            did: 'did:test:charlie',
+            contactInfo: {
+              'n': {'given': 'Charlie', 'surname': 'A.'},
+            },
+          ),
+          senderInfo: 'Charlie',
         ),
-        senderInfo: 'Charlie',
       ),
       throwsA(isA<MeetingPlaceCoreSDKException>()),
     );
@@ -97,16 +101,20 @@ void main() {
       },
     );
     await bobSDK.acceptOffer(
-      connectionOffer: findOfferResult.connectionOffer!,
-      contactCard: bobCard,
-      senderInfo: 'Bob',
+      AcceptOfferRequest(
+        connectionOffer: findOfferResult.connectionOffer!,
+        contactCard: bobCard,
+        senderInfo: 'Bob',
+      ),
     );
 
     expect(
       () => bobSDK.acceptOffer(
-        connectionOffer: findOfferResult.connectionOffer!,
-        contactCard: bobCard,
-        senderInfo: 'Bob',
+        AcceptOfferRequest(
+          connectionOffer: findOfferResult.connectionOffer!,
+          contactCard: bobCard,
+          senderInfo: 'Bob',
+        ),
       ),
       throwsA(
         predicate((e) {
@@ -142,14 +150,16 @@ void main() {
 
       expect(
         () => aliceSDK.acceptOffer(
-          connectionOffer: publishedOfferResult.connectionOffer,
-          contactCard: ContactCardFixture.getContactCardFixture(
-            did: 'did:test:bob',
-            contactInfo: {
-              'n': {'given': 'Bob', 'surname': 'A.'},
-            },
+          AcceptOfferRequest(
+            connectionOffer: publishedOfferResult.connectionOffer,
+            contactCard: ContactCardFixture.getContactCardFixture(
+              did: 'did:test:bob',
+              contactInfo: {
+                'n': {'given': 'Bob', 'surname': 'A.'},
+              },
+            ),
+            senderInfo: 'Bob',
           ),
-          senderInfo: 'Bob',
         ),
         throwsA(
           predicate(
@@ -194,16 +204,20 @@ void main() {
       },
     );
     await bobSDK.acceptOffer(
-      connectionOffer: findOfferResult.connectionOffer!,
-      contactCard: bobCard,
-      senderInfo: 'Bob',
+      AcceptOfferRequest(
+        connectionOffer: findOfferResult.connectionOffer!,
+        contactCard: bobCard,
+        senderInfo: 'Bob',
+      ),
     );
 
     expect(
       () => bobSDK.acceptOffer(
-        connectionOffer: findOfferResult.connectionOffer!,
-        contactCard: bobCard,
-        senderInfo: 'Bob',
+        AcceptOfferRequest(
+          connectionOffer: findOfferResult.connectionOffer!,
+          contactCard: bobCard,
+          senderInfo: 'Bob',
+        ),
       ),
       throwsA(
         predicate(

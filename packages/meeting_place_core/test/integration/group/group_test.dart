@@ -67,14 +67,16 @@ void main() async {
     );
 
     final actual = await bobSDK.acceptOffer(
-      connectionOffer: result.connectionOffer,
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:bob',
-        contactInfo: {
-          'n': {'given': 'Bob', 'surname': 'A.'},
-        },
+      AcceptOfferRequest(
+        connectionOffer: result.connectionOffer,
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:bob',
+          contactInfo: {
+            'n': {'given': 'Bob', 'surname': 'A.'},
+          },
+        ),
+        senderInfo: 'Bob',
       ),
-      senderInfo: 'Bob',
     );
 
     expect(actual, isA<AcceptOfferResult>());
@@ -101,14 +103,16 @@ void main() async {
     );
 
     await bobSDK.acceptOffer(
-      connectionOffer: result.connectionOffer,
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:bob',
-        contactInfo: {
-          'n': {'given': 'Bob', 'surname': 'A.'},
-        },
+      AcceptOfferRequest(
+        connectionOffer: result.connectionOffer,
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:bob',
+          contactInfo: {
+            'n': {'given': 'Bob', 'surname': 'A.'},
+          },
+        ),
+        senderInfo: 'Bob',
       ),
-      senderInfo: 'Bob',
     );
 
     final completer = ControlPlaneTestUtils.waitForControlPlaneEvent(
@@ -151,9 +155,11 @@ void main() async {
       );
 
       final acceptResult = await bobSDK.acceptOffer(
-        connectionOffer: result.connectionOffer,
-        contactCard: bobCard,
-        senderInfo: 'Bob',
+        AcceptOfferRequest(
+          connectionOffer: result.connectionOffer,
+          contactCard: bobCard,
+          senderInfo: 'Bob',
+        ),
       );
 
       final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
@@ -238,20 +244,24 @@ void main() async {
       );
 
       final acceptResultBob = await bobSDK.acceptOffer(
-        connectionOffer: result.connectionOffer,
-        contactCard: bobCard,
-        senderInfo: 'Bob',
+        AcceptOfferRequest(
+          connectionOffer: result.connectionOffer,
+          contactCard: bobCard,
+          senderInfo: 'Bob',
+        ),
       );
 
       final acceptResultCharlie = await charlieSDK.acceptOffer(
-        connectionOffer: result.connectionOffer,
-        contactCard: ContactCardFixture.getContactCardFixture(
-          did: 'did:test:charlie',
-          contactInfo: {
-            'n': {'given': 'Charlie', 'surname': 'A.'},
-          },
+        AcceptOfferRequest(
+          connectionOffer: result.connectionOffer,
+          contactCard: ContactCardFixture.getContactCardFixture(
+            did: 'did:test:charlie',
+            contactInfo: {
+              'n': {'given': 'Charlie', 'surname': 'A.'},
+            },
+          ),
+          senderInfo: 'Bob',
         ),
-        senderInfo: 'Bob',
       );
 
       final groupDid = result.connectionOffer.groupDid!;
@@ -399,9 +409,11 @@ void main() async {
     );
 
     final acceptResult = await bobSDK.acceptOffer(
-      connectionOffer: result.connectionOffer,
-      contactCard: bobCard,
-      senderInfo: 'Bob',
+      AcceptOfferRequest(
+        connectionOffer: result.connectionOffer,
+        contactCard: bobCard,
+        senderInfo: 'Bob',
+      ),
     );
 
     final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
@@ -496,9 +508,11 @@ void main() async {
     );
 
     final acceptResult = await bobSDK.acceptOffer(
-      connectionOffer: result.connectionOffer,
-      contactCard: bobCard,
-      senderInfo: 'Bob',
+      AcceptOfferRequest(
+        connectionOffer: result.connectionOffer,
+        contactCard: bobCard,
+        senderInfo: 'Bob',
+      ),
     );
 
     final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
@@ -558,9 +572,11 @@ void main() async {
     );
 
     final acceptResult = await bobSDK.acceptOffer(
-      connectionOffer: findOfferResult.connectionOffer!,
-      contactCard: bobCard,
-      senderInfo: 'Bob',
+      AcceptOfferRequest(
+        connectionOffer: findOfferResult.connectionOffer!,
+        contactCard: bobCard,
+        senderInfo: 'Bob',
+      ),
     );
 
     final acceptConnectionOffer =
@@ -650,9 +666,11 @@ void main() async {
     );
 
     final acceptResult = await bobSDK.acceptOffer(
-      connectionOffer: result.connectionOffer,
-      contactCard: bobCard,
-      senderInfo: 'Bob',
+      AcceptOfferRequest(
+        connectionOffer: result.connectionOffer,
+        contactCard: bobCard,
+        senderInfo: 'Bob',
+      ),
     );
 
     final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
@@ -735,9 +753,11 @@ void main() async {
     );
 
     final acceptResult = await bobSDK.acceptOffer(
-      connectionOffer: result.connectionOffer,
-      contactCard: bobCard,
-      senderInfo: 'Bob',
+      AcceptOfferRequest(
+        connectionOffer: result.connectionOffer,
+        contactCard: bobCard,
+        senderInfo: 'Bob',
+      ),
     );
 
     final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(

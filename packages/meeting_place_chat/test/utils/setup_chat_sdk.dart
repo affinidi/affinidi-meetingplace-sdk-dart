@@ -73,9 +73,11 @@ class SetupChatSdk {
       mnemonic: offer.connectionOffer.mnemonic,
     );
     await bobSDK.coreSDK.acceptOffer(
-      connectionOffer: findOfferResult.connectionOffer!,
-      contactCard: bobSDK.contactCard,
-      senderInfo: 'Bob',
+      AcceptOfferRequest(
+        connectionOffer: findOfferResult.connectionOffer!,
+        contactCard: bobSDK.contactCard,
+        senderInfo: 'Bob',
+      ),
     );
 
     final waitForInvitationAccept = Completer<Channel>();

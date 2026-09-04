@@ -155,14 +155,16 @@ void main() async {
     );
 
     final acceptOfferResult = await bobSDK.acceptOffer(
-      connectionOffer: findOfferResult.connectionOffer!,
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:bob',
-        contactInfo: {
-          'n': {'given': 'Bob', 'surname': 'A.'},
-        },
+      AcceptOfferRequest(
+        connectionOffer: findOfferResult.connectionOffer!,
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:bob',
+          contactInfo: {
+            'n': {'given': 'Bob', 'surname': 'A.'},
+          },
+        ),
+        senderInfo: 'Bob',
       ),
-      senderInfo: 'Bob',
     );
 
     await aliceSDK.deleteConnectionOffer(acceptOfferResult.connectionOffer);

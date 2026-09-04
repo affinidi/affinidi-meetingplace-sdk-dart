@@ -309,6 +309,12 @@ class MeetingPlaceMediatorSDK {
     );
   }
 
+  /// Releases resources held by this SDK instance, closing the underlying
+  /// HTTP client.
+  Future<void> dispose() async {
+    _mediatorResolver.dispose();
+  }
+
   Future<T> _execute<T>(MediatorCommand<T> command) async {
     return await _dispatcher.dispatch(command);
   }

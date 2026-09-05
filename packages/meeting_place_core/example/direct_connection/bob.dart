@@ -10,27 +10,32 @@ import '../utils/sdk.dart';
 
 void main() async {
   final outputDirectory = Directory('.example-output');
-  final oobUrlBytes = File(
-    '${outputDirectory.path}${Platform.pathSeparator}oob-url.txt',
+  final directConnectionUrlBytes = File(
+    '${outputDirectory.path}${Platform.pathSeparator}'
+    'direct-connection-url.txt',
   ).readAsBytesSync();
 
-  final oobUri = Uri.parse(utf8.decode(oobUrlBytes));
-  prettyPrintYellow('OOB uri: ${oobUri.toString()}');
+  final directConnectionUri = Uri.parse(
+    utf8.decode(directConnectionUrlBytes),
+  );
+  prettyPrintYellow('Direct connection uri: ${directConnectionUri.toString()}');
   final bobSDK = await initSDK(wallet: PersistentWallet(InMemoryKeyStore()));
   final bobWaitFor = Completer<Channel>();
 
-  // Bob accepts OOB
-  final acceptance = await bobSDK.acceptOobFlow(AcceptOobFlowRequest(
-    oobUrl: oobUri,
-    contactCard: ContactCard(
-      did: 'did:test:bob',
-      type: 'individual',
-      contactInfo: {'firstName': 'Bob'},
+  // Bob accepts the direct connection
+  final acceptance = await bobSDK.acceptDirectConnection(
+    AcceptDirectConnectionRequest(
+      directConnectionUrl: directConnectionUri,
+      contactCard: ContactCard(
+        did: 'did:test:bob',
+        type: 'individual',
+        contactInfo: {'firstName': 'Bob'},
+      ),
     ),
-  ));
+  );
 
   // Bob listens for approval
-  prettyPrintYellow('Listening on OOB stream...');
+  prettyPrintYellow('Listening on direct connection stream...');
   acceptance.stream.listen((data) {
     prettyPrintYellow('Received event type: ${data.eventType.name}');
     prettyJsonPrintYellow('Received message', data.message.toJson());
@@ -40,14 +45,14 @@ void main() async {
 
   acceptance.stream.timeout(
     const Duration(seconds: 300),
-    () => prettyPrint('OOB stream timeout'),
+    () => prettyPrint('Direct connection stream timeout'),
   );
 
   final channel = await bobWaitFor.future;
   prettyJsonPrintYellow('Received channel', channel.toJson());
 
   // Close stream
-  prettyPrint('Disposing OOB stream...');
+  prettyPrint('Disposing direct connection stream...');
   await acceptance.stream.dispose();
 
   await bobSDK.sendMessage(

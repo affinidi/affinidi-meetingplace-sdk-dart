@@ -13,30 +13,34 @@ void main() async {
   final aliceWaitFor = Completer<void>();
   final bobWaitFor = Completer<void>();
 
-  // Alice creates OOB
-  final oob = await aliceSDK.createOobFlow(CreateOobFlowRequest(
-    contactCard: ContactCard(
-      did: 'did:test:alice',
-      type: 'individual',
-      contactInfo: {'firstName': 'Alice'},
+  // Alice creates a direct connection
+  final directConnection = await aliceSDK.createDirectConnection(
+    CreateDirectConnectionRequest(
+      contactCard: ContactCard(
+        did: 'did:test:alice',
+        type: 'individual',
+        contactInfo: {'firstName': 'Alice'},
+      ),
     ),
-  ));
+  );
 
   // Alice listens on acceptance
-  oob.stream.listen((data) {
+  directConnection.stream.listen((data) {
     prettyPrint('Alice received: ${data.eventType.name}');
     aliceWaitFor.complete();
   });
 
-  // Bob accepts OOB
-  final acceptance = await bobSDK.acceptOobFlow(AcceptOobFlowRequest(
-    oobUrl: oob.oobUrl,
-    contactCard: ContactCard(
-      did: 'did:test:bob',
-      type: 'individual',
-      contactInfo: {'firstName': 'Bob'},
+  // Bob accepts the direct connection
+  final acceptance = await bobSDK.acceptDirectConnection(
+    AcceptDirectConnectionRequest(
+      directConnectionUrl: directConnection.directConnectionUrl,
+      contactCard: ContactCard(
+        did: 'did:test:bob',
+        type: 'individual',
+        contactInfo: {'firstName': 'Bob'},
+      ),
     ),
-  ));
+  );
 
   // Bob listens for approval
   acceptance.stream.listen((data) {
@@ -47,6 +51,6 @@ void main() async {
   await Future.wait([aliceWaitFor.future, bobWaitFor.future]);
 
   // Close stream
-  await oob.stream.dispose();
+  await directConnection.stream.dispose();
   await acceptance.stream.dispose();
 }

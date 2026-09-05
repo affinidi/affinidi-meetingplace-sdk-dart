@@ -11,26 +11,32 @@ void main() async {
   final aliceSDK = await initSDK(wallet: PersistentWallet(InMemoryKeyStore()));
   final aliceWaitFor = Completer<Channel>();
 
-  // Alice creates OOB
-  prettyPrintGreen('>>> Calling SDK.createOobFlow');
-  final oob = await aliceSDK.createOobFlow(CreateOobFlowRequest(
-    contactCard: ContactCard(
-      did: 'did:test:alice',
-      type: 'individual',
-      contactInfo: {'firstName': 'Alice'},
+  // Alice creates a direct connection
+  prettyPrintGreen('>>> Calling SDK.createDirectConnection');
+  final directConnection = await aliceSDK.createDirectConnection(
+    CreateDirectConnectionRequest(
+      contactCard: ContactCard(
+        did: 'did:test:alice',
+        type: 'individual',
+        contactInfo: {'firstName': 'Alice'},
+      ),
     ),
-  ));
+  );
 
-  prettyPrintYellow('OOB URL: ${oob.oobUrl.toString()}');
+  prettyPrintYellow(
+    'Direct connection URL: ${directConnection.directConnectionUrl.toString()}',
+  );
   final outputDirectory = Directory('.example-output')
     ..createSync(recursive: true);
   File(
-    '${outputDirectory.path}${Platform.pathSeparator}oob-url.txt',
-  ).writeAsBytesSync(utf8.encode(oob.oobUrl.toString()));
+    '${outputDirectory.path}${Platform.pathSeparator}direct-connection-url.txt',
+  ).writeAsBytesSync(
+    utf8.encode(directConnection.directConnectionUrl.toString()),
+  );
 
   // Alice listens on acceptance
-  prettyPrintYellow('Listening on OOB stream...');
-  oob.stream.listen((data) {
+  prettyPrintYellow('Listening on direct connection stream...');
+  directConnection.stream.listen((data) {
     prettyPrintYellow('Received event type: ${data.eventType.name}');
     prettyJsonPrintYellow('Received message:', data.message.toJson());
     prettyJsonPrintYellow('Received channel:', data.channel.toJson());
@@ -40,8 +46,8 @@ void main() async {
   final channel = await aliceWaitFor.future;
 
   // Close stream
-  prettyPrint('Disposing OOB stream...');
-  await oob.stream.dispose();
+  prettyPrint('Disposing direct connection stream...');
+  await directConnection.stream.dispose();
 
   final messageStream = await aliceSDK.subscribe(
     DidCommSubscription(ownerDid: channel.permanentChannelDid!),

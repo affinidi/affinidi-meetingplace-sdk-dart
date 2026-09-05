@@ -56,7 +56,7 @@ void main() {
     expect(oobActual?.id, actual.id);
   });
 
-  group('successfull channel creation for OOB flow', () {
+  group('successfull channel creation for direct connection', () {
     Channel? aliceChannel;
     Channel? bobChannel;
 
@@ -64,23 +64,26 @@ void main() {
       final aliceOnDoneCompleter = Completer<void>();
       final bobOnDoneCompleter = Completer<void>();
 
-      final oobOfferSession = await aliceSDK.createOobFlow(
-        CreateOobFlowRequest(contactCard: aliceCard),
-      );
+      final directConnectionOfferSession = await aliceSDK
+          .createDirectConnection(
+            CreateDirectConnectionRequest(contactCard: aliceCard),
+          );
 
-      oobOfferSession.stream.listen((data) {
+      directConnectionOfferSession.stream.listen((data) {
         aliceChannel = data.channel;
         aliceOnDoneCompleter.complete();
       });
 
-      final oobAcceptanceSession = await bobSDK.acceptOobFlow(
-        AcceptOobFlowRequest(
-          oobUrl: oobOfferSession.oobUrl,
-          contactCard: bobCard,
-        ),
-      );
+      final directConnectionAcceptanceSession = await bobSDK
+          .acceptDirectConnection(
+            AcceptDirectConnectionRequest(
+              directConnectionUrl:
+                  directConnectionOfferSession.directConnectionUrl,
+              contactCard: bobCard,
+            ),
+          );
 
-      oobAcceptanceSession.stream.listen((data) {
+      directConnectionAcceptanceSession.stream.listen((data) {
         bobChannel = data.channel;
         bobOnDoneCompleter.complete();
       });
@@ -140,50 +143,58 @@ void main() {
       );
     });
 
-    test('type is oob', () {
-      expect(aliceChannel?.type, ChannelType.oob);
+    test('type is directConnection', () {
+      expect(aliceChannel?.type, ChannelType.directConnection);
     });
   });
 
-  test('creates oob with custom goal_code based on type', () async {
-    final session = await aliceSDK.createOobFlow(
-      CreateOobFlowRequest(contactCard: aliceCard, type: 'test'),
-    );
+  test(
+    'creates a direct connection with custom goal_code based on type',
+    () async {
+      final session = await aliceSDK.createDirectConnection(
+        CreateDirectConnectionRequest(contactCard: aliceCard, type: 'test'),
+      );
 
-    expect(session.oobInvitationMessage.body.goalCode, equals('test'));
-  });
+      expect(session.oobInvitationMessage.body.goalCode, equals('test'));
+    },
+  );
 
-  test('throws not found error if OOB invitation is not found', () async {
-    final oob = await aliceSDK.createOobFlow(
-      CreateOobFlowRequest(contactCard: aliceCard),
+  test('throws not found error if the invitation is not found', () async {
+    final directConnection = await aliceSDK.createDirectConnection(
+      CreateDirectConnectionRequest(contactCard: aliceCard),
     );
-    final notFoundUri = Uri.parse('${oob.oobUrl}non-existing-path');
+    final notFoundUri = Uri.parse(
+      '${directConnection.directConnectionUrl}non-existing-path',
+    );
 
     expect(
-      () async => await bobSDK.acceptOobFlow(
-        AcceptOobFlowRequest(oobUrl: notFoundUri, contactCard: bobCard),
+      () async => await bobSDK.acceptDirectConnection(
+        AcceptDirectConnectionRequest(
+          directConnectionUrl: notFoundUri,
+          contactCard: bobCard,
+        ),
       ),
       throwsA(
         isA<MeetingPlaceCoreSDKException>().having(
           (e) => e.code,
           'code',
-          MeetingPlaceCoreSDKErrorCode.oobNotFound.value,
+          MeetingPlaceCoreSDKErrorCode.directConnectionNotFound.value,
         ),
       ),
     );
   });
 
   test(
-    'throws invalid type error if OOB invitation type doesn\'t match',
+    'throws invalid type error if the invitation type doesn\'t match',
     () async {
-      final oob = await aliceSDK.createOobFlow(
-        CreateOobFlowRequest(contactCard: aliceCard, type: 'one'),
+      final directConnection = await aliceSDK.createDirectConnection(
+        CreateDirectConnectionRequest(contactCard: aliceCard, type: 'one'),
       );
 
       expect(
-        () async => await bobSDK.acceptOobFlow(
-          AcceptOobFlowRequest(
-            oobUrl: oob.oobUrl,
+        () async => await bobSDK.acceptDirectConnection(
+          AcceptDirectConnectionRequest(
+            directConnectionUrl: directConnection.directConnectionUrl,
             contactCard: bobCard,
             type: 'two',
           ),
@@ -192,7 +203,7 @@ void main() {
           isA<MeetingPlaceCoreSDKException>().having(
             (e) => e.code,
             'code',
-            MeetingPlaceCoreSDKErrorCode.oobInvalidType.value,
+            MeetingPlaceCoreSDKErrorCode.directConnectionInvalidType.value,
           ),
         ),
       );

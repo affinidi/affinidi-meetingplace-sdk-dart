@@ -4,13 +4,13 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
-import '../utils/oob_flow_fixture.dart';
+import '../utils/direct_connection_fixture.dart';
 
 void main() {
   group('channelAttachments stream', () {
     test('emits a ChannelAttachmentEvent on Alice side when Bob accepts'
         ' with attachments', () async {
-      final fixture = await OobFlowFixture.create();
+      final fixture = await DirectConnectionFixture.create();
 
       final attachment = Attachment(
         id: const Uuid().v4(),
@@ -25,17 +25,20 @@ void main() {
         if (!completer.isCompleted) completer.complete();
       });
 
-      final oobOfferSession = await fixture.createOobFlow();
+      final directConnectionOfferSession = await fixture
+          .createDirectConnection();
 
-      await fixture.bobSDK.acceptOobFlow(
-        AcceptOobFlowRequest(
-          oobUrl: oobOfferSession.oobUrl,
-          contactCard: OobFlowFixture.bobContactCard(),
+      await fixture.bobSDK.acceptDirectConnection(
+        AcceptDirectConnectionRequest(
+          directConnectionUrl: directConnectionOfferSession.directConnectionUrl,
+          contactCard: DirectConnectionFixture.bobContactCard(),
           attachments: [attachment],
         ),
       );
 
-      await OobFlowFixture.waitForFirstChannelFromCreate(oobOfferSession);
+      await DirectConnectionFixture.waitForFirstChannelFromCreate(
+        directConnectionOfferSession,
+      );
 
       await completer.future.timeout(const Duration(seconds: 10));
 
@@ -45,22 +48,27 @@ void main() {
     });
 
     test('does not emit when Bob accepts without attachments', () async {
-      final fixture = await OobFlowFixture.create();
+      final fixture = await DirectConnectionFixture.create();
 
       final received = <ChannelAttachmentEvent>[];
       fixture.aliceSDK.channelAttachments.listen(received.add);
 
-      final oobOfferSession = await fixture.createOobFlow();
+      final directConnectionOfferSession = await fixture
+          .createDirectConnection();
 
-      await fixture.acceptOobFlow(oobOfferSession.oobUrl);
+      await fixture.acceptDirectConnection(
+        directConnectionOfferSession.directConnectionUrl,
+      );
 
-      await OobFlowFixture.waitForFirstChannelFromCreate(oobOfferSession);
+      await DirectConnectionFixture.waitForFirstChannelFromCreate(
+        directConnectionOfferSession,
+      );
 
       expect(received, isEmpty);
     });
 
     test('stream is done after disposeChannelAttachmentsStream', () async {
-      final fixture = await OobFlowFixture.create();
+      final fixture = await DirectConnectionFixture.create();
 
       final doneFuture = fixture.aliceSDK.channelAttachments
           .listen((_) {})

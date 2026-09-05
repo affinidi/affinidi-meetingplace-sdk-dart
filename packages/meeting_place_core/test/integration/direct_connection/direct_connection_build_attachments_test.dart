@@ -4,10 +4,10 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
 
-import '../utils/oob_flow_fixture.dart';
+import '../utils/direct_connection_fixture.dart';
 
 void main() {
-  group('onBuildAttachments over the OOB flow', () {
+  group('onBuildAttachments over the direct connection', () {
     test("attaches Bob's onBuildAttachments result to InvitationAcceptance, "
         'received by Alice', () async {
       final attachment = Attachment(
@@ -15,7 +15,7 @@ void main() {
         data: AttachmentData(base64: 'Ym9i'),
       );
 
-      final fixture = await OobFlowFixture.create(
+      final fixture = await DirectConnectionFixture.create(
         bobOptions: MeetingPlaceCoreSDKOptions(
           onBuildAttachments: (channel, getDidManager) async => [attachment],
         ),
@@ -28,11 +28,16 @@ void main() {
         if (!completer.isCompleted) completer.complete();
       });
 
-      final oobOfferSession = await fixture.createOobFlow();
+      final directConnectionOfferSession = await fixture
+          .createDirectConnection();
 
-      await fixture.acceptOobFlow(oobOfferSession.oobUrl);
+      await fixture.acceptDirectConnection(
+        directConnectionOfferSession.directConnectionUrl,
+      );
 
-      await OobFlowFixture.waitForFirstChannelFromCreate(oobOfferSession);
+      await DirectConnectionFixture.waitForFirstChannelFromCreate(
+        directConnectionOfferSession,
+      );
 
       await completer.future.timeout(const Duration(seconds: 10));
 
@@ -48,7 +53,7 @@ void main() {
         data: AttachmentData(base64: 'YWxpY2U='),
       );
 
-      final fixture = await OobFlowFixture.create(
+      final fixture = await DirectConnectionFixture.create(
         aliceOptions: MeetingPlaceCoreSDKOptions(
           onBuildAttachments: (channel, getDidManager) async => [attachment],
         ),
@@ -61,14 +66,20 @@ void main() {
         if (!completer.isCompleted) completer.complete();
       });
 
-      final oobOfferSession = await fixture.createOobFlow();
+      final directConnectionOfferSession = await fixture
+          .createDirectConnection();
 
-      final oobAcceptanceSession = await fixture.acceptOobFlow(
-        oobOfferSession.oobUrl,
+      final directConnectionAcceptanceSession = await fixture
+          .acceptDirectConnection(
+            directConnectionOfferSession.directConnectionUrl,
+          );
+
+      await DirectConnectionFixture.waitForFirstChannelFromCreate(
+        directConnectionOfferSession,
       );
-
-      await OobFlowFixture.waitForFirstChannelFromCreate(oobOfferSession);
-      await OobFlowFixture.waitForFirstChannelFromAccept(oobAcceptanceSession);
+      await DirectConnectionFixture.waitForFirstChannelFromAccept(
+        directConnectionAcceptanceSession,
+      );
 
       await completer.future.timeout(const Duration(seconds: 10));
 

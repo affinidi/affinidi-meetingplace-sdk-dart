@@ -11,12 +11,12 @@ import 'package:meeting_place_core/src/protocol/contact_card/contact_card.dart'
 import 'package:meeting_place_core/src/service/channel/channel_service.dart';
 import 'package:meeting_place_core/src/service/connection_manager/connection_manager.dart';
 import 'package:meeting_place_core/src/service/connection_service.dart';
+import 'package:meeting_place_core/src/service/direct_connection/direct_connection_service.dart';
+import 'package:meeting_place_core/src/service/direct_connection/direct_connection_service_exception.dart';
 import 'package:meeting_place_core/src/service/identity/identity_service.dart';
 import 'package:meeting_place_core/src/service/identity/model/ephemeral_identity.dart';
 import 'package:meeting_place_core/src/service/identity/model/permanent_identity.dart';
 import 'package:meeting_place_core/src/service/mediator/mediator_service.dart';
-import 'package:meeting_place_core/src/service/oob/oob_service.dart';
-import 'package:meeting_place_core/src/service/oob/oob_service_exception.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
@@ -57,8 +57,8 @@ final _testContactCard = core.ContactCard(
 );
 const _testMediatorDid = 'did:example:mediator';
 
-class _OobServiceMocks {
-  _OobServiceMocks() {
+class _DirectConnectionServiceMocks {
+  _DirectConnectionServiceMocks() {
     when(() => acceptOfferDidDoc.id).thenReturn('did:test:accept');
     when(() => permanentChannelDidDoc.id).thenReturn('did:test:permanent');
 
@@ -110,8 +110,8 @@ class _OobServiceMocks {
     ).thenThrow(exception);
   }
 
-  OobService buildService() {
-    return OobService(
+  DirectConnectionService buildService() {
+    return DirectConnectionService(
       wallet: wallet,
       mediatorService: mediatorService,
       connectionService: connectionService,
@@ -124,8 +124,10 @@ class _OobServiceMocks {
     );
   }
 
-  Future<void> callAcceptOobFlow(OobService service) async {
-    await service.acceptOobFlow(
+  Future<void> callAcceptDirectConnection(
+    DirectConnectionService service,
+  ) async {
+    await service.acceptDirectConnection(
       _testUri,
       contactCard: _testContactCard,
       mediatorDid: _testMediatorDid,
@@ -141,24 +143,25 @@ void main() {
     registerFallbackValue(ChannelTransport.matrix);
   });
 
-  group('OobService', () {
-    test('throws invalidOobResponse when '
+  group('DirectConnectionService', () {
+    test('throws invalidResponse when '
         'MeetingPlaceControlPlaneSDKException has unknown code', () async {
       final exception = MeetingPlaceControlPlaneSDKException(
         message: 'Unknown error',
         code: 'some_unknown_code',
         innerException: Exception('inner'),
       );
-      final oobServiceMocks = _OobServiceMocks()..stubGetOobThrows(exception);
-      final oobService = oobServiceMocks.buildService();
+      final serviceMocks = _DirectConnectionServiceMocks()
+        ..stubGetOobThrows(exception);
+      final service = serviceMocks.buildService();
 
       expect(
-        () => oobServiceMocks.callAcceptOobFlow(oobService),
+        () => serviceMocks.callAcceptDirectConnection(service),
         throwsA(
-          isA<OobServiceException>().having(
+          isA<DirectConnectionServiceException>().having(
             (e) => e.code,
             'code',
-            MeetingPlaceCoreSDKErrorCode.oobInvalidData,
+            MeetingPlaceCoreSDKErrorCode.directConnectionInvalidData,
           ),
         ),
       );
@@ -171,13 +174,14 @@ void main() {
         code: MeetingPlaceControlPlaneSDKErrorCode.networkError.value,
         innerException: Exception('inner'),
       );
-      final oobServiceMocks = _OobServiceMocks()..stubGetOobThrows(exception);
-      final oobService = oobServiceMocks.buildService();
+      final serviceMocks = _DirectConnectionServiceMocks()
+        ..stubGetOobThrows(exception);
+      final service = serviceMocks.buildService();
 
       expect(
-        () => oobServiceMocks.callAcceptOobFlow(oobService),
+        () => serviceMocks.callAcceptDirectConnection(service),
         throwsA(
-          isA<OobServiceException>().having(
+          isA<DirectConnectionServiceException>().having(
             (e) => e.code,
             'code',
             MeetingPlaceCoreSDKErrorCode.networkError,

@@ -5,8 +5,8 @@ import 'package:meeting_place_core/meeting_place_core.dart';
 import '../../fixtures/contact_card_fixture.dart';
 import '../../utils/sdk.dart';
 
-class OobFlowFixture {
-  OobFlowFixture._();
+class DirectConnectionFixture {
+  DirectConnectionFixture._();
 
   late final MeetingPlaceCoreSDK aliceSDK;
   late final MeetingPlaceCoreSDK bobSDK;
@@ -29,11 +29,11 @@ class OobFlowFixture {
     );
   }
 
-  static Future<OobFlowFixture> create({
+  static Future<DirectConnectionFixture> create({
     MeetingPlaceCoreSDKOptions? aliceOptions,
     MeetingPlaceCoreSDKOptions? bobOptions,
   }) async {
-    final fixture = OobFlowFixture._();
+    final fixture = DirectConnectionFixture._();
 
     fixture.aliceSDK = await initSDKInstance(options: aliceOptions);
     fixture.bobSDK = await initSDKInstance(options: bobOptions);
@@ -41,19 +41,26 @@ class OobFlowFixture {
     return fixture;
   }
 
-  Future<OobOfferSession> createOobFlow({String? did}) {
-    return aliceSDK.createOobFlow(
-      CreateOobFlowRequest(contactCard: aliceContactCard(), did: did),
+  Future<DirectConnectionOfferSession> createDirectConnection({String? did}) {
+    return aliceSDK.createDirectConnection(
+      CreateDirectConnectionRequest(contactCard: aliceContactCard(), did: did),
     );
   }
 
-  Future<OobAcceptanceSession> acceptOobFlow(Uri oobUrl) {
-    return bobSDK.acceptOobFlow(
-      AcceptOobFlowRequest(oobUrl: oobUrl, contactCard: bobContactCard()),
+  Future<DirectConnectionAcceptanceSession> acceptDirectConnection(
+    Uri directConnectionUrl,
+  ) {
+    return bobSDK.acceptDirectConnection(
+      AcceptDirectConnectionRequest(
+        directConnectionUrl: directConnectionUrl,
+        contactCard: bobContactCard(),
+      ),
     );
   }
 
-  static Future<Channel> waitForFirstChannelFromCreate(OobOfferSession result) {
+  static Future<Channel> waitForFirstChannelFromCreate(
+    DirectConnectionOfferSession result,
+  ) {
     final completer = Completer<Channel>();
     result.stream.listen((data) {
       if (!completer.isCompleted) {
@@ -65,7 +72,7 @@ class OobFlowFixture {
   }
 
   static Future<Channel> waitForFirstChannelFromAccept(
-    OobAcceptanceSession result,
+    DirectConnectionAcceptanceSession result,
   ) {
     final completer = Completer<Channel>();
     result.stream.listen((data) {

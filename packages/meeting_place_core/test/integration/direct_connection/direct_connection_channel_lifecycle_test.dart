@@ -4,7 +4,7 @@ library;
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:test/test.dart';
 
-import '../utils/oob_flow_fixture.dart';
+import '../utils/direct_connection_fixture.dart';
 
 void main() {
   Channel? aliceChannel;
@@ -15,25 +15,26 @@ void main() {
   ContactCard? bobOtherPartyCardBeforeApproval;
 
   setUpAll(() async {
-    final fixture = await OobFlowFixture.create();
+    final fixture = await DirectConnectionFixture.create();
 
-    final oobOfferSession = await fixture.createOobFlow();
-    final oobAcceptanceSession = await fixture.acceptOobFlow(
-      oobOfferSession.oobUrl,
-    );
+    final directConnectionOfferSession = await fixture.createDirectConnection();
+    final directConnectionAcceptanceSession = await fixture
+        .acceptDirectConnection(
+          directConnectionOfferSession.directConnectionUrl,
+        );
 
-    bobChannelBeforeApproval = oobAcceptanceSession.channel;
+    bobChannelBeforeApproval = directConnectionAcceptanceSession.channel;
     bobStatusBeforeApproval = bobChannelBeforeApproval!.status;
     bobOtherPartyDidBeforeApproval =
         bobChannelBeforeApproval!.otherPartyPermanentChannelDid;
     bobOtherPartyCardBeforeApproval =
         bobChannelBeforeApproval!.otherPartyContactCard;
 
-    final aliceFuture = OobFlowFixture.waitForFirstChannelFromCreate(
-      oobOfferSession,
+    final aliceFuture = DirectConnectionFixture.waitForFirstChannelFromCreate(
+      directConnectionOfferSession,
     );
-    final bobFuture = OobFlowFixture.waitForFirstChannelFromAccept(
-      oobAcceptanceSession,
+    final bobFuture = DirectConnectionFixture.waitForFirstChannelFromAccept(
+      directConnectionAcceptanceSession,
     );
 
     final channels = await Future.wait([aliceFuture, bobFuture]);
@@ -41,7 +42,7 @@ void main() {
     bobChannel = channels[1];
   });
 
-  group('successful channel creation for OOB flow', () {
+  group('successful channel creation for direct connection', () {
     test('permanent dids match', () {
       expect(
         aliceChannel?.permanentChannelDid,
@@ -91,8 +92,8 @@ void main() {
       );
     });
 
-    test('type is oob', () {
-      expect(aliceChannel?.type, ChannelType.oob);
+    test('type is directConnection', () {
+      expect(aliceChannel?.type, ChannelType.directConnection);
     });
   });
 
@@ -108,7 +109,10 @@ void main() {
       expect(bobChannelBeforeApproval?.outboundMessageId, isNotNull);
       expect(bobChannelBeforeApproval?.acceptOfferDid, isNotNull);
       expect(bobChannelBeforeApproval?.permanentChannelDid, isNotNull);
-      expect(bobChannelBeforeApproval?.type, equals(ChannelType.oob));
+      expect(
+        bobChannelBeforeApproval?.type,
+        equals(ChannelType.directConnection),
+      );
       expect(bobOtherPartyDidBeforeApproval, isNull);
       expect(bobOtherPartyCardBeforeApproval, isNull);
 

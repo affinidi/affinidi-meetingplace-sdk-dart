@@ -299,29 +299,32 @@ void main() {
       });
     });
 
-    group('markOobChannelInauguratedForNonConnectionInitiator', () {
-      test('succeeds for valid OOB non-initiator', () async {
-        final oobChannel = Channel(
+    group('markDirectConnectionChannelInauguratedForNonConnectionInitiator', () {
+      test('succeeds for valid direct connection non-initiator', () async {
+        final directConnectionChannel = Channel(
           offerLink: 'offer',
           publishOfferDid: 'pubDid',
           mediatorDid: 'medDid',
           status: ChannelStatus.waitingForApproval,
           contactCard: ContactCardFixture.getContactCardFixture(),
-          type: ChannelType.oob,
+          type: ChannelType.directConnection,
           isConnectionInitiator: false,
         );
         when(() => repository.updateChannel(any())).thenAnswer((_) async {});
-        await service.markOobChannelInauguratedForNonConnectionInitiator(
-          oobChannel,
-          otherPartyPermanentChannelDid: 'otherDid',
-          outboundMessageId: 'msgId',
-          otherPartyContactCard: null,
-        );
-        verify(() => repository.updateChannel(oobChannel)).called(1);
-        expect(oobChannel.status, ChannelStatus.inaugurated);
+        await service
+            .markDirectConnectionChannelInauguratedForNonConnectionInitiator(
+              directConnectionChannel,
+              otherPartyPermanentChannelDid: 'otherDid',
+              outboundMessageId: 'msgId',
+              otherPartyContactCard: null,
+            );
+        verify(
+          () => repository.updateChannel(directConnectionChannel),
+        ).called(1);
+        expect(directConnectionChannel.status, ChannelStatus.inaugurated);
       });
-      test('throws if not OOB type', () async {
-        final notOobChannel = Channel(
+      test('throws if not direct connection type', () async {
+        final notDirectConnectionChannel = Channel(
           offerLink: 'offer',
           publishOfferDid: 'pubDid',
           mediatorDid: 'medDid',
@@ -331,52 +334,55 @@ void main() {
           isConnectionInitiator: false,
         );
         expect(
-          () => service.markOobChannelInauguratedForNonConnectionInitiator(
-            notOobChannel,
-            otherPartyPermanentChannelDid: 'otherDid',
-            outboundMessageId: 'msgId',
-            otherPartyContactCard: null,
-          ),
+          () => service
+              .markDirectConnectionChannelInauguratedForNonConnectionInitiator(
+                notDirectConnectionChannel,
+                otherPartyPermanentChannelDid: 'otherDid',
+                outboundMessageId: 'msgId',
+                otherPartyContactCard: null,
+              ),
           throwsA(isA<ChannelServiceException>()),
         );
       });
       test('throws if is initiator', () async {
-        final initiatorOobChannel = Channel(
+        final initiatorDirectConnectionChannel = Channel(
           offerLink: 'offer',
           publishOfferDid: 'pubDid',
           mediatorDid: 'medDid',
           status: ChannelStatus.waitingForApproval,
           contactCard: ContactCardFixture.getContactCardFixture(),
-          type: ChannelType.oob,
+          type: ChannelType.directConnection,
           isConnectionInitiator: true,
         );
         expect(
-          () => service.markOobChannelInauguratedForNonConnectionInitiator(
-            initiatorOobChannel,
-            otherPartyPermanentChannelDid: 'otherDid',
-            outboundMessageId: 'msgId',
-            otherPartyContactCard: null,
-          ),
+          () => service
+              .markDirectConnectionChannelInauguratedForNonConnectionInitiator(
+                initiatorDirectConnectionChannel,
+                otherPartyPermanentChannelDid: 'otherDid',
+                outboundMessageId: 'msgId',
+                otherPartyContactCard: null,
+              ),
           throwsA(isA<ChannelServiceException>()),
         );
       });
       test('throws if not waiting for approval', () async {
-        final wrongStatusOobChannel = Channel(
+        final wrongStatusDirectConnectionChannel = Channel(
           offerLink: 'offer',
           publishOfferDid: 'pubDid',
           mediatorDid: 'medDid',
           status: ChannelStatus.inaugurated,
           contactCard: ContactCardFixture.getContactCardFixture(),
-          type: ChannelType.oob,
+          type: ChannelType.directConnection,
           isConnectionInitiator: false,
         );
         expect(
-          () => service.markOobChannelInauguratedForNonConnectionInitiator(
-            wrongStatusOobChannel,
-            otherPartyPermanentChannelDid: 'otherDid',
-            outboundMessageId: 'msgId',
-            otherPartyContactCard: null,
-          ),
+          () => service
+              .markDirectConnectionChannelInauguratedForNonConnectionInitiator(
+                wrongStatusDirectConnectionChannel,
+                otherPartyPermanentChannelDid: 'otherDid',
+                outboundMessageId: 'msgId',
+                otherPartyContactCard: null,
+              ),
           throwsA(isA<ChannelServiceException>()),
         );
       });

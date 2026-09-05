@@ -1,96 +1,84 @@
 import 'package:meeting_place_core/src/protocol/message/oob_invitation_message/oob_invitation_message.dart';
-import 'package:meeting_place_core/src/service/oob/oob_service_exception.dart';
+import 'package:meeting_place_core/src/service/direct_connection/direct_connection_service_exception.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('OobInvitationMessage.fromBase64 security tests', () {
-    test(
-      'should throw OobServiceException for JSON number (int cast failure)',
-      () {
-        // Payload "MA" decodes to JSON: 0
-        const payload = 'MA';
-        expect(
-          () => OobInvitationMessage.fromBase64(payload),
-          throwsA(isA<OobServiceException>()),
-        );
-      },
-    );
+    test('should throw DirectConnectionServiceException for JSON number '
+        '(int cast failure)', () {
+      // Payload "MA" decodes to JSON: 0
+      const payload = 'MA';
+      expect(
+        () => OobInvitationMessage.fromBase64(payload),
+        throwsA(isA<DirectConnectionServiceException>()),
+      );
+    });
 
-    test(
-      'should throw OobServiceException for JSON string (String cast failure)',
-      () {
-        // Payload "IjEi" decodes to JSON: "1"
-        const payload = 'IjEi';
-        expect(
-          () => OobInvitationMessage.fromBase64(payload),
-          throwsA(isA<OobServiceException>()),
-        );
-      },
-    );
+    test('should throw DirectConnectionServiceException for JSON string '
+        '(String cast failure)', () {
+      // Payload "IjEi" decodes to JSON: "1"
+      const payload = 'IjEi';
+      expect(
+        () => OobInvitationMessage.fromBase64(payload),
+        throwsA(isA<DirectConnectionServiceException>()),
+      );
+    });
 
-    test(
-      'should throw OobServiceException for JSON null (Null cast failure)',
-      () {
-        // Payload "bnVsbA" decodes to JSON: null
-        const payload = 'bnVsbA';
-        expect(
-          () => OobInvitationMessage.fromBase64(payload),
-          throwsA(isA<OobServiceException>()),
-        );
-      },
-    );
+    test('should throw DirectConnectionServiceException for JSON null '
+        '(Null cast failure)', () {
+      // Payload "bnVsbA" decodes to JSON: null
+      const payload = 'bnVsbA';
+      expect(
+        () => OobInvitationMessage.fromBase64(payload),
+        throwsA(isA<DirectConnectionServiceException>()),
+      );
+    });
 
-    test(
-      'should throw OobServiceException for JSON array (List cast failure)',
-      () {
-        // Payload "WzAsIiIse31d" decodes to JSON: [0,"",{}]
-        const payload = 'WzAsIiIse31d';
-        expect(
-          () => OobInvitationMessage.fromBase64(payload),
-          throwsA(isA<OobServiceException>()),
-        );
-      },
-    );
+    test('should throw DirectConnectionServiceException for JSON array '
+        '(List cast failure)', () {
+      // Payload "WzAsIiIse31d" decodes to JSON: [0,"",{}]
+      const payload = 'WzAsIiIse31d';
+      expect(
+        () => OobInvitationMessage.fromBase64(payload),
+        throwsA(isA<DirectConnectionServiceException>()),
+      );
+    });
 
-    test(
-      'should throw OobServiceException for missing required field "id"',
-      () {
-        // Payload "eyJmcm9tIjoieCJ9" decodes to JSON: {"from":"x"}
-        const payload = 'eyJmcm9tIjoieCJ9';
-        expect(
-          () => OobInvitationMessage.fromBase64(payload),
-          throwsA(isA<OobServiceException>()),
-        );
-      },
-    );
+    test('should throw DirectConnectionServiceException for missing required '
+        'field "id"', () {
+      // Payload "eyJmcm9tIjoieCJ9" decodes to JSON: {"from":"x"}
+      const payload = 'eyJmcm9tIjoieCJ9';
+      expect(
+        () => OobInvitationMessage.fromBase64(payload),
+        throwsA(isA<DirectConnectionServiceException>()),
+      );
+    });
 
-    test(
-      'should throw OobServiceException for missing required field "body"',
-      () {
-        // Payload "eyJpZCI6ImEiLCJmcm9tIjoiYiJ9"
-        // decodes to JSON: {"id":"a","from":"b"}
-        const payload = 'eyJpZCI6ImEiLCJmcm9tIjoiYiJ9';
-        expect(
-          () => OobInvitationMessage.fromBase64(payload),
-          throwsA(isA<OobServiceException>()),
-        );
-      },
-    );
+    test('should throw DirectConnectionServiceException for missing required '
+        'field "body"', () {
+      // Payload "eyJpZCI6ImEiLCJmcm9tIjoiYiJ9"
+      // decodes to JSON: {"id":"a","from":"b"}
+      const payload = 'eyJpZCI6ImEiLCJmcm9tIjoiYiJ9';
+      expect(
+        () => OobInvitationMessage.fromBase64(payload),
+        throwsA(isA<DirectConnectionServiceException>()),
+      );
+    });
 
-    test('should throw OobServiceException for wrong field type '
+    test('should throw DirectConnectionServiceException for wrong field type '
         '(int instead of String)', () {
       // Payload "eyJpZCI6MSwiZnJvbSI6ImEiLCJib2R5Ijp7fX0"
       // decodes to JSON: {"id":1,"from":"a","body":{}}
       const payload = 'eyJpZCI6MSwiZnJvbSI6ImEiLCJib2R5Ijp7fX0';
       expect(
         () => OobInvitationMessage.fromBase64(payload),
-        throwsA(isA<OobServiceException>()),
+        throwsA(isA<DirectConnectionServiceException>()),
       );
     });
   });
 
   group('OobInvitationMessage.fromJson security tests', () {
-    test('should throw OobServiceException for null id field', () {
+    test('should throw DirectConnectionServiceException for null id field', () {
       final json = {
         'id': null,
         'from': 'did:test:alice',
@@ -102,11 +90,11 @@ void main() {
       };
       expect(
         () => OobInvitationMessage.fromJson(json),
-        throwsA(isA<OobServiceException>()),
+        throwsA(isA<DirectConnectionServiceException>()),
       );
     });
 
-    test('should throw OobServiceException for int id field', () {
+    test('should throw DirectConnectionServiceException for int id field', () {
       final json = {
         'id': 123,
         'from': 'did:test:alice',
@@ -118,47 +106,57 @@ void main() {
       };
       expect(
         () => OobInvitationMessage.fromJson(json),
-        throwsA(isA<OobServiceException>()),
+        throwsA(isA<DirectConnectionServiceException>()),
       );
     });
 
-    test('should throw OobServiceException for null from field', () {
-      final json = {
-        'id': 'test-id',
-        'from': null,
-        'body': {
-          'goal_code': 'connect',
-          'goal': 'Start relationship',
-          'accept': ['didcomm/v2'],
-        },
-      };
-      expect(
-        () => OobInvitationMessage.fromJson(json),
-        throwsA(isA<OobServiceException>()),
-      );
-    });
+    test(
+      'should throw DirectConnectionServiceException for null from field',
+      () {
+        final json = {
+          'id': 'test-id',
+          'from': null,
+          'body': {
+            'goal_code': 'connect',
+            'goal': 'Start relationship',
+            'accept': ['didcomm/v2'],
+          },
+        };
+        expect(
+          () => OobInvitationMessage.fromJson(json),
+          throwsA(isA<DirectConnectionServiceException>()),
+        );
+      },
+    );
 
-    test('should throw OobServiceException for null body field', () {
-      final json = {'id': 'test-id', 'from': 'did:test:alice', 'body': null};
-      expect(
-        () => OobInvitationMessage.fromJson(json),
-        throwsA(isA<OobServiceException>()),
-      );
-    });
+    test(
+      'should throw DirectConnectionServiceException for null body field',
+      () {
+        final json = {'id': 'test-id', 'from': 'did:test:alice', 'body': null};
+        expect(
+          () => OobInvitationMessage.fromJson(json),
+          throwsA(isA<DirectConnectionServiceException>()),
+        );
+      },
+    );
 
-    test('should throw OobServiceException for array body field', () {
-      final json = {
-        'id': 'test-id',
-        'from': 'did:test:alice',
-        'body': ['not', 'a', 'map'],
-      };
-      expect(
-        () => OobInvitationMessage.fromJson(json),
-        throwsA(isA<OobServiceException>()),
-      );
-    });
+    test(
+      'should throw DirectConnectionServiceException for array body field',
+      () {
+        final json = {
+          'id': 'test-id',
+          'from': 'did:test:alice',
+          'body': ['not', 'a', 'map'],
+        };
+        expect(
+          () => OobInvitationMessage.fromJson(json),
+          throwsA(isA<DirectConnectionServiceException>()),
+        );
+      },
+    );
 
-    test('should throw OobServiceException for string created_time field', () {
+    test('should throw DirectConnectionServiceException for string '
+        'created_time field', () {
       final json = {
         'id': 'test-id',
         'from': 'did:test:alice',
@@ -171,7 +169,7 @@ void main() {
       };
       expect(
         () => OobInvitationMessage.fromJson(json),
-        throwsA(isA<OobServiceException>()),
+        throwsA(isA<DirectConnectionServiceException>()),
       );
     });
   });

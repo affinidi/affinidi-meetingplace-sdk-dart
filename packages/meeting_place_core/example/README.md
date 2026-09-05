@@ -8,8 +8,8 @@ Decentralised Identifiers (DIDs) and DIDComm v2.1.
 |------|----------------------|
 | offer/alice.dart | Publishes connection offer (invitation) and approve connection request after the offer was accepted. initialises the chat. |
 | offer/bob.dart | Finds and accepts the connection offer, sends notification about acceptance of the connection request. initialises the chat. |
-| oob/alice.dart | Creates an out-of-band flow and waits for the other party to connect. |
-| oob/bob.dart | Accepts the out-of-band flow shared by Alice. |
+| direct_connection/alice.dart | Creates a direct connection and waits for the other party to connect. |
+| direct_connection/bob.dart | Accepts the direct connection shared by Alice. |
 | outreach/alice.dart | Publishes an outreach invitation. |
 | outreach/bob.dart | Finds and accepts the outreach invitation. |
 
@@ -43,9 +43,9 @@ load these values from a local `.env` file for convenience.
     ```
 
     ```bash
-    # OOB example
-   dart run oob/alice.dart
-   dart run oob/bob.dart
+    # Direct connection example
+   dart run direct_connection/alice.dart
+   dart run direct_connection/bob.dart
     ```
 
     ```bash

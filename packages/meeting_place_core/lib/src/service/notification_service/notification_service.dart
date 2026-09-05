@@ -9,7 +9,7 @@ import '../connection_manager/connection_manager.dart';
 
 class NotificationService {
   NotificationService({
-    required ControlPlaneSDK controlPlaneSDK,
+    required MeetingPlaceControlPlaneSDK controlPlaneSDK,
     required MeetingPlaceMediatorSDK mediatorSDK,
     required ConnectionManager connectionManager,
     MeetingPlaceCoreSDKLogger? logger,
@@ -21,7 +21,7 @@ class NotificationService {
 
   static const String _className = 'NotificationService';
 
-  final ControlPlaneSDK _controlPlaneSDK;
+  final MeetingPlaceControlPlaneSDK _controlPlaneSDK;
   final MeetingPlaceMediatorSDK _mediatorSDK;
   final ConnectionManager _connectionManager;
   final MeetingPlaceCoreSDKLogger _logger;
@@ -89,7 +89,10 @@ class NotificationService {
       }
 
       await _registerDeviceOnControlPlaneAPI(deviceToken, platformType);
-    } on MissingDeviceException {
+    } on MeetingPlaceControlPlaneSDKException catch (e) {
+      if (e.code != MeetingPlaceControlPlaneSDKErrorCode.missingDevice.value) {
+        rethrow;
+      }
       await _registerDeviceOnControlPlaneAPI(deviceToken, platformType);
     }
 

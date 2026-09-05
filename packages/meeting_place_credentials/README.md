@@ -82,8 +82,8 @@ void main() async {
 
   await credentialsSDK.requestVrcExchange(
     channelDid: myChannelDid,
-    identityDid: myDid,
-    identityName: 'Alice',
+    requesterDid: myDid,
+    requesterName: 'Alice',
   );
 }
 ```
@@ -118,7 +118,7 @@ Every R-Card delivered through `receivedRCards`, `receivedRCardsOnChannel`, or `
 
 A VRC certifies a mutual verified relationship between two DIDs. It uses a two-step VDIP handshake where the initiating side requests and the responding side reciprocates.
 
-- Initiate exchange with `credentialsSDK.requestVrcExchange(channelDid, identityDid, identityName)`
+- Initiate exchange with `credentialsSDK.requestVrcExchange(channelDid, requesterDid, requesterName)`
 - Receive inbound requests from `credentialsSDK.receivedVrcRequests`
 - Accept and reciprocate with `credentialsSDK.handleReceivedVrcRequest(request)`
 - Receive finished credentials from `credentialsSDK.receivedVrcs`

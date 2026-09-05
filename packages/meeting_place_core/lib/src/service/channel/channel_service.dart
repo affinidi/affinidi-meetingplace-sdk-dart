@@ -107,7 +107,7 @@ class ChannelService {
   }) async {
     if (channel.isGroup) {
       throw ChannelServiceException.invalidChannelType(
-        expected: [ChannelType.individual, ChannelType.oob],
+        expected: [ChannelType.individual, ChannelType.directConnection],
         actual: channel.type,
       );
     }
@@ -148,7 +148,7 @@ class ChannelService {
   }) {
     if (channel.isGroup) {
       throw ChannelServiceException.invalidChannelType(
-        expected: [ChannelType.individual, ChannelType.oob],
+        expected: [ChannelType.individual, ChannelType.directConnection],
         actual: channel.type,
       );
     }
@@ -227,18 +227,18 @@ class ChannelService {
   ///
   /// Returns a [Future] that completes when the update is done.
   ///
-  /// Throws a [ChannelServiceException] if the channel is not of type OOB, if
-  /// the channel is a connection initiator or if the channel is not in the
-  /// expected status.
-  Future<void> markOobChannelInauguratedForNonConnectionInitiator(
+  /// Throws a [ChannelServiceException] if the channel is not of type direct
+  /// connection, if the channel is a connection initiator or if the channel
+  /// is not in the expected status.
+  Future<void> markDirectConnectionChannelInauguratedForNonConnectionInitiator(
     Channel channel, {
     required String otherPartyPermanentChannelDid,
     required String outboundMessageId,
     required ContactCard? otherPartyContactCard,
   }) {
-    if (!channel.isOob) {
+    if (!channel.isDirectConnection) {
       throw ChannelServiceException.invalidChannelType(
-        expected: [ChannelType.oob],
+        expected: [ChannelType.directConnection],
         actual: channel.type,
       );
     }

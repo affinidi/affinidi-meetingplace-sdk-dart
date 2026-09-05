@@ -37,11 +37,13 @@ class ContactDetailsUpdateSender {
       utf8.encode(jsonEncode(contactCard.toJson())),
     );
     final eventId = await _coreSDK.sendMediaMessage(
-      channel,
-      cardBytes,
-      contentType: 'application/json',
-      filename: 'contact-card.json',
-      extraContent: {GroupDetailsUpdateSender.memberDidKey: senderDid},
+      SendMediaMessageRequest(
+        channel: channel,
+        fileBytes: cardBytes,
+        contentType: 'application/json',
+        filename: 'contact-card.json',
+        extraContent: {GroupDetailsUpdateSender.memberDidKey: senderDid},
+      ),
     );
 
     final content = eventId != null

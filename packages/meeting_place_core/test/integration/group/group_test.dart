@@ -29,16 +29,18 @@ void main() async {
   test('offer creation for group', () async {
     final metadata = 'foobar';
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
-      offerName: 'Sample offer',
-      offerDescription: 'Sample offer description',
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:alice',
-        contactInfo: {
-          'n': {'given': 'Alice'},
-        },
+      PublishOfferRequest(
+        offerName: 'Sample offer',
+        offerDescription: 'Sample offer description',
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:alice',
+          contactInfo: {
+            'n': {'given': 'Alice'},
+          },
+        ),
+        type: SDKConnectionOfferType.groupInvitation,
+        metadata: metadata,
       ),
-      type: SDKConnectionOfferType.groupInvitation,
-      metadata: metadata,
     );
 
     expect(result, isNotNull);
@@ -50,27 +52,31 @@ void main() async {
 
   test('accept offer for group', () async {
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
-      offerName: 'Sample offer',
-      offerDescription: 'Sample offer description',
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:alice',
-        contactInfo: {
-          'n': {'given': 'Alice'},
-        },
+      PublishOfferRequest(
+        offerName: 'Sample offer',
+        offerDescription: 'Sample offer description',
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:alice',
+          contactInfo: {
+            'n': {'given': 'Alice'},
+          },
+        ),
+        type: SDKConnectionOfferType.groupInvitation,
+        metadata: 'foobar',
       ),
-      type: SDKConnectionOfferType.groupInvitation,
-      metadata: 'foobar',
     );
 
     final actual = await bobSDK.acceptOffer(
-      connectionOffer: result.connectionOffer,
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:bob',
-        contactInfo: {
-          'n': {'given': 'Bob', 'surname': 'A.'},
-        },
+      AcceptOfferRequest(
+        connectionOffer: result.connectionOffer,
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:bob',
+          contactInfo: {
+            'n': {'given': 'Bob', 'surname': 'A.'},
+          },
+        ),
+        senderInfo: 'Bob',
       ),
-      senderInfo: 'Bob',
     );
 
     expect(actual, isA<AcceptOfferResult>());
@@ -82,27 +88,31 @@ void main() async {
     await aliceSDK.deleteControlPlaneEvents();
 
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
-      offerName: 'Sample offer',
-      offerDescription: 'Sample offer description',
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:alice',
-        contactInfo: {
-          'n': {'given': 'Alice'},
-        },
+      PublishOfferRequest(
+        offerName: 'Sample offer',
+        offerDescription: 'Sample offer description',
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:alice',
+          contactInfo: {
+            'n': {'given': 'Alice'},
+          },
+        ),
+        type: SDKConnectionOfferType.groupInvitation,
+        metadata: 'foobar',
       ),
-      type: SDKConnectionOfferType.groupInvitation,
-      metadata: 'foobar',
     );
 
     await bobSDK.acceptOffer(
-      connectionOffer: result.connectionOffer,
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:bob',
-        contactInfo: {
-          'n': {'given': 'Bob', 'surname': 'A.'},
-        },
+      AcceptOfferRequest(
+        connectionOffer: result.connectionOffer,
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:bob',
+          contactInfo: {
+            'n': {'given': 'Bob', 'surname': 'A.'},
+          },
+        ),
+        senderInfo: 'Bob',
       ),
-      senderInfo: 'Bob',
     );
 
     final completer = ControlPlaneTestUtils.waitForControlPlaneEvent(
@@ -135,17 +145,21 @@ void main() async {
       );
 
       final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
-        offerName: 'Sample offer',
-        offerDescription: 'Sample offer description',
-        contactCard: aliceCard,
-        type: SDKConnectionOfferType.groupInvitation,
-        metadata: 'foobar',
+        PublishOfferRequest(
+          offerName: 'Sample offer',
+          offerDescription: 'Sample offer description',
+          contactCard: aliceCard,
+          type: SDKConnectionOfferType.groupInvitation,
+          metadata: 'foobar',
+        ),
       );
 
       final acceptResult = await bobSDK.acceptOffer(
-        connectionOffer: result.connectionOffer,
-        contactCard: bobCard,
-        senderInfo: 'Bob',
+        AcceptOfferRequest(
+          connectionOffer: result.connectionOffer,
+          contactCard: bobCard,
+          senderInfo: 'Bob',
+        ),
       );
 
       final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
@@ -162,7 +176,9 @@ void main() async {
         result.connectionOffer.groupDid!,
       );
 
-      await aliceSDK.approveConnectionRequest(channel: channel!);
+      await aliceSDK.approveConnectionRequest(
+        ApproveConnectionRequestParams(channel: channel!),
+      );
 
       final group = await aliceSDK.findGroupByOfferLink(
         result.connectionOffer.offerLink,
@@ -221,27 +237,33 @@ void main() async {
           );
 
       final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
-        offerName: 'Sample offer',
-        offerDescription: 'Sample offer description',
-        contactCard: aliceCard,
-        type: SDKConnectionOfferType.groupInvitation,
+        PublishOfferRequest(
+          offerName: 'Sample offer',
+          offerDescription: 'Sample offer description',
+          contactCard: aliceCard,
+          type: SDKConnectionOfferType.groupInvitation,
+        ),
       );
 
       final acceptResultBob = await bobSDK.acceptOffer(
-        connectionOffer: result.connectionOffer,
-        contactCard: bobCard,
-        senderInfo: 'Bob',
+        AcceptOfferRequest(
+          connectionOffer: result.connectionOffer,
+          contactCard: bobCard,
+          senderInfo: 'Bob',
+        ),
       );
 
       final acceptResultCharlie = await charlieSDK.acceptOffer(
-        connectionOffer: result.connectionOffer,
-        contactCard: ContactCardFixture.getContactCardFixture(
-          did: 'did:test:charlie',
-          contactInfo: {
-            'n': {'given': 'Charlie', 'surname': 'A.'},
-          },
+        AcceptOfferRequest(
+          connectionOffer: result.connectionOffer,
+          contactCard: ContactCardFixture.getContactCardFixture(
+            did: 'did:test:charlie',
+            contactInfo: {
+              'n': {'given': 'Charlie', 'surname': 'A.'},
+            },
+          ),
+          senderInfo: 'Bob',
         ),
-        senderInfo: 'Bob',
       );
 
       final groupDid = result.connectionOffer.groupDid!;
@@ -302,7 +324,9 @@ void main() async {
         expectedNumberOfEvents: 1,
       );
 
-      await aliceSDK.approveConnectionRequest(channel: charlieChannel!);
+      await aliceSDK.approveConnectionRequest(
+        ApproveConnectionRequestParams(channel: charlieChannel!),
+      );
       await charlieSDK.processControlPlaneEvents();
       await charlieCompleter.future;
 
@@ -321,7 +345,9 @@ void main() async {
         expectedNumberOfEvents: 1,
       );
 
-      await aliceSDK.approveConnectionRequest(channel: bobChannel!);
+      await aliceSDK.approveConnectionRequest(
+        ApproveConnectionRequestParams(channel: bobChannel!),
+      );
 
       await bobSDK.processControlPlaneEvents();
       await bobCompleter.future;
@@ -380,16 +406,20 @@ void main() async {
     );
 
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
-      offerName: 'Sample offer',
-      offerDescription: 'Sample offer description',
-      contactCard: aliceCard,
-      type: SDKConnectionOfferType.groupInvitation,
+      PublishOfferRequest(
+        offerName: 'Sample offer',
+        offerDescription: 'Sample offer description',
+        contactCard: aliceCard,
+        type: SDKConnectionOfferType.groupInvitation,
+      ),
     );
 
     final acceptResult = await bobSDK.acceptOffer(
-      connectionOffer: result.connectionOffer,
-      contactCard: bobCard,
-      senderInfo: 'Bob',
+      AcceptOfferRequest(
+        connectionOffer: result.connectionOffer,
+        contactCard: bobCard,
+        senderInfo: 'Bob',
+      ),
     );
 
     final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
@@ -409,7 +439,9 @@ void main() async {
       result.connectionOffer.groupDid!,
     );
 
-    await aliceSDK.approveConnectionRequest(channel: channel!);
+    await aliceSDK.approveConnectionRequest(
+      ApproveConnectionRequestParams(channel: channel!),
+    );
 
     final group = await aliceSDK.findGroupByOfferLink(
       result.connectionOffer.offerLink,
@@ -475,16 +507,20 @@ void main() async {
     );
 
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
-      offerName: 'Sample offer',
-      offerDescription: 'Sample offer description',
-      type: SDKConnectionOfferType.groupInvitation,
-      contactCard: aliceCard,
+      PublishOfferRequest(
+        offerName: 'Sample offer',
+        offerDescription: 'Sample offer description',
+        type: SDKConnectionOfferType.groupInvitation,
+        contactCard: aliceCard,
+      ),
     );
 
     final acceptResult = await bobSDK.acceptOffer(
-      connectionOffer: result.connectionOffer,
-      contactCard: bobCard,
-      senderInfo: 'Bob',
+      AcceptOfferRequest(
+        connectionOffer: result.connectionOffer,
+        contactCard: bobCard,
+        senderInfo: 'Bob',
+      ),
     );
 
     final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
@@ -501,7 +537,9 @@ void main() async {
       result.connectionOffer.groupDid!,
     );
 
-    await aliceSDK.approveConnectionRequest(channel: channel!);
+    await aliceSDK.approveConnectionRequest(
+      ApproveConnectionRequestParams(channel: channel!),
+    );
 
     final group = await aliceSDK.findGroupByOfferLink(
       result.connectionOffer.offerLink,
@@ -530,11 +568,13 @@ void main() async {
     );
 
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
-      offerName: 'Sample offer',
-      offerDescription: 'Sample offer description',
-      contactCard: aliceCard,
-      validUntil: DateTime.now().toUtc().add(const Duration(seconds: 60)),
-      type: SDKConnectionOfferType.groupInvitation,
+      PublishOfferRequest(
+        offerName: 'Sample offer',
+        offerDescription: 'Sample offer description',
+        contactCard: aliceCard,
+        validUntil: DateTime.now().toUtc().add(const Duration(seconds: 60)),
+        type: SDKConnectionOfferType.groupInvitation,
+      ),
     );
 
     final findOfferResult = await bobSDK.findOffer(
@@ -542,9 +582,11 @@ void main() async {
     );
 
     final acceptResult = await bobSDK.acceptOffer(
-      connectionOffer: findOfferResult.connectionOffer!,
-      contactCard: bobCard,
-      senderInfo: 'Bob',
+      AcceptOfferRequest(
+        connectionOffer: findOfferResult.connectionOffer!,
+        contactCard: bobCard,
+        senderInfo: 'Bob',
+      ),
     );
 
     final acceptConnectionOffer =
@@ -564,7 +606,9 @@ void main() async {
       result.connectionOffer.groupDid!,
     );
 
-    await aliceSDK.approveConnectionRequest(channel: channel!);
+    await aliceSDK.approveConnectionRequest(
+      ApproveConnectionRequestParams(channel: channel!),
+    );
 
     final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       bobSDK,
@@ -625,16 +669,20 @@ void main() async {
     );
 
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
-      offerName: 'Sample offer',
-      offerDescription: 'Sample offer description',
-      contactCard: aliceCard,
-      type: SDKConnectionOfferType.groupInvitation,
+      PublishOfferRequest(
+        offerName: 'Sample offer',
+        offerDescription: 'Sample offer description',
+        contactCard: aliceCard,
+        type: SDKConnectionOfferType.groupInvitation,
+      ),
     );
 
     final acceptResult = await bobSDK.acceptOffer(
-      connectionOffer: result.connectionOffer,
-      contactCard: bobCard,
-      senderInfo: 'Bob',
+      AcceptOfferRequest(
+        connectionOffer: result.connectionOffer,
+        contactCard: bobCard,
+        senderInfo: 'Bob',
+      ),
     );
 
     final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
@@ -651,7 +699,9 @@ void main() async {
       result.connectionOffer.groupDid!,
     );
 
-    await aliceSDK.approveConnectionRequest(channel: channel!);
+    await aliceSDK.approveConnectionRequest(
+      ApproveConnectionRequestParams(channel: channel!),
+    );
 
     await bobSDK.processControlPlaneEvents();
 
@@ -708,16 +758,20 @@ void main() async {
     );
 
     final result = await aliceSDK.publishOffer<GroupConnectionOffer>(
-      offerName: 'Sample offer',
-      offerDescription: 'Sample offer description',
-      contactCard: aliceCard,
-      type: SDKConnectionOfferType.groupInvitation,
+      PublishOfferRequest(
+        offerName: 'Sample offer',
+        offerDescription: 'Sample offer description',
+        contactCard: aliceCard,
+        type: SDKConnectionOfferType.groupInvitation,
+      ),
     );
 
     final acceptResult = await bobSDK.acceptOffer(
-      connectionOffer: result.connectionOffer,
-      contactCard: bobCard,
-      senderInfo: 'Bob',
+      AcceptOfferRequest(
+        connectionOffer: result.connectionOffer,
+        contactCard: bobCard,
+        senderInfo: 'Bob',
+      ),
     );
 
     final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
@@ -733,7 +787,9 @@ void main() async {
     final channel = await aliceSDK.findChannelByDid(
       result.connectionOffer.groupDid!,
     );
-    await aliceSDK.approveConnectionRequest(channel: channel!);
+    await aliceSDK.approveConnectionRequest(
+      ApproveConnectionRequestParams(channel: channel!),
+    );
 
     final groupId = acceptResult.connectionOffer.groupId;
     final bobDid = acceptResult.connectionOffer.permanentChannelDid!;
@@ -747,8 +803,10 @@ void main() async {
     // Removing the owner is rejected.
     expect(
       () => aliceSDK.removeMemberFromGroup(
-        groupId: result.connectionOffer.groupId,
-        memberDid: groupBefore.ownerDid!,
+        RemoveMemberFromGroupRequest(
+          groupId: result.connectionOffer.groupId,
+          memberDid: groupBefore.ownerDid!,
+        ),
       ),
       throwsA(
         predicate(
@@ -764,14 +822,18 @@ void main() async {
 
     // Non-owner caller is rejected (Bob does not own the group).
     expect(
-      () => bobSDK.removeMemberFromGroup(groupId: groupId, memberDid: bobDid),
+      () => bobSDK.removeMemberFromGroup(
+        RemoveMemberFromGroupRequest(groupId: groupId, memberDid: bobDid),
+      ),
       throwsA(isA<MeetingPlaceCoreSDKException>()),
     );
 
     // Owner removes Bob.
     await aliceSDK.removeMemberFromGroup(
-      groupId: result.connectionOffer.groupId,
-      memberDid: bobDid,
+      RemoveMemberFromGroupRequest(
+        groupId: result.connectionOffer.groupId,
+        memberDid: bobDid,
+      ),
     );
 
     final groupAfter = await aliceSDK.findGroupById(
@@ -783,8 +845,10 @@ void main() async {
     // Removing a member that no longer belongs to the group fails.
     expect(
       () => aliceSDK.removeMemberFromGroup(
-        groupId: result.connectionOffer.groupId,
-        memberDid: bobDid,
+        RemoveMemberFromGroupRequest(
+          groupId: result.connectionOffer.groupId,
+          memberDid: bobDid,
+        ),
       ),
       throwsA(
         predicate(

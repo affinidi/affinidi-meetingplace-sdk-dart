@@ -35,7 +35,7 @@ Future<MeetingPlaceCoreSDK> initCoreSDK({required Wallet wallet}) {
   return MeetingPlaceCoreSDK.create(
     wallet: wallet,
     repositoryConfig: getRepositoryConfig(),
-    config: Config(
+    config: MeetingPlaceCoreConfig(
       mediatorDid: getMediatorDid(),
       controlPlaneDid: getControlPlaneDid(),
     ),

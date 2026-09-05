@@ -41,11 +41,13 @@ Future<void> main() async {
       'VRC request received from ${request.senderDid} - sending VRC',
     );
     await credentialsSDK.sendVrc(
-      channelDid: bobChannel.otherPartyPermanentChannelDid!,
-      issuerDid: bobChannel.permanentChannelDid!,
-      issuerName: 'Bob',
-      peerDid: bobChannel.otherPartyPermanentChannelDid!,
-      peerName: 'Alice',
+      SendVrcRequest(
+        channelDid: bobChannel.otherPartyPermanentChannelDid!,
+        issuerDid: bobChannel.permanentChannelDid!,
+        issuerName: 'Bob',
+        peerDid: bobChannel.otherPartyPermanentChannelDid!,
+        peerName: 'Alice',
+      ),
     );
     prettyPrintYellow('Bob VRC sent to Alice.');
   });
@@ -85,13 +87,15 @@ Future<void> main() async {
   prettyPrintGreen(">>> Accepting Alice's offer");
   final findOfferResult = await coreSDK.findOffer(mnemonic: mnemonic);
   await coreSDK.acceptOffer(
-    connectionOffer: findOfferResult.connectionOffer!,
-    contactCard: ContactCard(
-      did: 'did:example:bob',
-      type: 'individual',
-      contactInfo: {},
+    AcceptOfferRequest(
+      connectionOffer: findOfferResult.connectionOffer!,
+      contactCard: ContactCard(
+        did: 'did:example:bob',
+        type: 'individual',
+        contactInfo: {},
+      ),
+      senderInfo: 'Bob',
     ),
-    senderInfo: 'Bob',
   );
   prettyPrintYellow('Offer accepted - waiting for Alice to approve...');
 
@@ -135,10 +139,12 @@ Future<void> main() async {
   );
 
   await credentialsSDK.sendRCard(
-    channel: bobChannel,
-    subjectDid: bobChannel.otherPartyPermanentChannelDid!,
-    card: bobCard,
-    issuerDidManager: bobDidManager,
+    SendRCardRequest(
+      channel: bobChannel,
+      subjectDid: bobChannel.otherPartyPermanentChannelDid!,
+      card: bobCard,
+      issuerDidManager: bobDidManager,
+    ),
   );
   prettyPrintYellow("Bob's R-Card sent.");
 
@@ -154,7 +160,7 @@ Future<void> main() async {
 
   // ── 11. Clean up ──────────────────────────────────────────────────────
   await channelStream.dispose();
-  await credentialsSDK.closeCredentialStreams();
+  await credentialsSDK.dispose();
 
   final storedRCards = await credentialsSDK.listReceivedRCards();
   final storedVrcs = await credentialsSDK.listVrcs();

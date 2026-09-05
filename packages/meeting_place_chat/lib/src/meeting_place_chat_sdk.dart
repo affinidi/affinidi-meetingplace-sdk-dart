@@ -144,17 +144,20 @@ abstract interface class MeetingPlaceChatSDK {
 
   /// Approves a pending connection request represented by [message]. Group
   /// chats only — implementations for individual chats throw
-  /// [UnimplementedError].
+  /// `MeetingPlaceChatSDKException` with
+  /// `MeetingPlaceChatSDKErrorCode.operationNotSupported`.
   Future<void> approveConnectionRequest(ConciergeMessage message);
 
   /// Rejects a pending connection request represented by [message]. Group
   /// chats only — implementations for individual chats throw
-  /// [UnimplementedError].
+  /// `MeetingPlaceChatSDKException` with
+  /// `MeetingPlaceChatSDKErrorCode.operationNotSupported`.
   Future<void> rejectConnectionRequest(ConciergeMessage message);
 
   /// Removes [memberDid] from the group. Group chats only — implementations
-  /// for individual chats throw [UnimplementedError]. Caller must be the
-  /// group owner.
+  /// for individual chats throw `MeetingPlaceChatSDKException` with
+  /// `MeetingPlaceChatSDKErrorCode.operationNotSupported`. Caller must be
+  /// the group owner.
   Future<void> removeMember(String memberDid);
 
   /// Rejects the contact-details update prompted by [message] without

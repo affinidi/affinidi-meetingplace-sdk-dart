@@ -1,6 +1,7 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart'
     show
+        MediatorMessageRequest,
         MediatorStreamProcessingResult,
         MediatorStreamSubscriptionOptions,
         MeetingPlaceMediatorSDK;
@@ -78,12 +79,14 @@ class DIDCommTransport {
       final senderDidManager = await _getDidManager(senderDid);
       final recipientDidDocument = await _didResolver.resolveDid(recipientDid);
       await _mediatorSDK.queueMessage(
-        message,
-        senderDidManager: senderDidManager,
-        recipientDidDocument: recipientDidDocument,
-        mediatorDid: mediatorDid,
-        ephemeral: ephemeral,
-        forwardExpiryInSeconds: forwardExpiryInSeconds,
+        MediatorMessageRequest(
+          message: message,
+          senderDidManager: senderDidManager,
+          recipientDidDocument: recipientDidDocument,
+          mediatorDid: mediatorDid,
+          ephemeral: ephemeral,
+          forwardExpiryInSeconds: forwardExpiryInSeconds,
+        ),
       );
     });
   }

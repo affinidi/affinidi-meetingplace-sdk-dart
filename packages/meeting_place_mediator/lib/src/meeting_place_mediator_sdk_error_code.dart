@@ -11,6 +11,7 @@ enum MeetingPlaceMediatorSDKErrorCode {
   oobError('mediator_oob_error'),
   networkError('mediator_network_error'),
   missingHandlerError('mediator_missing_handler_error'),
+  subscriptionClosedError('mediator_subscription_closed_error'),
 
   // others
   generic('generic');

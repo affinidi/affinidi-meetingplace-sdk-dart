@@ -8,10 +8,10 @@ import 'package:ssi/ssi.dart';
 import '../../api/api_client.dart';
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
-import '../../control_plane_sdk_options.dart';
 import '../../core/command/command_handler.dart';
-import '../../loggers/control_plane_sdk_logger.dart';
-import '../../loggers/default_control_plane_sdk_logger.dart';
+import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
+import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
+import '../../meeting_place_control_plane_sdk_options.dart';
 import '../../utils/base64.dart';
 import '../../utils/mediator/mediator_utils.dart';
 import '../register_offer/register_offer_handler.dart'
@@ -43,10 +43,10 @@ class RegisterOfferGroupHandler
     required this.mediatorDid,
     required this.sdkConfig,
     required this.didResolver,
-    ControlPlaneSDKLogger? logger,
+    MeetingPlaceControlPlaneSDKLogger? logger,
   }) : _logger =
            logger ??
-           DefaultControlPlaneSDKLogger(
+           DefaultMeetingPlaceControlPlaneSDKLogger(
              className: _className,
              sdkName: sdkName,
            );
@@ -54,9 +54,9 @@ class RegisterOfferGroupHandler
 
   final ControlPlaneApiClient apiClient;
   final String mediatorDid;
-  final ControlPlaneSDKOptions sdkConfig;
+  final MeetingPlaceControlPlaneSDKOptions sdkConfig;
   final DidResolver didResolver;
-  final ControlPlaneSDKLogger _logger;
+  final MeetingPlaceControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
   ///
@@ -113,7 +113,7 @@ class RegisterOfferGroupHandler
       ..mediatorDid = mediatorForOffer.mediatorDid
       ..mediatorEndpoint = mediatorForOffer.mediatorEndpoint
       ..mediatorWSSEndpoint = mediatorForOffer.mediatorWSSEndpoint
-      ..customPhrase = command.customPhrase
+      ..customPhrase = command.customMnemonic
       ..metadata = command.metadata
       ..adminDid = command.adminDid
       ..memberContactCard = base64Url.encode(utf8.encode('{}'));
@@ -147,7 +147,7 @@ class RegisterOfferGroupHandler
       if (e is DioException && e.response?.statusCode == HttpStatus.conflict) {
         _logger.error(
           'Offer group with the same mnemonic already exists: '
-          '${command.customPhrase}',
+          '${command.customMnemonic}',
           error: e,
           stackTrace: stackTrace,
         );

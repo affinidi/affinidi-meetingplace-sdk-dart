@@ -14,7 +14,7 @@ class _MockControlPlaneApiClient extends Mock
 
 class _MockDefaultApi extends Mock implements DefaultApi {}
 
-class _MockLogger extends Mock implements ControlPlaneSDKLogger {}
+class _MockLogger extends Mock implements MeetingPlaceControlPlaneSDKLogger {}
 
 class _FakeGroupDeregisterMemberInput extends Fake
     implements GroupDeregisterMemberInput {}

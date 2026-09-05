@@ -18,10 +18,12 @@ import 'loggers/logger_adapter.dart';
 import 'sdk/sdk.dart' as sdk;
 import 'sdk/sdk_error_handler.dart';
 import 'service/channel/channel_service.dart';
+import 'service/channel/channel_service_exception.dart';
 import 'service/connection_manager/connection_manager.dart';
 import 'service/connection_offer/connection_offer_service.dart';
 import 'service/connection_service.dart';
 import 'service/control_plane_event_service.dart';
+import 'service/direct_connection/direct_connection_service.dart';
 import 'service/group.dart';
 import 'service/identity/did_web_document_service.dart';
 import 'service/identity/identity_service.dart';
@@ -29,7 +31,6 @@ import 'service/mediator/mediator_acl_service.dart';
 import 'service/mediator/mediator_service.dart';
 import 'service/message/message_service.dart';
 import 'service/notification_service/notification_service.dart';
-import 'service/oob/oob_service.dart';
 import 'service/outreach/outreach_service.dart';
 import 'transport/nop_transport.dart';
 import 'utils/cached_did_resolver.dart';
@@ -52,8 +53,10 @@ import 'utils/cached_did_resolver.dart';
 /// flow. If it changes, you can easily update it without affecting other parts
 /// of your application.
 /// ## Error Handling
-/// All methods within this SDK throw a unified MeetingPlaceCoreSDKException,
-/// which includes:
+/// Every method that performs a real operation — everything except
+/// construction ([create]) and teardown ([dispose] and its narrower
+/// counterparts) — throws a unified MeetingPlaceCoreSDKException, which
+/// includes:
 /// * A message providing context about the error
 /// * A code that can be used to map specific error messages based on consumer
 ///   requirements
@@ -75,7 +78,7 @@ import 'utils/cached_did_resolver.dart';
 /// final sdk = MeetingPlaceCoreSDK.create(
 ///   wallet: wallet,
 ///   repositoryConfig: repositoryConfig,
-///   config: Config(
+///   config: MeetingPlaceCoreConfig(
 ///     mediatorDid: '<YOUR-MEDIATOR-DID:.well-known>',
 ///     controlPlaneDid: '<YOUR-CONTROL-PLANE-DID>',
 ///   ),
@@ -107,8 +110,8 @@ class MeetingPlaceCoreSDK {
   ///   this service.
   /// - `mediatorSDK` (`MediatorSDK`): Instance of the mediator SDK used for
   ///   routing messages.
-  /// - `controlPlaneSDK` (`ControlPlaneSDK`): Instance of the control plane
-  ///   SDK for discovering other agents.
+  /// - `controlPlaneSDK` (`MeetingPlaceControlPlaneSDK`): Instance of the
+  ///   control plane SDK for discovering other agents.
   /// - `connectionManager` (`ConnectionManager`): Manages connections between
   ///   agents.
   /// - `connectionService` (`ConnectionService`): Service that handles
@@ -136,7 +139,7 @@ class MeetingPlaceCoreSDK {
     required this.wallet,
     required RepositoryConfig repositoryConfig,
     required MeetingPlaceMediatorSDK mediatorSDK,
-    required ControlPlaneSDK controlPlaneSDK,
+    required MeetingPlaceControlPlaneSDK controlPlaneSDK,
     required ConnectionManager connectionManager,
     required ConnectionService connectionService,
     required ControlPlaneEventService controlPlaneEventService,
@@ -144,7 +147,7 @@ class MeetingPlaceCoreSDK {
     required GroupService groupService,
     required NotificationService notificationService,
     required OutreachService outreachService,
-    required OobService oobService,
+    required DirectConnectionService directConnectionService,
     required ChannelService channelService,
     required String mediatorDid,
     required String controlPlaneDid,
@@ -167,7 +170,7 @@ class MeetingPlaceCoreSDK {
        _groupService = groupService,
        _notificationService = notificationService,
        _outreachService = outreachService,
-       _oobService = oobService,
+       _directConnectionService = directConnectionService,
        _channelService = channelService,
        _mediatorDid = mediatorDid,
        _controlPlaneDid = controlPlaneDid,
@@ -188,7 +191,7 @@ class MeetingPlaceCoreSDK {
   final Wallet wallet;
   final RepositoryConfig _repositoryConfig;
   final MeetingPlaceMediatorSDK _mediatorSDK;
-  final ControlPlaneSDK _controlPlaneSDK;
+  final MeetingPlaceControlPlaneSDK _controlPlaneSDK;
   final ConnectionManager _connectionManager;
   final ConnectionService _connectionService;
   final ControlPlaneEventService _controlPlaneEventService;
@@ -196,7 +199,7 @@ class MeetingPlaceCoreSDK {
   final GroupService _groupService;
   final NotificationService _notificationService;
   final OutreachService _outreachService;
-  final OobService _oobService;
+  final DirectConnectionService _directConnectionService;
   final ChannelService _channelService;
   final MeetingPlaceCoreSDKOptions _options;
   final SDKErrorHandler _sdkErrorHandler;
@@ -223,7 +226,7 @@ class MeetingPlaceCoreSDK {
   /// - [config]: Base SDK configuration (provides mediatorDid and
   ///   controlPlaneDid).
   /// - [channelTransportFactory]: Optional factory that receives the
-  ///   internally-created [ControlPlaneSDK] and returns the
+  ///   internally-created [MeetingPlaceControlPlaneSDK] and returns the
   ///   [MeetingPlaceTransport] for channel operations. If omitted, channel
   ///   operations are no-ops.
   /// - [options]: Instance of [MeetingPlaceCoreSDKOptions]
@@ -234,8 +237,9 @@ class MeetingPlaceCoreSDK {
   static Future<MeetingPlaceCoreSDK> create({
     required Wallet wallet,
     required RepositoryConfig repositoryConfig,
-    required Config config,
-    MeetingPlaceTransport Function(ControlPlaneSDK)? channelTransportFactory,
+    required MeetingPlaceCoreConfig config,
+    MeetingPlaceTransport Function(MeetingPlaceControlPlaneSDK)?
+    channelTransportFactory,
     MeetingPlaceCoreSDKOptions options = const MeetingPlaceCoreSDKOptions(),
     MeetingPlaceCoreSDKLogger? logger,
   }) async {
@@ -255,9 +259,9 @@ class MeetingPlaceCoreSDK {
     mpxLogger.info('Starting Core SDK initialization', name: methodName);
 
     final controlPlaneLogger = LoggerAdapter(
-      className: ControlPlaneSDK.className,
+      className: MeetingPlaceControlPlaneSDK.className,
       sdkName: controlPlaneSDKName,
-      logger: logger ?? DefaultControlPlaneSDKLogger(),
+      logger: logger ?? DefaultMeetingPlaceControlPlaneSDKLogger(),
     );
 
     final mediatorLogger = LoggerAdapter(
@@ -287,12 +291,12 @@ class MeetingPlaceCoreSDK {
 
     final didManager = await connectionManager.generateRootDid(wallet);
 
-    final controlPlaneSDK = ControlPlaneSDK(
+    final controlPlaneSDK = MeetingPlaceControlPlaneSDK(
       didManager: didManager,
       controlPlaneDid: controlPlaneDid,
       mediatorDid: mediatorDid,
       didResolver: didResolver,
-      controlPlaneSDKConfig: ControlPlaneSDKOptions(
+      controlPlaneSDKConfig: MeetingPlaceControlPlaneSDKOptions(
         maxRetries: options.maxRetries,
         maxRetriesDelay: options.maxRetriesDelay,
         connectTimeout: options.connectTimeout,
@@ -382,12 +386,15 @@ class MeetingPlaceCoreSDK {
       logger: mpxLogger,
     );
 
+    final sdkErrorHandler = SDKErrorHandler(logger: mpxLogger);
+
     final vdipClient = VdipClient(
       messageService: messageService,
       channelService: channelService,
       connectionManager: connectionManager,
       wallet: wallet,
       mediatorService: mediatorService,
+      sdkErrorHandler: sdkErrorHandler,
     );
 
     final discoveryEventManager = ControlPlaneEventManager(
@@ -443,7 +450,7 @@ class MeetingPlaceCoreSDK {
       didResolver: didResolver,
     );
 
-    final oobService = OobService(
+    final directConnectionService = DirectConnectionService(
       wallet: wallet,
       mediatorService: mediatorService,
       connectionService: connectionService,
@@ -461,8 +468,6 @@ class MeetingPlaceCoreSDK {
     );
 
     mpxLogger.info('Completed initializing CoreSDK', name: methodName);
-
-    final sdkErrorHandler = SDKErrorHandler(logger: mpxLogger);
 
     final didcommTransport = DIDCommTransport(
       mediatorSDK: mediatorSDK,
@@ -491,7 +496,7 @@ class MeetingPlaceCoreSDK {
       groupService: groupService,
       notificationService: notificationService,
       outreachService: outreachService,
-      oobService: oobService,
+      directConnectionService: directConnectionService,
       channelService: channelService,
       mediatorDid: mediatorDid,
       controlPlaneDid: controlPlaneDid,
@@ -508,8 +513,8 @@ class MeetingPlaceCoreSDK {
     return init;
   }
 
-  /// Returns instance of used low level [ControlPlaneSDK].
-  ControlPlaneSDK get controlPlaneSDK => _controlPlaneSDK;
+  /// Returns instance of used low level [MeetingPlaceControlPlaneSDK].
+  MeetingPlaceControlPlaneSDK get controlPlaneSDK => _controlPlaneSDK;
 
   /// Returns instance of used low level [MeetingPlaceMediatorSDK].
   ///
@@ -550,7 +555,7 @@ class MeetingPlaceCoreSDK {
   /// when no mediator DID is provided explicitly.
   ///
   /// The updated mediator DID is also propagated to the lower-level
-  /// [ControlPlaneSDK] and [MeetingPlaceMediatorSDK].
+  /// [MeetingPlaceControlPlaneSDK] and [MeetingPlaceMediatorSDK].
   ///
   /// **Parameters:**
   /// - [mediatorDid] — The new mediator DID to set as the default.
@@ -563,8 +568,8 @@ class MeetingPlaceCoreSDK {
 
   /// Updates the [Device] used for subsequent method invocations.
   ///
-  /// A [Device] is required by [ControlPlaneSDK] to send push notifications
-  /// to the corresponding device.
+  /// A [Device] is required by [MeetingPlaceControlPlaneSDK] to send push
+  /// notifications to the corresponding device.
   ///
   /// **Parameters:**
   /// - [device] — The device instance to use for subsequent method invocations.
@@ -579,8 +584,10 @@ class MeetingPlaceCoreSDK {
   /// method.
   ///
   /// Returns a [DidManager] instance
-  Future<DidManager> generateDid() async {
-    return _connectionManager.generateDid(wallet);
+  Future<DidManager> generateDid() {
+    return _withSdkExceptionHandling(
+      () => _connectionManager.generateDid(wallet),
+    );
   }
 
   /// Retrieves an existing [DidManager] for the specified DID string.
@@ -600,81 +607,47 @@ class MeetingPlaceCoreSDK {
     });
   }
 
-  /// Creates an Out-Of-Band invitation for a User.
+  /// Creates a direct connection invitation for a User, without going
+  /// through the control plane's discovery/matching mechanism.
   ///
   /// **Parameters:**
-  /// - [contactCard]: An object that contains information about who is offering
-  ///   the
-  ///   offer. This helps others know whom they are connecting with and provides
-  ///   necessary contact details.
+  /// - [request] - A [sdk.CreateDirectConnectionRequest] describing the
+  ///   invitation to create.
   ///
-  /// - [did] - If specified, this DID is used as the permanent
-  ///   channel DID within the channel entity. If omitted, a new DID will be
-  ///   generated automatically.
-  ///
-  /// - [mediatorDid] - The mediator's DID. If not provided, the SDK will use
-  ///   the mediator DID configured in the current instance.
-  ///
-  /// - [externalRef] - Application-specific data that is passed through to
-  ///   internal oob entity and can be referenced later for tracking or
-  ///   identification purposes. [externalRef] is accessible on the current
-  ///   device only.
-  ///
-  /// Returns [OobOfferSession]
-  Future<OobOfferSession> createOobFlow({
-    required ContactCard contactCard,
-    String? type,
-    String? did,
-    String? mediatorDid,
-    String? externalRef,
-  }) async {
+  /// Returns [DirectConnectionOfferSession]
+  Future<DirectConnectionOfferSession> createDirectConnection(
+    sdk.CreateDirectConnectionRequest request,
+  ) {
     return _withSdkExceptionHandling(() {
-      return _oobService.createOobFlow(
-        contactCard: contactCard,
-        type: type,
-        did: did,
-        mediatorDid: mediatorDid ?? _mediatorDid,
-        externalRef: externalRef,
+      return _directConnectionService.createDirectConnection(
+        contactCard: request.contactCard,
+        type: request.type,
+        did: request.did,
+        mediatorDid: request.mediatorDid ?? _mediatorDid,
+        externalRef: request.externalRef,
       );
     });
   }
 
-  /// Accepts an Out-Of-Band invitation created by a User.
+  /// Accepts a direct connection invitation created by a User.
   ///
   /// **Parameters:**
-  /// - [oobUrl]: The OOB URL.
+  /// - [request] - A [sdk.AcceptDirectConnectionRequest] describing the
+  ///   invitation to accept.
   ///
-  /// - [contactCard]: An object that contains information about who is offering
-  ///   the
-  ///   offer. This helps others know whom they are connecting with and provides
-  ///   necessary contact details.
-  ///
-  /// - [externalRef] - Application-specific data that is passed through to
-  ///   internal oob entity and can be referenced later for tracking or
-  ///   identification purposes. [externalRef] is accessible on the current
-  ///   device only.
-  ///
-  /// - [attachments] - Optional list of attachments (e.g., R-Card credentials)
-  ///   to include in the invitation acceptance message.
-  ///
-  /// Returns [OobAcceptanceSession]
-  Future<OobAcceptanceSession> acceptOobFlow(
-    Uri oobUrl, {
-    required ContactCard contactCard,
-    String? type,
-    String? externalRef,
-    String? did,
-    List<Attachment>? attachments,
-  }) async {
+  /// Returns [DirectConnectionAcceptanceSession]
+  Future<DirectConnectionAcceptanceSession> acceptDirectConnection(
+    sdk.AcceptDirectConnectionRequest request,
+  ) {
     return _withSdkExceptionHandling(() {
-      return _oobService.acceptOobFlow(
-        oobUrl,
-        did: did,
-        type: type,
-        contactCard: contactCard,
-        externalRef: externalRef,
+      return _directConnectionService.acceptDirectConnection(
+        request.directConnectionUrl,
+        did: request.did,
+        type: request.type,
+        contactCard: request.contactCard,
+        externalRef: request.externalRef,
         mediatorDid: _mediatorDid,
-        attachments: attachments,
+        attachments: request.attachments,
       );
     });
   }
@@ -683,18 +656,18 @@ class MeetingPlaceCoreSDK {
   /// system.
   ///
   /// **Parameters:**
-  /// - [phrase] - The offer phrase to be checked for availability.
+  /// - [mnemonic] - The offer mnemonic to be checked for availability.
   ///
   /// **Returns:**
   /// - A [sdk.ValidateOfferPhraseResult] object which provides isAvailable flag
   ///   that shows whether the offer
-  /// phrase is already in use.
+  /// mnemonic is already in use.
   Future<sdk.ValidateOfferPhraseResult> validateOfferPhrase(
-    String phrase,
+    String mnemonic,
   ) async {
     return _withSdkExceptionHandling(() async {
       final result = await _controlPlaneSDK.execute(
-        ValidateOfferPhraseCommand(phrase: phrase.trim()),
+        ValidateOfferPhraseCommand(mnemonic: mnemonic.trim()),
       );
 
       return sdk.ValidateOfferPhraseResult(isAvailable: result.isAvailable);
@@ -726,13 +699,16 @@ class MeetingPlaceCoreSDK {
 
   /// Registers for DIDComm notifications via the mediator.
   Future<RegisterForDidcommNotificationsResult>
-  registerForDIDCommNotifications({String? mediatorDid, String? recipientDid}) {
+  registerForDIDCommNotifications([
+    sdk.RegisterForDidcommNotificationsRequest request =
+        const sdk.RegisterForDidcommNotificationsRequest(),
+  ]) {
     return _withSdkExceptionHandling(() async {
       final result = await _notificationService.registerForDIDCommNotifications(
         wallet: wallet,
         controlPlaneDid: _controlPlaneDid,
-        recipientDid: recipientDid,
-        mediatorDid: mediatorDid ?? _mediatorDid,
+        recipientDid: request.recipientDid,
+        mediatorDid: request.mediatorDid ?? _mediatorDid,
       );
       _controlPlaneSDK.device = result.device;
       return RegisterForDidcommNotificationsResult(
@@ -746,39 +722,8 @@ class MeetingPlaceCoreSDK {
   /// users or systems to find and connect.
   ///
   /// **Parameters:**
-  /// - [offerName] - The name of your offer as it will be displayed when others
-  /// search for offers.
-  ///
-  /// [type] - Type of the offer. Either invitation, outreachInvitation
-  ///   or groupInvitation.
-  ///
-  /// - [contactCard] - A ContactCard that contains information about who is
-  /// offering the offer. This helps others know whom they are connecting with
-  /// and provides necessary contact details.
-  ///
-  /// - [offerDescription] - Description of the offer to indicate the purpose of
-  /// the offer.
-  ///
-  /// - [customPhrase] - A custom phrase or keyword to help your offer be found
-  /// more easily by specific searches on MeetingPlace. If not provided, a
-  /// generic mnemonic will be used.
-  ///
-  /// - [validUntil] - The date and time when the offer expires.
-  /// Once this date is reached, the offer will no longer be available.
-  ///
-  /// - [maximumUsage] - The maximum number of times the offer can be queried or
-  /// accepted. Once this limit is reached, no further queries or acceptances
-  /// will be allowed.
-  ///
-  /// - [mediatorDid] - The specific Mediator DID to be used for this offer.
-  /// If not provided, the default SDK Mediator DID will be used.
-  ///
-  /// - [metadata] - The additional data related to the offer to be published.
-  ///
-  /// - [externalRef] - Application-specific data that is passed through to
-  /// internal entities, such as connection offers and channels, and can be
-  /// referenced later for tracking or identification purposes. [externalRef]
-  /// is accessible on the current device only.
+  /// - [request] - A [sdk.PublishOfferRequest] describing the offer to
+  /// publish.
   ///
   /// **Returns:**
   /// - A [sdk.PublishOfferResult] object which includes the connection offer
@@ -786,62 +731,56 @@ class MeetingPlaceCoreSDK {
   ///
   /// For group offers, it also includes the owner DID manager and the group
   /// DID manager.
-  Future<sdk.PublishOfferResult<T>> publishOffer<T extends ConnectionOffer>({
-    required String offerName,
-    required sdk.SDKConnectionOfferType type,
-    required ContactCard contactCard,
-    required String offerDescription,
-    String? customPhrase,
-    DateTime? validUntil,
-    int? maximumUsage,
-    String? mediatorDid,
-    String? metadata,
-    String? externalRef,
-    ChannelTransport transport = ChannelTransport.didcomm,
-    int? score,
-  }) async {
-    if (type == sdk.SDKConnectionOfferType.groupInvitation) {
-      final (connectionOffer, publishedOfferDid, ownerDid) = await _groupService
-          .createGroup(
-            offerName: offerName,
-            offerDescription: offerDescription,
-            customPhrase: customPhrase,
-            validUntil: validUntil,
-            maximumUsage: maximumUsage,
-            mediatorDid: mediatorDid ?? _mediatorDid,
-            externalRef: externalRef,
-            metadata: metadata,
-            card: contactCard,
+  Future<sdk.PublishOfferResult<T>> publishOffer<T extends ConnectionOffer>(
+    sdk.PublishOfferRequest request,
+  ) {
+    return _withSdkExceptionHandling(() async {
+      if (request.type == sdk.SDKConnectionOfferType.groupInvitation) {
+        final (
+          connectionOffer,
+          publishedOfferDid,
+          ownerDid,
+        ) = await _groupService.createGroup(
+          offerName: request.offerName,
+          offerDescription: request.offerDescription,
+          customMnemonic: request.customMnemonic,
+          validUntil: request.validUntil,
+          maximumUsage: request.maximumUsage,
+          mediatorDid: request.mediatorDid ?? _mediatorDid,
+          externalRef: request.externalRef,
+          metadata: request.metadata,
+          card: request.contactCard,
+        );
+        return sdk.PublishOfferResult(
+          connectionOffer: connectionOffer as T,
+          publishedOfferDidManager: publishedOfferDid,
+          groupOwnerDidManager: ownerDid,
+        );
+      }
+
+      final (connectionOffer, publishedOfferDid) = await _connectionService
+          .publishOffer(
+            wallet: wallet,
+            offerName: request.offerName,
+            offerDescription: request.offerDescription,
+            type: request.type == SDKConnectionOfferType.outreachInvitation
+                ? ConnectionOfferType.meetingPlaceOutreachInvitation
+                : ConnectionOfferType.meetingPlaceInvitation,
+            customMnemonic: request.customMnemonic,
+            validUntil: request.validUntil,
+            maximumUsage: request.maximumUsage,
+            mediatorDid: request.mediatorDid ?? _mediatorDid,
+            externalRef: request.externalRef,
+            contactCard: request.contactCard,
+            transport: request.transport,
+            score: request.score,
           );
+
       return sdk.PublishOfferResult(
         connectionOffer: connectionOffer as T,
         publishedOfferDidManager: publishedOfferDid,
-        groupOwnerDidManager: ownerDid,
       );
-    }
-
-    final (connectionOffer, publishedOfferDid) = await _connectionService
-        .publishOffer(
-          wallet: wallet,
-          offerName: offerName,
-          offerDescription: offerDescription,
-          type: type == SDKConnectionOfferType.outreachInvitation
-              ? ConnectionOfferType.meetingPlaceOutreachInvitation
-              : ConnectionOfferType.meetingPlaceInvitation,
-          customPhrase: customPhrase,
-          validUntil: validUntil,
-          maximumUsage: maximumUsage,
-          mediatorDid: mediatorDid,
-          externalRef: externalRef,
-          contactCard: contactCard,
-          transport: transport,
-          score: score,
-        );
-
-    return sdk.PublishOfferResult(
-      connectionOffer: connectionOffer as T,
-      publishedOfferDidManager: publishedOfferDid,
-    );
+    });
   }
 
   /// Attempts to locate a previously published offer on MeetingPlace.
@@ -869,27 +808,19 @@ class MeetingPlaceCoreSDK {
   /// Accepts an offer published by another party.
   ///
   /// **Parameters:**
-  /// - [ConnectionOffer] - Connection offer object.
-  ///
-  /// - [contactCard] - A [ContactCard that contains information about who is
-  ///   accepting the offer. This helps the offeree to know who accepted it.
-  ///
-  /// - [senderInfo] - Value to be shown in notification message to the other
-  ///   party.
-  ///
-  /// - [externalRef] - Application-specific data that is passed through to
-  ///   internal entities, such as connection offers and channels, and can be
-  ///   referenced later for tracking or identification purposes. [externalRef]
-  ///   is accessible on the current device only.
+  /// - [request] - A [sdk.AcceptOfferRequest] describing the offer to
+  ///   accept.
   ///
   /// **Returns:**
   /// - A [sdk.AcceptOfferResult] object
-  Future<sdk.AcceptOfferResult<T>> acceptOffer<T extends ConnectionOffer>({
-    required T connectionOffer,
-    required ContactCard contactCard,
-    required String senderInfo,
-    String? externalRef,
-  }) async {
+  Future<sdk.AcceptOfferResult<T>> acceptOffer<T extends ConnectionOffer>(
+    sdk.AcceptOfferRequest<T> request,
+  ) async {
+    final connectionOffer = request.connectionOffer;
+    final contactCard = request.contactCard;
+    final senderInfo = request.senderInfo;
+    final externalRef = request.externalRef;
+
     return _withSdkExceptionHandling(() async {
       if (connectionOffer is GroupConnectionOffer) {
         final result = await _groupService.acceptGroupOffer(
@@ -939,16 +870,17 @@ class MeetingPlaceCoreSDK {
   /// informing the new member about approval.
   ///
   /// **Parameters:**
-  /// - [channel] - DID of member requesting membership
-  /// - [attachments] - Optional list of attachments (e.g., R-Card credentials)
-  ///   to include in the connection approval message
+  /// - [params] - A [sdk.ApproveConnectionRequestParams] describing the
+  ///   channel to approve and any attachments to include.
   ///
   /// **Returns:**
   /// Returns updated [Channel] instance.
-  Future<Channel> approveConnectionRequest({
-    required Channel channel,
-    List<Attachment>? attachments,
-  }) async {
+  Future<Channel> approveConnectionRequest(
+    sdk.ApproveConnectionRequestParams params,
+  ) async {
+    final channel = params.channel;
+    final attachments = params.attachments;
+
     return _withSdkExceptionHandling(() async {
       return channel.isGroup
           ? await _groupService.approveMembershipRequest(channel: channel)
@@ -971,7 +903,9 @@ class MeetingPlaceCoreSDK {
         return _groupService.rejectMembershipRequest(channel);
       }
 
-      throw Exception('Not implemented');
+      throw ChannelServiceException.actionNotAllowed(
+        action: 'rejectConnectionRequest for a non-group channel',
+      );
     });
   }
 
@@ -997,39 +931,27 @@ class MeetingPlaceCoreSDK {
   /// [MeetingPlaceCoreSDKErrorCode.groupCannotRemoveOwnerError]. Owners that
   /// want to leave their own group should use [leaveChannel] instead.
   ///
-  /// **Parameters:**
-  /// - [groupId] - Identifier of the group to remove the member from.
-  /// - [memberDid] - DID of the member to remove.
-  Future<void> removeMemberFromGroup({
-    required String groupId,
-    required String memberDid,
-  }) {
+  Future<void> removeMemberFromGroup(sdk.RemoveMemberFromGroupRequest request) {
     return _withSdkExceptionHandling(() {
-      return _groupService.removeMember(groupId: groupId, memberDid: memberDid);
+      return _groupService.removeMember(
+        groupId: request.groupId,
+        memberDid: request.memberDid,
+      );
     });
   }
 
-  /// Sends outreach invitation to owner of [outreachConnectionOffer].
-  ///
-  /// **Parameters:**
-  /// - [outreachConnectionOffer] - The connection offer that receives the
-  ///   outreach notification.
-  /// - [inviteToConnectionOffer] - The connection offer the invitation refers
-  ///   to.
-  /// - [messageToInclude] - Message to include in DIDComm message
-  Future<void> sendOutreachInvitation({
-    required ConnectionOffer outreachConnectionOffer,
-    required ConnectionOffer inviteToConnectionOffer,
-    required String messageToInclude,
-    required String senderInfo,
-  }) {
+  /// Sends outreach invitation to the owner of
+  /// [SendOutreachInvitationRequest.outreachConnectionOffer].
+  Future<void> sendOutreachInvitation(
+    sdk.SendOutreachInvitationRequest request,
+  ) {
     return _withSdkExceptionHandling(() {
       return _outreachService.sendOutreachInvitation(
         wallet: wallet,
-        outreachConnectionOffer: outreachConnectionOffer,
-        inviteToConnectionOffer: inviteToConnectionOffer,
-        messageToInclude: messageToInclude,
-        senderInfo: senderInfo,
+        outreachConnectionOffer: request.outreachConnectionOffer,
+        inviteToConnectionOffer: request.inviteToConnectionOffer,
+        messageToInclude: request.messageToInclude,
+        senderInfo: request.senderInfo,
       );
     });
   }
@@ -1059,40 +981,51 @@ class MeetingPlaceCoreSDK {
   /// Closes the control plane events stream.
   ///
   /// After calling this, no further events will be emitted on
-  /// [controlPlaneEventsStream]. Call this when the SDK is no longer needed
-  /// (e.g. on sign-out) to release resources.
+  /// [controlPlaneEventsStream]. Individually callable for narrower
+  /// teardown; [dispose] calls this as part of releasing all SDK resources.
   void disposeControlPlaneEventsStream() {
     _controlPlaneEventStreamManager.dispose();
-  }
-
-  /// Releases all resources held by the SDK: closes the control plane
-  /// events stream. Safe to call multiple times. After dispose the SDK instance
-  /// must not be used further.
-  Future<void> dispose() async {
-    _controlPlaneEventStreamManager.dispose();
-    await _messagingService.dispose();
   }
 
   /// Closes the [channelAttachments] broadcast stream.
   ///
   /// After calling this, no further events will be emitted on
-  /// [channelAttachments]. Call this when the SDK is no longer needed
-  /// (e.g. on sign-out) to release resources.
-  Future<void> closeChannelAttachmentsStream() {
+  /// [channelAttachments]. Individually callable for narrower teardown;
+  /// [dispose] calls this as part of releasing all SDK resources.
+  Future<void> disposeChannelAttachmentsStream() {
     return _channelAttachmentsController.close();
   }
 
   /// Disposes the [VdipClient] and closes the [vdip] incoming-messages stream.
   ///
-  /// Call this when the SDK is no longer needed (e.g. on sign-out) to
-  /// release resources held by the VDIP subsystem.
-  Future<void> closeVdipStream() {
+  /// Individually callable for narrower teardown — for example,
+  /// `MeetingPlaceCredentialsSDK` calls this on its own without disposing
+  /// the rest of the SDK. [dispose] also calls this as part of releasing
+  /// all SDK resources.
+  Future<void> disposeVdipStream() {
     return _vdipClient.dispose();
+  }
+
+  /// Releases all resources held by the SDK: closes the control plane
+  /// events stream, the [channelAttachments] stream, the VDIP stream,
+  /// disposes the messaging service, and disposes the underlying
+  /// mediator and control plane SDKs. Safe to call multiple times, and safe
+  /// to call regardless of whether [disposeControlPlaneEventsStream],
+  /// [disposeChannelAttachmentsStream], or [disposeVdipStream] were already
+  /// called individually. After dispose the SDK instance must not be used
+  /// further.
+  Future<void> dispose() async {
+    disposeControlPlaneEventsStream();
+    await disposeChannelAttachmentsStream();
+    await disposeVdipStream();
+    await _messagingService.dispose();
+    await _mediatorSDK.dispose();
+    await _controlPlaneSDK.dispose();
   }
 
   /// A method that deletes all pending discovery events.
   Future<List<String>> deleteControlPlaneEvents() {
-    return _controlPlaneEventService.deleteAll();
+    return _withSdkExceptionHandling(_controlPlaneEventService.deleteAll);
   }
 
   /// Returns connection offer identified by [offerLink] from storage.
@@ -1103,8 +1036,10 @@ class MeetingPlaceCoreSDK {
   /// **Returns:**
   /// - [ConnectionOffer] or `null`
   Future<ConnectionOffer?> findConnectionOffer(String offerLink) {
-    return _repositoryConfig.connectionOfferRepository
-        .findConnectionOfferByOfferLink(offerLink);
+    return _withSdkExceptionHandling(
+      () => _repositoryConfig.connectionOfferRepository
+          .findConnectionOfferByOfferLink(offerLink),
+    );
   }
 
   /// Marks connection offer as deleted - updates connection offer status to
@@ -1119,7 +1054,9 @@ class MeetingPlaceCoreSDK {
   Future<ConnectionOffer> markConnectionOfferAsDeleted(
     ConnectionOffer connectionOffer,
   ) {
-    return _connectionService.markConnectionOfferAsDeleted(connectionOffer);
+    return _withSdkExceptionHandling(
+      () => _connectionService.markConnectionOfferAsDeleted(connectionOffer),
+    );
   }
 
   /// Deletes connection offer from storage.
@@ -1127,7 +1064,9 @@ class MeetingPlaceCoreSDK {
   /// **Parameters:**
   /// - [connectionOffer] - [ConnectionOffer] instance.
   Future<void> deleteConnectionOffer(ConnectionOffer connectionOffer) {
-    return _connectionService.deleteConnectionOffer(connectionOffer);
+    return _withSdkExceptionHandling(
+      () => _connectionService.deleteConnectionOffer(connectionOffer),
+    );
   }
 
   /// Returns group identified by [offerLink] from storage.
@@ -1138,7 +1077,9 @@ class MeetingPlaceCoreSDK {
   /// **Returns:**
   /// - [Group] or `null`
   Future<Group?> findGroupByOfferLink(String offerLink) {
-    return _groupService.findGroupByOfferLink(offerLink);
+    return _withSdkExceptionHandling(
+      () => _groupService.findGroupByOfferLink(offerLink),
+    );
   }
 
   /// Returns group identified by [groupId] from storage.
@@ -1149,7 +1090,9 @@ class MeetingPlaceCoreSDK {
   /// **Returns:**
   /// - [Group] or `null`
   Future<Group?> findGroupById(String groupId) {
-    return _groupService.findGroupById(groupId);
+    return _withSdkExceptionHandling(
+      () => _groupService.findGroupById(groupId),
+    );
   }
 
   /// Updates an existing group in the repository by using repository method
@@ -1157,8 +1100,10 @@ class MeetingPlaceCoreSDK {
   ///
   /// **Parameters:**
   /// [group] - Specifies the channel entity to update.
-  Future<void> updateGroup(Group group) async {
-    await _repositoryConfig.groupRepository.updateGroup(group);
+  Future<void> updateGroup(Group group) {
+    return _withSdkExceptionHandling(
+      () => _repositoryConfig.groupRepository.updateGroup(group),
+    );
   }
 
   /// Returns a list of all connection offers from repository by using
@@ -1167,25 +1112,27 @@ class MeetingPlaceCoreSDK {
   /// **Returns:**
   /// - list of objects with type [ConnectionOffer].
   Future<List<ConnectionOffer>> listConnectionOffers() {
-    return _repositoryConfig.connectionOfferRepository.listConnectionOffers();
+    return _withSdkExceptionHandling(
+      _repositoryConfig.connectionOfferRepository.listConnectionOffers,
+    );
   }
 
   /// Retrieves all [ConnectionOffer] objects matching the given [externalRef].
   Future<List<ConnectionOffer>> getConnectionOffersByExternalRef(
     String externalRef,
   ) {
-    return _repositoryConfig.connectionOfferRepository
-        .getConnectionOffersByExternalRef(externalRef);
+    return _withSdkExceptionHandling(
+      () => _repositoryConfig.connectionOfferRepository
+          .getConnectionOffersByExternalRef(externalRef),
+    );
   }
 
-  /// Updates the VRC score for the given [offers] on the Control Plane.
-  ///
-  /// [score] — the new trust score (VRC count) to set.
-  /// [offers] — the published [ConnectionOffer] objects to update.
-  Future<UpdateScoreForOffersResult> updateScoreForOffers({
-    required int score,
-    required List<ConnectionOffer> offers,
-  }) {
+  /// Updates the VRC score for the offers in [request] on the Control Plane.
+  Future<UpdateOffersScoreResult> updateOffersScore(
+    sdk.UpdateOffersScoreRequest request,
+  ) {
+    final score = request.score;
+    final offers = request.offers;
     return _withSdkExceptionHandling(() async {
       final mnemonics = offers.map((o) => o.mnemonic).toList();
       final output = await _controlPlaneSDK.execute(
@@ -1201,35 +1148,29 @@ class MeetingPlaceCoreSDK {
         }
       }
 
-      return UpdateScoreForOffersResult(
+      return UpdateOffersScoreResult(
         updatedOffers: output.updatedOffers,
         failedOffers: output.failedOffers,
       );
     });
   }
 
-  /// Updates the VRC score for [offers] in local storage only, without calling
-  /// the control plane API.
+  /// Updates the VRC score for the offers in [request] in local storage only,
+  /// without calling the control plane API.
   ///
   /// Use this for accepted (non-owned) offers where the local user cannot
   /// update the score remotely — for example, when B accepted A's published
   /// offer and needs to reflect an updated VRC count without owning the
   /// mnemonic on the control plane.
-  ///
-  /// **Parameters:**
-  /// - [score] — the new trust score (VRC count) to persist locally.
-  /// - [offers] — the accepted [ConnectionOffer] objects to update in the
-  ///   local repository.
-  Future<void> updateLocalConnectionOffersScore({
-    required int score,
-    required List<ConnectionOffer> offers,
-  }) async {
-    final offersSnapshot = offers.toList(growable: false);
-    for (final offer in offersSnapshot) {
-      await _repositoryConfig.connectionOfferRepository.updateConnectionOffer(
-        offer.copyWith(score: score),
-      );
-    }
+  Future<void> updateOffersScoreLocally(sdk.UpdateOffersScoreRequest request) {
+    return _withSdkExceptionHandling(() async {
+      final offersSnapshot = request.offers.toList(growable: false);
+      for (final offer in offersSnapshot) {
+        await _repositoryConfig.connectionOfferRepository.updateConnectionOffer(
+          offer.copyWith(score: request.score),
+        );
+      }
+    });
   }
 
   /// Fetches a channel entity by [did], matched against either
@@ -1242,7 +1183,9 @@ class MeetingPlaceCoreSDK {
   /// **Returns:**
   /// - The matching [Channel] if found, or `null` if no match exists.
   Future<Channel?> findChannelByDid(String did) {
-    return _channelService.findChannelByDid(did);
+    return _withSdkExceptionHandling(
+      () => _channelService.findChannelByDid(did),
+    );
   }
 
   /// Fetches a channel entity by [did], matched the same way as
@@ -1256,9 +1199,13 @@ class MeetingPlaceCoreSDK {
   /// - The matching [Channel].
   ///
   /// **Throws:**
-  /// - An exception if no matching channel exists.
+  /// - [MeetingPlaceCoreSDKException] with
+  ///   [MeetingPlaceCoreSDKErrorCode.channelNotFound] if no matching channel
+  ///   exists.
   Future<Channel> getChannelByDid(String did) {
-    return _channelService.getChannelByDid(did);
+    return _withSdkExceptionHandling(
+      () => _channelService.getChannelByDid(did),
+    );
   }
 
   /// Fetches a channel entity by the other party's permanent channel [did].
@@ -1269,7 +1216,9 @@ class MeetingPlaceCoreSDK {
   /// **Returns:**
   /// - The matching [Channel] if found, or `null` if no match exists.
   Future<Channel?> findChannelByOtherPartyPermanentDid(String did) {
-    return _channelService.findChannelByOtherPartyPermanentChannelDid(did);
+    return _withSdkExceptionHandling(
+      () => _channelService.findChannelByOtherPartyPermanentChannelDid(did),
+    );
   }
 
   /// Updates an existing channel in the repository.
@@ -1277,7 +1226,9 @@ class MeetingPlaceCoreSDK {
   /// **Parameters:**
   /// [channel] - Specifies the channel entity to update.
   Future<void> updateChannel(Channel channel) {
-    return _channelService.updateChannel(channel);
+    return _withSdkExceptionHandling(
+      () => _channelService.updateChannel(channel),
+    );
   }
 
   /// Resolves mediator DID from the given mediator endpoint URL.
@@ -1288,36 +1239,38 @@ class MeetingPlaceCoreSDK {
   /// **Returns:**
   /// - The resolved mediator DID as a string, or `null` if resolution fails.
   Future<String?> findMediatorDidFromUrl(String mediatorEndpoint) {
-    return _mediatorSDK.findMediatorDidFromUrl(mediatorEndpoint);
-  }
-
-  /// Sends [fileBytes] as a media message on [channel]. The transport
-  /// is selected from [Channel.transport]; encryption, upload, and messaging
-  /// are delegated to the underlying transport.
-  Future<String?> sendMediaMessage(
-    Channel channel,
-    Uint8List fileBytes, {
-    required String contentType,
-    String? filename,
-    String? caption,
-    Map<String, dynamic>? extraContent,
-    ChannelNotification? notification,
-  }) {
-    return _messagingService.sendMediaMessage(
-      channel,
-      fileBytes,
-      contentType: contentType,
-      filename: filename,
-      caption: caption,
-      extraContent: extraContent,
-      notification: notification,
+    return _withSdkExceptionHandling(
+      () => _mediatorSDK.findMediatorDidFromUrl(mediatorEndpoint),
     );
   }
 
-  /// Downloads and decrypts the media identified by [reference] in [channel].
-  Future<Uint8List> downloadMedia(Channel channel, MediaReference reference) {
+  /// Sends [sdk.SendMediaMessageRequest.fileBytes] as a media message on
+  /// [sdk.SendMediaMessageRequest.channel]. The transport is selected from
+  /// [Channel.transport]; encryption, upload, and messaging are delegated
+  /// to the underlying transport.
+  Future<String?> sendMediaMessage(sdk.SendMediaMessageRequest request) {
+    return _withSdkExceptionHandling(
+      () => _messagingService.sendMediaMessage(
+        request.channel,
+        request.fileBytes,
+        contentType: request.contentType,
+        filename: request.filename,
+        caption: request.caption,
+        extraContent: request.extraContent,
+        notification: request.notification,
+      ),
+    );
+  }
+
+  /// Downloads and decrypts the media identified by
+  /// [sdk.DownloadMediaRequest.reference] in
+  /// [sdk.DownloadMediaRequest.channel].
+  Future<Uint8List> downloadMedia(sdk.DownloadMediaRequest request) {
     return _withSdkExceptionHandling(() {
-      return _messagingService.downloadMedia(channel, reference);
+      return _messagingService.downloadMedia(
+        request.channel,
+        request.reference,
+      );
     });
   }
 
@@ -1344,11 +1297,13 @@ class MeetingPlaceCoreSDK {
   /// and continue consuming messages from the server.
   Future<IncomingMessageHandle> subscribe(
     IncomingMessageSubscription subscription,
-  ) => _messagingService.subscribe(subscription);
+  ) => _withSdkExceptionHandling(
+    () => _messagingService.subscribe(subscription),
+  );
 
   /// Fetches historical messages for the given [query].
   Future<List<IncomingMessage>> fetchHistory(HistoryQuery query) =>
-      _messagingService.fetchHistory(query);
+      _withSdkExceptionHandling(() => _messagingService.fetchHistory(query));
 
   Future<T> _withSdkExceptionHandling<T>(Future<T> Function() operation) async {
     return _sdkErrorHandler.handleError(operation);
@@ -1356,11 +1311,19 @@ class MeetingPlaceCoreSDK {
 
   MeetingPlaceTransport get channelTransport => _channelTransport;
 
-  Future<void> updateMessageSyncMarker(Channel channel, String eventId) =>
-      _channelService.updateMessageSyncMarker(channel, eventId);
+  Future<void> updateMessageSyncMarker(
+    sdk.UpdateMessageSyncMarkerRequest request,
+  ) => _withSdkExceptionHandling(
+    () => _channelService.updateMessageSyncMarker(
+      request.channel,
+      request.eventId,
+    ),
+  );
 
   Future<void> notifyChannel(ChannelNotification notification) =>
-      _messageService.notifyChannel(notification);
+      _withSdkExceptionHandling(
+        () => _messageService.notifyChannel(notification),
+      );
 
   static Uri _didWebBaseHostFromControlPlaneDid(String controlPlaneDid) {
     var domain = controlPlaneDid.replaceFirst('did:web:', '');

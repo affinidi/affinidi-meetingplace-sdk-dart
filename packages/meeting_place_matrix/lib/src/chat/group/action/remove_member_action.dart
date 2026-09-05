@@ -22,18 +22,23 @@ class RemoveMemberAction implements GroupAction<Group> {
         'Only group owners can remove members.',
         name: 'removeMember',
       );
-      throw Exception('Only group owners are allowed to remove members');
+      throw MeetingPlaceChatSDKException(
+        message: 'Only group owners are allowed to remove members',
+        code: MeetingPlaceChatSDKErrorCode.invalidParticipant,
+      );
     }
 
     final group = _chatSDK.group;
     final member = group.members.firstWhere(
       (m) => m.did == memberDid,
-      orElse: () => throw Exception('Member not found in group'),
+      orElse: () => throw MeetingPlaceChatSDKException(
+        message: 'Member not found in group',
+        code: MeetingPlaceChatSDKErrorCode.invalidParticipant,
+      ),
     );
 
     await _chatSDK.coreSDK.removeMemberFromGroup(
-      groupId: group.id,
-      memberDid: memberDid,
+      RemoveMemberFromGroupRequest(groupId: group.id, memberDid: memberDid),
     );
 
     member.status = GroupMemberStatus.deleted;

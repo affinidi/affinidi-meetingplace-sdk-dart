@@ -62,20 +62,24 @@ class SetupChatSdk {
     ChannelTransport transport = ChannelTransport.didcomm,
   }) async {
     final offer = await aliceSDK.coreSDK.publishOffer(
-      offerName: 'Sample Offer',
-      offerDescription: 'Sample offer description',
-      contactCard: aliceSDK.contactCard,
-      type: SDKConnectionOfferType.invitation,
-      transport: transport,
+      PublishOfferRequest(
+        offerName: 'Sample Offer',
+        offerDescription: 'Sample offer description',
+        contactCard: aliceSDK.contactCard,
+        type: SDKConnectionOfferType.invitation,
+        transport: transport,
+      ),
     );
 
     final findOfferResult = await bobSDK.coreSDK.findOffer(
       mnemonic: offer.connectionOffer.mnemonic,
     );
     await bobSDK.coreSDK.acceptOffer(
-      connectionOffer: findOfferResult.connectionOffer!,
-      contactCard: bobSDK.contactCard,
-      senderInfo: 'Bob',
+      AcceptOfferRequest(
+        connectionOffer: findOfferResult.connectionOffer!,
+        contactCard: bobSDK.contactCard,
+        senderInfo: 'Bob',
+      ),
     );
 
     final waitForInvitationAccept = Completer<Channel>();
@@ -100,7 +104,7 @@ class SetupChatSdk {
     final invitationChannel = await waitForInvitationAccept.future;
 
     final aliceChannel = await aliceSDK.coreSDK.approveConnectionRequest(
-      channel: invitationChannel,
+      ApproveConnectionRequestParams(channel: invitationChannel),
     );
 
     await bobSDK.coreSDK.processControlPlaneEvents();

@@ -20,16 +20,18 @@ void main() async {
 
   test('connection offer is marked as deleted', () async {
     final offer = await aliceSDK.publishOffer(
-      offerName: 'Sample Offer 123',
-      offerDescription: 'Sample offer description',
-      validUntil: DateTime.now().toUtc().add(const Duration(seconds: 60)),
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:alice',
-        contactInfo: {
-          'n': {'given': 'Alice'},
-        },
+      PublishOfferRequest(
+        offerName: 'Sample Offer 123',
+        offerDescription: 'Sample offer description',
+        validUntil: DateTime.now().toUtc().add(const Duration(seconds: 60)),
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:alice',
+          contactInfo: {
+            'n': {'given': 'Alice'},
+          },
+        ),
+        type: SDKConnectionOfferType.invitation,
       ),
-      type: SDKConnectionOfferType.invitation,
     );
 
     final updatedConnectionOffer = await aliceSDK.markConnectionOfferAsDeleted(
@@ -49,16 +51,18 @@ void main() async {
 
   test('gracefully handles multiple deletion calls', () async {
     final offer = await aliceSDK.publishOffer(
-      offerName: 'Sample Offer 123',
-      offerDescription: 'Sample offer description',
-      validUntil: DateTime.now().toUtc().add(const Duration(seconds: 60)),
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:alice',
-        contactInfo: {
-          'n': {'given': 'Alice'},
-        },
+      PublishOfferRequest(
+        offerName: 'Sample Offer 123',
+        offerDescription: 'Sample offer description',
+        validUntil: DateTime.now().toUtc().add(const Duration(seconds: 60)),
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:alice',
+          contactInfo: {
+            'n': {'given': 'Alice'},
+          },
+        ),
+        type: SDKConnectionOfferType.invitation,
       ),
-      type: SDKConnectionOfferType.invitation,
     );
 
     final deletedConnectionOffer = await aliceSDK.markConnectionOfferAsDeleted(
@@ -76,16 +80,18 @@ void main() async {
 
   test('delete connection offer from storage', () async {
     final offer = await aliceSDK.publishOffer(
-      offerName: 'Sample Offer 123',
-      offerDescription: 'Sample offer description',
-      validUntil: DateTime.now().toUtc().add(const Duration(seconds: 60)),
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:alice',
-        contactInfo: {
-          'n': {'given': 'Alice'},
-        },
+      PublishOfferRequest(
+        offerName: 'Sample Offer 123',
+        offerDescription: 'Sample offer description',
+        validUntil: DateTime.now().toUtc().add(const Duration(seconds: 60)),
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:alice',
+          contactInfo: {
+            'n': {'given': 'Alice'},
+          },
+        ),
+        type: SDKConnectionOfferType.invitation,
       ),
-      type: SDKConnectionOfferType.invitation,
     );
 
     await aliceSDK.deleteConnectionOffer(offer.connectionOffer);
@@ -98,16 +104,18 @@ void main() async {
 
   test('deregister offer from control plane', () async {
     final offer = await aliceSDK.publishOffer(
-      offerName: 'Sample Offer 123',
-      offerDescription: 'Sample offer description',
-      validUntil: DateTime.now().toUtc().add(const Duration(seconds: 60)),
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:alice',
-        contactInfo: {
-          'n': {'given': 'Alice'},
-        },
+      PublishOfferRequest(
+        offerName: 'Sample Offer 123',
+        offerDescription: 'Sample offer description',
+        validUntil: DateTime.now().toUtc().add(const Duration(seconds: 60)),
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:alice',
+          contactInfo: {
+            'n': {'given': 'Alice'},
+          },
+        ),
+        type: SDKConnectionOfferType.invitation,
       ),
-      type: SDKConnectionOfferType.invitation,
     );
 
     await aliceSDK.deleteConnectionOffer(offer.connectionOffer);
@@ -128,16 +136,18 @@ void main() async {
 
   test('skips deregister offer from MPX discovery if not the owner', () async {
     final offer = await aliceSDK.publishOffer(
-      offerName: 'Sample Offer 123',
-      offerDescription: 'Sample offer description',
-      validUntil: DateTime.now().toUtc().add(const Duration(seconds: 60)),
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:alice',
-        contactInfo: {
-          'n': {'given': 'Alice'},
-        },
+      PublishOfferRequest(
+        offerName: 'Sample Offer 123',
+        offerDescription: 'Sample offer description',
+        validUntil: DateTime.now().toUtc().add(const Duration(seconds: 60)),
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:alice',
+          contactInfo: {
+            'n': {'given': 'Alice'},
+          },
+        ),
+        type: SDKConnectionOfferType.invitation,
       ),
-      type: SDKConnectionOfferType.invitation,
     );
 
     final findOfferResult = await bobSDK.findOffer(
@@ -145,14 +155,16 @@ void main() async {
     );
 
     final acceptOfferResult = await bobSDK.acceptOffer(
-      connectionOffer: findOfferResult.connectionOffer!,
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:bob',
-        contactInfo: {
-          'n': {'given': 'Bob', 'surname': 'A.'},
-        },
+      AcceptOfferRequest(
+        connectionOffer: findOfferResult.connectionOffer!,
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:bob',
+          contactInfo: {
+            'n': {'given': 'Bob', 'surname': 'A.'},
+          },
+        ),
+        senderInfo: 'Bob',
       ),
-      senderInfo: 'Bob',
     );
 
     await aliceSDK.deleteConnectionOffer(acceptOfferResult.connectionOffer);

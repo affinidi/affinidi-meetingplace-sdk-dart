@@ -44,22 +44,28 @@ class GroupChatFixture {
 
     final publishOfferResult = await fixture.aliceSDK
         .publishOffer<GroupConnectionOffer>(
-          offerName: 'Sample offer',
-          offerDescription: 'Sample offer description',
-          contactCard: aliceCard,
-          type: SDKConnectionOfferType.groupInvitation,
+          PublishOfferRequest(
+            offerName: 'Sample offer',
+            offerDescription: 'Sample offer description',
+            contactCard: aliceCard,
+            type: SDKConnectionOfferType.groupInvitation,
+          ),
         );
 
     final bobAcceptance = await fixture.bobSDK.acceptOffer(
-      connectionOffer: publishOfferResult.connectionOffer,
-      contactCard: bobCard,
-      senderInfo: 'Bob',
+      AcceptOfferRequest(
+        connectionOffer: publishOfferResult.connectionOffer,
+        contactCard: bobCard,
+        senderInfo: 'Bob',
+      ),
     );
 
     final charlieAcceptance = await fixture.charlieSDK.acceptOffer(
-      connectionOffer: publishOfferResult.connectionOffer,
-      contactCard: charlieCard,
-      senderInfo: 'Bob',
+      AcceptOfferRequest(
+        connectionOffer: publishOfferResult.connectionOffer,
+        contactCard: charlieCard,
+        senderInfo: 'Bob',
+      ),
     );
 
     final aliceSDKCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
@@ -80,7 +86,7 @@ class GroupChatFixture {
         .findChannelByOtherPartyPermanentDid(bobMemberDidDoc.id);
 
     await fixture.aliceSDK.approveConnectionRequest(
-      channel: aliceToBobChannel!,
+      ApproveConnectionRequestParams(channel: aliceToBobChannel!),
     );
 
     final charlieMemberDidDoc = await charlieAcceptance
@@ -90,7 +96,7 @@ class GroupChatFixture {
         .findChannelByOtherPartyPermanentDid(charlieMemberDidDoc.id);
 
     await fixture.aliceSDK.approveConnectionRequest(
-      channel: aliceToCharlieChannel!,
+      ApproveConnectionRequestParams(channel: aliceToCharlieChannel!),
     );
 
     final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(

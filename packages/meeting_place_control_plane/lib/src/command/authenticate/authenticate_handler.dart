@@ -6,8 +6,8 @@ import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
 import '../../core/didcomm/didcomm_challenge_response.dart';
-import '../../loggers/control_plane_sdk_logger.dart';
-import '../../loggers/default_control_plane_sdk_logger.dart';
+import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
+import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
 import '../../utils/string.dart';
 import 'authenticate.dart';
 import 'authenticate_exception.dart';
@@ -31,13 +31,13 @@ class AuthenticateHandler
     required ControlPlaneApiClient apiClient,
     required DidManager didManager,
     required DidResolver didResolver,
-    ControlPlaneSDKLogger? logger,
+    MeetingPlaceControlPlaneSDKLogger? logger,
   }) : _apiClient = apiClient,
        _didManager = didManager,
        _didResolver = didResolver,
        _logger =
            logger ??
-           DefaultControlPlaneSDKLogger(
+           DefaultMeetingPlaceControlPlaneSDKLogger(
              className: _className,
              sdkName: sdkName,
            );
@@ -48,7 +48,7 @@ class AuthenticateHandler
   final DidManager _didManager;
   final DidResolver _didResolver;
 
-  final ControlPlaneSDKLogger _logger;
+  final MeetingPlaceControlPlaneSDKLogger _logger;
 
   /// Fetch the Auth Credentials from the provided did document.
   ///

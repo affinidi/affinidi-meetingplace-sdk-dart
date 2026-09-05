@@ -1,0 +1,77 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:ssi/ssi.dart';
+
+import '../utils/print.dart';
+import '../utils/sdk.dart';
+
+void main() async {
+  final aliceSDK = await initSDK(wallet: PersistentWallet(InMemoryKeyStore()));
+  final aliceWaitFor = Completer<Channel>();
+
+  // Alice creates a direct connection
+  prettyPrintGreen('>>> Calling SDK.createDirectConnection');
+  final directConnection = await aliceSDK.createDirectConnection(
+    CreateDirectConnectionRequest(
+      contactCard: ContactCard(
+        did: 'did:test:alice',
+        type: 'individual',
+        contactInfo: {'firstName': 'Alice'},
+      ),
+    ),
+  );
+
+  prettyPrintYellow(
+    'Direct connection URL: ${directConnection.directConnectionUrl.toString()}',
+  );
+  final outputDirectory = Directory('.example-output')
+    ..createSync(recursive: true);
+  File(
+    '${outputDirectory.path}${Platform.pathSeparator}direct-connection-url.txt',
+  ).writeAsBytesSync(
+    utf8.encode(directConnection.directConnectionUrl.toString()),
+  );
+
+  // Alice listens on acceptance
+  prettyPrintYellow('Listening on direct connection stream...');
+  directConnection.stream.listen((data) {
+    prettyPrintYellow('Received event type: ${data.eventType.name}');
+    prettyJsonPrintYellow('Received message:', data.message.toJson());
+    prettyJsonPrintYellow('Received channel:', data.channel.toJson());
+    aliceWaitFor.complete(data.channel);
+  });
+
+  final channel = await aliceWaitFor.future;
+
+  // Close stream
+  prettyPrint('Disposing direct connection stream...');
+  await directConnection.stream.dispose();
+
+  final messageStream = await aliceSDK.subscribe(
+    DidCommSubscription(ownerDid: channel.permanentChannelDid!),
+  );
+
+  final waitForBobsMessage = Completer<PlainTextMessage>();
+  final messageSubscription = messageStream.stream.listen((
+    IncomingMessage message,
+  ) {
+    final didcommMessage = message as DidCommIncomingMessage;
+    if (didcommMessage.payload.isOfType(
+      'https://affinidi.com/didcomm/protocols/meeting-place-core/1.0/example',
+    )) {
+      waitForBobsMessage.complete(didcommMessage.payload);
+    }
+  });
+
+  prettyPrintYellow('Waiting for Bob\'s message...');
+  prettyJsonPrintYellow(
+    'Received Bob\'s message',
+    (await waitForBobsMessage.future).toJson(),
+  );
+
+  // Close stream
+  prettyPrint('Disposing message stream...');
+  await messageSubscription.cancel();
+}

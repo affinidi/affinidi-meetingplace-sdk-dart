@@ -96,19 +96,21 @@ class MediaTextMessageSender {
         final caption = i == 0 && text.isNotEmpty ? text : null;
         final isLast = i == attachments.length - 1;
         final eventId = await _coreSDK.sendMediaMessage(
-          channel,
-          attachmentBytes[i],
-          contentType: contentTypes[i],
-          filename: attachment.filename,
-          caption: caption,
-          extraContent: _extraContentForAttachment(
-            attachment,
-            attachmentId: attachmentIds[i],
+          SendMediaMessageRequest(
+            channel: channel,
+            fileBytes: attachmentBytes[i],
             contentType: contentTypes[i],
-            sizeBytes: attachmentBytes[i].length,
-            correlationId: messageId,
+            filename: attachment.filename,
+            caption: caption,
+            extraContent: _extraContentForAttachment(
+              attachment,
+              attachmentId: attachmentIds[i],
+              contentType: contentTypes[i],
+              sizeBytes: attachmentBytes[i].length,
+              correlationId: messageId,
+            ),
+            notification: isLast ? notification : null,
           ),
-          notification: isLast ? notification : null,
         );
         if (eventId != null) {
           message.attachments[i].transportId = eventId;

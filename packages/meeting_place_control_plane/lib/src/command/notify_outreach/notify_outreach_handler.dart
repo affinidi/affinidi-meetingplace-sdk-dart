@@ -12,11 +12,11 @@ class NotifyOutreachHandler
         CommandHandler<NotifyOutreachCommand, NotifyOutreachCommandOutput> {
   NotifyOutreachHandler({
     required ControlPlaneApiClient apiClient,
-    ControlPlaneSDKLogger? logger,
+    MeetingPlaceControlPlaneSDKLogger? logger,
   }) : _apiClient = apiClient,
        _logger =
            logger ??
-           DefaultControlPlaneSDKLogger(
+           DefaultMeetingPlaceControlPlaneSDKLogger(
              className: _className,
              sdkName: sdkName,
            );
@@ -24,7 +24,7 @@ class NotifyOutreachHandler
   static const String _className = 'NotifyChannelHandler';
 
   final ControlPlaneApiClient _apiClient;
-  final ControlPlaneSDKLogger _logger;
+  final MeetingPlaceControlPlaneSDKLogger _logger;
 
   @override
   Future<NotifyOutreachCommandOutput> handle(

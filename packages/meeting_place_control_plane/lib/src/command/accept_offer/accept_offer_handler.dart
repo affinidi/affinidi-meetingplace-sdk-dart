@@ -7,8 +7,8 @@ import '../../api/api_client.dart';
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
-import '../../loggers/control_plane_sdk_logger.dart';
-import '../../loggers/default_control_plane_sdk_logger.dart';
+import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
+import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
 import 'accept_offer.dart';
 import 'accept_offer_exception.dart';
 import 'accept_offer_output.dart';
@@ -24,14 +24,19 @@ class AcceptOfferHandler
   ///
   /// **Parameters:**
   /// - [apiClient] - An instance of control plane api client object.
-  AcceptOfferHandler({required this.apiClient, ControlPlaneSDKLogger? logger})
-    : _logger =
-          logger ??
-          DefaultControlPlaneSDKLogger(className: _className, sdkName: sdkName);
+  AcceptOfferHandler({
+    required this.apiClient,
+    MeetingPlaceControlPlaneSDKLogger? logger,
+  }) : _logger =
+           logger ??
+           DefaultMeetingPlaceControlPlaneSDKLogger(
+             className: _className,
+             sdkName: sdkName,
+           );
   static const String _className = 'AcceptOfferHandler';
 
   final ControlPlaneApiClient apiClient;
-  final ControlPlaneSDKLogger _logger;
+  final MeetingPlaceControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
   ///

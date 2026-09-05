@@ -1,5 +1,5 @@
-import '../../control_plane_sdk_error_code.dart';
 import '../../core/exception/control_plane_exception.dart';
+import '../../meeting_place_control_plane_sdk_error_code.dart';
 
 /// A concrete implementation of the [ControlPlaneException] interface for
 /// throwing specific exceptions related to Group Notify Channel

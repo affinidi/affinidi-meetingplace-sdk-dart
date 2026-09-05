@@ -16,7 +16,7 @@ class _MockDefaultApi extends Mock implements DefaultApi {}
 
 class _MockDidResolver extends Mock implements DidResolver {}
 
-class _MockLogger extends Mock implements ControlPlaneSDKLogger {}
+class _MockLogger extends Mock implements MeetingPlaceControlPlaneSDKLogger {}
 
 class _FakeMatrixChallenge extends Fake implements MatrixChallenge {}
 

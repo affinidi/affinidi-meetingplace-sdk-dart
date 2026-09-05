@@ -68,7 +68,7 @@ const _$ChannelStatusEnumMap = {
 const _$ChannelTypeEnumMap = {
   ChannelType.individual: 'individual',
   ChannelType.group: 'group',
-  ChannelType.oob: 'oob',
+  ChannelType.directConnection: 'directConnection',
 };
 
 const _$ChannelTransportEnumMap = {

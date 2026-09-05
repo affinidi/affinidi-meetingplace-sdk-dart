@@ -22,7 +22,8 @@ void main() async {
   final notificationDidDocument =
       await notification.recipientDidManager.getDidDocument();
 
-  final publishOfferResult = await aliceSDK.publishOffer<GroupConnectionOffer>(
+  final publishOfferResult =
+      await aliceSDK.publishOffer<GroupConnectionOffer>(PublishOfferRequest(
     offerName: 'Example group offer',
     offerDescription: 'Example group offer with Matrix provisioning.',
     contactCard: ContactCard(
@@ -32,7 +33,7 @@ void main() async {
     ),
     type: SDKConnectionOfferType.groupInvitation,
     validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
-  );
+  ));
 
   final groupOwnerDidManager = publishOfferResult.groupOwnerDidManager;
   if (groupOwnerDidManager == null) {
@@ -81,6 +82,7 @@ void main() async {
     waitingChannel.toJson(),
   );
 
-  await aliceSDK.approveConnectionRequest(channel: waitingChannel);
+  await aliceSDK.approveConnectionRequest(
+      ApproveConnectionRequestParams(channel: waitingChannel));
   await notificationSubscription.cancel();
 }

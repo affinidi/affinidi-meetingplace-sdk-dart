@@ -5,6 +5,7 @@ import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 
 import '../../../meeting_place_core.dart' show PlainTextMessage;
 import '../../loggers/meeting_place_core_sdk_logger.dart';
+import '../../sdk/sdk_exception_mapper.dart';
 import '../core_sdk_stream_subscription.dart';
 import 'mediator_message.dart';
 
@@ -107,7 +108,7 @@ class MediatorStreamSubscriptionWrapper
           );
 
           if (!_controller!.isClosed) {
-            _controller!.addError(e, stackTrace);
+            _controller!.addError(toCoreSdkException(e), stackTrace);
           }
 
           _messageProcessingResults.putIfAbsent(messageId, () => []);
@@ -209,7 +210,7 @@ class MediatorStreamSubscriptionWrapper
       },
       onError: (Object e, StackTrace stackTrace) {
         if (!_controller!.isClosed) {
-          _controller!.addError(e, stackTrace);
+          _controller!.addError(toCoreSdkException(e), stackTrace);
         }
       },
       onDone: () {

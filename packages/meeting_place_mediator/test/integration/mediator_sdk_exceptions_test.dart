@@ -89,14 +89,14 @@ void main() async {
     final didDocument = await recipientDidManager.getDidDocument();
 
     expect(
-      () => mediatorSDK.sendMessage(
-        PlainTextMessage(
+      () => mediatorSDK.sendMessage(MediatorMessageRequest(
+        message: PlainTextMessage(
           id: const Uuid().v4(),
           type: Uri.parse('https://example.com/type/test-message'),
         ),
         senderDidManager: didManager,
         recipientDidDocument: didDocument,
-      ),
+      )),
       throwsA(
         predicate(
           (e) =>

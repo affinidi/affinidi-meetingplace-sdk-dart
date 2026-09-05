@@ -58,10 +58,12 @@ class ApproveConnectionRequestFixture {
     );
 
     final offer = await fixture.aliceSDK.publishOffer(
-      offerName: 'Sample Offer 123',
-      offerDescription: 'Sample offer description',
-      contactCard: fixture.aliceContactCard,
-      type: SDKConnectionOfferType.invitation,
+      PublishOfferRequest(
+        offerName: 'Sample Offer 123',
+        offerDescription: 'Sample offer description',
+        contactCard: fixture.aliceContactCard,
+        type: SDKConnectionOfferType.invitation,
+      ),
     );
 
     final findOfferResult = await fixture.bobSDK.findOffer(
@@ -69,9 +71,11 @@ class ApproveConnectionRequestFixture {
     );
 
     await fixture.bobSDK.acceptOffer(
-      connectionOffer: findOfferResult.connectionOffer!,
-      contactCard: fixture.bobContactCard,
-      senderInfo: 'Bob',
+      AcceptOfferRequest(
+        connectionOffer: findOfferResult.connectionOffer!,
+        contactCard: fixture.bobContactCard,
+        senderInfo: 'Bob',
+      ),
     );
 
     final waitForInvitationAccept = Completer<Channel>();
@@ -101,7 +105,9 @@ class ApproveConnectionRequestFixture {
 
     fixture.aliceApprovedChannel = await fixture.aliceSDK
         .approveConnectionRequest(
-          channel: fixture.aliceInvitationAcceptChannel,
+          ApproveConnectionRequestParams(
+            channel: fixture.aliceInvitationAcceptChannel,
+          ),
         );
 
     await fixture.bobSDK.processControlPlaneEvents();

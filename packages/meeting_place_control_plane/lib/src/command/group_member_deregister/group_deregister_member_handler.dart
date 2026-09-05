@@ -7,8 +7,8 @@ import '../../api/api_client.dart';
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
-import '../../loggers/control_plane_sdk_logger.dart';
-import '../../loggers/default_control_plane_sdk_logger.dart';
+import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
+import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
 import 'group_deregister_member.dart';
 import 'group_deregister_member_exception.dart';
 import 'group_deregister_member_output.dart';
@@ -30,18 +30,18 @@ class GroupDeregisterMemberHandler
   /// - [apiClient] - An instance of discovery api client object.
   GroupDeregisterMemberHandler({
     required ControlPlaneApiClient apiClient,
-    ControlPlaneSDKLogger? logger,
+    MeetingPlaceControlPlaneSDKLogger? logger,
   }) : _apiClient = apiClient,
        _logger =
            logger ??
-           DefaultControlPlaneSDKLogger(
+           DefaultMeetingPlaceControlPlaneSDKLogger(
              className: _className,
              sdkName: sdkName,
            );
   static const String _className = 'GroupDeregisterMemberHandler';
 
   final ControlPlaneApiClient _apiClient;
-  final ControlPlaneSDKLogger _logger;
+  final MeetingPlaceControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
   ///

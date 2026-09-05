@@ -37,7 +37,7 @@ void main() async {
   );
 
   prettyPrintGreen('>>> Calling SDK.acceptOffer');
-  final acceptOfferResult = await bobSDK.acceptOffer(
+  final acceptOfferResult = await bobSDK.acceptOffer(AcceptOfferRequest(
     connectionOffer: findOfferResult.connectionOffer!,
     contactCard: ContactCard(
       did: 'did:test:bob',
@@ -45,7 +45,7 @@ void main() async {
       contactInfo: {},
     ),
     senderInfo: 'Bob',
-  );
+  ));
   prettyJsonPrintYellow(
     'Acceptance details',
     acceptOfferResult.connectionOffer.toJson(),
@@ -89,8 +89,10 @@ void main() async {
 
   prettyPrintGreen('>>> Calling SDK.downloadMedia');
   final bytes = await bobSDK.downloadMedia(
-    channel,
-    MatrixEventMediaReference(eventId),
+    DownloadMediaRequest(
+      channel: channel,
+      reference: MatrixEventMediaReference(eventId),
+    ),
   );
 
   prettyPrintYellow('Downloaded ${bytes.length} bytes');

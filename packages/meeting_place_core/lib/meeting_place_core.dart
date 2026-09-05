@@ -16,6 +16,8 @@ export 'package:meeting_place_mediator/meeting_place_mediator.dart'
         AccessListAdd,
         AccessListRemove,
         AccessListSet,
+        FetchMessagesRequest,
+        MediatorMessageRequest,
         MediatorStreamProcessingResult,
         MediatorStreamSubscriptionOptions,
         MeetingPlaceMediatorSDK,
@@ -40,13 +42,13 @@ export 'src/protocol/protocol.dart';
 export 'src/repository/repository.dart';
 export 'src/sdk/results/register_for_didcomm_notifications_result.dart';
 export 'src/sdk/sdk.dart';
-export 'src/service/config.dart';
 export 'src/service/core_sdk_stream_subscription.dart';
+export 'src/service/direct_connection/session/direct_connection_acceptance_session.dart';
+export 'src/service/direct_connection/session/direct_connection_offer_session.dart';
+export 'src/service/direct_connection/stream/direct_connection_stream.dart';
+export 'src/service/direct_connection/stream/direct_connection_stream_data.dart';
 export 'src/service/mediator/mediator_message.dart';
-export 'src/service/oob/session/oob_acceptance_session.dart';
-export 'src/service/oob/session/oob_offer_session.dart';
-export 'src/service/oob/stream/oob_stream.dart';
-export 'src/service/oob/stream/oob_stream_data.dart';
+export 'src/service/meeting_place_core_config.dart';
 export 'src/transport/transport.dart';
 export 'src/utils/contact_card_utils.dart';
 export 'src/vdip/vdip_client.dart';

@@ -34,11 +34,13 @@ void main() {
     );
 
     final offer = await aliceSDK.publishOffer(
-      offerName: 'Sample Offer 123',
-      offerDescription: 'Sample offer description',
-      maximumUsage: 1,
-      contactCard: aliceCard,
-      type: SDKConnectionOfferType.invitation,
+      PublishOfferRequest(
+        offerName: 'Sample Offer 123',
+        offerDescription: 'Sample offer description',
+        maximumUsage: 1,
+        contactCard: aliceCard,
+        type: SDKConnectionOfferType.invitation,
+      ),
     );
 
     final findOfferResult = await bobSDK.findOffer(
@@ -46,9 +48,11 @@ void main() {
     );
 
     await bobSDK.acceptOffer(
-      connectionOffer: findOfferResult.connectionOffer!,
-      contactCard: bobCard,
-      senderInfo: 'Bob',
+      AcceptOfferRequest(
+        connectionOffer: findOfferResult.connectionOffer!,
+        contactCard: bobCard,
+        senderInfo: 'Bob',
+      ),
     );
 
     final completer = Completer<void>();
@@ -82,10 +86,12 @@ void main() {
       );
 
       final actual = await aliceSDK.publishOffer(
-        offerName: 'Sample',
-        offerDescription: 'Sample offer description',
-        contactCard: aliceCard,
-        type: SDKConnectionOfferType.invitation,
+        PublishOfferRequest(
+          offerName: 'Sample',
+          offerDescription: 'Sample offer description',
+          contactCard: aliceCard,
+          type: SDKConnectionOfferType.invitation,
+        ),
       );
 
       final bobCard = ContactCardFixture.getContactCardFixture(
@@ -95,9 +101,11 @@ void main() {
         },
       );
       final acceptOfferResult = await bobSDK.acceptOffer(
-        connectionOffer: actual.connectionOffer,
-        contactCard: bobCard,
-        senderInfo: 'Bob',
+        AcceptOfferRequest(
+          connectionOffer: actual.connectionOffer,
+          contactCard: bobCard,
+          senderInfo: 'Bob',
+        ),
       );
 
       expect(

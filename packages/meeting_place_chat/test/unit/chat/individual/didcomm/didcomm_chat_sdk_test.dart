@@ -76,7 +76,7 @@ void main() {
   });
 
   group('deleteMessage', () {
-    test('throws UnsupportedError', () {
+    test('throws MeetingPlaceChatSDKException with operationNotSupported', () {
       final msg = Message(
         chatId: Chat.deriveId(did: _aliceDid, otherPartyDid: _bobDid),
         messageId: 'msg-1',
@@ -87,10 +87,20 @@ void main() {
         status: ChatItemStatus.sent,
       );
 
-      expect(() => sdk.deleteMessage(msg), throwsA(isA<UnsupportedError>()));
+      expect(
+        () => sdk.deleteMessage(msg),
+        throwsA(
+          isA<MeetingPlaceChatSDKException>().having(
+            (e) => e.code,
+            'code',
+            MeetingPlaceChatSDKErrorCode.operationNotSupported,
+          ),
+        ),
+      );
     });
 
-    test('throws UnsupportedError with localOnly flag', () {
+    test('throws MeetingPlaceChatSDKException with operationNotSupported '
+        'with localOnly flag', () {
       final msg = Message(
         chatId: Chat.deriveId(did: _aliceDid, otherPartyDid: _bobDid),
         messageId: 'msg-1',
@@ -103,7 +113,13 @@ void main() {
 
       expect(
         () => sdk.deleteMessage(msg, localOnly: true),
-        throwsA(isA<UnsupportedError>()),
+        throwsA(
+          isA<MeetingPlaceChatSDKException>().having(
+            (e) => e.code,
+            'code',
+            MeetingPlaceChatSDKErrorCode.operationNotSupported,
+          ),
+        ),
       );
     });
   });
@@ -253,5 +269,140 @@ void main() {
         );
       },
     );
+  });
+
+  group('exception wrapping', () {
+    test('sendTextMessage throws MeetingPlaceChatSDKException with '
+        'channelNotFound when the channel is missing', () async {
+      when(
+        () => core.findChannelByOtherPartyPermanentDid(any()),
+      ).thenAnswer((_) async => null);
+
+      await expectLater(
+        sdk.sendTextMessage('hello'),
+        throwsA(
+          isA<MeetingPlaceChatSDKException>().having(
+            (e) => e.code,
+            'code',
+            MeetingPlaceChatSDKErrorCode.channelNotFound,
+          ),
+        ),
+      );
+    });
+
+    test('sendChatContactDetailsUpdate throws MeetingPlaceChatSDKException '
+        'with missingContactCard when no contact card is set', () async {
+      final concierge = ConciergeMessage(
+        chatId: Chat.deriveId(did: _aliceDid, otherPartyDid: _bobDid),
+        messageId: 'concierge-1',
+        senderDid: _bobDid,
+        isFromMe: false,
+        dateCreated: DateTime.now().toUtc(),
+        status: ChatItemStatus.userInput,
+        data: const {},
+        conciergeType: ConciergeMessageType.permissionToUpdateProfile,
+      );
+
+      await expectLater(
+        sdk.sendChatContactDetailsUpdate(concierge),
+        throwsA(
+          isA<MeetingPlaceChatSDKException>().having(
+            (e) => e.code,
+            'code',
+            MeetingPlaceChatSDKErrorCode.missingContactCard,
+          ),
+        ),
+      );
+    });
+
+    test('createAttachmentMessage throws MeetingPlaceChatSDKException with '
+        'invalidParticipant for a senderDid outside the chat', () async {
+      await expectLater(
+        sdk.createAttachmentMessage(
+          attachments: const [],
+          senderDid: 'did:test:stranger',
+        ),
+        throwsA(
+          isA<MeetingPlaceChatSDKException>().having(
+            (e) => e.code,
+            'code',
+            MeetingPlaceChatSDKErrorCode.invalidParticipant,
+          ),
+        ),
+      );
+    });
+
+    test('sendChatDeliveredMessage wraps a raw core error as '
+        'MeetingPlaceChatSDKException with the generic code', () async {
+      final coreError = Exception('network down');
+      when(() => core.sendMessage(any())).thenThrow(coreError);
+
+      await expectLater(
+        sdk.sendChatDeliveredMessage('msg-1'),
+        throwsA(
+          isA<MeetingPlaceChatSDKException>()
+              .having(
+                (e) => e.code,
+                'code',
+                MeetingPlaceChatSDKErrorCode.generic,
+              )
+              .having((e) => e.innerException, 'innerException', coreError),
+        ),
+      );
+    });
+
+    for (final entry in <String, Future<void> Function()>{
+      'editTextMessage': () => sdk.editTextMessage(
+        Message(
+          chatId: Chat.deriveId(did: _aliceDid, otherPartyDid: _bobDid),
+          messageId: 'm1',
+          senderDid: _aliceDid,
+          value: 'hello',
+          isFromMe: true,
+          dateCreated: DateTime.now().toUtc(),
+          status: ChatItemStatus.sent,
+        ),
+        'new text',
+      ),
+      'approveConnectionRequest': () => sdk.approveConnectionRequest(
+        ConciergeMessage(
+          chatId: Chat.deriveId(did: _aliceDid, otherPartyDid: _bobDid),
+          messageId: 'concierge-1',
+          senderDid: _bobDid,
+          isFromMe: false,
+          dateCreated: DateTime.now().toUtc(),
+          status: ChatItemStatus.userInput,
+          data: const {},
+          conciergeType: ConciergeMessageType.permissionToUpdateProfile,
+        ),
+      ),
+      'rejectConnectionRequest': () => sdk.rejectConnectionRequest(
+        ConciergeMessage(
+          chatId: Chat.deriveId(did: _aliceDid, otherPartyDid: _bobDid),
+          messageId: 'concierge-1',
+          senderDid: _bobDid,
+          isFromMe: false,
+          dateCreated: DateTime.now().toUtc(),
+          status: ChatItemStatus.userInput,
+          data: const {},
+          conciergeType: ConciergeMessageType.permissionToUpdateProfile,
+        ),
+      ),
+      'removeMember': () => sdk.removeMember('did:test:member'),
+    }.entries) {
+      test('${entry.key} throws MeetingPlaceChatSDKException with '
+          'operationNotSupported', () {
+        expect(
+          entry.value,
+          throwsA(
+            isA<MeetingPlaceChatSDKException>().having(
+              (e) => e.code,
+              'code',
+              MeetingPlaceChatSDKErrorCode.operationNotSupported,
+            ),
+          ),
+        );
+      });
+    }
   });
 }

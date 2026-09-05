@@ -116,8 +116,10 @@ class GroupDetailsUpdateHandler implements ChatEventHandler {
       final eventId = entry.value as String;
       try {
         final bytes = await _coreSDK.downloadMedia(
-          channel,
-          MatrixEventMediaReference(eventId),
+          DownloadMediaRequest(
+            channel: channel,
+            reference: MatrixEventMediaReference(eventId),
+          ),
         );
         final json = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
         cards[did] = ContactCard.fromJson(json);

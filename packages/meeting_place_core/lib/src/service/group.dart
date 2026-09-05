@@ -36,7 +36,7 @@ class GroupService {
     required ConnectionOfferService offerService,
     required ConnectionService connectionService,
     required IdentityService identityService,
-    required cp.ControlPlaneSDK controlPlaneSDK,
+    required cp.MeetingPlaceControlPlaneSDK controlPlaneSDK,
     required MeetingPlaceMediatorSDK mediatorSDK,
     required MeetingPlaceTransport channelTransport,
     required DidResolver didResolver,
@@ -69,7 +69,7 @@ class GroupService {
   final DidResolver _didResolver;
   final MeetingPlaceCoreSDKLogger _logger;
 
-  final cp.ControlPlaneSDK _controlPlaneSDK;
+  final cp.MeetingPlaceControlPlaneSDK _controlPlaneSDK;
   final MeetingPlaceMediatorSDK _mediatorSDK;
   final MeetingPlaceTransport _channelTransport;
 
@@ -85,7 +85,7 @@ class GroupService {
     required String offerDescription,
     required ContactCard card,
     required String mediatorDid,
-    String? customPhrase,
+    String? customMnemonic,
     DateTime? validUntil,
     int? maximumUsage,
     String? metadata,
@@ -127,7 +127,7 @@ class GroupService {
         oobInvitationMessage: oobMessage.toPlainTextMessage(),
         validUntil: validUntil,
         maximumUsage: maximumUsage,
-        customPhrase: customPhrase,
+        customMnemonic: customMnemonic,
         adminDid: ownerDidDocument.id,
         mediatorDid: mediatorDid,
         metadata: metadata,
@@ -472,11 +472,13 @@ class GroupService {
     );
 
     await _mediatorSDK.sendMessage(
-      invitationAcceptanceMessage.toPlainTextMessage(),
-      senderDidManager: senderDidManager,
-      recipientDidDocument: recipientDidDocument,
-      mediatorDid: mediatorDid,
-      next: recipientDid,
+      MediatorMessageRequest(
+        message: invitationAcceptanceMessage.toPlainTextMessage(),
+        senderDidManager: senderDidManager,
+        recipientDidDocument: recipientDidDocument,
+        mediatorDid: mediatorDid,
+        next: recipientDid,
+      ),
     );
     _logger.info(
       'Successfully sent accept invitation to mediator: '
@@ -631,10 +633,12 @@ class GroupService {
     );
 
     await _mediatorSDK.sendMessage(
-      groupMemberInauguration.toPlainTextMessage(),
-      senderDidManager: senderDid,
-      recipientDidDocument: memberDidDocument,
-      mediatorDid: channel.mediatorDid,
+      MediatorMessageRequest(
+        message: groupMemberInauguration.toPlainTextMessage(),
+        senderDidManager: senderDid,
+        recipientDidDocument: memberDidDocument,
+        mediatorDid: channel.mediatorDid,
+      ),
     );
 
     final otherPartyContactCard = channel.otherPartyContactCard;

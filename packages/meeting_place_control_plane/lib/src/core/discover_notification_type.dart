@@ -1,22 +1,19 @@
-// ignore_for_file: constant_identifier_names
-// TODO: change enum to comply with linting rules
-
 enum DiscoveryNotificationType {
-  ChannelActivity,
-  InvitationAccept,
-  InvitationGroupAccept,
-  GroupMembershipFinalised,
-  OfferFinalised,
-  InvitationOutreach;
+  channelActivity,
+  invitationAccept,
+  invitationGroupAccept,
+  groupMembershipFinalised,
+  offerFinalised,
+  invitationOutreach;
 
   static const Map<DiscoveryNotificationType, String> stringValues = {
-    DiscoveryNotificationType.ChannelActivity: 'ChannelActivity',
-    DiscoveryNotificationType.InvitationAccept: 'InvitationAccept',
-    DiscoveryNotificationType.InvitationGroupAccept: 'InvitationGroupAccept',
-    DiscoveryNotificationType.OfferFinalised: 'OfferFinalised',
-    DiscoveryNotificationType.GroupMembershipFinalised:
+    DiscoveryNotificationType.channelActivity: 'ChannelActivity',
+    DiscoveryNotificationType.invitationAccept: 'InvitationAccept',
+    DiscoveryNotificationType.invitationGroupAccept: 'InvitationGroupAccept',
+    DiscoveryNotificationType.offerFinalised: 'OfferFinalised',
+    DiscoveryNotificationType.groupMembershipFinalised:
         'GroupMembershipFinalised',
-    DiscoveryNotificationType.InvitationOutreach: 'InvitationOutreach',
+    DiscoveryNotificationType.invitationOutreach: 'InvitationOutreach',
   };
 
   String get value => stringValues[this]!;

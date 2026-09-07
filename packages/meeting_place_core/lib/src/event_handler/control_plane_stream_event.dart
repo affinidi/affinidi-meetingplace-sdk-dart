@@ -25,7 +25,7 @@ class ControlPlaneStreamEvent {
   /// server treats this field as free-form and may introduce new values the
   /// SDK doesn't know about yet; see [ChannelActivityType]'s own doc.
   ///
-  /// Non-null only when [type] is [ControlPlaneEventType.ChannelActivity].
+  /// Non-null only when [type] is [ControlPlaneEventType.channelActivity].
   final String? activityType;
 
   /// Whether this event's [type] equals [eventType].

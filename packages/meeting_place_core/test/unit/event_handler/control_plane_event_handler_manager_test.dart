@@ -72,9 +72,9 @@ void main() {
   }) {
     return ControlPlaneEvent<ChannelActivity>(
       id: id ?? const Uuid().v4(),
-      type: ControlPlaneEventType.ChannelActivity,
+      type: ControlPlaneEventType.channelActivity,
       data: activity,
-      status: ControlPlaneEventStatus.New,
+      status: ControlPlaneEventStatus.newEvent,
     );
   }
 
@@ -185,7 +185,7 @@ void main() {
       expect(streamManager.pushedEvents.single.channel, same(channel));
       expect(
         streamManager.pushedEvents.single.type,
-        ControlPlaneEventType.ChannelActivity,
+        ControlPlaneEventType.channelActivity,
       );
     });
 

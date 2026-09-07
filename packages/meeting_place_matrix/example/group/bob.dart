@@ -51,7 +51,7 @@ void main() async {
 
   final waitForMembershipFinalised = Completer<ControlPlaneStreamEvent>();
   bobSDK.controlPlaneEventsStream.listen((event) {
-    if (event.type == ControlPlaneEventType.GroupMembershipFinalised &&
+    if (event.type == ControlPlaneEventType.groupMembershipFinalised &&
         !waitForMembershipFinalised.isCompleted) {
       waitForMembershipFinalised.complete(event);
     }

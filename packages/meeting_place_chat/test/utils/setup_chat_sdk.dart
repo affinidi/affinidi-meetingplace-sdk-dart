@@ -82,7 +82,7 @@ class SetupChatSdk {
 
     final waitForInvitationAccept = Completer<Channel>();
     final aliceSub = aliceSDK.coreSDK.controlPlaneEventsStream
-        .where((e) => e.matchesType(ControlPlaneEventType.InvitationAccept))
+        .where((e) => e.matchesType(ControlPlaneEventType.invitationAccept))
         .listen((e) {
           if (!waitForInvitationAccept.isCompleted) {
             waitForInvitationAccept.complete(e.channel);
@@ -91,7 +91,7 @@ class SetupChatSdk {
 
     final waitForOfferFinalised = Completer<Channel>();
     final bobSub = bobSDK.coreSDK.controlPlaneEventsStream
-        .where((e) => e.matchesType(ControlPlaneEventType.OfferFinalised))
+        .where((e) => e.matchesType(ControlPlaneEventType.offerFinalised))
         .listen((e) {
           if (!waitForOfferFinalised.isCompleted) {
             waitForOfferFinalised.complete(e.channel);

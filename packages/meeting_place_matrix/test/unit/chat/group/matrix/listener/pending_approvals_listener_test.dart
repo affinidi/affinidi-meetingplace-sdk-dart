@@ -97,7 +97,7 @@ Group _groupWithPendingMember({
 
 ControlPlaneStreamEvent _acceptEvent(String groupDid) =>
     ControlPlaneStreamEvent(
-      type: ControlPlaneEventType.InvitationGroupAccept,
+      type: ControlPlaneEventType.invitationGroupAccept,
       channel: Channel(
         offerLink: 'offer://test',
         publishOfferDid: 'did:test:pub',

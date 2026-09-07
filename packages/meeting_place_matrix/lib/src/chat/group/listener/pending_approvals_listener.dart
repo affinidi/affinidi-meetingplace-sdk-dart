@@ -7,7 +7,7 @@ import 'package:mutex/mutex.dart';
 import '../factory/pending_approval_concierge_factory.dart';
 import '../group_matrix_chat_sdk.dart';
 
-/// Subscribes to [ControlPlaneEventType.InvitationGroupAccept] events for the
+/// Subscribes to [ControlPlaneEventType.invitationGroupAccept] events for the
 /// current chat. When such an event arrives, the listener refreshes the group,
 /// creates concierge messages for pending approvals, and updates the SDK's
 /// in-memory [GroupMatrixChatSDK.group] and DID cache.
@@ -16,7 +16,7 @@ import '../group_matrix_chat_sdk.dart';
 /// [GroupMatrixChatSDK.isGroupOwner].
 ///
 /// A [Mutex] serializes concurrent event callbacks so that two
-/// near-simultaneous [ControlPlaneEventType.InvitationGroupAccept] events for
+/// near-simultaneous [ControlPlaneEventType.invitationGroupAccept] events for
 /// the same member cannot both pass the in-memory dedup check before either
 /// persists its result, preventing duplicate concierge cards.
 class PendingApprovalsListener {
@@ -27,7 +27,7 @@ class PendingApprovalsListener {
 
   StreamSubscription<ControlPlaneStreamEvent> listen(Chat chat) {
     return _chatSDK.coreSDK.controlPlaneEventsStream.listen((event) async {
-      if (event.type != ControlPlaneEventType.InvitationGroupAccept) return;
+      if (event.type != ControlPlaneEventType.invitationGroupAccept) return;
 
       final group = _chatSDK.group;
       if (group.did != event.channel.otherPartyPermanentChannelDid) return;

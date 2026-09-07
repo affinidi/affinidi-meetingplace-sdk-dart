@@ -52,10 +52,10 @@ void main() async {
   final waitForInvitationAccept = Completer<ControlPlaneStreamEvent>();
   final waitForChannelActivity = Completer<ControlPlaneStreamEvent>();
   aliceSDK.controlPlaneEventsStream.listen((event) {
-    if (event.type == ControlPlaneEventType.InvitationAccept) {
+    if (event.type == ControlPlaneEventType.invitationAccept) {
       waitForInvitationAccept.complete(event);
     }
-    if (event.type == ControlPlaneEventType.ChannelActivity &&
+    if (event.type == ControlPlaneEventType.channelActivity &&
         !waitForChannelActivity.isCompleted) {
       waitForChannelActivity.complete(event);
     }

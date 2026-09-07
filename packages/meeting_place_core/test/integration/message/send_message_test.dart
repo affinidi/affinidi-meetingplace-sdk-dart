@@ -59,14 +59,14 @@ void main() async {
     final waitForInvitationAccept = Completer<Channel>();
     aliceSDK.controlPlaneEventsStream
         .where(
-          (event) => event.matchesType(ControlPlaneEventType.InvitationAccept),
+          (event) => event.matchesType(ControlPlaneEventType.invitationAccept),
         )
         .listen((event) => waitForInvitationAccept.complete(event.channel));
 
     final waitForOfferFinalised = Completer<Channel>();
     bobSDK.controlPlaneEventsStream
         .where(
-          (event) => event.matchesType(ControlPlaneEventType.OfferFinalised),
+          (event) => event.matchesType(ControlPlaneEventType.offerFinalised),
         )
         .listen((event) => waitForOfferFinalised.complete(event.channel));
 

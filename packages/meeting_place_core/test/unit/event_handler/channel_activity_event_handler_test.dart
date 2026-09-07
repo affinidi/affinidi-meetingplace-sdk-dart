@@ -52,9 +52,9 @@ void main() {
       final processedEvents = [
         ControlPlaneEvent<ChannelActivity>(
           id: const Uuid().v4(),
-          type: ControlPlaneEventType.ChannelActivity,
+          type: ControlPlaneEventType.channelActivity,
           data: event,
-          status: ControlPlaneEventStatus.New,
+          status: ControlPlaneEventStatus.newEvent,
         ),
       ];
 

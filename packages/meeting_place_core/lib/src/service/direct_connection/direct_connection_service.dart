@@ -342,7 +342,7 @@ class DirectConnectionService {
     _controlPlaneEventStreamManager.pushEvent(
       ControlPlaneStreamEvent(
         channel: channel,
-        type: ControlPlaneEventType.ChannelActivity,
+        type: ControlPlaneEventType.channelActivity,
       ),
     );
 
@@ -395,7 +395,7 @@ class DirectConnectionService {
     _controlPlaneEventStreamManager.pushEvent(
       ControlPlaneStreamEvent(
         channel: session.channel,
-        type: ControlPlaneEventType.ChannelActivity,
+        type: ControlPlaneEventType.channelActivity,
       ),
     );
 

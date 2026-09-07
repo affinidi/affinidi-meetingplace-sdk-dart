@@ -25,7 +25,7 @@ void main() {
 
     final completer = Completer<void>();
     fixture.aliceSDK.controlPlaneEventsStream.listen((event) {
-      if (event.type == ControlPlaneEventType.InvitationGroupAccept) {
+      if (event.type == ControlPlaneEventType.invitationGroupAccept) {
         if (!completer.isCompleted) completer.complete();
       }
     });
@@ -66,7 +66,7 @@ void main() {
 
     final completer = Completer<void>();
     fixture.aliceSDK.controlPlaneEventsStream.listen((event) {
-      if (event.type == ControlPlaneEventType.InvitationGroupAccept &&
+      if (event.type == ControlPlaneEventType.invitationGroupAccept &&
           event.channel.offerLink == acceptance.connectionOffer.offerLink) {
         completer.complete();
       }

@@ -55,7 +55,7 @@ void main() {
     fixture.aliceSDK.controlPlaneEventsStream
         .where(
           (event) =>
-              event.type == ControlPlaneEventType.ChannelActivity &&
+              event.type == ControlPlaneEventType.channelActivity &&
               event.activityType == ChannelActivityType.channelInauguration,
         )
         .listen((event) {

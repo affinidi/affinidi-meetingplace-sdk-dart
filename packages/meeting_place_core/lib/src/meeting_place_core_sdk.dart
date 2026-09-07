@@ -670,8 +670,8 @@ class MeetingPlaceCoreSDK {
     String mnemonic,
   ) async {
     return _withSdkExceptionHandling(() async {
-      final result = await _controlPlaneSDK.execute(
-        ValidateOfferPhraseCommand(mnemonic: mnemonic.trim()),
+      final result = await _controlPlaneSDK.validateOfferMnemonic(
+        mnemonic: mnemonic.trim(),
       );
 
       return sdk.ValidateOfferPhraseResult(isAvailable: result.isAvailable);
@@ -1140,8 +1140,9 @@ class MeetingPlaceCoreSDK {
     final offers = request.offers;
     return _withSdkExceptionHandling(() async {
       final mnemonics = offers.map((o) => o.mnemonic).toList();
-      final output = await _controlPlaneSDK.execute(
-        UpdateOffersScoreCommand(score: score, mnemonics: mnemonics),
+      final output = await _controlPlaneSDK.updateOffersScore(
+        score: score,
+        mnemonics: mnemonics,
       );
 
       final updatedMnemonics = output.updatedOffers.toSet();

@@ -43,8 +43,6 @@ class MockUser extends Mock implements matrix.User {
   String get id => _id;
 }
 
-class FakeMatrixTokenCommand extends Fake implements MatrixTokenCommand {}
-
 class FakeStateEvent extends Fake implements matrix.StateEvent {}
 
 class FakeSyncUpdate extends Fake implements matrix.SyncUpdate {}
@@ -138,7 +136,7 @@ void _stubInjectedVoip(
 
 void main() {
   setUpAll(() {
-    registerFallbackValue(FakeMatrixTokenCommand());
+    registerFallbackValue(Uri());
     registerFallbackValue(<matrix.StateEvent>[FakeStateEvent()]);
     registerFallbackValue(matrix.Direction.b);
   });
@@ -1991,8 +1989,7 @@ void main() {
 // Helpers
 // ---------------------------------------------------------------------------
 
-/// Stubs [MeetingPlaceControlPlaneSDK.execute] for [MatrixTokenCommand] and
-/// returns the mocked [MatrixTokenCommandOutput].
+/// Stubs [MeetingPlaceControlPlaneSDK.getMatrixToken] and returns its output.
 MatrixTokenCommandOutput _stubMatrixToken(
   MockMeetingPlaceControlPlaneSDK controlPlane,
   MockDidManager didManager,
@@ -2000,8 +1997,9 @@ MatrixTokenCommandOutput _stubMatrixToken(
   final token = _FakeMatrixLoginToken();
   final output = _FakeMatrixTokenOutput(token);
   when(
-    () => controlPlane.execute<MatrixTokenCommandOutput>(
-      any(that: isA<MatrixTokenCommand>()),
+    () => controlPlane.getMatrixToken(
+      didManager: didManager,
+      homeserver: any(named: 'homeserver'),
     ),
   ).thenAnswer((_) async => output);
   return output;

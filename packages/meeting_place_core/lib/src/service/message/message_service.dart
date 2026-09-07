@@ -70,12 +70,12 @@ class MessageService {
 
   /// Fires a control-plane channel notification for the given [notification].
   ///
-  /// For an [IndividualChannelNotification] this dispatches a
-  /// [NotifyChannelCommand] using the stored
+  /// For an [IndividualChannelNotification] this calls
+  /// [MeetingPlaceControlPlaneSDK.notifyChannel] using the stored
   /// `Channel.otherPartyNotificationToken` (no-op if missing).
-  /// For a [GroupChannelNotification] this dispatches a
-  /// [GroupNotifyChannelCommand] which fans out to all group members, or to a
-  /// single member when `memberDid` is set.
+  /// For a [GroupChannelNotification] this calls
+  /// [MeetingPlaceControlPlaneSDK.notifyGroupChannel], which fans out to all
+  /// group members, or to a single member when `memberDid` is set.
   Future<void> notifyChannel(ChannelNotification notification) async {
     try {
       switch (notification) {
@@ -85,24 +85,20 @@ class MessageService {
               channel?.otherPartyNotificationToken;
           if (otherPartyNotificationToken == null) return;
 
-          await _controlPlaneSDK.execute(
-            NotifyChannelCommand(
-              notificationToken: otherPartyNotificationToken,
-              did: recipientDid,
-              type: type,
-            ),
+          await _controlPlaneSDK.notifyChannel(
+            notificationToken: otherPartyNotificationToken,
+            did: recipientDid,
+            type: type,
           );
         case GroupChannelNotification(
           :final groupId,
           :final type,
           :final memberDid,
         ):
-          await _controlPlaneSDK.execute(
-            GroupNotifyChannelCommand(
-              groupId: groupId,
-              type: type,
-              memberDid: memberDid,
-            ),
+          await _controlPlaneSDK.notifyGroupChannel(
+            groupId: groupId,
+            type: type,
+            memberDid: memberDid,
           );
       }
     } catch (e) {

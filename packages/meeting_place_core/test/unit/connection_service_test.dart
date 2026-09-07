@@ -93,25 +93,18 @@ void main() {
     registerFallbackValue(_FakePlainTextMessage());
     registerFallbackValue(_FakeChannel());
     registerFallbackValue(_MockWallet());
+    registerFallbackValue(
+      cp.Device(
+        deviceToken: '',
+        platformType: cp.PlatformType.pushNotification,
+      ),
+    );
     registerFallbackValue(ChannelTransport.didcomm);
     registerFallbackValue(
       MediatorMessageRequest(
         message: _FakePlainTextMessage(),
         senderDidManager: _MockDidManager(),
         recipientDidDocument: _MockDidDocument(),
-      ),
-    );
-    registerFallbackValue(
-      cp.FinaliseAcceptanceCommand(
-        mnemonic: '',
-        offerLink: '',
-        offerPublishedDid: '',
-        otherPartyAcceptOfferDid: '',
-        otherPartyPermanentChannelDid: '',
-        device: cp.Device(
-          deviceToken: '',
-          platformType: cp.PlatformType.pushNotification,
-        ),
       ),
     );
     registerFallbackValue(
@@ -232,8 +225,16 @@ void main() {
       );
 
       when(
-        () => mockControlPlaneSDK.execute<cp.FinaliseAcceptanceOutput>(
-          any(that: isA<cp.FinaliseAcceptanceCommand>()),
+        () => mockControlPlaneSDK.finaliseAcceptance(
+          mnemonic: any(named: 'mnemonic'),
+          offerLink: any(named: 'offerLink'),
+          offerPublishedDid: any(named: 'offerPublishedDid'),
+          otherPartyAcceptOfferDid: any(named: 'otherPartyAcceptOfferDid'),
+          otherPartyPermanentChannelDid: any(
+            named: 'otherPartyPermanentChannelDid',
+          ),
+          device: any(named: 'device'),
+          contactCard: any(named: 'contactCard'),
         ),
       ).thenAnswer(
         (_) async => cp.FinaliseAcceptanceOutput(

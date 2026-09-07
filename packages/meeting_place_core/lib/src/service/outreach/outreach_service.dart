@@ -55,11 +55,9 @@ class OutreachService {
       ),
     );
 
-    await _controlPlaneSDK.execute(
-      NotifyOutreachCommand(
-        mnemonic: outreachConnectionOffer.mnemonic,
-        senderInfo: senderInfo,
-      ),
+    await _controlPlaneSDK.notifyOutreach(
+      mnemonic: outreachConnectionOffer.mnemonic,
+      senderInfo: senderInfo,
     );
   }
 }

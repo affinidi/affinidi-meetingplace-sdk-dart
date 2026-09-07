@@ -24,17 +24,7 @@ class _MockConnectionManager extends Mock implements ConnectionManager {}
 
 class _MockLogger extends Mock implements MeetingPlaceCoreSDKLogger {}
 
-class _FakeNotifyChannelCommand extends Fake implements NotifyChannelCommand {}
-
-class _FakeGroupNotifyChannelCommand extends Fake
-    implements GroupNotifyChannelCommand {}
-
 void main() {
-  setUpAll(() {
-    registerFallbackValue(_FakeNotifyChannelCommand());
-    registerFallbackValue(_FakeGroupNotifyChannelCommand());
-  });
-
   group('MessageService.notifyChannel', () {
     late _MockChannelService channelService;
     late _MockMeetingPlaceControlPlaneSDK controlPlaneSDK;
@@ -70,7 +60,11 @@ void main() {
           () => channelService.findChannelByDid('did:recipient'),
         ).thenAnswer((_) async => buildChannel(notificationToken: 'tok-1'));
         when(
-          () => controlPlaneSDK.execute<NotifyChannelCommandOutput>(any()),
+          () => controlPlaneSDK.notifyChannel(
+            notificationToken: any(named: 'notificationToken'),
+            did: any(named: 'did'),
+            type: any(named: 'type'),
+          ),
         ).thenAnswer((_) async => NotifyChannelCommandOutput(success: true));
 
         await service.notifyChannel(
@@ -80,16 +74,13 @@ void main() {
           ),
         );
 
-        final captured =
-            verify(
-                  () => controlPlaneSDK.execute<NotifyChannelCommandOutput>(
-                    captureAny(),
-                  ),
-                ).captured.single
-                as NotifyChannelCommand;
-        expect(captured.notificationToken, 'tok-1');
-        expect(captured.did, 'did:recipient');
-        expect(captured.type, 'chat-activity');
+        verify(
+          () => controlPlaneSDK.notifyChannel(
+            notificationToken: 'tok-1',
+            did: 'did:recipient',
+            type: 'chat-activity',
+          ),
+        ).called(1);
       });
 
       test('no-op when channel has no notification token', () async {
@@ -105,7 +96,11 @@ void main() {
         );
 
         verifyNever(
-          () => controlPlaneSDK.execute<NotifyChannelCommandOutput>(any()),
+          () => controlPlaneSDK.notifyChannel(
+            notificationToken: any(named: 'notificationToken'),
+            did: any(named: 'did'),
+            type: any(named: 'type'),
+          ),
         );
       });
 
@@ -114,7 +109,11 @@ void main() {
           () => channelService.findChannelByDid('did:recipient'),
         ).thenAnswer((_) async => buildChannel(notificationToken: 'tok-1'));
         when(
-          () => controlPlaneSDK.execute<NotifyChannelCommandOutput>(any()),
+          () => controlPlaneSDK.notifyChannel(
+            notificationToken: any(named: 'notificationToken'),
+            did: any(named: 'did'),
+            type: any(named: 'type'),
+          ),
         ).thenThrow(Exception('boom'));
 
         expect(
@@ -132,7 +131,12 @@ void main() {
     group('GroupChannelNotification', () {
       test('dispatches GroupNotifyChannelCommand with group fields', () async {
         when(
-          () => controlPlaneSDK.execute<GroupNotifyChannelCommandOutput>(any()),
+          () => controlPlaneSDK.notifyGroupChannel(
+            offerLink: any(named: 'offerLink'),
+            groupDid: any(named: 'groupDid'),
+            type: any(named: 'type'),
+            memberDid: any(named: 'memberDid'),
+          ),
         ).thenAnswer(
           (_) async => GroupNotifyChannelCommandOutput(success: true),
         );
@@ -144,21 +148,24 @@ void main() {
           ),
         );
 
-        final captured =
-            verify(
-                  () => controlPlaneSDK
-                      .execute<GroupNotifyChannelCommandOutput>(captureAny()),
-                ).captured.single
-                as GroupNotifyChannelCommand;
-        expect(captured.groupId, 'group-1');
-        expect(captured.type, 'chat-activity');
-        expect(captured.memberDid, isNull);
+        verify(
+          () => controlPlaneSDK.notifyGroupChannel(
+            offerLink: 'offer://group',
+            groupId: 'group-1',
+            type: 'chat-activity',
+          ),
+        ).called(1);
         verifyNever(() => channelService.findChannelByDid(any()));
       });
 
       test('threads memberDid to GroupNotifyChannelCommand when set', () async {
         when(
-          () => controlPlaneSDK.execute<GroupNotifyChannelCommandOutput>(any()),
+          () => controlPlaneSDK.notifyGroupChannel(
+            offerLink: any(named: 'offerLink'),
+            groupDid: any(named: 'groupDid'),
+            type: any(named: 'type'),
+            memberDid: any(named: 'memberDid'),
+          ),
         ).thenAnswer(
           (_) async => GroupNotifyChannelCommandOutput(success: true),
         );
@@ -171,19 +178,24 @@ void main() {
           ),
         );
 
-        final captured =
-            verify(
-                  () => controlPlaneSDK
-                      .execute<GroupNotifyChannelCommandOutput>(captureAny()),
-                ).captured.single
-                as GroupNotifyChannelCommand;
-        expect(captured.memberDid, 'did:bob');
-        expect(captured.type, 'call-invite-video');
+        verify(
+          () => controlPlaneSDK.notifyGroupChannel(
+            offerLink: 'offer://group',
+            groupDid: 'did:group',
+            type: 'call-invite-video',
+            memberDid: 'did:bob',
+          ),
+        ).called(1);
       });
 
       test('wraps failure in MessageServiceException', () async {
         when(
-          () => controlPlaneSDK.execute<GroupNotifyChannelCommandOutput>(any()),
+          () => controlPlaneSDK.notifyGroupChannel(
+            offerLink: any(named: 'offerLink'),
+            groupDid: any(named: 'groupDid'),
+            type: any(named: 'type'),
+            memberDid: any(named: 'memberDid'),
+          ),
         ).thenThrow(Exception('boom'));
 
         expect(

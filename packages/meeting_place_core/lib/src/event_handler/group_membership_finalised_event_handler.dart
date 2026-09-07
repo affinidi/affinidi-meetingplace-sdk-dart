@@ -221,12 +221,10 @@ class GroupMembershipFinalisedEventHandler
       name: '_registerNotificationToken',
     );
 
-    final result = await _controlPlaneSDK.execute(
-      RegisterNotificationCommand(
-        myDid: myDid,
-        theirDid: theirDid,
-        device: _controlPlaneSDK.device,
-      ),
+    final result = await _controlPlaneSDK.registerNotification(
+      myDid: myDid,
+      theirDid: theirDid,
+      device: _controlPlaneSDK.device,
     );
 
     final notificationToken = result.notificationToken;

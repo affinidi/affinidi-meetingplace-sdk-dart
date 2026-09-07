@@ -134,17 +134,10 @@ void main() {
     registerFallbackValue(ChannelTransport.didcomm);
     registerFallbackValue(mockAcceptOfferDidManager);
     registerFallbackValue(
-      cp.RegisterNotificationCommand(
-        myDid: '',
-        theirDid: '',
-        device: cp.Device(
-          deviceToken: '',
-          platformType: cp.PlatformType.pushNotification,
-        ),
+      cp.Device(
+        deviceToken: '',
+        platformType: cp.PlatformType.pushNotification,
       ),
-    );
-    registerFallbackValue(
-      cp.NotifyChannelCommand(notificationToken: '', did: '', type: ''),
     );
 
     when(
@@ -173,8 +166,10 @@ void main() {
     );
 
     when(
-      () => mockControlPlaneSDK.execute<cp.RegisterNotificationOutput>(
-        any(that: isA<cp.RegisterNotificationCommand>()),
+      () => mockControlPlaneSDK.registerNotification(
+        myDid: any(named: 'myDid'),
+        theirDid: any(named: 'theirDid'),
+        device: any(named: 'device'),
       ),
     ).thenAnswer(
       (_) async =>
@@ -221,8 +216,10 @@ void main() {
     ).thenAnswer((_) async {});
 
     when(
-      () => mockControlPlaneSDK.execute<cp.NotifyChannelCommandOutput>(
-        any(that: isA<cp.NotifyChannelCommand>()),
+      () => mockControlPlaneSDK.notifyChannel(
+        notificationToken: any(named: 'notificationToken'),
+        did: any(named: 'did'),
+        type: any(named: 'type'),
       ),
     ).thenAnswer((_) async => cp.NotifyChannelCommandOutput(success: true));
   });

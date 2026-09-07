@@ -86,8 +86,8 @@ class ConnectionService {
     final methodName = 'findOffer';
     _logger.info('Finding offer with mnemonic: $mnemonic', name: methodName);
 
-    final response = await _controlPlaneSDK.execute(
-      QueryOfferCommand(mnemonic: mnemonic),
+    final response = await _controlPlaneSDK.findOfferByMnemonic(
+      mnemonic: mnemonic,
     );
 
     if (response is NullQueryOfferCommandOutput) {
@@ -223,27 +223,25 @@ class ConnectionService {
       mediatorDid: mediatorDid,
     );
 
-    final registerOfferOutput = await _controlPlaneSDK.execute(
-      RegisterOfferCommand(
-        offerName: offerName,
-        offerDescription: offerDescription,
-        type: type == ConnectionOfferType.meetingPlaceOutreachInvitation
-            ? OfferType.outreachInvitation
-            : OfferType.invitation,
-        oobInvitationMessage: oobMessage.toPlainTextMessage(),
-        contactCard: ContactCardImpl(
-          did: contactCard.did,
-          type: contactCard.type,
-          contactInfo: contactCard.contactInfo,
-        ),
-        device: _controlPlaneSDK.device,
-        customMnemonic: customMnemonic,
-        validUntil: validUntil,
-        maximumUsage: maximumUsage,
-        mediatorDid: mediatorDid,
-        transport: OfferTransport.values.byName(transport.name),
-        score: score,
+    final registerOfferOutput = await _controlPlaneSDK.registerOffer(
+      offerName: offerName,
+      offerDescription: offerDescription,
+      type: type == ConnectionOfferType.meetingPlaceOutreachInvitation
+          ? OfferType.outreachInvitation
+          : OfferType.invitation,
+      oobInvitationMessage: oobMessage.toPlainTextMessage(),
+      contactCard: ContactCardImpl(
+        did: contactCard.did,
+        type: contactCard.type,
+        contactInfo: contactCard.contactInfo,
       ),
+      device: _controlPlaneSDK.device,
+      customMnemonic: customMnemonic,
+      validUntil: validUntil,
+      maximumUsage: maximumUsage,
+      mediatorDid: mediatorDid,
+      transport: OfferTransport.values.byName(transport.name),
+      score: score,
     );
 
     try {
@@ -279,11 +277,9 @@ class ConnectionService {
         stackTrace: stackTrace,
         name: methodName,
       );
-      await _controlPlaneSDK.execute(
-        DeregisterOfferCommand(
-          offerLink: registerOfferOutput.offerLink,
-          mnemonic: registerOfferOutput.mnemonic,
-        ),
+      await _controlPlaneSDK.deregisterOffer(
+        offerLink: registerOfferOutput.offerLink,
+        mnemonic: registerOfferOutput.mnemonic,
       );
       Error.throwWithStackTrace(
         ConnectionOfferException.publishOfferError(innerException: e),
@@ -317,17 +313,15 @@ class ConnectionService {
       wallet,
     );
 
-    final result = await _controlPlaneSDK.execute(
-      AcceptOfferCommand(
-        mnemonic: connectionOffer.mnemonic,
-        device: _controlPlaneSDK.device,
-        offerLink: connectionOffer.offerLink,
-        acceptOfferDid: acceptOfferIdentity.didDocument.id,
-        contactCard: ContactCardImpl(
-          did: contactCard.did,
-          type: contactCard.type,
-          contactInfo: contactCard.contactInfo,
-        ),
+    final result = await _controlPlaneSDK.acceptOffer(
+      mnemonic: connectionOffer.mnemonic,
+      device: _controlPlaneSDK.device,
+      offerLink: connectionOffer.offerLink,
+      acceptOfferDid: acceptOfferIdentity.didDocument.id,
+      contactCard: ContactCardImpl(
+        did: contactCard.did,
+        type: contactCard.type,
+        contactInfo: contactCard.contactInfo,
       ),
     );
 
@@ -485,13 +479,11 @@ class ConnectionService {
       throw ConnectionOfferException.notAcceptedError();
     }
 
-    await _controlPlaneSDK.execute(
-      NotifyAcceptanceCommand(
-        mnemonic: connectionOffer.mnemonic,
-        offerLink: connectionOffer.offerLink,
-        acceptOfferDid: acceptOfferDid,
-        senderInfo: senderInfo,
-      ),
+    await _controlPlaneSDK.notifyAcceptance(
+      mnemonic: connectionOffer.mnemonic,
+      offerLink: connectionOffer.offerLink,
+      acceptOfferDid: acceptOfferDid,
+      senderInfo: senderInfo,
     );
 
     _logger.info(
@@ -584,22 +576,20 @@ class ConnectionService {
     );
 
     final contactCard = channel.contactCard;
-    final finaliseAcceptanceOutput = await _controlPlaneSDK.execute(
-      FinaliseAcceptanceCommand(
-        mnemonic: connectionOffer.mnemonic,
-        device: _controlPlaneSDK.device,
-        offerLink: channel.offerLink,
-        offerPublishedDid: channel.publishOfferDid,
-        otherPartyAcceptOfferDid: channel.acceptOfferDid!,
-        otherPartyPermanentChannelDid: channel.otherPartyPermanentChannelDid!,
-        contactCard: contactCard != null
-            ? ContactCardImpl(
-                did: contactCard.did,
-                type: contactCard.type,
-                contactInfo: contactCard.contactInfo,
-              )
-            : null,
-      ),
+    final finaliseAcceptanceOutput = await _controlPlaneSDK.finaliseAcceptance(
+      mnemonic: connectionOffer.mnemonic,
+      device: _controlPlaneSDK.device,
+      offerLink: channel.offerLink,
+      offerPublishedDid: channel.publishOfferDid,
+      otherPartyAcceptOfferDid: channel.acceptOfferDid!,
+      otherPartyPermanentChannelDid: channel.otherPartyPermanentChannelDid!,
+      contactCard: contactCard != null
+          ? ContactCardImpl(
+              did: contactCard.did,
+              type: contactCard.type,
+              contactInfo: contactCard.contactInfo,
+            )
+          : null,
     );
 
     final finalisedConnection = connectionOffer.finalise(
@@ -690,10 +680,8 @@ class ConnectionService {
     final networkRequests = <Future<dynamic>>[];
     if (channel.notificationToken != null) {
       networkRequests.add(
-        _controlPlaneSDK.execute(
-          DeregisterNotificationCommand(
-            notificationToken: channel.notificationToken!,
-          ),
+        _controlPlaneSDK.deregisterNotification(
+          notificationToken: channel.notificationToken!,
         ),
       );
     }
@@ -802,11 +790,9 @@ class ConnectionService {
       return;
     }
 
-    await _controlPlaneSDK.execute(
-      DeregisterOfferCommand(
-        offerLink: connectionOffer.offerLink,
-        mnemonic: connectionOffer.mnemonic,
-      ),
+    await _controlPlaneSDK.deregisterOffer(
+      offerLink: connectionOffer.offerLink,
+      mnemonic: connectionOffer.mnemonic,
     );
 
     // TODO: update ACLs to remove public access from offer published DID?

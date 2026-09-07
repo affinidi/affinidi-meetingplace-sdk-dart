@@ -98,15 +98,6 @@ void main() {
         recipientDidDocument: FakeDidDocument(),
       ),
     );
-    registerFallbackValue(
-      cp.GroupAddMemberCommand(
-        mnemonic: '',
-        groupId: '',
-        memberDid: '',
-        acceptOfferDid: '',
-        offerLink: '',
-      ),
-    );
     // updateMemberStatus and verify calls use any() on GroupMemberStatus.
     registerFallbackValue(GroupMemberStatus.pendingApproval);
   });
@@ -519,7 +510,14 @@ void main() {
       when(() => mediatorSDK.sendMessage(any())).thenAnswer((_) async {});
 
       when(
-        () => controlPlaneSDK.execute<cp.GroupAddMemberCommandOutput>(any()),
+        () => controlPlaneSDK.addGroupMember(
+          mnemonic: any(named: 'mnemonic'),
+          groupId: any(named: 'groupId'),
+          memberDid: any(named: 'memberDid'),
+          acceptOfferDid: any(named: 'acceptOfferDid'),
+          offerLink: any(named: 'offerLink'),
+          contactCard: any(named: 'contactCard'),
+        ),
       ).thenAnswer((_) async => FakeGroupAddMemberCommandOutput());
 
       final result = await service.approveMembershipRequest(channel: channel);

@@ -31,13 +31,6 @@ part 'chat_items_database.g.dart';
     ChatSyncMarkers,
   ],
 )
-/// Opens or creates the database.
-///
-/// **Parameters:**
-/// - databaseName: Logical name of the database file.
-/// - passphrase: Optional encryption passphrase.
-/// - directory: File location for storing the database.
-/// - logStatements: Whether to log executed SQL (default: `false`).
 class ChatItemsDatabase extends _$ChatItemsDatabase {
   /// Constructs a [ChatItemsDatabase] instance.
   ///
@@ -47,6 +40,10 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
   /// - [directory]: The directory where the database file is stored.
   /// - [logStatements]: A boolean indicating whether to log SQL statements
   /// (default is false).
+  /// - [inMemory]: When `true` the database is held in memory only —
+  ///   useful for tests (default `false`).
+  /// - [lazy]: Whether to defer opening the underlying database connection
+  /// until first use (default is true).
   ///
   /// **Returns:**
   /// - An instance of [ChatItemsDatabase].

@@ -8,7 +8,8 @@
 /// - [missingGroup]: Indicates that a required group is missing.
 /// - [missingMessage]: Indicates that a required message is missing.
 /// - [unsupportedMessageType]: Indicates that the message type is unsupported.
-/// - [unsupportedMessageType]: Indicates that the message type is unsupported.
+/// - [encryptionNotAvailable]: Indicates that database encryption is not
+/// available on this platform build.
 enum MeetingPlaceCoreRepositoryErrorCode {
   /// Missing channel exception type.
   missingChannel('missing_channel'),

@@ -28,6 +28,8 @@ class ChannelDatabase extends _$ChannelDatabase {
   /// - [directory]: The directory where the database file is stored.
   /// - [logStatements]: A boolean indicating whether to log SQL statements
   /// (default is false).
+  /// - [inMemory]: When `true` the database is held in memory only —
+  ///   useful for tests (default `false`).
   ///
   /// **Returns:**
   /// - An instance of [ChannelDatabase].

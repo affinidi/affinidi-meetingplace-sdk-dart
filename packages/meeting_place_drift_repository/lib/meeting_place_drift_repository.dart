@@ -1,4 +1,4 @@
-/// A library to manage MeetingPlaceCoreSDK CRUD operations on a Drift database
+/// A library to manage MeetingPlaceCoreSDK CRUD operations on a Drift database.
 
 library;
 

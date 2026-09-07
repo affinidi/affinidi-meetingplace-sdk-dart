@@ -19,7 +19,7 @@ part 'groups_database.g.dart';
 /// - databaseName: Logical name of the database file.
 /// - passphrase: Encryption passphrase for secure storage.
 /// - directory: Directory where the database file is stored.
-/// - logStatement: Enables SQL query logging when `true` (default: `false`).
+/// - logStatements: Enables SQL query logging when `true` (default: `false`).
 @DriftDatabase(tables: [MeetingPlaceGroups, GroupMembers])
 class GroupsDatabase extends _$GroupsDatabase {
   /// Constructs a [GroupsDatabase] instance.
@@ -30,6 +30,8 @@ class GroupsDatabase extends _$GroupsDatabase {
   /// - [directory]: The directory where the database file is stored.
   /// - [logStatements]: A boolean indicating whether to log SQL statements
   /// (default is false).
+  /// - [inMemory]: When `true` the database is held in memory only —
+  ///   useful for tests (default `false`).
   ///
   /// **Returns:**
   /// - An instance of [GroupsDatabase].

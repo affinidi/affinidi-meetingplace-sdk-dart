@@ -21,6 +21,7 @@ class IncomingChatEvent {
   final Map<String, dynamic> content;
 
   /// DID of the user this event affects, when distinct from [senderDid].
+  ///
   /// Resolved by the transport router using context only it has (e.g. the
   /// group's member list). For membership changes initiated by another party
   /// (e.g. an owner kicking a member), this is the affected user.

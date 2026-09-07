@@ -13,6 +13,7 @@ Uint8List decodeBase64Payload(String base64Payload) {
 }
 
 /// Extracts and decodes the inline base64 payload from a [ChatAttachment].
+///
 /// Throws [StateError] if the attachment has no inline base64 data.
 extension ChatAttachmentBytes on ChatAttachment {
   Uint8List decodeInlineBytes() {

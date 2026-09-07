@@ -139,6 +139,7 @@ abstract class BaseChatSDK {
   }
 
   /// Future that completes when the transport subscription is ready.
+  ///
   /// Subclasses set this from [startChatSession].
   @protected
   Future<void>? transportSubscriptionFuture;

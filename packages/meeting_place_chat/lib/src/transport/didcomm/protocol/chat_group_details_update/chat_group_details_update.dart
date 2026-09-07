@@ -57,6 +57,7 @@ class ChatGroupDetailsUpdate {
   }
 
   /// Creates a [ChatGroupDetailsUpdate] with the given parameters.
+  ///
   /// [createdTime] defaults to now (UTC) when omitted.
   ChatGroupDetailsUpdate({
     required this.id,

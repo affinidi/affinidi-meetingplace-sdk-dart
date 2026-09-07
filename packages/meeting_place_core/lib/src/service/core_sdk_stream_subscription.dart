@@ -10,7 +10,7 @@ abstract class CoreSDKStreamSubscription<T, S> {
   /// Group messages are decrypted using keys from the key repository.
   Stream<T> get stream;
 
-  /// Check if the underlying subscription is closed.
+  /// Whether the underlying subscription is closed.
   bool get isClosed;
 
   /// Listen to the stream of messages.

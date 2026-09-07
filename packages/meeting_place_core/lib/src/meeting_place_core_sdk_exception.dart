@@ -5,8 +5,7 @@ import 'package:meeting_place_mediator/meeting_place_mediator.dart'
 
 import 'exception/sdk_exception.dart' show SDKException;
 
-/// The exception that is thrown when an error occurs in the
-/// MeetingPlaceCoreSDKException.
+/// The exception that is thrown when an error occurs in the SDK.
 ///
 /// The [SDKException] is intended to provide more context about the error.
 ///
@@ -33,7 +32,7 @@ class MeetingPlaceCoreSDKException implements Exception {
   /// The code of the exception.
   final String code;
 
-  /// The original exception
+  /// The original exception.
   final Object innerException;
 
   @override

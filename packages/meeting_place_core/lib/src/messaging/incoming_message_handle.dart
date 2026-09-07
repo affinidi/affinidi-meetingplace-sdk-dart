@@ -15,6 +15,6 @@ abstract class IncomingMessageHandle {
   /// The live stream of incoming messages for this subscription.
   Stream<IncomingMessage> get stream;
 
-  /// Tear down the underlying transport subscription. Idempotent.
+  /// Tears down the underlying transport subscription. Idempotent.
   Future<void> dispose();
 }

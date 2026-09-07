@@ -178,22 +178,22 @@ class Channel {
   /// Sequence number to keep track of latest message in the channel.
   int seqNo = 0;
 
-  /// Check if the channel is of type individual.
+  /// Whether the channel is of type individual.
   bool get isIndividual => type == ChannelType.individual;
 
-  /// Check if the channel is of type direct connection.
+  /// Whether the channel is of type direct connection.
   bool get isDirectConnection => type == ChannelType.directConnection;
 
-  /// Check if the channel is of type group.
+  /// Whether the channel is of type group.
   bool get isGroup => type == ChannelType.group;
 
-  /// Check if the channel is in the inaugurated status.
+  /// Whether the channel is in the inaugurated status.
   bool get isInaugurated => status == ChannelStatus.inaugurated;
 
-  /// Check if the channel is in the approved status.
+  /// Whether the channel is in the approved status.
   bool get isApproved => status == ChannelStatus.approved;
 
-  /// Check if the channel is waiting for approval.
+  /// Whether the channel is waiting for approval.
   bool get isWaitingForApproval => status == ChannelStatus.waitingForApproval;
 
   Map<String, dynamic> toJson() {

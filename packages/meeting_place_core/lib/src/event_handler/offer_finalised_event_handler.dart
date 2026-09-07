@@ -295,7 +295,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
         NotifyChannelCommand(
           notificationToken: notificationToken,
           did: did,
-          type: 'channel-inauguration', // TODO: move to enum
+          type: ChannelActivityType.channelInauguration,
         ),
       );
     } catch (e, stackTrace) {

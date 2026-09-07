@@ -1,3 +1,6 @@
+/// @docImport '../entity/call_outcome_record.dart';
+library;
+
 /// Matrix room event type constants for MPX call signalling.
 ///
 /// The caller writes these events to the shared Matrix room so the recipient
@@ -12,7 +15,7 @@ abstract final class MpxCallEventType {
   static const String callItem = 'mpx.call.item';
 
   /// Timeline event written when a participant leaves a call that carries the
-  /// canonical `CallOutcomeRecord`. The homeserver's `originServerTs` on this
+  /// canonical [CallOutcomeRecord]. The homeserver's `originServerTs` on this
   /// event is the authoritative call end time; receivers reconcile the call
   /// chat item by `callId` and converge on the full call duration.
   static const String callOutcome = 'mpx.call.outcome';

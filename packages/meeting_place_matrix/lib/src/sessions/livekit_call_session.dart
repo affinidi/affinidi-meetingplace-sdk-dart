@@ -1,3 +1,6 @@
+/// @docImport '../meeting_place_livekit_call_plugin.dart';
+library;
+
 import 'dart:async';
 
 import '../../meeting_place_matrix.dart';
@@ -8,7 +11,7 @@ import '../services/audio_video_call_service.dart';
 /// Concrete [AudioVideoCallSession] for a LiveKit-backed call.
 ///
 /// Wraps an [AudioVideoCallService] and delegates all operations to it.
-/// Created by `MeetingPlaceLiveKitCallPlugin` on `startCall` or `acceptCall`
+/// Created by [MeetingPlaceLiveKitCallPlugin] on `startCall` or `acceptCall`
 /// and handed to the caller as the live handle.
 ///
 /// The session is single-use: once [hangUp] is called the service is disposed
@@ -45,7 +48,7 @@ class LiveKitCallSession implements AudioVideoCallSession {
 
   static const _logKey = 'LiveKitCallSession';
 
-  /// Factory used only by `MeetingPlaceLiveKitCallPlugin`.
+  /// Factory used only by [MeetingPlaceLiveKitCallPlugin].
   static LiveKitCallSession create({
     required AudioVideoCallService service,
     required String otherPartyChannelDid,
@@ -142,19 +145,19 @@ class LiveKitCallSession implements AudioVideoCallSession {
       }.contains(_latestState.status);
 
   /// Initiates the call connection. Plugin-internal — called by
-  /// `MeetingPlaceLiveKitCallPlugin` immediately after creating the session.
+  /// [MeetingPlaceLiveKitCallPlugin] immediately after creating the session.
   Future<void> joinCall({
     bool isRecipient = false,
     CallMediaType mediaType = CallMediaType.video,
   }) => _service.joinCall(isRecipient: isRecipient, mediaType: mediaType);
 
   /// Notifies the service that the recipient declined. Plugin-internal — called
-  /// by `MeetingPlaceLiveKitCallPlugin` when a decline signal is received.
+  /// by [MeetingPlaceLiveKitCallPlugin] when a decline signal is received.
   void notifyDeclined() => _service.notifyDeclined();
 
   /// Disposes the service backing this session.
   ///
-  /// Called by `MeetingPlaceLiveKitCallPlugin` when the session is no longer
+  /// Called by [MeetingPlaceLiveKitCallPlugin] when the session is no longer
   /// needed. After disposal the session must not be used again.
   Future<void> dispose() async {
     _logger.info(

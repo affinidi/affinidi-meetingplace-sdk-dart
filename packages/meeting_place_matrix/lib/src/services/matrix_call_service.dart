@@ -1,3 +1,6 @@
+/// @docImport '../matrix_service.dart';
+library;
+
 import 'dart:async';
 import 'dart:collection';
 
@@ -19,7 +22,7 @@ import 'matrix_session_accessor.dart';
 /// lifecycle lives in one place. Maintains at most one [matrix.VoIP] per
 /// authenticated Matrix client. Obtains authenticated clients through
 /// [EnsureMatrixSession] rather than owning any session state. Constructed and
-/// owned by `MatrixService`, which exposes these operations through its public
+/// owned by [MatrixService], which exposes these operations through its public
 /// facade.
 class MatrixCallService {
   MatrixCallService({

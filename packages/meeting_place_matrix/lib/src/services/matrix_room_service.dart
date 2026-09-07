@@ -1,3 +1,6 @@
+/// @docImport '../matrix_service.dart';
+library;
+
 import 'dart:async';
 import 'dart:typed_data';
 
@@ -17,7 +20,7 @@ import 'matrix_session_accessor.dart';
 ///
 /// Holds no authentication state of its own — it obtains authenticated clients
 /// through [EnsureMatrixSession] and derives user IDs and sync control via
-/// [MatrixSessionManager]. Constructed and owned by `MatrixService`, which
+/// [MatrixSessionManager]. Constructed and owned by [MatrixService], which
 /// exposes these operations through its public facade.
 class MatrixRoomService {
   MatrixRoomService({

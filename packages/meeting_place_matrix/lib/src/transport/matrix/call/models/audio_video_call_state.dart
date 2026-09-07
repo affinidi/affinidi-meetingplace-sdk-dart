@@ -1,3 +1,7 @@
+/// @docImport '../../../../entity/call_metadata.dart';
+/// @docImport '../contracts/audio_video_call_session.dart';
+library;
+
 import 'package:meeting_place_core/meeting_place_core.dart' show ContactCard;
 
 import './audio_video_call_error_code.dart';
@@ -5,7 +9,7 @@ import './audio_video_call_participant.dart';
 import './audio_video_call_status.dart';
 import './call_role.dart';
 
-/// All state that an `AudioVideoCallSession` publishes for the presentation
+/// All state that an [AudioVideoCallSession] publishes for the presentation
 /// layer to observe via `AudioVideoCallSession.state`.
 ///
 /// UI-only fields (mic/camera toggle display state, permission errors) live in
@@ -51,7 +55,7 @@ class AudioVideoCallState {
   /// The transport call session ID (format: `roomId@microsecondsSinceEpoch`).
   ///
   /// Set when the call session is prepared. Use this to embed in
-  /// `CallMetadata` so call chat items can be joined to call-log entries.
+  /// [CallMetadata] so call chat items can be joined to call-log entries.
   /// `null` until the session is established.
   final String? callId;
 

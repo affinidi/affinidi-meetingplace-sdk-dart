@@ -1,3 +1,6 @@
+/// @docImport '../../entity/call_outcome_record.dart';
+library;
+
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 
 /// Matrix `msgtype` values used for media content.
@@ -19,7 +22,7 @@ class MatrixEventField {
 
   /// Correlates several matrix file events emitted by a single
   /// `sendTextMessage` call so the receiver can coalesce them back into one
-  /// logical `Message` carrying multiple attachments.
+  /// logical [Message] carrying multiple attachments.
   static const correlationId = 'mp_correlation_id';
 
   /// Stores the caller-supplied [ChatAttachment.id] for media events so the
@@ -34,7 +37,7 @@ class MatrixEventField {
   /// receiver can reconstruct the [ChatAttachment] without a file download.
   static const callMetadata = 'mp_call_metadata';
 
-  /// Embeds the canonical `CallOutcomeRecord` in `mpx.call.outcome` room
+  /// Embeds the canonical [CallOutcomeRecord] in `mpx.call.outcome` room
   /// events so peers can converge on the same call outcome and duration.
   static const callOutcome = 'mp_call_outcome';
 

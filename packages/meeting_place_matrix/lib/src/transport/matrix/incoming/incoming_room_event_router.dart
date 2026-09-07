@@ -20,7 +20,7 @@ import 'typing_handler.dart';
 /// Routes incoming [MatrixRoomEvent]s for a [MeetingPlaceMatrixChatSDK].
 ///
 /// Maintains two parallel dispatch tables:
-///   * **Matrix-coupled handlers** — closures over `MatrixRoomEvent`. Used
+///   * **Matrix-coupled handlers** — closures over [MatrixRoomEvent]. Used
 ///     for receipts, reactions, redactions, typing, text messages, etc.,
 ///     which need transport-specific fields.
 ///   * **Transport-neutral handlers** ([ChatEventHandler]s) — consume the

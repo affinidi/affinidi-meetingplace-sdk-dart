@@ -1,7 +1,10 @@
+/// @docImport '../services/audio_video_call_service.dart';
+library;
+
 /// E2EE state for a participant's media stream.
 ///
 /// Transport-layer analog of the LiveKit `E2EEState` enum. Kept in the pure
-/// Dart SDK layer so `AudioVideoCallService` can react to encryption state
+/// Dart SDK layer so [AudioVideoCallService] can react to encryption state
 /// changes without depending on livekit_client.
 enum CallE2EEState {
   /// Encryption is established and media is flowing.

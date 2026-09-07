@@ -26,7 +26,7 @@ import 'typing_indicator_manager.dart';
 ///
 /// Holds Matrix-only state (server↔message id maps and the room subscription)
 /// and implements every Matrix-flavoured send and the room subscription/
-/// history flow. `GroupMatrixChatSDK` and `IndividualMatrixChatSDK` extend
+/// history flow. [GroupMatrixChatSDK] and [IndividualMatrixChatSDK] extend
 /// this; the DIDComm individual SDK does not.
 abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     implements MeetingPlaceChatSDK {

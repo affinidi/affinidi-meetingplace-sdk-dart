@@ -1,7 +1,11 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:ssi/ssi.dart';
 
+import 'meeting_place_mediator_sdk.dart' show MeetingPlaceMediatorSDK;
+
+/// Configuration options for a [MeetingPlaceMediatorSDK] instance.
 class MeetingPlaceMediatorSDKOptions {
+  /// Creates a [MeetingPlaceMediatorSDKOptions].
   const MeetingPlaceMediatorSDKOptions({
     this.secondsBeforeExpiryReauthenticate = 60,
     this.websocketPingInterval = 10,
@@ -29,7 +33,7 @@ class MeetingPlaceMediatorSDKOptions {
   /// This value sets the upper bound for the delay between retries.
   final Duration maxRetriesDelay;
 
-  // Signature scheme to use for signing messages sent to the mediator.
+  /// Signature scheme to use for signing messages sent to the mediator.
   final SignatureScheme signatureScheme;
 
   /// Expected message wrapping types for unpacking DIDComm messages.

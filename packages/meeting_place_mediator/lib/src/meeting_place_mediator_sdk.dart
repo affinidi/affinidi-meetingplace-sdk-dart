@@ -19,7 +19,26 @@ import 'core/mediator/mediator_resolver.dart';
 import 'core/mediator/mediator_service.dart';
 import 'protocol/message/oob_invitation_message.dart';
 
+/// The main entry point for interacting with a Meeting Place mediator
+/// instance.
+///
+/// Provides authentication, ACL management, out-of-band (OOB) invitations,
+/// and sending, queueing, fetching, and streaming of DIDComm messages
+/// through a mediator. Call [dispose] to release held resources once this
+/// instance is no longer needed.
 class MeetingPlaceMediatorSDK {
+  /// Creates a [MeetingPlaceMediatorSDK] targeting the mediator identified
+  /// by [mediatorDid].
+  ///
+  /// - [didResolver]: Used to resolve DID documents while communicating with
+  ///   the mediator.
+  /// - [options]: SDK-wide configuration; defaults to the default
+  ///   [MeetingPlaceMediatorSDKOptions] when not provided.
+  /// - [mediatorResolver]: Optional resolver used by
+  ///   [findMediatorDidFromUrl]; a default instance is created when not
+  ///   provided.
+  /// - [logger]: Optional logger; defaults to a
+  ///   [DefaultMeetingPlaceMediatorSDKLogger] when not provided.
   MeetingPlaceMediatorSDK({
     required String mediatorDid,
     required DidResolver didResolver,
@@ -57,6 +76,9 @@ class MeetingPlaceMediatorSDK {
       GetOobHandler(mediatorService: _mediatorService),
     );
   }
+
+  /// The class name used to identify this SDK as the log source when no
+  /// logger is provided.
   static const String className = 'MeetingPlaceMediatorSDK';
 
   late final MediatorResolver _mediatorResolver;

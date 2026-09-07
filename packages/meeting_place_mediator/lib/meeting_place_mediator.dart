@@ -1,3 +1,7 @@
+/// Public API for authenticating with, and exchanging DIDComm messages
+/// through, a Meeting Place mediator instance.
+library;
+
 export 'src/core/acl/acl.dart';
 export 'src/core/mediator/mediator_stream/mediator_stream.dart';
 export 'src/core/mediator/requests/requests.dart';

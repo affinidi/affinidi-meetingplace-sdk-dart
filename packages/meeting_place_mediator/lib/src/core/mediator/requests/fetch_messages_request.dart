@@ -6,6 +6,7 @@ import '../../../meeting_place_mediator_sdk_options.dart';
 
 /// Parameters for [MeetingPlaceMediatorSDK.fetchMessages].
 class FetchMessagesRequest {
+  /// Creates a [FetchMessagesRequest].
   const FetchMessagesRequest({
     required this.didManager,
     this.mediatorDid,

@@ -19,7 +19,10 @@ class DefaultMeetingPlaceMediatorSDKLogger
     this.sdkName = constants.sdkName,
   });
 
+  /// Identifies the logging source, prefixed to every log message.
   final String className;
+
+  /// The log name used in `dart:developer`.
   final String sdkName;
 
   String _formatMessage(String message, String? method) {

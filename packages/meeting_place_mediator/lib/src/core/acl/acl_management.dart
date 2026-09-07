@@ -11,7 +11,7 @@ class AclManagement extends AclManagementMessage {
     required super.from,
     required List<String> to,
     required AclBody body,
-    int expiresInSeconds = 60, // TODO: make value configurable
+    int expiresInSeconds = 60,
   }) : super(
          id: const Uuid().v4(),
          to: to,

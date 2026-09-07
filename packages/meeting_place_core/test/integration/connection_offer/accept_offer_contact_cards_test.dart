@@ -58,7 +58,7 @@ void main() {
     final completer = Completer<void>();
     late Channel channel;
     aliceSDK.controlPlaneEventsStream.listen((event) {
-      if (event.type == ControlPlaneEventType.InvitationAccept) {
+      if (event.type == ControlPlaneEventType.invitationAccept) {
         channel = event.channel;
         completer.complete();
       }

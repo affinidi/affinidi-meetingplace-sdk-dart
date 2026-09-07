@@ -71,7 +71,7 @@ void main() async {
 
   prettyPrintGreen('>>> Calling SDK.controlPlaneEventsStream.listen');
   bobSDK.controlPlaneEventsStream.listen((event) {
-    if (event.type == ControlPlaneEventType.OfferFinalised) {
+    if (event.type == ControlPlaneEventType.offerFinalised) {
       waitForOfferFinalised.complete(event);
     }
   });

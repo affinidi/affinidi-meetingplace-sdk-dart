@@ -57,7 +57,7 @@ void main() async {
 
   final waitForInvitationAcceptGroup = Completer<ControlPlaneStreamEvent>();
   aliceSDK.controlPlaneEventsStream.listen((event) {
-    if (event.type == ControlPlaneEventType.InvitationGroupAccept &&
+    if (event.type == ControlPlaneEventType.invitationGroupAccept &&
         !waitForInvitationAcceptGroup.isCompleted) {
       waitForInvitationAcceptGroup.complete(event);
     }

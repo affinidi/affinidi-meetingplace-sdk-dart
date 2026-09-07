@@ -81,7 +81,7 @@ class ApproveConnectionRequestFixture {
     final waitForInvitationAccept = Completer<Channel>();
     fixture.aliceSDK.controlPlaneEventsStream
         .where(
-          (event) => event.matchesType(ControlPlaneEventType.InvitationAccept),
+          (event) => event.matchesType(ControlPlaneEventType.invitationAccept),
         )
         .listen((event) {
           if (!waitForInvitationAccept.isCompleted) {
@@ -92,7 +92,7 @@ class ApproveConnectionRequestFixture {
     final waitForOfferFinalised = Completer<Channel>();
     fixture.bobSDK.controlPlaneEventsStream
         .where(
-          (event) => event.matchesType(ControlPlaneEventType.OfferFinalised),
+          (event) => event.matchesType(ControlPlaneEventType.offerFinalised),
         )
         .listen((event) {
           if (!waitForOfferFinalised.isCompleted) {

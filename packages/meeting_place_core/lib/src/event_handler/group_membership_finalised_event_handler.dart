@@ -45,7 +45,7 @@ class GroupMembershipFinalisedEventHandler
 
   Future<List<Channel>> process(GroupMembershipFinalised event) async {
     logger.info('''Starting processing event of type
-      ${ControlPlaneEventType.GroupMembershipFinalised}''', name: 'process');
+      ${ControlPlaneEventType.groupMembershipFinalised}''', name: 'process');
 
     final connection = await findConnectionByOfferLink(event.offerLink);
     final permanentChannelDid = connection.permanentChannelDid;

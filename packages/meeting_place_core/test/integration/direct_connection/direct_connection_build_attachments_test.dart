@@ -7,9 +7,9 @@ import 'package:uuid/uuid.dart';
 import '../utils/direct_connection_fixture.dart';
 
 void main() {
-  group('onBuildAttachments over the direct connection', () {
-    test("attaches Bob's onBuildAttachments result to InvitationAcceptance, "
-        'received by Alice', () async {
+  group('onBuildConnectionMessageAttachments over the direct connection', () {
+    test("attaches Bob's onBuildConnectionMessageAttachments result to "
+        'InvitationAcceptance, received by Alice', () async {
       final attachment = Attachment(
         id: const Uuid().v4(),
         data: AttachmentData(base64: 'Ym9i'),
@@ -17,7 +17,8 @@ void main() {
 
       final fixture = await DirectConnectionFixture.create(
         bobOptions: MeetingPlaceCoreSDKOptions(
-          onBuildAttachments: (channel, getDidManager) async => [attachment],
+          onBuildConnectionMessageAttachments: (channel, getDidManager) async =>
+              [attachment],
         ),
       );
 
@@ -46,7 +47,7 @@ void main() {
       expect(received.first.attachments.first.id, equals(attachment.id));
     });
 
-    test("attaches Alice's onBuildAttachments result to "
+    test("attaches Alice's onBuildConnectionMessageAttachments result to "
         'ConnectionRequestApproval, received by Bob', () async {
       final attachment = Attachment(
         id: const Uuid().v4(),
@@ -55,7 +56,8 @@ void main() {
 
       final fixture = await DirectConnectionFixture.create(
         aliceOptions: MeetingPlaceCoreSDKOptions(
-          onBuildAttachments: (channel, getDidManager) async => [attachment],
+          onBuildConnectionMessageAttachments: (channel, getDidManager) async =>
+              [attachment],
         ),
       );
 

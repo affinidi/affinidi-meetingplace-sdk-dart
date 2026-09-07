@@ -31,7 +31,7 @@ List<ControlPlaneEvent<ChannelActivity>> _channelActivityEventsFrom(
   Iterable<ControlPlaneEvent> events,
 ) {
   return events
-      .where((e) => e.type == ControlPlaneEventType.ChannelActivity)
+      .where((e) => e.type == ControlPlaneEventType.channelActivity)
       .map(
         (e) => ControlPlaneEvent<ChannelActivity>(
           id: e.id,
@@ -168,7 +168,7 @@ class ControlPlaneEventManager {
         }
 
         for (final channel in channels) {
-          if (event.type == ControlPlaneEventType.ChannelActivity &&
+          if (event.type == ControlPlaneEventType.channelActivity &&
               channel.status != ChannelStatus.inaugurated) {
             _logger.info(
               'Skip stream emission for non-inaugurated channel activity '
@@ -182,7 +182,7 @@ class ControlPlaneEventManager {
             ControlPlaneStreamEvent(
               channel: channel,
               type: event.type,
-              activityType: event.type == ControlPlaneEventType.ChannelActivity
+              activityType: event.type == ControlPlaneEventType.channelActivity
                   ? (event.data as ChannelActivity).type
                   : null,
             ),
@@ -216,7 +216,7 @@ class ControlPlaneEventManager {
   }
 
   bool _acknowledgeEvent(ControlPlaneEvent event, List<Channel> channels) {
-    if (event.type != ControlPlaneEventType.ChannelActivity) {
+    if (event.type != ControlPlaneEventType.channelActivity) {
       return true;
     }
 
@@ -247,17 +247,17 @@ class ControlPlaneEventManager {
     List<ControlPlaneEvent> processedEvents,
   ) async {
     switch (event.type) {
-      case ControlPlaneEventType.InvitationAccept:
+      case ControlPlaneEventType.invitationAccept:
         return _invitationAcceptHandler.process(event.data as InvitationAccept);
-      case ControlPlaneEventType.InvitationGroupAccept:
+      case ControlPlaneEventType.invitationGroupAccept:
         return _invitationGroupAcceptedEventHandler.process(
           event.data as InvitationGroupAccept,
         );
-      case ControlPlaneEventType.OfferFinalised:
+      case ControlPlaneEventType.offerFinalised:
         return _offerFinalisedEventHandler.process(
           event.data as OfferFinalised,
         );
-      case ControlPlaneEventType.ChannelActivity:
+      case ControlPlaneEventType.channelActivity:
         final processedChannelActivities = _channelActivityEventsFrom(
           processedEvents,
         );
@@ -272,11 +272,11 @@ class ControlPlaneEventManager {
         return _channelActivityEventHandler.process(
           event.data as ChannelActivity,
         );
-      case ControlPlaneEventType.GroupMembershipFinalised:
+      case ControlPlaneEventType.groupMembershipFinalised:
         return _groupMembershipFinalisedEventHandler.process(
           event.data as GroupMembershipFinalised,
         );
-      case ControlPlaneEventType.InvitationOutreach:
+      case ControlPlaneEventType.invitationOutreach:
         return _outreachInvitationEventHandler.process(
           event.data as InvitationOutreach,
         );

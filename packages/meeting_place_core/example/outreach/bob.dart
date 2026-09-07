@@ -52,7 +52,7 @@ void main() async {
 
   prettyPrintGreen('>>> Calling SDK.controlPlaneEventsStream.listen');
   bobSDK.controlPlaneEventsStream.listen((event) {
-    if (event.type == ControlPlaneEventType.InvitationOutreach) {
+    if (event.type == ControlPlaneEventType.invitationOutreach) {
       waitForOutreachInvitation.complete(event);
     }
   });

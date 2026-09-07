@@ -118,7 +118,7 @@ void main() async {
     final completer = ControlPlaneTestUtils.waitForControlPlaneEvent(
       aliceSDK,
       filter: (event) =>
-          event.type == ControlPlaneEventType.InvitationGroupAccept,
+          event.type == ControlPlaneEventType.invitationGroupAccept,
       expectedNumberOfEvents: 1,
     );
 
@@ -165,7 +165,7 @@ void main() async {
       final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
         aliceSDK,
         filter: (event) =>
-            event.type == ControlPlaneEventType.InvitationGroupAccept,
+            event.type == ControlPlaneEventType.invitationGroupAccept,
         expectedNumberOfEvents: 1,
       );
 
@@ -303,7 +303,7 @@ void main() async {
       final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
         aliceSDK,
         filter: (event) =>
-            event.type == ControlPlaneEventType.InvitationGroupAccept &&
+            event.type == ControlPlaneEventType.invitationGroupAccept &&
             event.channel.otherPartyPermanentChannelDid ==
                 result.connectionOffer.groupDid,
         expectedNumberOfEvents: 2,
@@ -320,7 +320,7 @@ void main() async {
       final charlieCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
         charlieSDK,
         filter: (event) =>
-            event.type == ControlPlaneEventType.GroupMembershipFinalised,
+            event.type == ControlPlaneEventType.groupMembershipFinalised,
         expectedNumberOfEvents: 1,
       );
 
@@ -341,7 +341,7 @@ void main() async {
       final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
         bobSDK,
         filter: (event) =>
-            event.type == ControlPlaneEventType.GroupMembershipFinalised,
+            event.type == ControlPlaneEventType.groupMembershipFinalised,
         expectedNumberOfEvents: 1,
       );
 
@@ -425,7 +425,7 @@ void main() async {
     final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       aliceSDK,
       filter: (event) =>
-          event.type == ControlPlaneEventType.InvitationGroupAccept,
+          event.type == ControlPlaneEventType.invitationGroupAccept,
       expectedNumberOfEvents: 1,
     );
 
@@ -474,7 +474,7 @@ void main() async {
     final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       bobSDK,
       filter: (event) =>
-          event.type == ControlPlaneEventType.GroupMembershipFinalised,
+          event.type == ControlPlaneEventType.groupMembershipFinalised,
       expectedNumberOfEvents: 1,
     );
 
@@ -526,7 +526,7 @@ void main() async {
     final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       aliceSDK,
       filter: (event) =>
-          event.type == ControlPlaneEventType.InvitationGroupAccept,
+          event.type == ControlPlaneEventType.invitationGroupAccept,
       expectedNumberOfEvents: 1,
     );
 
@@ -595,7 +595,7 @@ void main() async {
     final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       aliceSDK,
       filter: (event) =>
-          event.type == ControlPlaneEventType.InvitationGroupAccept,
+          event.type == ControlPlaneEventType.invitationGroupAccept,
       expectedNumberOfEvents: 1,
     );
 
@@ -613,7 +613,7 @@ void main() async {
     final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       bobSDK,
       filter: (event) =>
-          event.type == ControlPlaneEventType.GroupMembershipFinalised,
+          event.type == ControlPlaneEventType.groupMembershipFinalised,
       expectedNumberOfEvents: 1,
     );
 
@@ -688,7 +688,7 @@ void main() async {
     final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       aliceSDK,
       filter: (event) =>
-          event.type == ControlPlaneEventType.InvitationGroupAccept,
+          event.type == ControlPlaneEventType.invitationGroupAccept,
       expectedNumberOfEvents: 1,
     );
 
@@ -777,7 +777,7 @@ void main() async {
     final aliceCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       aliceSDK,
       filter: (event) =>
-          event.type == ControlPlaneEventType.InvitationGroupAccept,
+          event.type == ControlPlaneEventType.invitationGroupAccept,
       expectedNumberOfEvents: 1,
     );
 

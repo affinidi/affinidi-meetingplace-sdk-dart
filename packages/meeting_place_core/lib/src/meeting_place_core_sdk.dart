@@ -349,12 +349,12 @@ class MeetingPlaceCoreSDK {
       offerService: offerService,
       didResolver: didResolver,
       channelTransport: channelTransport,
-      onBuildAttachments: options.onBuildAttachments,
+      onBuildConnectionMessageAttachments:
+          options.onBuildConnectionMessageAttachments,
       logger: mpxLogger,
     );
 
-    // TODO: rename
-    final discoveryEventStreamManager = ControlPlaneEventStreamManager(
+    final controlPlaneEventStreamManager = ControlPlaneEventStreamManager(
       logger: mpxLogger,
     );
 
@@ -410,7 +410,7 @@ class MeetingPlaceCoreSDK {
       groupRepository: repositoryConfig.groupRepository,
       channelRepository: repositoryConfig.channelRepository,
       channelService: channelService,
-      streamManager: discoveryEventStreamManager,
+      streamManager: controlPlaneEventStreamManager,
       channelTransport: channelTransport,
       identityService: identityService,
       didResolver: didResolver,
@@ -419,7 +419,8 @@ class MeetingPlaceCoreSDK {
         maxRetriesDelay: options.eventHandlerMessageFetchMaxRetriesDelay,
         messageTypesForSequenceTracking:
             options.messageTypesForSequenceTracking,
-        onBuildAttachments: options.onBuildAttachments,
+        onBuildConnectionMessageAttachments:
+            options.onBuildConnectionMessageAttachments,
         onAttachmentsReceived: (channel, attachments) =>
             channelAttachmentsController.add(
               ChannelAttachmentEvent(
@@ -460,12 +461,13 @@ class MeetingPlaceCoreSDK {
       identityService: identityService,
       channelService: channelService,
       controlPlaneSDK: controlPlaneSDK,
-      controlPlaneEventStreamManager: discoveryEventStreamManager,
+      controlPlaneEventStreamManager: controlPlaneEventStreamManager,
       onAttachmentsReceived: (channel, attachments) =>
           channelAttachmentsController.add(
             ChannelAttachmentEvent(channel: channel, attachments: attachments),
           ),
-      onBuildAttachments: options.onBuildAttachments,
+      onBuildConnectionMessageAttachments:
+          options.onBuildConnectionMessageAttachments,
       logger: mpxLogger,
     );
 
@@ -494,7 +496,7 @@ class MeetingPlaceCoreSDK {
       connectionManager: connectionManager,
       connectionService: connectionService,
       controlPlaneEventService: discoveryEventService,
-      controlPlaneEventStreamManager: discoveryEventStreamManager,
+      controlPlaneEventStreamManager: controlPlaneEventStreamManager,
       groupService: groupService,
       notificationService: notificationService,
       outreachService: outreachService,

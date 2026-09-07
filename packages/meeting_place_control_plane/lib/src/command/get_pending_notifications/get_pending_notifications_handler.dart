@@ -5,7 +5,7 @@ import '../../api/api_client.dart';
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
-import '../../core/discover_notification_type.dart';
+import '../../core/control_plane_notification_type.dart';
 import '../../core/event/channel_activity.dart';
 import '../../core/event/discovery_event.dart';
 import '../../core/event/discovery_event_type.dart';
@@ -149,7 +149,7 @@ class GetPendingNotificationsHandler
       id: notification.id!,
       type: eventType,
       data: eventData,
-      status: ControlPlaneEventStatus.New,
+      status: ControlPlaneEventStatus.newEvent,
     );
   }
 
@@ -194,39 +194,40 @@ class GetPendingNotificationsHandler
   }) {
     final payloadData = payload['data'] as Map<String, dynamic>;
 
-    if (!DiscoveryNotificationType.values.any((t) => t.name == type)) {
-      return (ControlPlaneEventType.Unknown, <void, void>{});
+    final notificationType = ControlPlaneNotificationType.byValue(type);
+    if (notificationType == null) {
+      return (ControlPlaneEventType.unknown, <void, void>{});
     }
 
-    switch (DiscoveryNotificationType.values.byName(type)) {
-      case DiscoveryNotificationType.InvitationAccept:
+    switch (notificationType) {
+      case ControlPlaneNotificationType.invitationAccept:
         return (
-          ControlPlaneEventType.InvitationAccept,
+          ControlPlaneEventType.invitationAccept,
           InvitationAccept.fromJson(payloadData),
         );
-      case DiscoveryNotificationType.InvitationGroupAccept:
+      case ControlPlaneNotificationType.invitationGroupAccept:
         return (
-          ControlPlaneEventType.InvitationGroupAccept,
+          ControlPlaneEventType.invitationGroupAccept,
           InvitationGroupAccept.fromJson(payloadData),
         );
-      case DiscoveryNotificationType.GroupMembershipFinalised:
+      case ControlPlaneNotificationType.groupMembershipFinalised:
         return (
-          ControlPlaneEventType.GroupMembershipFinalised,
+          ControlPlaneEventType.groupMembershipFinalised,
           GroupMembershipFinalised.fromJson(payloadData),
         );
-      case DiscoveryNotificationType.OfferFinalised:
+      case ControlPlaneNotificationType.offerFinalised:
         return (
-          ControlPlaneEventType.OfferFinalised,
+          ControlPlaneEventType.offerFinalised,
           OfferFinalised.fromJson(payloadData),
         );
-      case DiscoveryNotificationType.InvitationOutreach:
+      case ControlPlaneNotificationType.invitationOutreach:
         return (
-          ControlPlaneEventType.InvitationOutreach,
+          ControlPlaneEventType.invitationOutreach,
           InvitationOutreach.fromJson(payloadData),
         );
-      case DiscoveryNotificationType.ChannelActivity:
+      case ControlPlaneNotificationType.channelActivity:
         return (
-          ControlPlaneEventType.ChannelActivity,
+          ControlPlaneEventType.channelActivity,
           ChannelActivity.fromJson(payloadData),
         );
     }

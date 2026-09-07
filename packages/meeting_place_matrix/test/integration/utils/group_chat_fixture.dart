@@ -97,7 +97,7 @@ class GroupChatFixture {
     final aliceSDKCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       fixture.aliceSDK,
       filter: (event) =>
-          event.type == ControlPlaneEventType.InvitationGroupAccept &&
+          event.type == ControlPlaneEventType.invitationGroupAccept &&
           event.channel.otherPartyPermanentChannelDid ==
               fixture.publishOfferResult.connectionOffer.groupDid,
       expectedNumberOfEvents: 2,
@@ -123,7 +123,7 @@ class GroupChatFixture {
     final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       fixture.bobSDK,
       filter: (event) =>
-          event.type == ControlPlaneEventType.GroupMembershipFinalised,
+          event.type == ControlPlaneEventType.groupMembershipFinalised,
       expectedNumberOfEvents: 1,
     );
     await fixture.bobSDK.processControlPlaneEvents();
@@ -132,7 +132,7 @@ class GroupChatFixture {
     final charlieCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       fixture.charlieSDK,
       filter: (event) =>
-          event.type == ControlPlaneEventType.GroupMembershipFinalised,
+          event.type == ControlPlaneEventType.groupMembershipFinalised,
       expectedNumberOfEvents: 1,
     );
     await fixture.charlieSDK.processControlPlaneEvents();

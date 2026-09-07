@@ -200,10 +200,11 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
       otherPartyPermanentChannelDid,
     );
 
-    var outgoingAttachments = await options.onBuildAttachments?.call(
-      channel,
-      (did) => connectionManager.getDidManagerForDid(wallet, did),
-    );
+    var outgoingAttachments = await options.onBuildConnectionMessageAttachments
+        ?.call(
+          channel,
+          (did) => connectionManager.getDidManagerForDid(wallet, did),
+        );
 
     return mediatorService.sendMessage(
       ChannelInauguration.create(
@@ -294,12 +295,12 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
         NotifyChannelCommand(
           notificationToken: notificationToken,
           did: did,
-          type: 'channel-inauguration', // TODO: move to enum
+          type: ChannelActivityType.channelInauguration,
         ),
       );
     } catch (e, stackTrace) {
       logger.error(
-        '''Failed to send channel-inauguration notification for did: ${did.topAndTail()}''',
+        '''Failed to send ${ChannelActivityType.channelInauguration} notification for did: ${did.topAndTail()}''',
         error: e,
         stackTrace: stackTrace,
         name: '_notifyChannel',

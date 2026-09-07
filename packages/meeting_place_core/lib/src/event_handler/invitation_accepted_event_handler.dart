@@ -20,7 +20,7 @@ class InvitationAcceptedEventHandler
   Future<List<Channel>> process(InvitationAccept event) async {
     final methodName = 'process';
     logger.info(
-      '''Started processing ${ControlPlaneEventType.InvitationAccept} event
+      '''Started processing ${ControlPlaneEventType.invitationAccept} event
       with offerLink: ${event.offerLink}''',
       name: methodName,
     );
@@ -54,14 +54,14 @@ class InvitationAcceptedEventHandler
     } on EmptyMessageListException {
       logger.warning(
         'No messages found to process for event of type '
-        '${ControlPlaneEventType.InvitationAccept}',
+        '${ControlPlaneEventType.invitationAccept}',
         name: methodName,
       );
       return [];
     } catch (e, stackTrace) {
       logger.error(
         'Failed to process event of type '
-        '${ControlPlaneEventType.InvitationAccept}',
+        '${ControlPlaneEventType.invitationAccept}',
         error: e,
         stackTrace: stackTrace,
         name: methodName,

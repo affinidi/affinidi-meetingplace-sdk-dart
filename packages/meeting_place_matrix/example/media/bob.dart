@@ -58,7 +58,7 @@ void main() async {
   // and downloadMedia would fail with M_NOT_FOUND.
   final waitForOfferFinalised = Completer<ControlPlaneStreamEvent>();
   bobSDK.controlPlaneEventsStream.listen((event) {
-    if (event.type == ControlPlaneEventType.OfferFinalised &&
+    if (event.type == ControlPlaneEventType.offerFinalised &&
         !waitForOfferFinalised.isCompleted) {
       waitForOfferFinalised.complete(event);
     }

@@ -95,7 +95,7 @@ ConciergeMessage _stubConcierge() => ConciergeMessage(
 );
 
 ControlPlaneStreamEvent _acceptEvent() => ControlPlaneStreamEvent(
-  type: ControlPlaneEventType.InvitationGroupAccept,
+  type: ControlPlaneEventType.invitationGroupAccept,
   channel: Channel(
     offerLink: 'offer://test',
     publishOfferDid: 'did:test:pub',

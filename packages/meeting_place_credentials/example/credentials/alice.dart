@@ -95,11 +95,11 @@ Future<void> main() async {
   final waitForChannelActivity = Completer<ControlPlaneStreamEvent>();
 
   coreSDK.controlPlaneEventsStream.listen((event) {
-    if (event.type == ControlPlaneEventType.InvitationAccept &&
+    if (event.type == ControlPlaneEventType.invitationAccept &&
         !waitForInvitationAccept.isCompleted) {
       waitForInvitationAccept.complete(event);
     }
-    if (event.type == ControlPlaneEventType.ChannelActivity &&
+    if (event.type == ControlPlaneEventType.channelActivity &&
         !waitForChannelActivity.isCompleted) {
       waitForChannelActivity.complete(event);
     }

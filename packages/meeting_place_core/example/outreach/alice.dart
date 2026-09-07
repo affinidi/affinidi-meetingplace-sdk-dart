@@ -43,7 +43,7 @@ void main() async {
   final waitForInvitationAccept = Completer<ControlPlaneStreamEvent>();
   prettyPrintGreen('>>> Calling SDK.controlPlaneEventsStream.listen');
   aliceSDK.controlPlaneEventsStream.listen((event) {
-    if (event.type == ControlPlaneEventType.InvitationAccept) {
+    if (event.type == ControlPlaneEventType.invitationAccept) {
       waitForInvitationAccept.complete(event);
     }
   });

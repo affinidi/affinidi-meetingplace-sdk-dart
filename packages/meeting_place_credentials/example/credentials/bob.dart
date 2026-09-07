@@ -66,7 +66,7 @@ Future<void> main() async {
   final waitForOfferFinalised = Completer<ControlPlaneStreamEvent>();
 
   coreSDK.controlPlaneEventsStream.listen((event) {
-    if (event.type == ControlPlaneEventType.OfferFinalised &&
+    if (event.type == ControlPlaneEventType.offerFinalised &&
         !waitForOfferFinalised.isCompleted) {
       waitForOfferFinalised.complete(event);
     }

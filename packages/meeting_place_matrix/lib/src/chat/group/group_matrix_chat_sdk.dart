@@ -111,7 +111,7 @@ class GroupMatrixChatSDK extends MeetingPlaceMatrixChatSDK
   ///
   /// If the current user is the group owner, it:
   /// - Creates concierge messages for pending approvals.
-  /// - Listens for [ControlPlaneEventType.InvitationGroupAccept] events and
+  /// - Listens for [ControlPlaneEventType.invitationGroupAccept] events and
   ///   updates the group state accordingly.
   ///
   /// **Returns:**

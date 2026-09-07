@@ -1,6 +1,3 @@
-// ignore_for_file: constant_identifier_names
-// TODO: change enum to comply with linting rules
-
 /// @docImport 'channel_activity.dart';
 /// @docImport 'discovery_event.dart';
 /// @docImport 'group_membership_finalised.dart';
@@ -13,38 +10,38 @@ library;
 /// The kind of notification event received from the control plane.
 enum ControlPlaneEventType {
   /// The event type could not be determined.
-  Unknown,
+  unknown,
 
   /// An [InvitationAccept] event.
-  InvitationAccept,
+  invitationAccept,
 
   /// An [InvitationGroupAccept] event.
-  InvitationGroupAccept,
+  invitationGroupAccept,
 
   /// An [OfferFinalised] event.
-  OfferFinalised,
+  offerFinalised,
 
   /// A [GroupMembershipFinalised] event.
-  GroupMembershipFinalised,
+  groupMembershipFinalised,
 
   /// A [ChannelActivity] event.
-  ChannelActivity,
+  channelActivity,
 
   /// An [InvitationOutreach] event.
-  InvitationOutreach,
+  invitationOutreach,
 }
 
 /// The processing status of a [ControlPlaneEvent].
 enum ControlPlaneEventStatus {
   /// The status could not be determined.
-  Unknown,
+  unknown,
 
   /// The event has not yet been processed.
-  New,
+  newEvent,
 
   /// The event has been deleted.
-  Deleted,
+  deleted,
 
   /// The event has been processed.
-  Processed,
+  processed,
 }

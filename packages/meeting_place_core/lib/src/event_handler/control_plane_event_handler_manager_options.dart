@@ -15,7 +15,7 @@ class ControlPlaneEventHandlerManagerOptions {
     this.maxRetries = 3,
     this.maxRetriesDelay = const Duration(milliseconds: 5000),
     this.messageTypesForSequenceTracking = const [],
-    this.onBuildAttachments,
+    this.onBuildConnectionMessageAttachments,
     this.onAttachmentsReceived,
   });
 
@@ -39,7 +39,7 @@ class ControlPlaneEventHandlerManagerOptions {
 
   /// Callback to build attachments (e.g., R-Card credentials) for outgoing
   /// connection messages during the channel inauguration process.
-  final OnBuildAttachmentsCallback? onBuildAttachments;
+  final OnBuildAttachmentsCallback? onBuildConnectionMessageAttachments;
 
   /// Sink invoked when attachments are received from the other party
   /// during connection establishment. Feeds into the SDK's

@@ -66,7 +66,7 @@ void main() async {
     final bobCompleter = Completer<Channel>();
 
     aliceSDK.controlPlaneEventsStream.listen((event) async {
-      if (event.type == ControlPlaneEventType.InvitationAccept) {
+      if (event.type == ControlPlaneEventType.invitationAccept) {
         final channel = await aliceSDK.approveConnectionRequest(
           ApproveConnectionRequestParams(channel: event.channel),
         );
@@ -77,7 +77,7 @@ void main() async {
     });
 
     bobSDK.controlPlaneEventsStream.listen((event) async {
-      if (event.type == ControlPlaneEventType.OfferFinalised) {
+      if (event.type == ControlPlaneEventType.offerFinalised) {
         bobCompleter.complete(event.channel);
       }
     });

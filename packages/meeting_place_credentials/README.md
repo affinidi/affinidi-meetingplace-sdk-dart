@@ -28,7 +28,7 @@ Storage implementations for `RCardRepository` and `VrcRepository` are required. 
 
 ## Requirements
 
-- Dart SDK `>=3.8.0 <4.0.0`
+- Dart SDK `>=3.10.0 <4.0.0`
 - An initialised `MeetingPlaceSDK` instance from `meeting_place_core`
 - Storage implementations for `RCardRepository` and `VrcRepository`
 

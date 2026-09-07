@@ -14,7 +14,7 @@ class ConnectionOfferNotFoundException implements Exception {
 
 class ChannelRepositoryImpl implements ChannelRepository {
   ChannelRepositoryImpl({required InMemoryStorage storage})
-      : _storage = storage;
+    : _storage = storage;
   static const String channelPrefix = 'channel_';
   static const String channelOtherPartyPermanentChannelDidPrefix =
       'channel_other_party_';

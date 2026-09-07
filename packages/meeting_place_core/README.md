@@ -44,7 +44,7 @@ Leveraging the DID and DIDComm protocol, it guarantees:
 
 ## Requirements
 
-- Dart SDK `^3.8.0`
+- Dart SDK `^3.10.0`
 
 ## Installation
 

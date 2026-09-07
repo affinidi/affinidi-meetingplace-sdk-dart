@@ -14,23 +14,25 @@ void main() async {
   // Alice registers for DIDComm notifications
   prettyPrintGreen('>>> Calling SDK.registerForDIDCommNotifications');
   final notification = await aliceSDK.registerForDIDCommNotifications();
-  final notificationDidDocument =
-      await notification.recipientDidManager.getDidDocument();
+  final notificationDidDocument = await notification.recipientDidManager
+      .getDidDocument();
   prettyPrintYellow('Notification DID ${notificationDidDocument.id}');
 
   // Alice publishes offer
   prettyPrintGreen('>>> Calling SDK.publishOffer');
-  final publishOfferResult = await aliceSDK.publishOffer(PublishOfferRequest(
-    offerName: 'Example offer',
-    offerDescription: 'Example offer to test.',
-    contactCard: ContactCard(
-      did: 'did:test:alice',
-      type: 'individual',
-      contactInfo: {},
+  final publishOfferResult = await aliceSDK.publishOffer(
+    PublishOfferRequest(
+      offerName: 'Example offer',
+      offerDescription: 'Example offer to test.',
+      contactCard: ContactCard(
+        did: 'did:test:alice',
+        type: 'individual',
+        contactInfo: {},
+      ),
+      type: SDKConnectionOfferType.invitation,
+      validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
     ),
-    type: SDKConnectionOfferType.invitation,
-    validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
-  ));
+  );
 
   prettyJsonPrintYellow(
     'Connection offer',

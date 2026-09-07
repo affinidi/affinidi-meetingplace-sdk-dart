@@ -31,8 +31,8 @@ class ForwardMessageBuilder {
   static DateTime? _getExpiresTime(int? forwardExpiryInSeconds) {
     if (forwardExpiryInSeconds == null) return null;
     return DateTime.now().toUtc().add(
-          Duration(seconds: forwardExpiryInSeconds),
-        );
+      Duration(seconds: forwardExpiryInSeconds),
+    );
   }
 
   static Attachment _buildAttachment(EncryptedMessage encryptedMessage) {

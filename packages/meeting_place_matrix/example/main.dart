@@ -22,22 +22,25 @@ Future<void> main() async {
 
     prettyPrintGreen('>>> Registering DIDComm notifications');
     final notification = await sdk.registerForDIDCommNotifications();
-    final notificationDidDocument =
-        await notification.recipientDidManager.getDidDocument();
+    final notificationDidDocument = await notification.recipientDidManager
+        .getDidDocument();
 
     prettyPrintGreen('>>> Publishing an invitation offer');
-    final publishOfferResult = await sdk.publishOffer(PublishOfferRequest(
-      offerName: 'Meeting Place Matrix quickstart offer',
-      offerDescription: 'Minimal example offer created from example/main.dart.',
-      contactCard: ContactCard(
-        did: 'did:test:quickstart',
-        type: 'individual',
-        contactInfo: const {},
+    final publishOfferResult = await sdk.publishOffer(
+      PublishOfferRequest(
+        offerName: 'Meeting Place Matrix quickstart offer',
+        offerDescription:
+            'Minimal example offer created from example/main.dart.',
+        contactCard: ContactCard(
+          did: 'did:test:quickstart',
+          type: 'individual',
+          contactInfo: const {},
+        ),
+        type: SDKConnectionOfferType.invitation,
+        validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
+        transport: ChannelTransport.matrix,
       ),
-      type: SDKConnectionOfferType.invitation,
-      validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
-      transport: ChannelTransport.matrix,
-    ));
+    );
 
     final outputDirectory = Directory('.example-output')
       ..createSync(recursive: true);
@@ -57,8 +60,8 @@ Future<void> main() async {
       'publishOfferDid': publishOfferResult.connectionOffer.publishOfferDid,
       'mediatorDid': publishOfferResult.connectionOffer.mediatorDid,
       'transport': publishOfferResult.connectionOffer.transport.name,
-      'expiresAt':
-          publishOfferResult.connectionOffer.expiresAt?.toIso8601String(),
+      'expiresAt': publishOfferResult.connectionOffer.expiresAt
+          ?.toIso8601String(),
     });
 
     prettyPrintYellow('Wrote offer mnemonic to ${mnemonicFile.path}');

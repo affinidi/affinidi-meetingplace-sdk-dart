@@ -15,7 +15,7 @@ class ConnectionOfferNotFoundException implements Exception {
 
 class ConnectionOfferRepositoryImpl implements ConnectionOfferRepository {
   ConnectionOfferRepositoryImpl({required InMemoryStorage storage})
-      : _storage = storage;
+    : _storage = storage;
 
   static const String connectionPrefix = 'connection_';
   static const String channelPrefix = 'channel_';
@@ -113,7 +113,8 @@ class ConnectionOfferRepositoryImpl implements ConnectionOfferRepository {
 
   @override
   Future<ConnectionOffer?> findConnectionOfferByGroupDid(
-      String groupDid) async {
+    String groupDid,
+  ) async {
     final offerLink = await _storage.get<String>(
       '$connectionGroupRelationPrefix$groupDid',
     );

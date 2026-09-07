@@ -23,22 +23,24 @@ void main() async {
 
   prettyPrintGreen('>>> Calling SDK.registerForDIDCommNotifications');
   final notification = await aliceSDK.registerForDIDCommNotifications();
-  final notificationDidDocument =
-      await notification.recipientDidManager.getDidDocument();
+  final notificationDidDocument = await notification.recipientDidManager
+      .getDidDocument();
 
   prettyPrintGreen('>>> Calling SDK.publishOffer');
-  final publishOfferResult = await aliceSDK.publishOffer(PublishOfferRequest(
-    offerName: 'Media example offer',
-    offerDescription: 'Example offer to demo sendMediaMessage.',
-    contactCard: ContactCard(
-      did: 'did:test:alice',
-      type: 'individual',
-      contactInfo: {},
+  final publishOfferResult = await aliceSDK.publishOffer(
+    PublishOfferRequest(
+      offerName: 'Media example offer',
+      offerDescription: 'Example offer to demo sendMediaMessage.',
+      contactCard: ContactCard(
+        did: 'did:test:alice',
+        type: 'individual',
+        contactInfo: {},
+      ),
+      type: SDKConnectionOfferType.invitation,
+      validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
+      transport: ChannelTransport.matrix,
     ),
-    type: SDKConnectionOfferType.invitation,
-    validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
-    transport: ChannelTransport.matrix,
-  ));
+  );
 
   final outputDirectory = Directory('.example-output')
     ..createSync(recursive: true);
@@ -73,7 +75,8 @@ void main() async {
 
   prettyPrintGreen('>>> Calling SDK.approveConnectionRequest');
   await aliceSDK.approveConnectionRequest(
-      ApproveConnectionRequestParams(channel: invitationEvent.channel));
+    ApproveConnectionRequestParams(channel: invitationEvent.channel),
+  );
 
   prettyPrintYellow('=== Waiting for Bob to inaugurate the channel...');
   final activityEvent = await waitForChannelActivity.future;

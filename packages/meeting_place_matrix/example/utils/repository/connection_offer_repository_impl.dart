@@ -15,7 +15,7 @@ class ConnectionOfferNotFoundException implements Exception {
 
 class ConnectionOfferRepositoryImpl implements ConnectionOfferRepository {
   ConnectionOfferRepositoryImpl({required InMemoryStorage storage})
-      : _storage = storage;
+    : _storage = storage;
 
   static const String connectionPrefix = 'connection_';
   static const String channelPrefix = 'channel_';

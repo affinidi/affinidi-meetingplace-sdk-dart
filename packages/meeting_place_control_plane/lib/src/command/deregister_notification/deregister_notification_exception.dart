@@ -13,11 +13,8 @@ class DeregisterNotificationsException implements ControlPlaneException {
 
   /// Creates a `generic` [DeregisterNotificationsException] instance.
   ///
-  /// This constructor provides the specific message, error code and the actual
-  /// exception encountered in the operation.
-  ///
-  /// **Parameters:**
-  /// - [innerException]: The exception object.
+  /// This constructor provides the specific message and error code for the
+  /// operation, wrapping the given [innerException].
   factory DeregisterNotificationsException.generic({Object? innerException}) {
     return DeregisterNotificationsException._(
       message: 'Deregister notification failed: ${innerException.toString()}.',

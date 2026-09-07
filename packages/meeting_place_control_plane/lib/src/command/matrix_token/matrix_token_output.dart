@@ -1,6 +1,8 @@
 import 'dart:convert';
 
-/// Output of `MatrixTokenCommand`.
+import 'matrix_token.dart' show MatrixTokenCommand;
+
+/// Output of [MatrixTokenCommand].
 class MatrixTokenCommandOutput {
   MatrixTokenCommandOutput({required this.token});
 

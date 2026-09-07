@@ -6,14 +6,13 @@
 class DidWebProof {
   /// Creates a new instance of [DidWebProof].
   ///
-  /// **Parameters:**
-  /// - [type]: The proof type. Expected value: `JsonWebSignature2020`.
-  /// - [created]: ISO-8601 UTC timestamp of when the proof was created.
-  /// - [verificationMethod]: Key identifier used to sign the proof,
-  /// e.g. `did:web:<host>:user:<segment>#auth`.
-  /// - [proofPurpose]: The intended purpose. Expected value: `authentication`.
-  /// - [jws]: Compact JWS with an embedded payload over the canonical proof
-  ///   payload (base64url, no padding).
+  /// The [type] is the proof type, expected to be `JsonWebSignature2020`.
+  /// The [created] is the ISO-8601 UTC timestamp of when the proof was
+  /// created. The [verificationMethod] is the key identifier used to sign
+  /// the proof, e.g. `did:web:<host>:user:<segment>#auth`. The
+  /// [proofPurpose] is the intended purpose, expected to be
+  /// `authentication`. The [jws] is a compact JWS with an embedded payload
+  /// over the canonical proof payload (base64url, no padding).
   DidWebProof({
     required this.type,
     required this.created,

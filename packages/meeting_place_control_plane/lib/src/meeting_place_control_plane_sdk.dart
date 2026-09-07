@@ -57,18 +57,12 @@ class MissingDeviceException implements Exception {}
 /// Through discovery, organisations and AI agents can publish their
 /// connection offers to allow users to connect and start using their services.
 class MeetingPlaceControlPlaneSDK {
-  /// The constructor used to create an instance of
-  /// **MeetingPlaceControlPlaneSDK**.
+  /// Creates a new instance of [MeetingPlaceControlPlaneSDK].
   ///
-  /// **Parameters:**
-  /// - [didManager]: The did manager object.
-  /// - [controlPlaneDid]: The control plane API DID string.
-  /// - [mediatorDid]: The mediator DID string.
-  /// - [controlPlaneSDKConfig]: The control plane SDK configuration object.
-  /// - [didResolver]: The did resolver object.
-  ///
-  /// **Returns:**
-  /// - An instance of [MeetingPlaceControlPlaneSDK].
+  /// The [didManager] is the did manager object, [controlPlaneDid] is the
+  /// control plane API DID string, [mediatorDid] is the mediator DID string,
+  /// [controlPlaneSDKConfig] is the control plane SDK configuration object,
+  /// and [didResolver] is the did resolver object.
   MeetingPlaceControlPlaneSDK({
     required this.didManager,
     required this.controlPlaneDid,
@@ -105,26 +99,21 @@ class MeetingPlaceControlPlaneSDK {
   Future<void>? _initializing;
   bool isInitialized = false;
 
-  /// Setter method that sets the value of [Device] variable of the
-  /// [MeetingPlaceControlPlaneSDK] instance.
+  /// Sets the [device] variable of the [MeetingPlaceControlPlaneSDK]
+  /// instance.
   ///
-  /// **Parameters:**
-  /// - [device]: A [Device] object that defines the deviceToken string and its
-  /// platformType.
+  /// The given [device] is a [Device] object that defines the deviceToken
+  /// string and its platformType.
   set device(Device? device) {
     _device = device;
   }
 
-  /// Getter method to fetch the value of [device] variable of the
-  /// [MeetingPlaceControlPlaneSDK] instance.
-  ///
-  /// **Returns:**
-  /// - [device]: A [Device] object that defines the deviceToken string and its
+  /// Returns the [device] variable of the [MeetingPlaceControlPlaneSDK]
+  /// instance, a [Device] object that defines the deviceToken string and its
   /// platformType.
   ///
-  /// **Throws:**
-  /// - [MeetingPlaceControlPlaneSDKException] with code
-  /// [MeetingPlaceControlPlaneSDKErrorCode.missingDevice] when device is
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.missingDevice] when the device is
   /// null.
   Device get device {
     if (_device == null) {
@@ -310,19 +299,13 @@ class MeetingPlaceControlPlaneSDK {
     isInitialized = true;
   }
 
-  /// The method that executes a provided [DiscoveryCommand].
+  /// Executes the provided [command].
   ///
   /// This method checks first if the [MeetingPlaceControlPlaneSDK] instance
   /// has been initialised before executing the provided command using the
-  /// [CommandDispatcher].
-  ///
-  /// **Parameters:**
-  /// - [DiscoveryCommand<T>]: The MeetingPlaceControlPlaneSDK command with an
+  /// [CommandDispatcher]. The [command] is a [DiscoveryCommand] with an
   /// overloaded generic class that extends the [DiscoveryCommand] parent
-  /// class.
-  ///
-  /// **Returns:**
-  /// - A discovery command result depending on the provided [DiscoveryCommand].
+  /// class, and the result depends on the provided [DiscoveryCommand].
   Future<T> execute<T>(DiscoveryCommand<T> command) {
     final methodName = 'execute';
     _logger.info('Executing command: ${command.runtimeType}', name: methodName);

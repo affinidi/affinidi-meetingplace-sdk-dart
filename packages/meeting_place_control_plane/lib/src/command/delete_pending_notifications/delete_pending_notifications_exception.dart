@@ -15,11 +15,9 @@ class DeletePendingNotificationsException implements ControlPlaneException {
   /// Creates a `deletionFailedError` [DeletePendingNotificationsException]
   /// instance.
   ///
-  /// This constructor provides the specific message, error code and the actual
-  /// exception encountered in the operation.
-  ///
-  /// **Parameters:**
-  /// - [innerException]: The exception object.
+  /// This constructor provides the specific message and error code for the
+  /// operation, using the [deletedNotificationIds] that were successfully
+  /// deleted before the failure and wrapping the given [innerException].
   factory DeletePendingNotificationsException.deletionFailedError({
     required List<String> deletedNotificationIds,
     Object? innerException,
@@ -35,11 +33,8 @@ class DeletePendingNotificationsException implements ControlPlaneException {
 
   /// Creates a `generic` [DeletePendingNotificationsException] instance.
   ///
-  /// This constructor provides the specific message, error code and the actual
-  /// exception encountered in the operation.
-  ///
-  /// **Parameters:**
-  /// - [innerException]: The exception object.
+  /// This constructor provides the specific message and error code for the
+  /// operation, wrapping the given [innerException].
   factory DeletePendingNotificationsException.generic({
     Object? innerException,
   }) {

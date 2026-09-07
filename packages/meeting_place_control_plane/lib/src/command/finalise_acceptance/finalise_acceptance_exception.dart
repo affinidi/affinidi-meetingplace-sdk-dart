@@ -14,11 +14,9 @@ class FinaliseAcceptanceException implements ControlPlaneException {
   /// Creates a `finaliseAcceptanceError` [FinaliseAcceptanceException]
   /// instance.
   ///
-  /// This constructor provides the specific message, error code and the actual
-  /// exception encountered in the operation.
-  ///
-  /// **Parameters:**
-  /// - [innerException]: The exception object.
+  /// This constructor provides the specific message and error code for the
+  /// operation, using the response [statusCode] and [data], and wrapping
+  /// the given [innerException].
   factory FinaliseAcceptanceException.finaliseAcceptanceError({
     required int? statusCode,
     required String data,
@@ -33,11 +31,8 @@ class FinaliseAcceptanceException implements ControlPlaneException {
 
   /// Creates a `generic` [FinaliseAcceptanceException] instance.
   ///
-  /// This constructor provides the specific message, error code and the actual
-  /// exception encountered in the operation.
-  ///
-  /// **Parameters:**
-  /// - [innerException]: The exception object.
+  /// This constructor provides the specific message and error code for the
+  /// operation, wrapping the given [innerException].
   factory FinaliseAcceptanceException.generic({Object? innerException}) {
     return FinaliseAcceptanceException._(
       message: 'Finalise acceptance failed: ${innerException.toString()}.',

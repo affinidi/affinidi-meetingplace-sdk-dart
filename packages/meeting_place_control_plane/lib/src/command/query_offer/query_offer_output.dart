@@ -2,11 +2,12 @@ import '../../core/offer_type.dart';
 import '../../core/protocol/contact_card/contact_card.dart';
 import '../../core/protocol/message/oob_invitation_message.dart';
 import '../../core/protocol/transport.dart';
+import 'query_offer.dart' show QueryOfferCommand;
 
 abstract class QueryOfferCommandOutput {}
 
 /// Model that represents the output data returned from a successful execution
-/// of [SuccessQueryOfferCommandOutput] operation.
+/// of [QueryOfferCommand] operation.
 class SuccessQueryOfferCommandOutput extends QueryOfferCommandOutput {
   /// Creates a new instance of [SuccessQueryOfferCommandOutput].
   SuccessQueryOfferCommandOutput({

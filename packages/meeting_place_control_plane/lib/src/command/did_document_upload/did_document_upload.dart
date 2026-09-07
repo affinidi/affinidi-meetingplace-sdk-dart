@@ -8,13 +8,11 @@ class UploadDidWebDocumentCommand
     extends DiscoveryCommand<UploadDidWebDocumentCommandOutput> {
   /// Creates a new instance of [UploadDidWebDocumentCommand].
   ///
-  /// **Parameters:**
-  /// - [didDocument]: The DID Document JSON map. Must contain an `id` field
-  /// set to a valid `did:web` DID.
-  /// - [controlProof]: Compact JWS with an embedded payload, signed by the
-  ///   `controlDid` key.
-  /// - [proof]: Compact JWS with an embedded payload, signed by the `#auth`
-  ///   key inside [didDocument].
+  /// The [didDocument] is the DID Document JSON map, and must contain an
+  /// `id` field set to a valid `did:web` DID. The [controlProof] is a
+  /// compact JWS with an embedded payload, signed by the `controlDid` key.
+  /// The [proof] is a compact JWS with an embedded payload, signed by the
+  /// `#auth` key inside [didDocument].
   UploadDidWebDocumentCommand({
     required this.didDocument,
     required this.controlProof,

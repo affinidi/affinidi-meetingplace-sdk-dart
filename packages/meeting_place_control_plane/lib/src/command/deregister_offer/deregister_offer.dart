@@ -1,8 +1,8 @@
 import '../../core/command/command.dart';
 import 'deregister_output.dart';
 
-/// Model that represents the output data returned from a successful execution
-/// of [DeregisterOfferCommand] operation.
+/// Model that represents the request sent for the [DeregisterOfferCommand]
+/// operation.
 class DeregisterOfferCommand
     extends DiscoveryCommand<DeregisterOfferCommandOutput> {
   /// Creates a new instance of [DeregisterOfferCommand].

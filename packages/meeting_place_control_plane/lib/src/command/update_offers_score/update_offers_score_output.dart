@@ -1,6 +1,7 @@
 import 'failed_offer.dart';
+import 'update_offers_score.dart' show UpdateOffersScoreCommand;
 
-/// Output model for `UpdateOffersScoreCommand`.
+/// Output model for [UpdateOffersScoreCommand].
 class UpdateOffersScoreCommandOutput {
   UpdateOffersScoreCommandOutput({
     required this.updatedOffers,

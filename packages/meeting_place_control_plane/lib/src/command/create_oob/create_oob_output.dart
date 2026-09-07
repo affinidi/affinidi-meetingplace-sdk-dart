@@ -1,5 +1,7 @@
+import 'create_oob.dart' show CreateOobCommand;
+
 /// Model that represents the output data returned from a successful execution
-/// of [CreateOobCommandOutput] operation.
+/// of [CreateOobCommand] operation.
 class CreateOobCommandOutput {
   /// Creates a new instance of [CreateOobCommandOutput].
   CreateOobCommandOutput({

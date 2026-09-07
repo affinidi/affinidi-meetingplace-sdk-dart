@@ -1,7 +1,9 @@
 import 'package:didcomm/didcomm.dart';
 
+import 'register_offer_group.dart' show RegisterOfferGroupCommand;
+
 /// Model that represents the output data returned from a successful execution
-/// of [RegisterOfferGroupCommandOutput] operation.
+/// of [RegisterOfferGroupCommand] operation.
 class RegisterOfferGroupCommandOutput {
   /// Creates a new instance of [RegisterOfferGroupCommandOutput].
   RegisterOfferGroupCommandOutput({

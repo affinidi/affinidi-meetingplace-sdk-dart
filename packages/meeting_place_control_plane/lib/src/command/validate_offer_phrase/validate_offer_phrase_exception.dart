@@ -13,11 +13,8 @@ class ValidateOfferPhraseExceptions implements ControlPlaneException {
 
   /// Creates a `authentication` [ValidateOfferPhraseExceptions] instance.
   ///
-  /// This constructor provides the specific message, error code and the actual
-  /// exception encountered in the operation.
-  ///
-  /// **Parameters:**
-  /// - [innerException]: The exception object.
+  /// This constructor provides the specific message and error code for the
+  /// operation, wrapping the given [innerException].
   factory ValidateOfferPhraseExceptions.authentication({
     Object? innerException,
   }) {
@@ -31,11 +28,8 @@ class ValidateOfferPhraseExceptions implements ControlPlaneException {
 
   /// Creates a `rateLimit` [ValidateOfferPhraseExceptions] instance.
   ///
-  /// This constructor provides the specific message, error code and the actual
-  /// exception encountered in the operation.
-  ///
-  /// **Parameters:**
-  /// - [innerException]: The exception object.
+  /// This constructor provides the specific message and error code for the
+  /// operation, wrapping the given [innerException].
   factory ValidateOfferPhraseExceptions.rateLimit({Object? innerException}) {
     return ValidateOfferPhraseExceptions._(
       message: 'Rate limit exceeded for phrase validation',
@@ -46,11 +40,8 @@ class ValidateOfferPhraseExceptions implements ControlPlaneException {
 
   /// Creates a `timeout` [ValidateOfferPhraseExceptions] instance.
   ///
-  /// This constructor provides the specific message, error code and the actual
-  /// exception encountered in the operation.
-  ///
-  /// **Parameters:**
-  /// - [innerException]: The exception object.
+  /// This constructor provides the specific message and error code for the
+  /// operation, wrapping the given [innerException].
   factory ValidateOfferPhraseExceptions.timeout({Object? innerException}) {
     return ValidateOfferPhraseExceptions._(
       message: 'Request timeout during phrase validation',
@@ -61,11 +52,8 @@ class ValidateOfferPhraseExceptions implements ControlPlaneException {
 
   /// Creates a `generic` [ValidateOfferPhraseExceptions] instance.
   ///
-  /// This constructor provides the specific message, error code and the actual
-  /// exception encountered in the operation.
-  ///
-  /// **Parameters:**
-  /// - [innerException]: The exception object.
+  /// This constructor provides the specific message and error code for the
+  /// operation, wrapping the given [innerException].
   factory ValidateOfferPhraseExceptions.generic({Object? innerException}) {
     return ValidateOfferPhraseExceptions._(
       message: 'Unexpected error occurred',

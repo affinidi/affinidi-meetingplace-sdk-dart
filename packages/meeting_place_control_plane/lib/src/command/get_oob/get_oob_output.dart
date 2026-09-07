@@ -1,5 +1,7 @@
+import 'get_oob.dart' show GetOobCommand;
+
 /// Model that represents the output data returned from a successful execution
-/// of [GetOobCommandOutput] operation.
+/// of [GetOobCommand] operation.
 class GetOobCommandOutput {
   /// Creates a new instance of [GetOobCommandOutput].
   GetOobCommandOutput({

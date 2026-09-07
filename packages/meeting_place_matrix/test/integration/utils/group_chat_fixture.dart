@@ -45,13 +45,15 @@ class GroupChatFixture {
 
     fixture.publishOfferResult = await fixture.aliceSDK
         .publishOffer<GroupConnectionOffer>(
-          offerName: 'Sample offer',
-          offerDescription: 'Sample offer description',
-          contactCard: ContactCardFixture.getContactCardFixture(
-            did: 'did:test:alice',
-            contactInfo: ContactCardFixture.alicePrimaryCardInfo,
+          PublishOfferRequest(
+            offerName: 'Sample offer',
+            offerDescription: 'Sample offer description',
+            contactCard: ContactCardFixture.getContactCardFixture(
+              did: 'did:test:alice',
+              contactInfo: ContactCardFixture.alicePrimaryCardInfo,
+            ),
+            type: SDKConnectionOfferType.groupInvitation,
           ),
-          type: SDKConnectionOfferType.groupInvitation,
         );
 
     fixture.groupOwnerDidDocument = await fixture
@@ -63,24 +65,28 @@ class GroupChatFixture {
       mnemonic: fixture.publishOfferResult.connectionOffer.mnemonic,
     );
     final bobAcceptance = await fixture.bobSDK.acceptOffer(
-      connectionOffer: bobFindOfferResult.connectionOffer!,
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:bob',
-        contactInfo: ContactCardFixture.bobPrimaryCardInfo,
+      AcceptOfferRequest(
+        connectionOffer: bobFindOfferResult.connectionOffer!,
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:bob',
+          contactInfo: ContactCardFixture.bobPrimaryCardInfo,
+        ),
+        senderInfo: 'Bob',
       ),
-      senderInfo: 'Bob',
     );
 
     final charlieFindOfferResult = await fixture.charlieSDK.findOffer(
       mnemonic: fixture.publishOfferResult.connectionOffer.mnemonic,
     );
     final charlieAcceptance = await fixture.charlieSDK.acceptOffer(
-      connectionOffer: charlieFindOfferResult.connectionOffer!,
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:charlie',
-        contactInfo: ContactCardFixture.charliePrimaryCardInfo,
+      AcceptOfferRequest(
+        connectionOffer: charlieFindOfferResult.connectionOffer!,
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:charlie',
+          contactInfo: ContactCardFixture.charliePrimaryCardInfo,
+        ),
+        senderInfo: 'Charlie',
       ),
-      senderInfo: 'Charlie',
     );
 
     fixture.bobMemberDid =
@@ -107,8 +113,12 @@ class GroupChatFixture {
       fixture.charlieMemberDid,
     );
 
-    await fixture.aliceSDK.approveConnectionRequest(channel: bobChannel!);
-    await fixture.aliceSDK.approveConnectionRequest(channel: charlieChannel!);
+    await fixture.aliceSDK.approveConnectionRequest(
+      ApproveConnectionRequestParams(channel: bobChannel!),
+    );
+    await fixture.aliceSDK.approveConnectionRequest(
+      ApproveConnectionRequestParams(channel: charlieChannel!),
+    );
 
     final bobCompleter = ControlPlaneTestUtils.waitForControlPlaneEvent(
       fixture.bobSDK,
@@ -198,12 +208,14 @@ class GroupChatFixture {
     final sdk = await initCoreSDKInstance();
 
     final acceptance = await sdk.acceptOffer(
-      connectionOffer: publishOfferResult.connectionOffer,
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:charlie',
-        contactInfo: ContactCardFixture.charliePrimaryCardInfo,
+      AcceptOfferRequest(
+        connectionOffer: publishOfferResult.connectionOffer,
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:charlie',
+          contactInfo: ContactCardFixture.charliePrimaryCardInfo,
+        ),
+        senderInfo: 'Charlie',
       ),
-      senderInfo: 'Charlie',
     );
 
     return (sdk, acceptance);

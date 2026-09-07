@@ -30,10 +30,12 @@ void main() async {
       },
     );
     final offer = await aliceSDK.publishOffer(
-      offerName: 'Sample Offer 123',
-      offerDescription: 'Sample offer description',
-      contactCard: aliceCard,
-      type: SDKConnectionOfferType.invitation,
+      PublishOfferRequest(
+        offerName: 'Sample Offer 123',
+        offerDescription: 'Sample offer description',
+        contactCard: aliceCard,
+        type: SDKConnectionOfferType.invitation,
+      ),
     );
 
     final findOfferResult = await bobSDK.findOffer(
@@ -47,9 +49,11 @@ void main() async {
       },
     );
     await bobSDK.acceptOffer(
-      connectionOffer: findOfferResult.connectionOffer!,
-      contactCard: bobCard,
-      senderInfo: 'Bob',
+      AcceptOfferRequest(
+        connectionOffer: findOfferResult.connectionOffer!,
+        contactCard: bobCard,
+        senderInfo: 'Bob',
+      ),
     );
 
     final waitForInvitationAccept = Completer<Channel>();
@@ -70,7 +74,7 @@ void main() async {
     aliceInvitationAcceptChannel = await waitForInvitationAccept.future;
 
     aliceApprovedChannel = await aliceSDK.approveConnectionRequest(
-      channel: aliceInvitationAcceptChannel,
+      ApproveConnectionRequestParams(channel: aliceInvitationAcceptChannel),
     );
 
     await bobSDK.processControlPlaneEvents();

@@ -138,7 +138,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
       IndividualChannelNotification(recipientDid: otherPartyDid, type: type);
 
   @override
-  Future<Chat> startChatSession() async {
+  Future<Chat> startChatSession() => withSdkExceptionHandling(() async {
     chatStream = ChatStream();
     await attachLocalChatEventListener();
     _incomingRouter = buildRoomEventRouter();
@@ -181,7 +181,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     );
 
     return chat;
-  }
+  });
 
   /// Runs transport-specific work after the chat stream is available.
   @protected
@@ -227,10 +227,10 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   }
 
   @override
-  Future<List<ChatItem>> get messages async {
+  Future<List<ChatItem>> get messages => withSdkExceptionHandling(() async {
     logger.info('Retrieving all persisted messages', name: 'messages');
     return chatRepository.listMessages(chatId);
-  }
+  });
 
   /// Returns this device's call chat item for [callId], or `null` when no
   /// stored item carries it.
@@ -320,7 +320,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   Future<Message> sendTextMessage(
     String text, {
     List<ChatAttachment> attachments = const [],
-  }) async {
+  }) => withSdkExceptionHandling(() async {
     assertCanSend();
 
     final Message message;
@@ -363,34 +363,41 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
       ChatTypingNotification(senderDid: did, active: false),
     );
     return message;
-  }
+  });
 
   @override
-  Future<Uint8List> downloadMedia(ChatAttachment attachment) async {
-    final eventId = attachment.transportId;
-    if (eventId == null) {
-      throw StateError(
-        'Attachment has no transportId; cannot download hosted media',
-      );
-    }
-    final channel = await getChannel();
-    return coreSDK.downloadMedia(channel, MatrixEventMediaReference(eventId));
-  }
+  Future<Uint8List> downloadMedia(ChatAttachment attachment) =>
+      withSdkExceptionHandling(() async {
+        final eventId = attachment.transportId;
+        if (eventId == null) {
+          throw StateError(
+            'Attachment has no transportId; cannot download hosted media',
+          );
+        }
+        final channel = await getChannel();
+        return coreSDK.downloadMedia(
+          DownloadMediaRequest(
+            channel: channel,
+            reference: MatrixEventMediaReference(eventId),
+          ),
+        );
+      });
 
   /// Sends an `m.read` receipt for [messageId], marking it as delivered.
   @override
-  Future<void> sendChatDeliveredMessage(String messageId) async {
-    assertCanSend();
-    await coreSDK.sendMessage(
-      ReadReceiptRoomEvent(senderDid: did, eventId: messageId),
-    );
-  }
+  Future<void> sendChatDeliveredMessage(String messageId) =>
+      withSdkExceptionHandling(() async {
+        assertCanSend();
+        await coreSDK.sendMessage(
+          ReadReceiptRoomEvent(senderDid: did, eventId: messageId),
+        );
+      });
 
   @override
   Future<void> reactOnMessage(
     Message message, {
     required String reaction,
-  }) async {
+  }) => withSdkExceptionHandling(() async {
     assertCanSend();
     final methodName = 'reactOnMessage';
     logger.info('Started reacting on message', name: methodName);
@@ -455,63 +462,69 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     }
 
     logger.info('Completed reacting on message', name: methodName);
-  }
+  });
 
   @override
-  Future<void> editTextMessage(Message message, String newText) async {
-    assertCanSend();
-    final methodName = 'editTextMessage';
+  Future<void> editTextMessage(Message message, String newText) =>
+      withSdkExceptionHandling(() async {
+        assertCanSend();
+        final methodName = 'editTextMessage';
 
-    if (!message.isFromMe) {
-      throw StateError('Only the original sender can edit a message');
-    }
-    final trimmed = newText.trim();
-    if (trimmed.isEmpty) {
-      throw StateError('Edited message text must not be empty');
-    }
-    if (trimmed == message.value) {
-      throw StateError('Edited message text is unchanged');
-    }
-    final transportId = message.transportId;
-    if (transportId == null) {
-      throw StateError('Cannot edit a message that has not yet been delivered');
-    }
+        if (!message.isFromMe) {
+          throw StateError('Only the original sender can edit a message');
+        }
+        final trimmed = newText.trim();
+        if (trimmed.isEmpty) {
+          throw StateError('Edited message text must not be empty');
+        }
+        if (trimmed == message.value) {
+          throw StateError('Edited message text is unchanged');
+        }
+        final transportId = message.transportId;
+        if (transportId == null) {
+          throw StateError(
+            'Cannot edit a message that has not yet been delivered',
+          );
+        }
 
-    final previousValue = message.value;
-    final previousEditedAt = message.editedAt;
+        final previousValue = message.value;
+        final previousEditedAt = message.editedAt;
 
-    message.value = trimmed;
-    message.editedAt = DateTime.now().toUtc();
-    await chatRepository.updateMesssage(message);
-    chatStream.pushData(StreamData(chatItem: message));
+        message.value = trimmed;
+        message.editedAt = DateTime.now().toUtc();
+        await chatRepository.updateMesssage(message);
+        chatStream.pushData(StreamData(chatItem: message));
 
-    try {
-      await coreSDK.sendMessage(
-        MessageEditRoomEvent(
-          senderDid: did,
-          targetEventId: transportId,
-          newText: trimmed,
-        ),
-      );
-    } catch (e, stackTrace) {
-      logger.error(
-        'Failed to send message edit',
-        error: e,
-        stackTrace: stackTrace,
-        name: methodName,
-      );
-      message.value = previousValue;
-      message.editedAt = previousEditedAt;
-      await chatRepository.updateMesssage(message);
-      chatStream.pushData(StreamData(chatItem: message));
-      Error.throwWithStackTrace(e, stackTrace);
-    }
+        try {
+          await coreSDK.sendMessage(
+            MessageEditRoomEvent(
+              senderDid: did,
+              targetEventId: transportId,
+              newText: trimmed,
+            ),
+          );
+        } catch (e, stackTrace) {
+          logger.error(
+            'Failed to send message edit',
+            error: e,
+            stackTrace: stackTrace,
+            name: methodName,
+          );
+          message.value = previousValue;
+          message.editedAt = previousEditedAt;
+          await chatRepository.updateMesssage(message);
+          chatStream.pushData(StreamData(chatItem: message));
+          Error.throwWithStackTrace(e, stackTrace);
+        }
 
-    logger.info('Completed editing message', name: methodName);
-  }
+        logger.info('Completed editing message', name: methodName);
+      });
 
   @override
-  Future<void> deleteMessage(Message message, {bool localOnly = false}) async {
+  Future<void> deleteMessage(
+    Message message, {
+    bool localOnly = false,
+  }) => withSdkExceptionHandling(() async {
     const methodName = 'deleteMessage';
 
     if (!message.isFromMe) {
@@ -577,16 +590,17 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
       chatStream.pushData(StreamData(chatItem: message));
       Error.throwWithStackTrace(e, stackTrace);
     }
-  }
+  });
 
   @override
-  Future<void> updateMessage(Message message) async {
-    await chatRepository.updateMesssage(message);
-    chatStream.pushData(
-      StreamData(event: const ChatMessageUpdatedEvent(), chatItem: message),
-    );
-    logger.info('updateMessage: ${message.messageId}', name: _matrixLogkey);
-  }
+  Future<void> updateMessage(Message message) =>
+      withSdkExceptionHandling(() async {
+        await chatRepository.updateMesssage(message);
+        chatStream.pushData(
+          StreamData(event: const ChatMessageUpdatedEvent(), chatItem: message),
+        );
+        logger.info('updateMessage: ${message.messageId}', name: _matrixLogkey);
+      });
 
   /// Dispatches an arbitrary Matrix room event into the underlying room.
   ///
@@ -597,17 +611,17 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   Future<void> sendCustomEvent({
     required String type,
     required Map<String, dynamic> payload,
-  }) async {
+  }) => withSdkExceptionHandling(() async {
     assertCanSend();
     await coreSDK.sendMessage(
       MatrixCustomOutgoingMessage(senderDid: did, type: type, content: payload),
     );
 
     logger.info('Sent custom room event of type $type', name: _matrixLogkey);
-  }
+  });
 
   @override
-  Future<void> sendEffect(Effect effect) async {
+  Future<void> sendEffect(Effect effect) => withSdkExceptionHandling(() async {
     assertCanSend();
     final roomEvent = EffectRoomEvent(senderDid: did, effect: effect.name);
 
@@ -615,17 +629,17 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
 
     await coreSDK.sendMessage(roomEvent);
     logger.info('Chat effect sent', name: _matrixLogkey);
-  }
+  });
 
   /// Sends a typing indicator (`m.typing`) for the configured activity expiry.
   /// The indicator is cleared automatically after
   /// [MeetingPlaceChatSDKOptions.chatActivityExpiry] elapses without a new
   /// call.
   @override
-  Future<void> sendChatActivity() async {
+  Future<void> sendChatActivity() => withSdkExceptionHandling(() async {
     assertCanSend();
     await _typingManager.sendActivity();
-  }
+  });
 
   Future<void> setTypingState(bool active) async {
     await coreSDK.sendMessage(
@@ -654,26 +668,27 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   /// (e.g. [GroupMatrixChatSDK]) override and call `super` after their own
   /// bookkeeping.
   @override
-  Future<void> sendChatContactDetailsUpdate(ConciergeMessage message) async {
-    assertCanSend();
-    final c = currentContactCard;
-    if (c == null) {
-      throw StateError('ContactCard missing for contact details update');
-    }
+  Future<void> sendChatContactDetailsUpdate(ConciergeMessage message) =>
+      withSdkExceptionHandling(() async {
+        assertCanSend();
+        final c = currentContactCard;
+        if (c == null) {
+          throw StateError('ContactCard missing for contact details update');
+        }
 
-    unawaited(
-      ContactDetailsUpdateSender(
-        coreSDK: coreSDK,
-        getChannel: getChannel,
-      ).send(senderDid: did, contactCard: c),
-    );
+        unawaited(
+          ContactDetailsUpdateSender(
+            coreSDK: coreSDK,
+            getChannel: getChannel,
+          ).send(senderDid: did, contactCard: c),
+        );
 
-    message.status = ChatItemStatus.confirmed;
-    await chatRepository.updateMesssage(message);
-    chatStream.pushData(StreamData(chatItem: message));
+        message.status = ChatItemStatus.confirmed;
+        await chatRepository.updateMesssage(message);
+        chatStream.pushData(StreamData(chatItem: message));
 
-    logger.info('Sent chat contact details update', name: _matrixLogkey);
-  }
+        logger.info('Sent chat contact details update', name: _matrixLogkey);
+      });
 
   @override
   Future<void> end() async {

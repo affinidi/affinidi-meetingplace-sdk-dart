@@ -11,7 +11,7 @@ import '../connection_manager/connection_manager.dart';
 class OutreachService {
   OutreachService({
     required MeetingPlaceMediatorSDK mediatorSDK,
-    required ControlPlaneSDK controlPlaneSDK,
+    required MeetingPlaceControlPlaneSDK controlPlaneSDK,
     required ConnectionManager connectionManager,
     required DidResolver didResolver,
   }) : _mediatorSDK = mediatorSDK,
@@ -20,7 +20,7 @@ class OutreachService {
        _didResolver = didResolver;
 
   final MeetingPlaceMediatorSDK _mediatorSDK;
-  final ControlPlaneSDK _controlPlaneSDK;
+  final MeetingPlaceControlPlaneSDK _controlPlaneSDK;
   final ConnectionManager _connectionManager;
   final DidResolver _didResolver;
 
@@ -48,9 +48,11 @@ class OutreachService {
     );
 
     await _mediatorSDK.sendMessage(
-      outreachInvitation.toPlainTextMessage(),
-      senderDidManager: senderDidManager,
-      recipientDidDocument: await _didResolver.resolveDid(message.from!),
+      MediatorMessageRequest(
+        message: outreachInvitation.toPlainTextMessage(),
+        senderDidManager: senderDidManager,
+        recipientDidDocument: await _didResolver.resolveDid(message.from!),
+      ),
     );
 
     await _controlPlaneSDK.execute(

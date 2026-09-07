@@ -24,15 +24,23 @@ void main() async {
 
       expect(
         () => sdkWithoutDevice.publishOffer(
-          offerName: 'Test offer',
-          offerDescription: 'Sample offer description',
-          contactCard: ContactCardFixture.getContactCardFixture(
-            did: 'did:test:alice',
-            contactInfo: const {},
+          PublishOfferRequest(
+            offerName: 'Test offer',
+            offerDescription: 'Sample offer description',
+            contactCard: ContactCardFixture.getContactCardFixture(
+              did: 'did:test:alice',
+              contactInfo: const {},
+            ),
+            type: SDKConnectionOfferType.invitation,
           ),
-          type: SDKConnectionOfferType.invitation,
         ),
-        throwsA(isA<MissingDeviceException>()),
+        throwsA(
+          isA<MeetingPlaceCoreSDKException>().having(
+            (e) => e.code,
+            'code',
+            MeetingPlaceControlPlaneSDKErrorCode.missingDevice.value,
+          ),
+        ),
       );
     },
   );
@@ -53,13 +61,15 @@ void main() async {
     () async {
       await aliceSDK.registerForPushNotifications(const Uuid().v4());
       await aliceSDK.publishOffer(
-        offerName: 'Test offer',
-        offerDescription: 'Sample offer description',
-        contactCard: ContactCardFixture.getContactCardFixture(
-          did: 'did:test:alice',
-          contactInfo: const {},
+        PublishOfferRequest(
+          offerName: 'Test offer',
+          offerDescription: 'Sample offer description',
+          contactCard: ContactCardFixture.getContactCardFixture(
+            did: 'did:test:alice',
+            contactInfo: const {},
+          ),
+          type: SDKConnectionOfferType.invitation,
         ),
-        type: SDKConnectionOfferType.invitation,
       );
     },
   );
@@ -82,15 +92,23 @@ void main() async {
 
     expect(
       () => minimumSDK.publishOffer(
-        offerName: 'Test offer',
-        offerDescription: 'Sample offer description',
-        contactCard: ContactCardFixture.getContactCardFixture(
-          did: 'did:test:alice',
-          contactInfo: const {},
+        PublishOfferRequest(
+          offerName: 'Test offer',
+          offerDescription: 'Sample offer description',
+          contactCard: ContactCardFixture.getContactCardFixture(
+            did: 'did:test:alice',
+            contactInfo: const {},
+          ),
+          type: SDKConnectionOfferType.groupInvitation,
         ),
-        type: SDKConnectionOfferType.groupInvitation,
       ),
-      throwsA(isA<UnimplementedError>()),
+      throwsA(
+        isA<MeetingPlaceCoreSDKException>().having(
+          (e) => e.innerException,
+          'innerException',
+          isA<UnimplementedError>(),
+        ),
+      ),
     );
   });
 

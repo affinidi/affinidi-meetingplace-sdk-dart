@@ -26,11 +26,13 @@ class MediatorResolver {
               );
               baseDio.interceptors.add(RetryInterceptor(dio: baseDio));
               return baseDio;
-            }());
+            }()),
+        _ownsDio = dio == null;
   static const String _className = 'MediatorResolver';
 
   final MeetingPlaceMediatorSDKLogger _logger;
   final Dio _dio;
+  final bool _ownsDio;
 
   /// Resolves the mediator DID from a given [mediatorEndpoint].
   ///
@@ -108,5 +110,13 @@ class MediatorResolver {
       name: methodName,
     );
     return null;
+  }
+
+  /// Closes the [Dio] client, but only if this resolver created its own —
+  /// an injected [Dio] is owned by the caller and must not be closed here.
+  void dispose() {
+    if (_ownsDio) {
+      _dio.close();
+    }
   }
 }

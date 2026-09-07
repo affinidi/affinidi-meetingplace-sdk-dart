@@ -1,0 +1,114 @@
+import 'dart:async';
+
+import '../../../../meeting_place_core.dart';
+
+typedef OnDisposeCallback = FutureOr<void> Function();
+
+class DirectConnectionStream
+    implements CoreSDKStreamSubscription<DirectConnectionStreamData, void> {
+  DirectConnectionStream({
+    OnDisposeCallback? onDispose,
+    required MeetingPlaceCoreSDKLogger logger,
+  }) : _onDispose = onDispose,
+       _logger = logger;
+
+  final OnDisposeCallback? _onDispose;
+  final List<DirectConnectionStreamData> _eventBuffer =
+      <DirectConnectionStreamData>[];
+  final MeetingPlaceCoreSDKLogger _logger;
+
+  StreamController<DirectConnectionStreamData>? _streamController;
+  Timer? _timeoutTimer;
+
+  @override
+  Stream<DirectConnectionStreamData> get stream => _controller.stream;
+
+  @override
+  bool get isClosed => _controller.isClosed;
+
+  StreamController<DirectConnectionStreamData> get _controller =>
+      _streamController ??=
+          StreamController<DirectConnectionStreamData>.broadcast();
+
+  @override
+  StreamSubscription<DirectConnectionStreamData> listen(
+    void Function(DirectConnectionStreamData) onData, {
+    Function? onError,
+    void Function()? onDone,
+    bool? cancelOnError,
+  }) {
+    final streamSubscription = _controller.stream.listen(
+      (event) {
+        _timeoutTimer?.cancel();
+        onData(event);
+      },
+      onError: onError,
+      onDone: onDone,
+      cancelOnError: cancelOnError,
+    );
+
+    // Flush buffered events to the stream once listener attaches
+    _logger.info('Flush buffered event to the stream');
+    for (var data in _eventBuffer) {
+      _controller.add(data);
+    }
+    _eventBuffer.clear();
+
+    return streamSubscription;
+  }
+
+  void pushEvent(DirectConnectionStreamData data) {
+    if (_controller.isClosed) {
+      _logger.info('Event skipped due to closed stream');
+      return;
+    }
+
+    if (!_controller.hasListener) {
+      _logger.info('No listener detected. Event stored in buffer');
+      _eventBuffer.add(data);
+      return;
+    }
+
+    _logger.info('Push event to stream');
+    _controller.add(data);
+  }
+
+  @override
+  StreamSubscription<DirectConnectionStreamData> timeout(
+    Duration timeLimit,
+    void Function()? onTimeout,
+  ) {
+    return stream
+        .timeout(
+          timeLimit,
+          onTimeout: onTimeout != null
+              ? (EventSink sink) {
+                  try {
+                    onTimeout();
+                  } catch (e, stackTrace) {
+                    _logger.error(
+                      'Error in timeout callback',
+                      error: e,
+                      stackTrace: stackTrace,
+                    );
+                  }
+                }
+              : null,
+        )
+        .listen(null);
+  }
+
+  @override
+  Future<void> dispose() async {
+    _timeoutTimer?.cancel();
+
+    if (_controller.isClosed) {
+      _logger.info('Stream already closed');
+      return;
+    }
+
+    _logger.info('Closing stream');
+    await _controller.close();
+    await _onDispose?.call();
+  }
+}

@@ -18,7 +18,7 @@ void main() async {
   prettyPrintYellow('Notification DID ${notificationDidDocument.id}');
 
   prettyPrintGreen('>>> Calling SDK.publishOffer');
-  final publishOfferResult = await bobSDK.publishOffer(
+  final publishOfferResult = await bobSDK.publishOffer(PublishOfferRequest(
     offerName: 'Example offer',
     offerDescription: 'Example offer to test.',
     validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
@@ -28,7 +28,7 @@ void main() async {
       contactInfo: {},
     ),
     type: SDKConnectionOfferType.outreachInvitation,
-  );
+  ));
 
   final outputDirectory = Directory('.example-output')
     ..createSync(recursive: true);

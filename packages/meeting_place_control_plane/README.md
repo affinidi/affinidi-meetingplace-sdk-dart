@@ -72,7 +72,7 @@ void main() async {
    final didResolver = /* DidResolver implementation */;
 
    // Initialize SDK
-   final sdk = ControlPlaneSDK(
+   final sdk = MeetingPlaceControlPlaneSDK(
       didManager: didManager,
       controlPlaneDid: 'did:example:control-plane',   // your control plane DID
       mediatorDid: 'did:example:mediator',            // your mediator DID

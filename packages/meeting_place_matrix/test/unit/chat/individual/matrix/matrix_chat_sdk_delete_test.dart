@@ -46,6 +46,18 @@ Message _ownMessage({
   isDeleted: isDeleted,
 );
 
+Matcher _throwsWrapped(String messageContains) => throwsA(
+  isA<MeetingPlaceChatSDKException>().having(
+    (e) => e.innerException,
+    'innerException',
+    isA<StateError>().having(
+      (e) => e.message,
+      'message',
+      contains(messageContains),
+    ),
+  ),
+);
+
 Message _otherMessage() => Message(
   chatId: Chat.deriveId(did: _aliceDid, otherPartyDid: _bobDid),
   messageId: 'local-2',
@@ -124,13 +136,7 @@ void main() {
 
       expect(
         () => sdk.deleteMessage(msg, localOnly: true),
-        throwsA(
-          isA<StateError>().having(
-            (e) => e.message,
-            'message',
-            contains('original sender'),
-          ),
-        ),
+        _throwsWrapped('original sender'),
       );
       verifyNever(() => repo.updateMesssage(any()));
     });
@@ -159,16 +165,7 @@ void main() {
     test('throws when message is not authored by me', () async {
       final msg = _otherMessage();
 
-      expect(
-        () => sdk.deleteMessage(msg),
-        throwsA(
-          isA<StateError>().having(
-            (e) => e.message,
-            'message',
-            contains('original sender'),
-          ),
-        ),
-      );
+      expect(() => sdk.deleteMessage(msg), _throwsWrapped('original sender'));
       verifyNever(() => core.sendMessage(any()));
     });
 
@@ -177,13 +174,7 @@ void main() {
 
       expect(
         () => sdk.deleteMessage(msg),
-        throwsA(
-          isA<StateError>().having(
-            (e) => e.message,
-            'message',
-            contains('not yet been delivered'),
-          ),
-        ),
+        _throwsWrapped('not yet been delivered'),
       );
     });
 
@@ -192,16 +183,7 @@ void main() {
         dateCreated: DateTime.now().toUtc().subtract(const Duration(hours: 1)),
       );
 
-      expect(
-        () => sdk.deleteMessage(msg),
-        throwsA(
-          isA<StateError>().having(
-            (e) => e.message,
-            'message',
-            contains('expired'),
-          ),
-        ),
-      );
+      expect(() => sdk.deleteMessage(msg), _throwsWrapped('expired'));
       verifyNever(() => core.sendMessage(any()));
     });
 
@@ -209,7 +191,10 @@ void main() {
       sdk = _buildSdk(core: core, repo: repo, window: Duration.zero);
       final msg = _ownMessage();
 
-      expect(() => sdk.deleteMessage(msg), throwsA(isA<StateError>()));
+      expect(
+        () => sdk.deleteMessage(msg),
+        throwsA(isA<MeetingPlaceChatSDKException>()),
+      );
       verifyNever(() => core.sendMessage(any()));
     });
 

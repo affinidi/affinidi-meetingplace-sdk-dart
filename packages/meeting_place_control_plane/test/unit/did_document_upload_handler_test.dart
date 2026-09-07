@@ -4,9 +4,9 @@ import 'package:dio/dio.dart';
 import 'package:meeting_place_control_plane/src/command/did_document_upload/did_document_upload.dart';
 import 'package:meeting_place_control_plane/src/command/did_document_upload/did_document_upload_exception.dart';
 import 'package:meeting_place_control_plane/src/command/did_document_upload/did_document_upload_handler.dart';
-import 'package:meeting_place_control_plane/src/control_plane_sdk_error_code.dart';
 import 'package:meeting_place_control_plane/src/core/model/did_document_hosting_record.dart';
 import 'package:meeting_place_control_plane/src/core/model/did_web_proof.dart';
+import 'package:meeting_place_control_plane/src/meeting_place_control_plane_sdk_error_code.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
@@ -14,7 +14,7 @@ import 'mocks.dart';
 
 void main() {
   late MockDidWebDocumentApi mockApi;
-  late MockControlPlaneSDKLogger mockLogger;
+  late MockMeetingPlaceControlPlaneSDKLogger mockLogger;
   late UploadDidWebDocumentHandler handler;
 
   final testProof = DidWebProof(
@@ -33,7 +33,7 @@ void main() {
 
   setUp(() {
     mockApi = MockDidWebDocumentApi();
-    mockLogger = MockControlPlaneSDKLogger();
+    mockLogger = MockMeetingPlaceControlPlaneSDKLogger();
     handler = UploadDidWebDocumentHandler(
       didWebDocumentApi: mockApi,
       logger: mockLogger,

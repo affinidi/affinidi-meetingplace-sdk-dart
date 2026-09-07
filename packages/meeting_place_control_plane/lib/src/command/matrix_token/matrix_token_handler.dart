@@ -5,8 +5,8 @@ import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
 import '../../core/didcomm/didcomm_challenge_response.dart';
-import '../../loggers/control_plane_sdk_logger.dart';
-import '../../loggers/default_control_plane_sdk_logger.dart';
+import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
+import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
 import 'matrix_token.dart';
 import 'matrix_token_exception.dart';
 import 'matrix_token_output.dart';
@@ -28,17 +28,20 @@ class MatrixTokenHandler
     required this.apiClient,
     required this.didResolver,
     required this.controlPlaneDid,
-    ControlPlaneSDKLogger? logger,
+    MeetingPlaceControlPlaneSDKLogger? logger,
   }) : _logger =
            logger ??
-           DefaultControlPlaneSDKLogger(className: _logKey, sdkName: sdkName);
+           DefaultMeetingPlaceControlPlaneSDKLogger(
+             className: _logKey,
+             sdkName: sdkName,
+           );
 
   static const String _logKey = 'MatrixTokenHandler';
 
   final ControlPlaneApiClient apiClient;
   final DidResolver didResolver;
   final String controlPlaneDid;
-  final ControlPlaneSDKLogger _logger;
+  final MeetingPlaceControlPlaneSDKLogger _logger;
 
   MatrixTokenCommandOutput _parseResponseData(MatrixTokenOK? data) {
     if (data == null) {

@@ -22,7 +22,7 @@ class RegisterOfferCommand
     required this.transport,
     this.validUntil,
     this.maximumUsage,
-    this.customPhrase,
+    this.customMnemonic,
     this.mediatorDid,
     this.score,
   });
@@ -36,7 +36,7 @@ class RegisterOfferCommand
 
   final DateTime? validUntil;
   final int? maximumUsage;
-  final String? customPhrase;
+  final String? customMnemonic;
 
   final String? mediatorDid;
 

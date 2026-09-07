@@ -17,6 +17,12 @@ class _MockLogger extends Mock implements MeetingPlaceChatSDKLogger {}
 
 class _FakeChannel extends Fake implements Channel {}
 
+class _FakeApproveConnectionRequestParams extends Fake
+    implements ApproveConnectionRequestParams {}
+
+class _FakeSendMediaMessageRequest extends Fake
+    implements SendMediaMessageRequest {}
+
 class _FakeChatItem extends Fake implements ChatItem {}
 
 class _FakeOutgoingMessage extends Fake implements OutgoingMessage {}
@@ -86,6 +92,8 @@ ConciergeMessage _conciergeMessage() => ConciergeMessage(
 void main() {
   setUpAll(() {
     registerFallbackValue(_FakeChannel());
+    registerFallbackValue(_FakeApproveConnectionRequestParams());
+    registerFallbackValue(_FakeSendMediaMessageRequest());
     registerFallbackValue(_FakeChatItem());
     registerFallbackValue(Uint8List(0));
     registerFallbackValue(_FakeOutgoingMessage());
@@ -118,19 +126,13 @@ void main() {
         () => coreSDK.findChannelByOtherPartyPermanentDid(any()),
       ).thenAnswer((_) async => _bobChannel());
       when(
-        () => coreSDK.approveConnectionRequest(channel: any(named: 'channel')),
+        () => coreSDK.approveConnectionRequest(any()),
       ).thenAnswer((_) async => _bobChannel());
       when(
         () => coreSDK.findGroupById(any()),
       ).thenAnswer((_) async => _group());
       when(
-        () => coreSDK.sendMediaMessage(
-          any(),
-          any(),
-          contentType: any(named: 'contentType'),
-          filename: any(named: 'filename'),
-          extraContent: any(named: 'extraContent'),
-        ),
+        () => coreSDK.sendMediaMessage(any()),
       ).thenAnswer((_) async => 'evt-1');
       when(() => coreSDK.sendMessage(any())).thenAnswer((_) async => null);
 
@@ -175,9 +177,7 @@ void main() {
       verify(
         () => logger.error(any(), name: 'approveConnectionRequest'),
       ).called(1);
-      verifyNever(
-        () => coreSDK.approveConnectionRequest(channel: any(named: 'channel')),
-      );
+      verifyNever(() => coreSDK.approveConnectionRequest(any()));
     });
 
     test('channel not found: throws and does not approve', () async {
@@ -194,9 +194,7 @@ void main() {
         throwsException,
       );
 
-      verifyNever(
-        () => coreSDK.approveConnectionRequest(channel: any(named: 'channel')),
-      );
+      verifyNever(() => coreSDK.approveConnectionRequest(any()));
     });
   });
 }

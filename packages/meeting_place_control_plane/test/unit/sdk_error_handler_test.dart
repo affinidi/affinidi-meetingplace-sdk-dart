@@ -4,15 +4,16 @@ import 'package:meeting_place_control_plane/src/core/sdk_error_handler.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
-class MockControlPlaneSDKLogger extends Mock implements ControlPlaneSDKLogger {}
+class MockMeetingPlaceControlPlaneSDKLogger extends Mock
+    implements MeetingPlaceControlPlaneSDKLogger {}
 
 void main() {
   late SDKErrorHandler errorHandler;
-  late MockControlPlaneSDKLogger mockLogger;
+  late MockMeetingPlaceControlPlaneSDKLogger mockLogger;
   const testControlPlaneDid = 'did:web:123456789abcdefghi';
 
   setUp(() {
-    mockLogger = MockControlPlaneSDKLogger();
+    mockLogger = MockMeetingPlaceControlPlaneSDKLogger();
     errorHandler = SDKErrorHandler(
       logger: mockLogger,
       controlPlaneDid: testControlPlaneDid,

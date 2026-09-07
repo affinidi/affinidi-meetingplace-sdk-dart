@@ -6,6 +6,6 @@ import 'validate_offer_phrase_output.dart';
 class ValidateOfferPhraseCommand
     extends DiscoveryCommand<ValidateOfferPhraseCommandOutput> {
   /// Creates a new instance of [ValidateOfferPhraseCommand].
-  ValidateOfferPhraseCommand({required this.phrase});
-  final String phrase;
+  ValidateOfferPhraseCommand({required this.mnemonic});
+  final String mnemonic;
 }

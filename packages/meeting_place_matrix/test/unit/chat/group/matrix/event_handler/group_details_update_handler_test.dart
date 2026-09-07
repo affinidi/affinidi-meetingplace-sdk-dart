@@ -17,6 +17,8 @@ class _FakeChatItem extends Fake implements ChatItem {}
 
 class _FakeChannel extends Fake implements Channel {}
 
+class _FakeDownloadMediaRequest extends Fake implements DownloadMediaRequest {}
+
 class _MockLogger extends Mock implements MeetingPlaceChatSDKLogger {}
 
 ContactCard _card(String did) =>
@@ -54,6 +56,7 @@ void main() {
     registerFallbackValue(_initialGroup());
     registerFallbackValue(_FakeChannel());
     registerFallbackValue(const MatrixEventMediaReference(''));
+    registerFallbackValue(_FakeDownloadMediaRequest());
   });
 
   group('GroupDetailsUpdateHandler', () {
@@ -89,8 +92,10 @@ void main() {
     test(
       'adds only newly approved members and emits a chat item per new join',
       () async {
-        when(() => coreSDK.downloadMedia(any(), any())).thenAnswer((inv) async {
-          final ref = inv.positionalArguments[1] as MatrixEventMediaReference;
+        when(() => coreSDK.downloadMedia(any())).thenAnswer((inv) async {
+          final request =
+              inv.positionalArguments.single as DownloadMediaRequest;
+          final ref = request.reference as MatrixEventMediaReference;
           if (ref.eventId == '\$bob-card') return _cardBytes('did:test:bob');
           if (ref.eventId == '\$carol-card') {
             return _cardBytes('did:test:carol');

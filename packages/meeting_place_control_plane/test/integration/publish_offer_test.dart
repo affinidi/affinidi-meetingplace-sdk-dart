@@ -33,7 +33,7 @@ void main() async {
         },
       ),
       device: device,
-      customPhrase: mnemonic,
+      customMnemonic: mnemonic,
       type: OfferType.invitation,
       transport: OfferTransport.didcomm,
       oobInvitationMessage: OobInvitationMessage(

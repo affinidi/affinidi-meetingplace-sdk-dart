@@ -30,7 +30,7 @@ import 'storage/in_memory_storage.dart';
 
 final env = DotEnv(includePlatformEnvironment: true)..load(['test/.env']);
 
-Config getConfig() => Config(
+MeetingPlaceCoreConfig getConfig() => MeetingPlaceCoreConfig(
   mediatorDid: getMediatorDid(),
   controlPlaneDid: getControlPlaneDid(),
 );

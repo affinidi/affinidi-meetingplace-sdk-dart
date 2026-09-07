@@ -32,10 +32,16 @@ class VrcExchangeClient {
   final MeetingPlaceCoreSDKLogger _logger;
 
   /// Sends a VDIP VRC-exchange request for [channelDid].
+  ///
+  /// [requesterDid] and [requesterName] identify the caller — the party
+  /// asking to be named as the counterpart when the other side issues a VRC
+  /// in response. They are not issuing a credential at this point; if the
+  /// caller later reciprocates, it does so via a separate [sendVrc] call
+  /// where it supplies its own `issuerDid`/`issuerName`.
   Future<void> requestExchange({
     required String channelDid,
-    required String identityDid,
-    required String identityName,
+    required String requesterDid,
+    required String requesterName,
   }) async {
     final channel = await _coreSDK.findChannelByOtherPartyPermanentDid(
       channelDid,
@@ -60,9 +66,9 @@ class VrcExchangeClient {
               VrcConstants.requestMetadataKeyRelationshipType:
                   VrcConstants.requestCredentialTypeChatParticipant,
               VrcConstants.requestMetadataKeyChannelId: channel.id,
-              VrcConstants.requestMetadataKeySelectedIdentity: identityDid,
-              VrcConstants.requestMetadataKeyIdentityDid: identityDid,
-              VrcConstants.requestMetadataKeyIdentityName: identityName,
+              VrcConstants.requestMetadataKeySelectedIdentity: requesterDid,
+              VrcConstants.requestMetadataKeyIdentityDid: requesterDid,
+              VrcConstants.requestMetadataKeyIdentityName: requesterName,
             },
           ),
         ),

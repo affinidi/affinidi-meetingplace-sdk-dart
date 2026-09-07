@@ -6,8 +6,8 @@ import 'package:dio/dio.dart';
 import '../../api/did_web_document_api.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
-import '../../loggers/control_plane_sdk_logger.dart';
-import '../../loggers/default_control_plane_sdk_logger.dart';
+import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
+import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
 import 'did_document_upload.dart';
 import 'did_document_upload_exception.dart';
 import 'did_document_upload_output.dart';
@@ -29,18 +29,18 @@ class UploadDidWebDocumentHandler
   /// - [didWebDocumentApi]: An instance of the did:web Document API client.
   UploadDidWebDocumentHandler({
     required DidWebDocumentApi didWebDocumentApi,
-    ControlPlaneSDKLogger? logger,
+    MeetingPlaceControlPlaneSDKLogger? logger,
   }) : _didWebDocumentApi = didWebDocumentApi,
        _logger =
            logger ??
-           DefaultControlPlaneSDKLogger(
+           DefaultMeetingPlaceControlPlaneSDKLogger(
              className: _className,
              sdkName: sdkName,
            );
   static const String _className = 'UploadDidWebDocumentHandler';
 
   final DidWebDocumentApi _didWebDocumentApi;
-  final ControlPlaneSDKLogger _logger;
+  final MeetingPlaceControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
   ///

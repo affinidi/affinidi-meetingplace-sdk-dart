@@ -6,3 +6,4 @@ export 'model/r_card_rejection.dart';
 export 'model/r_card_subject.dart';
 export 'model/r_card_vcard_extensions.dart';
 export 'repository/r_card_repository.dart';
+export 'requests/send_r_card_request.dart';

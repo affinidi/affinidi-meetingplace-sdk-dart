@@ -49,11 +49,13 @@ Future<void> main() async {
       'VRC received from ${issuance.senderDid} - reciprocating',
     );
     await credentialsSDK.sendVrc(
-      channelDid: aliceChannel.otherPartyPermanentChannelDid!,
-      issuerDid: aliceChannel.permanentChannelDid!,
-      issuerName: 'Alice',
-      peerDid: aliceChannel.otherPartyPermanentChannelDid!,
-      peerName: 'Bob',
+      SendVrcRequest(
+        channelDid: aliceChannel.otherPartyPermanentChannelDid!,
+        issuerDid: aliceChannel.permanentChannelDid!,
+        issuerName: 'Alice',
+        peerDid: aliceChannel.otherPartyPermanentChannelDid!,
+        peerName: 'Bob',
+      ),
     );
     prettyPrintYellow('Alice VRC sent to Bob.');
     if (!vrcCompleter.isCompleted) vrcCompleter.complete(issuance);
@@ -62,15 +64,17 @@ Future<void> main() async {
   // ── 4. Publish connection offer ────────────────────────────────────────
   prettyPrintGreen('>>> Publishing connection offer');
   final offerResult = await coreSDK.publishOffer(
-    offerName: 'Relationship example',
-    offerDescription: 'Connect to exchange R-Cards and VRCs.',
-    contactCard: ContactCard(
-      did: 'did:example:alice',
-      type: 'individual',
-      contactInfo: {},
+    PublishOfferRequest(
+      offerName: 'Relationship example',
+      offerDescription: 'Connect to exchange R-Cards and VRCs.',
+      contactCard: ContactCard(
+        did: 'did:example:alice',
+        type: 'individual',
+        contactInfo: {},
+      ),
+      type: SDKConnectionOfferType.invitation,
+      validUntil: DateTime.now().toUtc().add(const Duration(minutes: 10)),
     ),
-    type: SDKConnectionOfferType.invitation,
-    validUntil: DateTime.now().toUtc().add(const Duration(minutes: 10)),
   );
 
   final outputDir = Directory('.example-output')..createSync(recursive: true);
@@ -121,7 +125,7 @@ Future<void> main() async {
 
   prettyPrintGreen('>>> Bob accepted - approving connection request');
   aliceChannel = await coreSDK.approveConnectionRequest(
-    channel: invitationEvent.channel,
+    ApproveConnectionRequestParams(channel: invitationEvent.channel),
   );
   prettyPrintYellow('Alice channel DID : ${aliceChannel.permanentChannelDid}');
   prettyPrintYellow(
@@ -171,10 +175,12 @@ Future<void> main() async {
   );
 
   await credentialsSDK.sendRCard(
-    channel: aliceChannel,
-    subjectDid: aliceChannel.otherPartyPermanentChannelDid!,
-    card: aliceCard,
-    issuerDidManager: aliceDidManager,
+    SendRCardRequest(
+      channel: aliceChannel,
+      subjectDid: aliceChannel.otherPartyPermanentChannelDid!,
+      card: aliceCard,
+      issuerDidManager: aliceDidManager,
+    ),
   );
   prettyPrintYellow("Alice's R-Card sent.");
 
@@ -185,13 +191,16 @@ Future<void> main() async {
 
   // ── 10. Initiate VRC exchange ───────────────────────────────────────────
   // channelDid = Bob's permanentChannelDid (used for VDIP routing).
-  // identityDid = the DID embedded in the VRC from-party (Alice's channel DID
+  // requesterDid = Alice's own identity DID, to be named as the VRC's
+  // counterpart (peer) once Bob issues one in response (Alice's channel DID
   // here; in production use a stable long-lived identity DID).
   prettyPrintGreen('>>> Requesting VRC exchange with Bob');
   await credentialsSDK.requestVrcExchange(
-    channelDid: aliceChannel.otherPartyPermanentChannelDid!,
-    identityDid: aliceChannel.permanentChannelDid!,
-    identityName: 'Alice',
+    RequestVrcExchangeParams(
+      channelDid: aliceChannel.otherPartyPermanentChannelDid!,
+      requesterDid: aliceChannel.permanentChannelDid!,
+      requesterName: 'Alice',
+    ),
   );
   prettyPrintYellow('VRC exchange requested - waiting for Bob to respond...');
 
@@ -206,7 +215,7 @@ Future<void> main() async {
 
   // ── 13. Clean up ───────────────────────────────────────────────────────────
   await channelStream.dispose();
-  await credentialsSDK.closeCredentialStreams();
+  await credentialsSDK.dispose();
 
   final storedRCards = await credentialsSDK.listReceivedRCards();
   final storedVrcs = await credentialsSDK.listVrcs();

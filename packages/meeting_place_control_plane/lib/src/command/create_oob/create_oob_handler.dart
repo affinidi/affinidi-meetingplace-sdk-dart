@@ -6,8 +6,8 @@ import '../../api/api_client.dart';
 import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
-import '../../loggers/control_plane_sdk_logger.dart';
-import '../../loggers/default_control_plane_sdk_logger.dart';
+import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
+import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
 import '../../utils/base64.dart';
 import '../../utils/mediator/mediator_utils.dart';
 import '../../utils/string.dart';
@@ -32,11 +32,11 @@ class CreateOobHandler
     required ControlPlaneApiClient apiClient,
     required this.mediatorDid,
     required this.didResolver,
-    ControlPlaneSDKLogger? logger,
+    MeetingPlaceControlPlaneSDKLogger? logger,
   }) : _apiClient = apiClient,
        _logger =
            logger ??
-           DefaultControlPlaneSDKLogger(
+           DefaultMeetingPlaceControlPlaneSDKLogger(
              className: _className,
              sdkName: sdkName,
            );
@@ -45,7 +45,7 @@ class CreateOobHandler
   final ControlPlaneApiClient _apiClient;
   final String mediatorDid;
   final DidResolver didResolver;
-  final ControlPlaneSDKLogger _logger;
+  final MeetingPlaceControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
   ///

@@ -35,13 +35,15 @@ void main() async {
   prettyJsonPrintYellow('Offer details', connectionOffer.toJson());
 
   final acceptOfferResult = await bobSDK.acceptOffer<GroupConnectionOffer>(
-    connectionOffer: connectionOffer,
-    contactCard: ContactCard(
-      did: 'did:test:bob',
-      type: 'individual',
-      contactInfo: <String, dynamic>{},
+    AcceptOfferRequest(
+      connectionOffer: connectionOffer,
+      contactCard: ContactCard(
+        did: 'did:test:bob',
+        type: 'individual',
+        contactInfo: <String, dynamic>{},
+      ),
+      senderInfo: 'Bob',
     ),
-    senderInfo: 'Bob',
   );
   final memberDidDocument =
       await acceptOfferResult.permanentChannelDidManager.getDidDocument();

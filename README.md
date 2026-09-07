@@ -153,7 +153,7 @@ git config core.hooksPath .githooks
 
 ## Usage
 
-> **Note:** The SDK can be used with or without Matrix. `MatrixConfig` is a subtype of `Config` — pass a `MatrixConfig` to enable the Matrix transport, or pass a non‑Matrix `Config` (or the default `Config` implementation) to use DIDComm-only.
+> **Note:** The SDK can be used with or without Matrix. `MatrixConfig` is a subtype of `MeetingPlaceCoreConfig` — pass a `MatrixConfig` to enable the Matrix transport, or pass a non‑Matrix `MeetingPlaceCoreConfig` (or the default `MeetingPlaceCoreConfig` implementation) to use DIDComm-only.
 >
 > If using Matrix, the vodozemac encryption runtime must be initialised once before calling `MeetingPlaceCoreSDK.create()`; otherwise the SDK will throw a `StateError` on the first Matrix login. For Flutter apps, add [`flutter_vodozemac`](https://pub.dev/packages/flutter_vodozemac) and call `await fvod.init()` in `main()`. For pure-Dart apps, build the native library and call `await vod.init(libraryPath: '...')`. See the [Core SDK README](./packages/meeting_place_core/README.md#initializing-the-encryption-runtime-for-matrix-usage) for full details.
 >
@@ -222,7 +222,7 @@ The SDK supports two chat transports: **DIDComm** (the original transport, route
 
 ### MatrixConfig
 
-`MeetingPlaceCoreSDK.create()` requires a `MatrixConfig` (a subtype of `Config`):
+`MeetingPlaceCoreSDK.create()` requires a `MatrixConfig` (a subtype of `MeetingPlaceCoreConfig`):
 
 | Parameter | Type | Description |
 |-----------|------|-------------|

@@ -19,8 +19,11 @@ class ApproveConnectionRequestAction implements GroupAction<Group> {
         'Only group owners can approve connection requests.',
         name: 'approveConnectionRequest',
       );
-      throw Exception(
-        'Only group owners are allowed to perform approve connection requests',
+      throw MeetingPlaceChatSDKException(
+        message:
+            'Only group owners are allowed to perform approve connection '
+            'requests',
+        code: MeetingPlaceChatSDKErrorCode.invalidParticipant,
       );
     }
 
@@ -31,7 +34,10 @@ class ApproveConnectionRequestAction implements GroupAction<Group> {
     if (channel == null) {
       const error = 'Channel does not exist';
       _chatSDK.logger.error(error, name: 'approveConnectionRequest');
-      throw Exception(error);
+      throw MeetingPlaceChatSDKException(
+        message: error,
+        code: MeetingPlaceChatSDKErrorCode.channelNotFound,
+      );
     }
 
     final chatItem = await _chatSDK.chatRepository.createMessage(
@@ -43,7 +49,9 @@ class ApproveConnectionRequestAction implements GroupAction<Group> {
       ),
     );
 
-    await _chatSDK.coreSDK.approveConnectionRequest(channel: channel);
+    await _chatSDK.coreSDK.approveConnectionRequest(
+      ApproveConnectionRequestParams(channel: channel),
+    );
 
     final updatedGroup = (await _chatSDK.coreSDK.findGroupById(
       _chatSDK.group.id,

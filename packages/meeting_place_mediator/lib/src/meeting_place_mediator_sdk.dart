@@ -13,7 +13,7 @@ import 'command/oob_message/oob_invitation_message_output.dart';
 import 'constants/sdk_constants.dart';
 import 'core/command/command.dart';
 import 'core/command/command_dispatcher.dart';
-import 'core/exception/i_mediator_exception.dart';
+import 'core/exception/sdk_exception_mapper.dart';
 import 'core/mediator/fetch_message_result.dart';
 import 'core/mediator/mediator_exception.dart' show MediatorException;
 import 'core/mediator/mediator_resolver.dart';
@@ -203,110 +203,61 @@ class MeetingPlaceMediatorSDK {
   }
 
   /// Encrypts and signs the message using the sender's DID, then sends it to
-  /// [recipientDidDocument] via DIDComm.
-  ///
-  /// - [recipientDidDocument]: DID document that contains the recipient
-  ///   agent's public keys, service endpoints, and routing information
-  ///   required to securely receive, decrypt, and respond to DIDComm messages.
-  /// - [senderDidManager]: The [DidManager] instance used for authentication
-  ///   with the mediator and contains the identity credentials needed for the
-  ///   session.
-  /// - [mediatorDid]: Optional mediator DID to authenticate against.
-  /// If not provided, the SDK instance’s default mediator DID will be used.
-  Future<void> sendMessage(
-    PlainTextMessage message, {
-    required DidManager senderDidManager,
-    required DidDocument recipientDidDocument,
-    String? mediatorDid,
-    String? next,
-    bool? ephemeral,
-    int? forwardExpiryInSeconds,
-  }) {
+  /// [MediatorMessageRequest.recipientDidDocument] via DIDComm.
+  Future<void> sendMessage(MediatorMessageRequest request) {
     return _withSdkExceptionHandling(
       () => _mediatorService.sendMessage(
-        message,
-        senderDidManager: senderDidManager,
-        recipientDidDocument: recipientDidDocument,
-        mediatorDid: mediatorDid ?? _mediatorDid,
-        next: next ?? recipientDidDocument.id,
-        ephemeral: ephemeral ?? false,
-        forwardExpiryInSeconds: forwardExpiryInSeconds,
+        request.message,
+        senderDidManager: request.senderDidManager,
+        recipientDidDocument: request.recipientDidDocument,
+        mediatorDid: request.mediatorDid ?? _mediatorDid,
+        next: request.next ?? request.recipientDidDocument.id,
+        ephemeral: request.ephemeral ?? false,
+        forwardExpiryInSeconds: request.forwardExpiryInSeconds,
       ),
     );
   }
 
   /// Stores incoming DIDComm messages to manage the sending process
-  /// efficiently,
-  /// ensuring messages are properly handled and dispatched.
-  ///
-  /// - [recipientDidDocument]: DID document that contains the recipient
-  ///   agent's public keys, service endpoints, and routing information
-  ///   required to securely receive, decrypt, and respond to DIDComm messages.
-  /// - [senderDidManager]: The [DidManager] instance used for authentication
-  ///   with the mediator and contains the identity credentials needed for the
-  ///   session.
-  /// - [mediatorDid]: Optional mediator DID to authenticate against.
-  /// If not provided, the SDK instance’s default mediator DID will be used.
-  Future<void> queueMessage(
-    PlainTextMessage message, {
-    required DidManager senderDidManager,
-    required DidDocument recipientDidDocument,
-    String? mediatorDid,
-    String? next,
-    bool? ephemeral,
-    int? forwardExpiryInSeconds,
-  }) {
+  /// efficiently, ensuring messages are properly handled and dispatched.
+  Future<void> queueMessage(MediatorMessageRequest request) {
     return _withSdkExceptionHandling(
       () => _mediatorService.queueMessage(
-        message,
-        senderDidManager: senderDidManager,
-        recipientDidDocument: recipientDidDocument,
-        mediatorDid: mediatorDid ?? _mediatorDid,
-        next: next ?? recipientDidDocument.id,
-        ephemeral: ephemeral,
-        forwardExpiryInSeconds: forwardExpiryInSeconds,
+        request.message,
+        senderDidManager: request.senderDidManager,
+        recipientDidDocument: request.recipientDidDocument,
+        mediatorDid: request.mediatorDid ?? _mediatorDid,
+        next: request.next ?? request.recipientDidDocument.id,
+        ephemeral: request.ephemeral,
+        forwardExpiryInSeconds: request.forwardExpiryInSeconds,
       ),
     );
   }
 
   /// Fetches messages from the mediator.
-  ///
-  /// - [didManager]: The [DidManager] instance used for authentication with
-  ///   the mediator and contains the identity credentials needed for the
-  ///   session.
-  /// - [mediatorDid]: Optional mediator DID to authenticate against.
-  /// If not provided, the SDK instance’s default mediator DID will be used.
-  /// - [deleteOnRetrieve]: Boolean flag indicating whether messages should be
-  ///   deleted upon retrieval.
-  Future<List<FetchMessageResult>> fetchMessages({
-    required DidManager didManager,
-    String? mediatorDid,
-    DateTime? startFrom,
-    int? fetchMessagesBatchSize,
-    bool deleteOnRetrieve = false,
-    bool deleteFailedMessages = false,
-    List<MessageWrappingType>? expectedMessageWrappingTypes,
-  }) async {
+  Future<List<FetchMessageResult>> fetchMessages(
+    FetchMessagesRequest request,
+  ) async {
     return _withSdkExceptionHandling(() async {
       final results = await _mediatorService.fetch(
-        didManager: didManager,
-        mediatorDid: mediatorDid ?? _mediatorDid,
-        deleteOnRetrieve: deleteOnRetrieve,
-        startFrom: startFrom,
-        fetchMessagesBatchSize: fetchMessagesBatchSize,
-        expectedMessageWrappingTypes: expectedMessageWrappingTypes ??
+        didManager: request.didManager,
+        mediatorDid: request.mediatorDid ?? _mediatorDid,
+        deleteOnRetrieve: request.deleteOnRetrieve,
+        startFrom: request.startFrom,
+        fetchMessagesBatchSize: request.fetchMessagesBatchSize,
+        expectedMessageWrappingTypes: request.expectedMessageWrappingTypes ??
             _options.expectedMessageWrappingTypes,
       );
 
-      if (deleteFailedMessages) {
+      if (request.deleteFailedMessages) {
         final messageHashes = results
             .where((m) => m.error != null)
             .map((m) => m.messageHash)
             .toList();
 
         await _mediatorService.delete(
-          didManager: didManager,
-          mediatorDid: mediatorDid ?? _mediatorDid,
+          didManager: request.didManager,
+          mediatorDid: request.mediatorDid ?? _mediatorDid,
           messageHashes: messageHashes,
         );
       }
@@ -358,6 +309,12 @@ class MeetingPlaceMediatorSDK {
     );
   }
 
+  /// Releases resources held by this SDK instance, closing the underlying
+  /// HTTP client.
+  Future<void> dispose() async {
+    _mediatorResolver.dispose();
+  }
+
   Future<T> _execute<T>(MediatorCommand<T> command) async {
     return await _dispatcher.dispatch(command);
   }
@@ -365,24 +322,8 @@ class MeetingPlaceMediatorSDK {
   Future<T> _withSdkExceptionHandling<T>(Future<T> Function() operation) async {
     try {
       return await operation();
-    } on IMediatorException catch (e, stackTrace) {
-      Error.throwWithStackTrace(
-        MeetingPlaceMediatorSDKException(
-          message: 'Meeting Place Mediator SDK exception',
-          code: e.code.value,
-          innerException: e.innerException ?? e,
-        ),
-        stackTrace,
-      );
     } catch (e, stackTrace) {
-      Error.throwWithStackTrace(
-        MeetingPlaceMediatorSDKException(
-          message: 'Failure on Mediator SDK exception',
-          code: MeetingPlaceMediatorSDKErrorCode.generic.value,
-          innerException: e,
-        ),
-        stackTrace,
-      );
+      Error.throwWithStackTrace(toMediatorSdkException(e), stackTrace);
     }
   }
 }

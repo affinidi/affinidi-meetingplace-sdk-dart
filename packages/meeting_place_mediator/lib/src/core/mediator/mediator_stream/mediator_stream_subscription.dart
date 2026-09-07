@@ -8,9 +8,11 @@ import 'package:ssi/ssi.dart';
 
 import '../../../../meeting_place_mediator.dart';
 import '../../../constants/sdk_constants.dart';
+import '../../exception/sdk_exception_mapper.dart';
 import '../../message/message_queue.dart';
 import '../../message/message_unpacker.dart';
 import '../../message/plaintext_message_extension.dart';
+import '../mediator_exception.dart';
 import 'mediator_stream_data.dart';
 
 class MediatorStreamSubscription {
@@ -53,7 +55,9 @@ class MediatorStreamSubscription {
     const methodName = 'initialize';
 
     if (isClosed) {
-      throw StateError('Cannot initialize a closed subscription');
+      throw toMediatorSdkException(
+        MediatorException.subscriptionClosedError(),
+      );
     }
 
     try {
@@ -71,8 +75,8 @@ class MediatorStreamSubscription {
         error: e,
         stackTrace: stackTrace,
       );
-    } catch (e) {
-      rethrow;
+    } catch (e, stackTrace) {
+      Error.throwWithStackTrace(toMediatorSdkException(e), stackTrace);
     }
   }
 
@@ -133,7 +137,7 @@ class MediatorStreamSubscription {
             stackTrace: stackTrace,
             name: 'listen',
           );
-          _controller.addError(e);
+          _controller.addError(toMediatorSdkException(e), stackTrace);
         }
       },
       onError: onError,

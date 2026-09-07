@@ -13,7 +13,8 @@ import '../fixtures/contact_card_fixture.dart';
 
 class _MockChannelService extends Mock implements ChannelService {}
 
-class _MockControlPlaneSDK extends Mock implements ControlPlaneSDK {}
+class _MockMeetingPlaceControlPlaneSDK extends Mock
+    implements MeetingPlaceControlPlaneSDK {}
 
 class _MockDidResolver extends Mock implements DidResolver {}
 
@@ -36,12 +37,12 @@ void main() {
 
   group('MessageService.notifyChannel', () {
     late _MockChannelService channelService;
-    late _MockControlPlaneSDK controlPlaneSDK;
+    late _MockMeetingPlaceControlPlaneSDK controlPlaneSDK;
     late MessageService service;
 
     setUp(() {
       channelService = _MockChannelService();
-      controlPlaneSDK = _MockControlPlaneSDK();
+      controlPlaneSDK = _MockMeetingPlaceControlPlaneSDK();
       service = MessageService(
         connectionManager: _MockConnectionManager(),
         didResolver: _MockDidResolver(),

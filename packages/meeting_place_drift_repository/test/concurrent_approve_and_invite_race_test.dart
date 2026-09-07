@@ -88,7 +88,8 @@ class _MockConnectionService extends Mock implements ConnectionService {}
 
 class _MockIdentityService extends Mock implements IdentityService {}
 
-class _MockControlPlaneSDK extends Mock implements cp.ControlPlaneSDK {}
+class _MockMeetingPlaceControlPlaneSDK extends Mock
+    implements cp.MeetingPlaceControlPlaneSDK {}
 
 class _MockMediatorSDK extends Mock implements MeetingPlaceMediatorSDK {}
 
@@ -168,6 +169,13 @@ void main() {
     );
     registerFallbackValue(_FakeChannel());
     registerFallbackValue(_FakePlainTextMessage());
+    registerFallbackValue(
+      MediatorMessageRequest(
+        message: _FakePlainTextMessage(),
+        senderDidManager: _StubDidManager('did:fallback'),
+        recipientDidDocument: DidDocument.create(id: 'did:fallback'),
+      ),
+    );
     registerFallbackValue(_FakeGroupAddMemberCommandOutput());
     registerFallbackValue(_FakeFetchMessagesOptions());
     registerFallbackValue(DidDocument.create(id: 'did:fallback'));
@@ -200,7 +208,7 @@ void main() {
     late _MockConnectionOfferRepository connectionOfferRepository;
     late _MockChannelService channelService;
     late _MockIdentityService identityService;
-    late _MockControlPlaneSDK controlPlaneSDK;
+    late _MockMeetingPlaceControlPlaneSDK controlPlaneSDK;
     late _MockMediatorSDK mediatorSDK;
     late _MockMeetingPlaceTransport channelTransport;
     late _MockDidResolver didResolver;
@@ -252,7 +260,7 @@ void main() {
       connectionOfferRepository = _MockConnectionOfferRepository();
       channelService = _MockChannelService();
       identityService = _MockIdentityService();
-      controlPlaneSDK = _MockControlPlaneSDK();
+      controlPlaneSDK = _MockMeetingPlaceControlPlaneSDK();
       mediatorSDK = _MockMediatorSDK();
       channelTransport = _MockMeetingPlaceTransport();
       didResolver = _MockDidResolver();
@@ -344,14 +352,7 @@ void main() {
       ).thenAnswer((_) async {});
 
       // mediatorSDK.sendMessage: inauguration message — no-op.
-      when(
-        () => mediatorSDK.sendMessage(
-          any(),
-          senderDidManager: any(named: 'senderDidManager'),
-          recipientDidDocument: any(named: 'recipientDidDocument'),
-          mediatorDid: any(named: 'mediatorDid'),
-        ),
-      ).thenAnswer((_) async {});
+      when(() => mediatorSDK.sendMessage(any())).thenAnswer((_) async {});
 
       // controlPlaneSDK.execute: GroupAddMemberCommand — no-op.
       when(

@@ -55,7 +55,7 @@ The SDK:
 - builds a device token in the form `mediatorDid::recipientDid`
 - registers that token on the control plane as a DIDComm device
 - updates mediator ACLs so `controlPlaneDid` may send to that recipient DID
-- assigns the resulting `Device` to `ControlPlaneSDK.device`
+- assigns the resulting `Device` to `MeetingPlaceControlPlaneSDK.device`
 
 This is a different ingress mechanism from push notifications.
 
@@ -197,7 +197,7 @@ That cleanup removes the channel-specific notification registration, but it does
 
 If the app needs to reason about notification and sync state, these are the practical rules:
 
-- `ControlPlaneSDK.device` is the currently registered delivery target used for new notification registrations
+- `MeetingPlaceControlPlaneSDK.device` is the currently registered delivery target used for new notification registrations
 - `Channel.notificationToken` is the local token for this relationship
 - `Channel.otherPartyNotificationToken` is the token used to notify the other side when the flow supports it
 - `Channel.seqNo` and `Channel.messageSyncMarker` are bookkeeping cursors, not message storage

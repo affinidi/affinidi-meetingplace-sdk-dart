@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '../loggers/default_meeting_place_core_sdk_logger.dart';
 import '../loggers/meeting_place_core_sdk_logger.dart';
+import '../sdk/sdk_exception_mapper.dart';
 import 'control_plane_stream_event.dart';
 
 class ControlPlaneEventStreamManager {
@@ -55,6 +56,6 @@ class ControlPlaneEventStreamManager {
   void addError(Object e) {
     final methodName = 'addError';
     _logger.error('Error while processing event', error: e, name: methodName);
-    _controller.addError(e);
+    _controller.addError(toCoreSdkException(e));
   }
 }

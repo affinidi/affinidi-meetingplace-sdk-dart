@@ -15,6 +15,8 @@ class _MockCoreSDK extends Mock implements MeetingPlaceCoreSDK {}
 
 class _FakeChannel extends Fake implements Channel {}
 
+class _FakeDownloadMediaRequest extends Fake implements DownloadMediaRequest {}
+
 class _MockChannel extends Mock implements Channel {}
 
 class _MockLogger extends Mock implements MeetingPlaceChatSDKLogger {}
@@ -41,6 +43,7 @@ void main() {
   setUpAll(() {
     registerFallbackValue(_FakeChannel());
     registerFallbackValue(const MatrixEventMediaReference(''));
+    registerFallbackValue(_FakeDownloadMediaRequest());
     registerFallbackValue(
       ContactCard(did: 'did:test:x', type: 'human', contactInfo: {}),
     );
@@ -92,7 +95,7 @@ void main() {
     test('handles contact_card_event_id by downloading media', () async {
       final card = _card(_senderDid);
       when(
-        () => coreSDK.downloadMedia(any(), any()),
+        () => coreSDK.downloadMedia(any()),
       ).thenAnswer((_) async => _cardBytes(card));
 
       final received = <StreamData>[];
@@ -104,9 +107,13 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       final captured = verify(
-        () => coreSDK.downloadMedia(any(), captureAny()),
+        () => coreSDK.downloadMedia(captureAny()),
       ).captured;
-      expect((captured.single as MatrixEventMediaReference).eventId, '\$evt-1');
+      final request = captured.single as DownloadMediaRequest;
+      expect(
+        (request.reference as MatrixEventMediaReference).eventId,
+        '\$evt-1',
+      );
 
       expect(received.length, 1);
       final event = received.first.event as ChatContactDetailsUpdateEvent;
@@ -126,7 +133,7 @@ void main() {
 
     test('does nothing when media download fails', () async {
       when(
-        () => coreSDK.downloadMedia(any(), any()),
+        () => coreSDK.downloadMedia(any()),
       ).thenThrow(Exception('network error'));
 
       final received = <StreamData>[];

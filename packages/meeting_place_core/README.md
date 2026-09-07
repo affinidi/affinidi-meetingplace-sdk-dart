@@ -80,7 +80,7 @@ import 'package:uuid/uuid.dart';
 final coreSDK = await MeetingPlaceCoreSDK.create(
   wallet: wallet,
   repositoryConfig: repositoryConfig,
-  config: Config(
+  config: MeetingPlaceCoreConfig(
     mediatorDid: 'did:web:samplemediator.affinidi.io:.well-known',
     controlPlaneDid: 'did:web:samplecontrolplane.affinidi.io',
   ),

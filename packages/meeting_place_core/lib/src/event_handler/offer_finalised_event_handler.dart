@@ -17,7 +17,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
     required super.mediatorService,
     required super.logger,
     required super.options,
-    required ControlPlaneSDK controlPlaneSDK,
+    required MeetingPlaceControlPlaneSDK controlPlaneSDK,
     required DidResolver didResolver,
     required MeetingPlaceTransport channelTransport,
     required IdentityService identityService,
@@ -26,7 +26,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
        _channelTransport = channelTransport,
        _identityService = identityService;
 
-  final ControlPlaneSDK _controlPlaneSDK;
+  final MeetingPlaceControlPlaneSDK _controlPlaneSDK;
   final DidResolver _didResolver;
   final MeetingPlaceTransport _channelTransport;
   final IdentityService _identityService;

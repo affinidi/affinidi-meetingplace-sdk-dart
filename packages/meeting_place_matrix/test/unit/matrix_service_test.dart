@@ -17,7 +17,8 @@ import 'package:test/test.dart';
 // Mocks & fakes
 // ---------------------------------------------------------------------------
 
-class MockControlPlaneSDK extends Mock implements ControlPlaneSDK {}
+class MockMeetingPlaceControlPlaneSDK extends Mock
+    implements MeetingPlaceControlPlaneSDK {}
 
 class MockDidManager extends Mock implements DidManager {}
 
@@ -753,14 +754,14 @@ void main() {
   // =========================================================================
 
   group('MatrixService', () {
-    late MockControlPlaneSDK controlPlane;
+    late MockMeetingPlaceControlPlaneSDK controlPlane;
     late MockMatrixSessionManager sessionManager;
     late MockDidManager didManager;
     late MockDidDocument didDocument;
     late MatrixService service;
 
     setUp(() {
-      controlPlane = MockControlPlaneSDK();
+      controlPlane = MockMeetingPlaceControlPlaneSDK();
       sessionManager = MockMatrixSessionManager();
       didManager = MockDidManager();
       didDocument = MockDidDocument();
@@ -1990,10 +1991,10 @@ void main() {
 // Helpers
 // ---------------------------------------------------------------------------
 
-/// Stubs [ControlPlaneSDK.execute] for [MatrixTokenCommand] and returns the
-/// mocked [MatrixTokenCommandOutput].
+/// Stubs [MeetingPlaceControlPlaneSDK.execute] for [MatrixTokenCommand] and
+/// returns the mocked [MatrixTokenCommandOutput].
 MatrixTokenCommandOutput _stubMatrixToken(
-  MockControlPlaneSDK controlPlane,
+  MockMeetingPlaceControlPlaneSDK controlPlane,
   MockDidManager didManager,
 ) {
   final token = _FakeMatrixLoginToken();

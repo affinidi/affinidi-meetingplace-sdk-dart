@@ -84,27 +84,27 @@ void main() {
           vrcRepository: mockVrcRepo,
         );
         expect(sdk.receivedRCards, same(sdk.receivedRCards));
-        await sdk.closeCredentialStreams();
+        await sdk.dispose();
       },
     );
 
-    test('closeCredentialStreams() completes without error', () async {
+    test('dispose() completes without error', () async {
       final sdk = MeetingPlaceCredentialsSDK(
         coreSDK: mockCoreSDK,
         rCardRepository: mockRepo,
         vrcRepository: mockVrcRepo,
       );
-      await expectLater(sdk.closeCredentialStreams(), completes);
+      await expectLater(sdk.dispose(), completes);
     });
 
-    test('closeCredentialStreams() is idempotent'
+    test('dispose() is idempotent'
         ' — does not throw on second call', () async {
       final sdk = MeetingPlaceCredentialsSDK(
         coreSDK: mockCoreSDK,
         rCardRepository: mockRepo,
         vrcRepository: mockVrcRepo,
       );
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('watchReceivedRCards delegates to repository', () async {
@@ -225,7 +225,7 @@ void main() {
       verify(() => mockRepo.upsert(any())).called(1);
 
       await sub.cancel();
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('ignores unrelated attachments', () async {
@@ -253,7 +253,7 @@ void main() {
       verifyNever(() => mockRepo.upsert(any()));
 
       await sub.cancel();
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('empty attachment list does not emit', () async {
@@ -275,7 +275,7 @@ void main() {
 
       expect(emitted, isEmpty);
       await sub.cancel();
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('invalid R-Card attachment emits a stream error', () async {
@@ -306,7 +306,7 @@ void main() {
       expect(errors, hasLength(1));
       expect(errors.first, isA<FormatException>());
       await sub.cancel();
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('rCardRejections surfaces rejections from the channel path', () async {
@@ -335,7 +335,7 @@ void main() {
       expect(rejections, hasLength(1));
       expect(rejections.first.source, RCardRejectionSource.channel);
       await sub.cancel();
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('rCardRejections surfaces rejections from the VDIP path', () async {
@@ -368,7 +368,7 @@ void main() {
       expect(rejections.first.reason, RCardRejectionReason.missingSender);
       expect(rejections.first.source, RCardRejectionSource.vdip);
       await sub.cancel();
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
   });
 
@@ -467,7 +467,7 @@ void main() {
       expect(sdk.consumePendingVrcRequest('did:key:sender'), isNull);
 
       await sub.cancel();
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('ignores VRC requests without sender DID', () async {
@@ -492,7 +492,7 @@ void main() {
       expect(sdk.consumePendingVrcRequest('did:key:sender'), isNull);
 
       await sub.cancel();
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('emits a parsed VRC and caches it by sender DID', () async {
@@ -525,7 +525,7 @@ void main() {
       expect(sdk.consumePendingVrc('did:key:sender'), isNull);
 
       await sub.cancel();
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('ignores invalid VRC payloads', () async {
@@ -554,7 +554,7 @@ void main() {
       expect(sdk.consumePendingVrc('did:key:sender'), isNull);
 
       await sub.cancel();
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
   });
 
@@ -643,8 +643,7 @@ void main() {
       );
 
       final vrc = await sdk.storeVrc(
-        vcBlob: signedVrcBlob,
-        referenceId: 'channel-1',
+        StoreVrcRequest(vcBlob: signedVrcBlob, referenceId: 'channel-1'),
       );
 
       expect(vrc, isNotNull);
@@ -661,7 +660,9 @@ void main() {
       );
 
       await expectLater(
-        () => sdk.storeVrc(vcBlob: 'not-a-vrc', referenceId: 'channel-1'),
+        () => sdk.storeVrc(
+          const StoreVrcRequest(vcBlob: 'not-a-vrc', referenceId: 'channel-1'),
+        ),
         throwsA(isA<MeetingPlaceCredentialsSDKException>()),
       );
     });
@@ -692,7 +693,7 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 100));
 
       verify(() => mockVrcRepo.upsert(any())).called(greaterThanOrEqualTo(1));
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
   });
 
@@ -770,10 +771,12 @@ void main() {
         );
 
         final outcome = await sdk.handleReceivedVrcRequest(
-          permanentChannelDid: 'channel-1',
-          request: request,
-          hasVrcExchangeInitiated: false,
-          isConnectionInitiator: true,
+          ReceivedVrcRequestParams(
+            permanentChannelDid: 'channel-1',
+            request: request,
+            hasVrcExchangeInitiated: false,
+            isConnectionInitiator: true,
+          ),
         );
 
         expect(outcome, isA<VrcRequestProcessingResultPromptRequired>());
@@ -791,10 +794,12 @@ void main() {
         );
 
         final outcome = await sdk.handleReceivedVrcRequest(
-          permanentChannelDid: 'channel-1',
-          request: request,
-          hasVrcExchangeInitiated: true,
-          isConnectionInitiator: false,
+          ReceivedVrcRequestParams(
+            permanentChannelDid: 'channel-1',
+            request: request,
+            hasVrcExchangeInitiated: true,
+            isConnectionInitiator: false,
+          ),
         );
 
         expect(outcome, isA<VrcRequestProcessingResultWaiting>());
@@ -809,19 +814,21 @@ void main() {
       );
       final result = await sdk.parseRCard(vcBlob: rCardVcBlob);
       expect(result, isNull);
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test(
       'handleReceivedVrc returns completed when request already received',
       () async {
         final outcome = await sdk.handleReceivedVrc(
-          permanentChannelDid: 'channel-1',
-          vcBlob: signedVrcBlob,
-          exchangeState: const VrcExchangeState(
-            hasVrcExchangeInitiated: false,
-            hasVrcRequestReceived: true,
-            isConnectionInitiator: false,
+          ReceivedVrcParams(
+            permanentChannelDid: 'channel-1',
+            vcBlob: signedVrcBlob,
+            exchangeState: const VrcExchangeState(
+              hasVrcExchangeInitiated: false,
+              hasVrcRequestReceived: true,
+              isConnectionInitiator: false,
+            ),
           ),
         );
 
@@ -856,12 +863,14 @@ void main() {
         },
       );
       final outcome = await sdk.handleReceivedVrcRequest(
-        permanentChannelDid: 'did:key:peer',
-        request: request,
-        hasVrcExchangeInitiated: true,
-        isConnectionInitiator: true,
-        issuerDid: issuerDid,
-        issuerName: 'Alice',
+        ReceivedVrcRequestParams(
+          permanentChannelDid: 'did:key:peer',
+          request: request,
+          hasVrcExchangeInitiated: true,
+          isConnectionInitiator: true,
+          issuerDid: issuerDid,
+          issuerName: 'Alice',
+        ),
       );
 
       expect(outcome, isA<VrcRequestProcessingResultIssued>());
@@ -888,15 +897,17 @@ void main() {
         ).thenAnswer((_) async {});
 
         final outcome = await sdk.handleReceivedVrc(
-          permanentChannelDid: 'did:key:peer',
-          vcBlob: signedVrcBlob,
-          exchangeState: const VrcExchangeState(
-            hasVrcExchangeInitiated: true,
-            hasVrcRequestReceived: false,
-            isConnectionInitiator: true,
+          ReceivedVrcParams(
+            permanentChannelDid: 'did:key:peer',
+            vcBlob: signedVrcBlob,
+            exchangeState: const VrcExchangeState(
+              hasVrcExchangeInitiated: true,
+              hasVrcRequestReceived: false,
+              isConnectionInitiator: true,
+            ),
+            issuerDid: issuerDid,
+            issuerName: 'Alice',
           ),
-          issuerDid: issuerDid,
-          issuerName: 'Alice',
         );
 
         expect(outcome, isA<VrcProcessingResultReciprocated>());
@@ -924,18 +935,20 @@ void main() {
         ).thenAnswer((_) async {});
 
         final outcome = await sdk.handleReceivedVrcRequest(
-          permanentChannelDid: 'did:key:peer',
-          request: VrcRequest(
-            senderDid: 'did:key:sender',
-            credentialMetaData: {
-              VrcConstants.requestMetadataKeyIdentityDid: 'did:key:peer',
-              VrcConstants.requestMetadataKeyIdentityName: 'Bob',
-            },
+          ReceivedVrcRequestParams(
+            permanentChannelDid: 'did:key:peer',
+            request: VrcRequest(
+              senderDid: 'did:key:sender',
+              credentialMetaData: {
+                VrcConstants.requestMetadataKeyIdentityDid: 'did:key:peer',
+                VrcConstants.requestMetadataKeyIdentityName: 'Bob',
+              },
+            ),
+            hasVrcExchangeInitiated: true,
+            isConnectionInitiator: true,
+            issuerDid: issuerDid,
+            issuerName: 'Alice',
           ),
-          hasVrcExchangeInitiated: true,
-          isConnectionInitiator: true,
-          issuerDid: issuerDid,
-          issuerName: 'Alice',
         );
 
         expect(outcome, isA<VrcRequestProcessingResultIssued>());
@@ -967,15 +980,17 @@ void main() {
         ).thenAnswer((_) async {});
 
         final outcome = await sdk.handleReceivedVrc(
-          permanentChannelDid: 'did:key:peer',
-          vcBlob: signedVrcBlob,
-          exchangeState: const VrcExchangeState(
-            hasVrcExchangeInitiated: true,
-            hasVrcRequestReceived: false,
-            isConnectionInitiator: true,
+          ReceivedVrcParams(
+            permanentChannelDid: 'did:key:peer',
+            vcBlob: signedVrcBlob,
+            exchangeState: const VrcExchangeState(
+              hasVrcExchangeInitiated: true,
+              hasVrcRequestReceived: false,
+              isConnectionInitiator: true,
+            ),
+            issuerDid: issuerDid,
+            issuerName: 'Alice',
           ),
-          issuerDid: issuerDid,
-          issuerName: 'Alice',
         );
 
         expect(outcome, isA<VrcProcessingResultReciprocated>());
@@ -1021,7 +1036,7 @@ void main() {
       );
       final result = await sdk.parseVrc(vcBlob: '');
       expect(result, isNull);
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('returns null for non-VRC blob', () async {
@@ -1032,7 +1047,7 @@ void main() {
       );
       final result = await sdk.parseVrc(vcBlob: 'not-json');
       expect(result, isNull);
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('returns null for VRC without proof', () async {
@@ -1043,7 +1058,7 @@ void main() {
       );
       final result = await sdk.parseVrc(vcBlob: vrcBlobWithoutProof);
       expect(result, isNull);
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
   });
 
@@ -1082,7 +1097,7 @@ void main() {
       when(
         () => mockCoreSDK.channelAttachments,
       ).thenAnswer((_) => channelAttachmentsCtrl.stream);
-      when(() => mockCoreSDK.closeVdipStream()).thenAnswer((_) async {});
+      when(() => mockCoreSDK.disposeVdipStream()).thenAnswer((_) async {});
       mockRepo = MockRCardRepository();
       when(() => mockRepo.upsert(any())).thenAnswer((_) async {});
       when(() => mockRepo.watchAll()).thenAnswer((_) => const Stream.empty());
@@ -1103,10 +1118,12 @@ void main() {
       );
 
       final rCard = await sdk.sendRCard(
-        channel: channel,
-        subjectDid: 'did:key:recipient',
-        card: const RCardSubject(firstName: 'Bob', lastName: 'Smith'),
-        issuerDidManager: didManager,
+        SendRCardRequest(
+          channel: channel,
+          subjectDid: 'did:key:recipient',
+          card: const RCardSubject(firstName: 'Bob', lastName: 'Smith'),
+          issuerDidManager: didManager,
+        ),
       );
 
       expect(rCard, isA<RCard>());
@@ -1122,7 +1139,7 @@ void main() {
         ),
       ).called(1);
 
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('throws MeetingPlaceCredentialsSDKException when channel lacks'
@@ -1138,15 +1155,17 @@ void main() {
 
       await expectLater(
         sdk.sendRCard(
-          channel: channel,
-          subjectDid: 'did:key:recipient',
-          card: const RCardSubject(firstName: 'Bob'),
-          issuerDidManager: didManager,
+          SendRCardRequest(
+            channel: channel,
+            subjectDid: 'did:key:recipient',
+            card: const RCardSubject(firstName: 'Bob'),
+            issuerDidManager: didManager,
+          ),
         ),
         throwsA(isA<MeetingPlaceCredentialsSDKException>()),
       );
 
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
   });
 
@@ -1196,7 +1215,7 @@ void main() {
       sdk.watchReceivedRCards();
       verify(() => mockRepo.watchAll()).called(1);
 
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('listReceivedRCards delegates to repository.listAll', () async {
@@ -1206,7 +1225,7 @@ void main() {
       final result = await sdk.listReceivedRCards();
       expect(result, equals([stubCard]));
 
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('findReceivedRCardBySubjectDid delegates to repository', () async {
@@ -1220,7 +1239,7 @@ void main() {
       );
       expect(result, equals(stubCard));
 
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('updateReceivedRCardNotes delegates to repository', () async {
@@ -1232,7 +1251,7 @@ void main() {
       await sdk.updateReceivedRCardNotes(stubCard.subjectDid, 'note');
       verify(() => mockRepo.updateNotes(stubCard.subjectDid, 'note')).called(1);
 
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
 
     test('deleteReceivedRCard delegates to repository', () async {
@@ -1244,7 +1263,94 @@ void main() {
       await sdk.deleteReceivedRCard(stubCard.subjectDid);
       verify(() => mockRepo.deleteBySubjectDid(stubCard.subjectDid)).called(1);
 
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
+    });
+
+    test('listReceivedRCards wraps a raw repository error as '
+        'MeetingPlaceCredentialsSDKException with the generic code', () async {
+      final repositoryError = Exception('database unavailable');
+      when(() => mockRepo.listAll()).thenThrow(repositoryError);
+      final sdk = buildSdk();
+
+      await expectLater(
+        sdk.listReceivedRCards(),
+        throwsA(
+          isA<MeetingPlaceCredentialsSDKException>()
+              .having(
+                (e) => e.code,
+                'code',
+                MeetingPlaceCredentialsSDKErrorCode.generic,
+              )
+              .having(
+                (e) => e.innerException,
+                'innerException',
+                repositoryError,
+              ),
+        ),
+      );
+
+      await sdk.dispose();
+    });
+
+    test('watchReceivedRCards wraps a raw repository stream error as '
+        'MeetingPlaceCredentialsSDKException with the generic code', () async {
+      final repositoryError = Exception('database unavailable');
+      when(
+        () => mockRepo.watchAll(),
+      ).thenAnswer((_) => Stream<List<RCard>>.error(repositoryError));
+      final sdk = buildSdk();
+
+      await expectLater(
+        sdk.watchReceivedRCards(),
+        emitsError(
+          isA<MeetingPlaceCredentialsSDKException>()
+              .having(
+                (e) => e.code,
+                'code',
+                MeetingPlaceCredentialsSDKErrorCode.generic,
+              )
+              .having(
+                (e) => e.innerException,
+                'innerException',
+                repositoryError,
+              ),
+        ),
+      );
+
+      await sdk.dispose();
+    });
+
+    test('watchVrcs wraps a raw repository stream error as '
+        'MeetingPlaceCredentialsSDKException with the generic code', () async {
+      final repositoryError = Exception('database unavailable');
+      final vrcRepo = stubbedMockVrcRepository();
+      when(
+        vrcRepo.watchAll,
+      ).thenAnswer((_) => Stream<List<Vrc>>.error(repositoryError));
+      final sdk = MeetingPlaceCredentialsSDK(
+        coreSDK: mockCoreSDK,
+        rCardRepository: mockRepo,
+        vrcRepository: vrcRepo,
+      );
+
+      await expectLater(
+        sdk.watchVrcs(),
+        emitsError(
+          isA<MeetingPlaceCredentialsSDKException>()
+              .having(
+                (e) => e.code,
+                'code',
+                MeetingPlaceCredentialsSDKErrorCode.generic,
+              )
+              .having(
+                (e) => e.innerException,
+                'innerException',
+                repositoryError,
+              ),
+        ),
+      );
+
+      await sdk.dispose();
     });
   });
 
@@ -1331,7 +1437,7 @@ void main() {
         expect(sdk.consumePendingRCard(issuerDid), isNull);
 
         await sub.cancel();
-        await sdk.closeCredentialStreams();
+        await sdk.dispose();
       },
     );
 
@@ -1346,7 +1452,7 @@ void main() {
 
         expect(sdk.consumePendingRCard(issuerDid), isNull);
 
-        await sdk.closeCredentialStreams();
+        await sdk.dispose();
       },
     );
 
@@ -1377,7 +1483,7 @@ void main() {
       expect(cached, isNotNull);
       expect(cached!.issuerDid, issuerDid);
 
-      await sdk.closeCredentialStreams();
+      await sdk.dispose();
     });
   });
 }

@@ -27,7 +27,7 @@ void main() async {
       await notification.recipientDidManager.getDidDocument();
 
   prettyPrintGreen('>>> Calling SDK.publishOffer');
-  final publishOfferResult = await aliceSDK.publishOffer(
+  final publishOfferResult = await aliceSDK.publishOffer(PublishOfferRequest(
     offerName: 'Media example offer',
     offerDescription: 'Example offer to demo sendMediaMessage.',
     contactCard: ContactCard(
@@ -38,7 +38,7 @@ void main() async {
     type: SDKConnectionOfferType.invitation,
     validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
     transport: ChannelTransport.matrix,
-  );
+  ));
 
   final outputDirectory = Directory('.example-output')
     ..createSync(recursive: true);
@@ -72,7 +72,8 @@ void main() async {
   final invitationEvent = await waitForInvitationAccept.future;
 
   prettyPrintGreen('>>> Calling SDK.approveConnectionRequest');
-  await aliceSDK.approveConnectionRequest(channel: invitationEvent.channel);
+  await aliceSDK.approveConnectionRequest(
+      ApproveConnectionRequestParams(channel: invitationEvent.channel));
 
   prettyPrintYellow('=== Waiting for Bob to inaugurate the channel...');
   final activityEvent = await waitForChannelActivity.future;
@@ -88,11 +89,13 @@ void main() async {
 
   prettyPrintGreen('>>> Calling SDK.sendMediaMessage');
   final eventId = await aliceSDK.sendMediaMessage(
-    channel,
-    fileBytes,
-    contentType: 'text/plain',
-    filename: 'greeting.txt',
-    caption: 'Hello from Alice!',
+    SendMediaMessageRequest(
+      channel: channel,
+      fileBytes: fileBytes,
+      contentType: 'text/plain',
+      filename: 'greeting.txt',
+      caption: 'Hello from Alice!',
+    ),
   );
   prettyPrintYellow('Sent media event id: $eventId');
 

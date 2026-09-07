@@ -19,7 +19,7 @@ class RegisterOfferGroupCommand
     required this.adminDid,
     this.validUntil,
     this.maximumUsage,
-    this.customPhrase,
+    this.customMnemonic,
     this.mediatorDid,
     this.mediatorEndpoint,
     this.mediatorWSSEndpoint,
@@ -33,7 +33,7 @@ class RegisterOfferGroupCommand
 
   final DateTime? validUntil;
   final int? maximumUsage;
-  final String? customPhrase;
+  final String? customMnemonic;
 
   final String? mediatorDid;
   final String? mediatorEndpoint;

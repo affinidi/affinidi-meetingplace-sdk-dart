@@ -289,7 +289,7 @@ extension _ChannelTypeValue on ChannelType {
         return 1;
       case ChannelType.group:
         return 2;
-      case ChannelType.oob:
+      case ChannelType.directConnection:
         return 3;
     }
   }

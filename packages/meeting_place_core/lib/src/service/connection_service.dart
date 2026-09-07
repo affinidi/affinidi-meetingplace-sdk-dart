@@ -41,7 +41,7 @@ class ConnectionService {
   ConnectionService({
     required ConnectionManager connectionManager,
     required ConnectionOfferRepository connectionOfferRepository,
-    required ControlPlaneSDK controlPlaneSDK,
+    required MeetingPlaceControlPlaneSDK controlPlaneSDK,
     required MeetingPlaceMediatorSDK mediatorSDK,
     required MediatorAclService mediatorAclService,
     required IdentityService identityService,
@@ -74,7 +74,7 @@ class ConnectionService {
   final ChannelService _channelService;
   final MeetingPlaceMediatorSDK _mediatorSDK;
   final MediatorAclService _mediatorAclService;
-  final ControlPlaneSDK _controlPlaneSDK;
+  final MeetingPlaceControlPlaneSDK _controlPlaneSDK;
   final DidResolver _didResolver;
   final MeetingPlaceTransport _channelTransport;
   final OnBuildAttachmentsCallback? _onBuildAttachments;
@@ -200,7 +200,7 @@ class ConnectionService {
     required ContactCard contactCard,
     required Wallet wallet,
     required ConnectionOfferType type,
-    String? customPhrase,
+    String? customMnemonic,
     DateTime? validUntil,
     int? maximumUsage,
     String? mediatorDid,
@@ -235,7 +235,7 @@ class ConnectionService {
           contactInfo: contactCard.contactInfo,
         ),
         device: _controlPlaneSDK.device,
-        customPhrase: customPhrase,
+        customMnemonic: customMnemonic,
         validUntil: validUntil,
         maximumUsage: maximumUsage,
         mediatorDid: mediatorDid,
@@ -456,11 +456,13 @@ class ConnectionService {
     );
 
     await _mediatorSDK.sendMessage(
-      invitationAcceptanceMessage.toPlainTextMessage(),
-      senderDidManager: acceptOfferDidManager,
-      recipientDidDocument: recipientDidDocument,
-      mediatorDid: mediatorDid,
-      next: recipientDid,
+      MediatorMessageRequest(
+        message: invitationAcceptanceMessage.toPlainTextMessage(),
+        senderDidManager: acceptOfferDidManager,
+        recipientDidDocument: recipientDidDocument,
+        mediatorDid: mediatorDid,
+        next: recipientDid,
+      ),
     );
 
     _logger.info('Accept offer sent to mediator', name: methodName);
@@ -661,11 +663,13 @@ class ConnectionService {
     );
 
     await _mediatorSDK.sendMessage(
-      connectionApprovalMwssage.toPlainTextMessage(),
-      senderDidManager: offerPublishedDidManager,
-      recipientDidDocument: recipientDidDocument,
-      mediatorDid: mediatorDid,
-      next: otherPartyAcceptOfferDid,
+      MediatorMessageRequest(
+        message: connectionApprovalMwssage.toPlainTextMessage(),
+        senderDidManager: offerPublishedDidManager,
+        recipientDidDocument: recipientDidDocument,
+        mediatorDid: mediatorDid,
+        next: otherPartyAcceptOfferDid,
+      ),
     );
 
     _logger.info(

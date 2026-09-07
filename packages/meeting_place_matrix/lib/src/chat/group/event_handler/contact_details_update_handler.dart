@@ -51,8 +51,10 @@ class ContactDetailsUpdateHandler implements ChatEventHandler {
       try {
         final channel = await _getChannel();
         final bytes = await _chatSDK.coreSDK.downloadMedia(
-          channel,
-          MatrixEventMediaReference(eventId),
+          DownloadMediaRequest(
+            channel: channel,
+            reference: MatrixEventMediaReference(eventId),
+          ),
         );
         return jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
       } catch (_) {

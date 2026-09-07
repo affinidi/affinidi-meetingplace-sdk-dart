@@ -62,7 +62,7 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   });
 
   @override
-  Future<Chat> startChatSession() async {
+  Future<Chat> startChatSession() => withSdkExceptionHandling(() async {
     chatStream = ChatStream();
 
     final subscribeFuture = _subscribe();
@@ -88,7 +88,7 @@ class IndividualDidcommChatSDK extends BaseChatSDK
 
     logger.info('DIDComm chat session initialised', name: _logkey);
     return chat;
-  }
+  });
 
   Future<StreamSubscription<IncomingMessage>> _subscribe() async {
     _subscriptionHandle = await coreSDK.subscribe(
@@ -352,14 +352,14 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   @override
   Future<List<ChatItem>> get messages {
     logger.info('Retrieving persisted messages', name: _logkey);
-    return chatRepository.listMessages(chatId);
+    return withSdkExceptionHandling(() => chatRepository.listMessages(chatId));
   }
 
   @override
   Future<Message> sendTextMessage(
     String text, {
     List<ChatAttachment> attachments = const [],
-  }) async {
+  }) => withSdkExceptionHandling(() async {
     assertCanSend();
     final channel = await getChannel();
     channel.increaseSeqNo();
@@ -410,31 +410,31 @@ class IndividualDidcommChatSDK extends BaseChatSDK
       chatStream.pushData(StreamData(chatItem: created));
       return created as Message;
     }
-  }
+  });
 
   @override
-  Future<Uint8List> downloadMedia(ChatAttachment attachment) async {
-    return attachment.decodeInlineBytes();
-  }
+  Future<Uint8List> downloadMedia(ChatAttachment attachment) =>
+      withSdkExceptionHandling(() async => attachment.decodeInlineBytes());
 
   @override
-  Future<void> sendChatDeliveredMessage(String messageId) async {
-    assertCanSend();
-    await coreSDK.sendMessage(
-      ChatDeliveredMessage(
-        senderDid: did,
-        recipientDid: otherPartyDid,
-        mediatorDid: mediatorDid,
-        messageIds: [messageId],
-      ),
-    );
-  }
+  Future<void> sendChatDeliveredMessage(String messageId) =>
+      withSdkExceptionHandling(() async {
+        assertCanSend();
+        await coreSDK.sendMessage(
+          ChatDeliveredMessage(
+            senderDid: did,
+            recipientDid: otherPartyDid,
+            mediatorDid: mediatorDid,
+            messageIds: [messageId],
+          ),
+        );
+      });
 
   @override
   Future<void> reactOnMessage(
     Message message, {
     required String reaction,
-  }) async {
+  }) => withSdkExceptionHandling(() async {
     assertCanSend();
     // Toggle only the local user's own reaction; reactions from the other
     // party are independent and preserved.
@@ -480,20 +480,19 @@ class IndividualDidcommChatSDK extends BaseChatSDK
       );
       Error.throwWithStackTrace(e, stackTrace);
     }
-  }
+  });
 
   @override
   Future<void> editTextMessage(Message message, String newText) {
-    throw UnimplementedError(
-      'editTextMessage is not yet supported on the DIDComm individual chat '
-      'SDK.',
+    throw MeetingPlaceChatSDKException.operationNotSupported(
+      operation: 'editTextMessage',
     );
   }
 
   @override
   Future<void> deleteMessage(Message message, {bool localOnly = false}) {
-    throw UnsupportedError(
-      'Message deletion is not supported over DIDComm transport.',
+    throw MeetingPlaceChatSDKException.operationNotSupported(
+      operation: 'deleteMessage',
     );
   }
 
@@ -505,7 +504,7 @@ class IndividualDidcommChatSDK extends BaseChatSDK
   }
 
   @override
-  Future<void> sendEffect(Effect effect) async {
+  Future<void> sendEffect(Effect effect) => withSdkExceptionHandling(() async {
     assertCanSend();
     chatStream.pushData(
       StreamData(event: ChatEffectEvent(effectName: effect.name)),
@@ -518,10 +517,10 @@ class IndividualDidcommChatSDK extends BaseChatSDK
         effect: effect.name,
       ),
     );
-  }
+  });
 
   @override
-  Future<void> sendChatPresence() async {
+  Future<void> sendChatPresence() => withSdkExceptionHandling(() async {
     assertCanSend();
     await coreSDK.sendMessage(
       ChatPresenceMessage(
@@ -531,10 +530,10 @@ class IndividualDidcommChatSDK extends BaseChatSDK
         forwardExpiry: options.chatPresenceExpiry,
       ),
     );
-  }
+  });
 
   @override
-  Future<void> sendChatActivity() async {
+  Future<void> sendChatActivity() => withSdkExceptionHandling(() async {
     assertCanSend();
     await coreSDK.sendMessage(
       ChatActivityMessage(
@@ -544,34 +543,35 @@ class IndividualDidcommChatSDK extends BaseChatSDK
         forwardExpiry: options.chatActivityExpiry,
       ),
     );
-  }
+  });
 
   @override
-  Future<void> sendChatContactDetailsUpdate(ConciergeMessage message) async {
-    assertCanSend();
-    final c = currentContactCard;
-    if (c == null) {
-      throw StateError('ContactCard missing for contact details update');
-    }
+  Future<void> sendChatContactDetailsUpdate(ConciergeMessage message) =>
+      withSdkExceptionHandling(() async {
+        assertCanSend();
+        final c = currentContactCard;
+        if (c == null) {
+          throw MeetingPlaceChatSDKException.missingContactCard();
+        }
 
-    unawaited(
-      coreSDK.sendMessage(
-        ChatContactDetailsUpdateMessage(
-          senderDid: did,
-          recipientDid: otherPartyDid,
-          mediatorDid: mediatorDid,
-          profileDetails: c.toJson(),
-        ),
-      ),
-    );
+        unawaited(
+          coreSDK.sendMessage(
+            ChatContactDetailsUpdateMessage(
+              senderDid: did,
+              recipientDid: otherPartyDid,
+              mediatorDid: mediatorDid,
+              profileDetails: c.toJson(),
+            ),
+          ),
+        );
 
-    message.status = ChatItemStatus.confirmed;
-    await chatRepository.updateMesssage(message);
-    chatStream.pushData(StreamData(chatItem: message));
-  }
+        message.status = ChatItemStatus.confirmed;
+        await chatRepository.updateMesssage(message);
+        chatStream.pushData(StreamData(chatItem: message));
+      });
 
   @override
-  Future<void> proposeProfileUpdate() async {
+  Future<void> proposeProfileUpdate() => withSdkExceptionHandling(() async {
     final card = currentContactCard;
     if (card == null) {
       logger.info(
@@ -595,7 +595,7 @@ class IndividualDidcommChatSDK extends BaseChatSDK
       channel.contactCard = card;
       await coreSDK.updateChannel(channel);
     }
-  }
+  });
 
   /// Sends a custom [PlainTextMessage] via DIDComm. Only available on the
   /// DIDComm individual SDK — not part of the shared [MeetingPlaceChatSDK]
@@ -605,7 +605,7 @@ class IndividualDidcommChatSDK extends BaseChatSDK
     bool notify = false,
     bool ephemeral = false,
     int? forwardExpiryInSeconds,
-  }) async {
+  }) => withSdkExceptionHandling(() async {
     assertCanSend();
     await coreSDK.sendMessage(
       _RawDidCommOutgoingMessage(
@@ -618,13 +618,13 @@ class IndividualDidcommChatSDK extends BaseChatSDK
         forwardExpiryInSeconds: forwardExpiryInSeconds,
       ),
     );
-  }
+  });
 
   @override
   Future<void> sendCustomEvent({
     required String type,
     required Map<String, dynamic> payload,
-  }) async {
+  }) => withSdkExceptionHandling(() async {
     assertCanSend();
     final message = didcomm.PlainTextMessage(
       id: const Uuid().v4(),
@@ -643,7 +643,7 @@ class IndividualDidcommChatSDK extends BaseChatSDK
       ),
     );
     logger.info('Sent custom DIDComm message of type $type', name: _logkey);
-  }
+  });
 
   Future<void> _sendWithNotification(DidCommOutgoingMessage outgoing) async {
     try {
@@ -694,17 +694,23 @@ class IndividualDidcommChatSDK extends BaseChatSDK
 
   @override
   Future<void> approveConnectionRequest(ConciergeMessage message) {
-    throw UnimplementedError();
+    throw MeetingPlaceChatSDKException.operationNotSupported(
+      operation: 'approveConnectionRequest',
+    );
   }
 
   @override
   Future<void> rejectConnectionRequest(ConciergeMessage message) {
-    throw UnimplementedError();
+    throw MeetingPlaceChatSDKException.operationNotSupported(
+      operation: 'rejectConnectionRequest',
+    );
   }
 
   @override
   Future<void> removeMember(String memberDid) {
-    throw UnimplementedError();
+    throw MeetingPlaceChatSDKException.operationNotSupported(
+      operation: 'removeMember',
+    );
   }
 }
 

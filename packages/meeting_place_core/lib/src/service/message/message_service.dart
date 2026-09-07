@@ -16,7 +16,7 @@ class MessageService {
     required DidResolver didResolver,
     required MediatorService mediatorService,
     required ChannelService channelService,
-    required ControlPlaneSDK controlPlaneSDK,
+    required MeetingPlaceControlPlaneSDK controlPlaneSDK,
     required MeetingPlaceCoreSDKLogger logger,
   }) : _didResolver = didResolver,
        _mediatorService = mediatorService,
@@ -27,7 +27,7 @@ class MessageService {
   final DidResolver _didResolver;
   final MediatorService _mediatorService;
   final ChannelService _channelService;
-  final ControlPlaneSDK _controlPlaneSDK;
+  final MeetingPlaceControlPlaneSDK _controlPlaneSDK;
   final MeetingPlaceCoreSDKLogger _logger;
 
   Future<void> sendMessage(

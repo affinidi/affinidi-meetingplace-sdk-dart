@@ -2,9 +2,15 @@ import 'dart:async';
 
 import 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart';
 import 'package:didcomm/didcomm.dart';
+import 'package:meeting_place_core/meeting_place_core.dart'
+    show
+        MeetingPlaceCoreSDKErrorCode,
+        MeetingPlaceCoreSDKException,
+        MeetingPlaceCoreSDKLogger;
 import 'package:meeting_place_core/src/entity/channel.dart';
 import 'package:meeting_place_core/src/event_handler/channel_activity_type.dart';
 import 'package:meeting_place_core/src/protocol/contact_card/contact_card.dart';
+import 'package:meeting_place_core/src/sdk/sdk_error_handler.dart';
 import 'package:meeting_place_core/src/service/channel/channel_service.dart';
 import 'package:meeting_place_core/src/service/connection_manager/connection_manager.dart';
 import 'package:meeting_place_core/src/service/mediator/mediator_message.dart';
@@ -18,6 +24,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
+
+class MockLogger extends Mock implements MeetingPlaceCoreSDKLogger {}
 
 void main() {
   late VdipClient client;
@@ -70,6 +78,7 @@ void main() {
       connectionManager: mockConnectionManager,
       wallet: mockWallet,
       mediatorService: mockMediatorService,
+      sdkErrorHandler: SDKErrorHandler(logger: MockLogger()),
     );
 
     when(
@@ -280,6 +289,60 @@ void main() {
     );
   });
 
+  group('issueCredential', () {
+    final credential = FakeVcDataModelV2();
+
+    test('throws MeetingPlaceCoreSDKException when channel is missing '
+        'permanentChannelDid', () async {
+      await expectLater(
+        () => client.issueCredential(channel: channel, credential: credential),
+        throwsA(
+          isA<MeetingPlaceCoreSDKException>().having(
+            (e) => e.code,
+            'code',
+            MeetingPlaceCoreSDKErrorCode
+                .channelMissingPermanentChannelDid
+                .value,
+          ),
+        ),
+      );
+    });
+
+    test('throws MeetingPlaceCoreSDKException when channel is missing '
+        'otherPartyPermanentChannelDid', () async {
+      final channelWithoutOtherParty = Channel(
+        offerLink: 'offer',
+        publishOfferDid: senderDid,
+        mediatorDid: mediatorDid,
+        status: ChannelStatus.approved,
+        isConnectionInitiator: true,
+        permanentChannelDid: senderDid,
+        contactCard: ContactCard(
+          did: recipientDid,
+          type: 'individual',
+          contactInfo: const {'fullName': 'Test'},
+        ),
+        type: ChannelType.individual,
+      );
+
+      await expectLater(
+        () => client.issueCredential(
+          channel: channelWithoutOtherParty,
+          credential: credential,
+        ),
+        throwsA(
+          isA<MeetingPlaceCoreSDKException>().having(
+            (e) => e.code,
+            'code',
+            MeetingPlaceCoreSDKErrorCode
+                .channelMissingPermanentChannelDid
+                .value,
+          ),
+        ),
+      );
+    });
+  });
+
   group('subscribe', () {
     late FakeMediatorStreamSubscriptionWrapper fakeWrapper;
     late Channel channelWithPermanentDid;
@@ -337,10 +400,19 @@ void main() {
       ).called(1);
     });
 
-    test('throws StateError when channel has no permanentChannelDid', () async {
+    test('throws MeetingPlaceCoreSDKException when channel has no '
+        'permanentChannelDid', () async {
       await expectLater(
         () => client.subscribe(channel),
-        throwsA(isA<StateError>()),
+        throwsA(
+          isA<MeetingPlaceCoreSDKException>().having(
+            (e) => e.code,
+            'code',
+            MeetingPlaceCoreSDKErrorCode
+                .channelMissingPermanentChannelDid
+                .value,
+          ),
+        ),
       );
     });
   });
@@ -429,6 +501,8 @@ void main() {
 }
 
 // Mock classes
+class FakeVcDataModelV2 extends Fake implements VcDataModelV2 {}
+
 class MockMessageService extends Mock implements MessageService {}
 
 class MockChannelService extends Mock implements ChannelService {}

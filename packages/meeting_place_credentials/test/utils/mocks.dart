@@ -40,7 +40,7 @@ MockMeetingPlaceCoreSDK mockCoreSDKWithStreams(
   when(() => sdk.vdip).thenReturn(vdipClient);
   when(() => vdipClient.incomingMessages).thenAnswer((_) => vdipCtrl.stream);
   when(() => vdipClient.registerMessageProcessor(any())).thenReturn(null);
-  when(sdk.closeVdipStream).thenAnswer((_) async {});
+  when(sdk.disposeVdipStream).thenAnswer((_) async {});
   return sdk;
 }
 

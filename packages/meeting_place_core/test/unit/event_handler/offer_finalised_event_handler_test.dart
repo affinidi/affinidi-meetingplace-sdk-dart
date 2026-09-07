@@ -29,7 +29,7 @@ void main() {
   late MockWallet mockWallet;
   late MockIdentityService mockIdentityService;
   late MockMeetingPlaceTransport mockMeetingPlaceTransport;
-  late MockControlPlaneSDK mockControlPlaneSDK;
+  late MockMeetingPlaceControlPlaneSDK mockControlPlaneSDK;
   late MockDidResolver mockDidResolver;
   late MockChannelService mockChannelService;
   late MockConnectionOfferRepository mockOfferRepo;
@@ -103,7 +103,7 @@ void main() {
     mockWallet = MockWallet();
     mockIdentityService = MockIdentityService();
     mockMeetingPlaceTransport = MockMeetingPlaceTransport();
-    mockControlPlaneSDK = MockControlPlaneSDK();
+    mockControlPlaneSDK = MockMeetingPlaceControlPlaneSDK();
     mockDidResolver = MockDidResolver();
     mockChannelService = MockChannelService();
     mockOfferRepo = MockConnectionOfferRepository();

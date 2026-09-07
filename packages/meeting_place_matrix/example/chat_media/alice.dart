@@ -32,7 +32,7 @@ void main() async {
   prettyPrintYellow('Notification DID ${notificationDidDocument.id}');
 
   prettyPrintGreen('>>> Calling SDK.publishOffer');
-  final publishOfferResult = await aliceSDK.publishOffer(
+  final publishOfferResult = await aliceSDK.publishOffer(PublishOfferRequest(
     offerName: 'Example media offer',
     offerDescription: 'Example offer for media exchange.',
     contactCard: ContactCard(
@@ -43,7 +43,7 @@ void main() async {
     type: SDKConnectionOfferType.invitation,
     validUntil: DateTime.now().toUtc().add(const Duration(minutes: 5)),
     transport: ChannelTransport.matrix,
-  );
+  ));
 
   final outputDirectory = Directory('.example-output')
     ..createSync(recursive: true);
@@ -94,9 +94,10 @@ void main() async {
   final receivedEvent = await waitForInvitationAccept.future;
 
   prettyPrintGreen('>>> Calling SDK.approveConnectionRequest');
-  final channel = await aliceSDK.approveConnectionRequest(
+  final channel =
+      await aliceSDK.approveConnectionRequest(ApproveConnectionRequestParams(
     channel: receivedEvent.channel,
-  );
+  ));
 
   prettyPrintYellow(
     '=== Waiting for Bob to send channel inauguration message...',

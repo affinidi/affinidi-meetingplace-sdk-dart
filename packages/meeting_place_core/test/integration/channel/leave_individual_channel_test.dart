@@ -31,16 +31,18 @@ void main() async {
     bobSDK = await initSDKInstance();
 
     final offer = await aliceSDK.publishOffer(
-      offerName: 'Sample Offer 123',
-      offerDescription: 'Sample offer description',
-      maximumUsage: 1,
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:alice',
-        contactInfo: {
-          'n': {'given': 'Alice'},
-        },
+      PublishOfferRequest(
+        offerName: 'Sample Offer 123',
+        offerDescription: 'Sample offer description',
+        maximumUsage: 1,
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:alice',
+          contactInfo: {
+            'n': {'given': 'Alice'},
+          },
+        ),
+        type: SDKConnectionOfferType.invitation,
       ),
-      type: SDKConnectionOfferType.invitation,
     );
 
     final findOfferResult = await bobSDK.findOffer(
@@ -48,14 +50,16 @@ void main() async {
     );
 
     await bobSDK.acceptOffer(
-      connectionOffer: findOfferResult.connectionOffer!,
-      contactCard: ContactCardFixture.getContactCardFixture(
-        did: 'did:test:bob',
-        contactInfo: {
-          'n': {'given': 'Bob', 'surname': 'A.'},
-        },
+      AcceptOfferRequest(
+        connectionOffer: findOfferResult.connectionOffer!,
+        contactCard: ContactCardFixture.getContactCardFixture(
+          did: 'did:test:bob',
+          contactInfo: {
+            'n': {'given': 'Bob', 'surname': 'A.'},
+          },
+        ),
+        senderInfo: 'Bob',
       ),
-      senderInfo: 'Bob',
     );
 
     final aliceCompleter = Completer<Channel>();
@@ -64,7 +68,7 @@ void main() async {
     aliceSDK.controlPlaneEventsStream.listen((event) async {
       if (event.type == ControlPlaneEventType.InvitationAccept) {
         final channel = await aliceSDK.approveConnectionRequest(
-          channel: event.channel,
+          ApproveConnectionRequestParams(channel: event.channel),
         );
 
         await bobSDK.processControlPlaneEvents();

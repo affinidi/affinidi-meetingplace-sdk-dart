@@ -35,7 +35,7 @@ void main() {
   });
 
   test('uploadDidDocument sends proof objects in the request body', () async {
-    final mockControlPlaneSDK = MockControlPlaneSDK();
+    final mockControlPlaneSDK = MockMeetingPlaceControlPlaneSDK();
     when(
       () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
     ).thenAnswer(

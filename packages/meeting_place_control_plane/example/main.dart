@@ -8,7 +8,7 @@ void main() async {
   final keyPair = await wallet.generateKey();
   await didManager.addVerificationMethod(keyPair.id);
 
-  final controlPlaneSDK = ControlPlaneSDK(
+  final controlPlaneSDK = MeetingPlaceControlPlaneSDK(
     didManager: didManager,
     controlPlaneDid: '',
     mediatorDid: '',

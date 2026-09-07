@@ -5,8 +5,8 @@ import '../../api/control_plane_api_client.dart';
 import '../../constants/sdk_constants.dart';
 import '../../core/command/command_dispatcher.dart';
 import '../../core/command/command_handler.dart';
-import '../../loggers/control_plane_sdk_logger.dart';
-import '../../loggers/default_control_plane_sdk_logger.dart';
+import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
+import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
 import 'validate_offer_phrase.dart';
 import 'validate_offer_phrase_exception.dart';
 import 'validate_offer_phrase_output.dart';
@@ -31,18 +31,18 @@ class ValidateOfferPhraseHandler
   ValidateOfferPhraseHandler({
     required ControlPlaneApiClient apiClient,
     required CommandDispatcher dispatcher,
-    ControlPlaneSDKLogger? logger,
+    MeetingPlaceControlPlaneSDKLogger? logger,
   }) : _apiClient = apiClient,
        _logger =
            logger ??
-           DefaultControlPlaneSDKLogger(
+           DefaultMeetingPlaceControlPlaneSDKLogger(
              className: _className,
              sdkName: sdkName,
            );
   static const String _className = 'ValidateOfferPhraseHandler';
 
   final ControlPlaneApiClient _apiClient;
-  final ControlPlaneSDKLogger _logger;
+  final MeetingPlaceControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
   ///
@@ -66,15 +66,15 @@ class ValidateOfferPhraseHandler
   ) async {
     final methodName = 'handle';
     _logger.info(
-      'Started validating offer phrase: ${command.phrase}',
+      'Started validating offer phrase: ${command.mnemonic}',
       name: methodName,
     );
     try {
       final builder = CheckOfferPhraseInputBuilder()
-        ..offerPhrase = command.phrase;
+        ..offerPhrase = command.mnemonic;
 
       _logger.info(
-        '[MPX API] Calling /check-offer-phrase for phrase: ${command.phrase}',
+        '[MPX API] Calling /check-offer-phrase for phrase: ${command.mnemonic}',
         name: methodName,
       );
       final response = await _apiClient.client.checkOfferPhrase(
@@ -82,7 +82,7 @@ class ValidateOfferPhraseHandler
       );
 
       _logger.info(
-        'Completed validating offer phrase: ${command.phrase}',
+        'Completed validating offer phrase: ${command.mnemonic}',
         name: methodName,
       );
       return ValidateOfferPhraseCommandOutput(
@@ -99,7 +99,7 @@ class ValidateOfferPhraseHandler
       ].contains(exceptionType)) {
         _logger.error(
           '[MPX API] Timeout occurred while validating offer phrase: '
-          '${command.phrase}',
+          '${command.mnemonic}',
           error: dioException,
           stackTrace: stackTrace,
           name: methodName,
@@ -111,7 +111,7 @@ class ValidateOfferPhraseHandler
         if (statusCode == 429) {
           _logger.error(
             '[MPX API] Rate limit exceeded while validating offer phrase: '
-            '${command.phrase}',
+            '${command.mnemonic}',
             error: dioException,
             stackTrace: stackTrace,
             name: methodName,
@@ -122,7 +122,7 @@ class ValidateOfferPhraseHandler
         } else if (statusCode == 401 || statusCode == 403) {
           _logger.error(
             '[MPX API] Authentication error while validating offer phrase: '
-            '${command.phrase}',
+            '${command.mnemonic}',
             error: dioException,
             stackTrace: stackTrace,
             name: methodName,
@@ -134,7 +134,7 @@ class ValidateOfferPhraseHandler
       }
 
       _logger.error(
-        '[MPX API] Error validating offer phrase: ${command.phrase}',
+        '[MPX API] Error validating offer phrase: ${command.mnemonic}',
         error: dioException,
         stackTrace: stackTrace,
         name: methodName,

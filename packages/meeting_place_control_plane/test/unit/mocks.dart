@@ -3,11 +3,13 @@ import 'package:meeting_place_control_plane/src/api/did_web_document_api.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
 
-class MockControlPlaneSDKLogger extends Mock implements ControlPlaneSDKLogger {}
+class MockMeetingPlaceControlPlaneSDKLogger extends Mock
+    implements MeetingPlaceControlPlaneSDKLogger {}
 
 class MockDidWebDocumentApi extends Mock implements DidWebDocumentApi {}
 
-class MockControlPlaneSDK extends Mock implements ControlPlaneSDK {}
+class MockMeetingPlaceControlPlaneSDK extends Mock
+    implements MeetingPlaceControlPlaneSDK {}
 
 class FakeAuthenticateCommand extends Fake implements AuthenticateCommand {}
 

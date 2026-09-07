@@ -33,7 +33,7 @@ void main() async {
         },
       ),
       device: device,
-      customPhrase: mnemonic,
+      customMnemonic: mnemonic,
       adminDid: 'did:key:1234',
       oobInvitationMessage: OobInvitationMessage(
         id: const Uuid().v4(),

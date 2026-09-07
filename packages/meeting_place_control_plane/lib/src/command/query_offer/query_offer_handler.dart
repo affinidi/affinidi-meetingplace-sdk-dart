@@ -12,8 +12,8 @@ import '../../core/offer_type.dart';
 import '../../core/protocol/contact_card/contact_card_impl.dart';
 import '../../core/protocol/message/oob_invitation_message.dart';
 import '../../core/protocol/transport.dart';
-import '../../loggers/control_plane_sdk_logger.dart';
-import '../../loggers/default_control_plane_sdk_logger.dart';
+import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
+import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
 import 'query_offer.dart';
 import 'query_offer_exception.dart';
 import 'query_offer_output.dart';
@@ -33,11 +33,11 @@ class QueryOfferHandler
   QueryOfferHandler({
     required ControlPlaneApiClient apiClient,
     required this.dispatcher,
-    ControlPlaneSDKLogger? logger,
+    MeetingPlaceControlPlaneSDKLogger? logger,
   }) : _apiClient = apiClient,
        _logger =
            logger ??
-           DefaultControlPlaneSDKLogger(
+           DefaultMeetingPlaceControlPlaneSDKLogger(
              className: _className,
              sdkName: sdkName,
            );
@@ -45,7 +45,7 @@ class QueryOfferHandler
 
   final ControlPlaneApiClient _apiClient;
   final CommandDispatcher dispatcher;
-  final ControlPlaneSDKLogger _logger;
+  final MeetingPlaceControlPlaneSDKLogger _logger;
 
   /// Overrides the method [CommandHandler.handle].
   ///

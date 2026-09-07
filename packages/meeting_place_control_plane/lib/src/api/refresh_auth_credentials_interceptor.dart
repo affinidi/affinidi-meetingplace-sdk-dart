@@ -14,10 +14,10 @@ class RefreshAuthCredentialsInterceptor extends Interceptor {
     required this.dio,
     required this.controlPlaneSDK,
     required this.controlPlaneDid,
-    ControlPlaneSDKLogger? logger,
+    MeetingPlaceControlPlaneSDKLogger? logger,
   }) : _logger =
            logger ??
-           DefaultControlPlaneSDKLogger(
+           DefaultMeetingPlaceControlPlaneSDKLogger(
              className: _className,
              sdkName: sdkName,
            );
@@ -26,9 +26,9 @@ class RefreshAuthCredentialsInterceptor extends Interceptor {
   static const String _errorCodeTokenExpired = 'AUTHORIZATION_TOKEN_EXPIRED';
 
   final Dio dio;
-  final ControlPlaneSDK controlPlaneSDK;
+  final MeetingPlaceControlPlaneSDK controlPlaneSDK;
   final String controlPlaneDid;
-  final ControlPlaneSDKLogger _logger;
+  final MeetingPlaceControlPlaneSDKLogger _logger;
 
   AuthCredentials? _authCredentials;
 

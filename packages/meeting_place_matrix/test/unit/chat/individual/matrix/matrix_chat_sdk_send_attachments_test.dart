@@ -16,6 +16,11 @@ import '../../../../_helpers/mocks.dart';
 
 class _MockChatRepository extends Mock implements ChatRepository {}
 
+class _FakeSendMediaMessageRequest extends Fake
+    implements SendMediaMessageRequest {}
+
+class _FakeDownloadMediaRequest extends Fake implements DownloadMediaRequest {}
+
 const _aliceDid = 'did:test:alice';
 const _bobDid = 'did:test:bob';
 const _mediatorDid = 'did:test:mediator';
@@ -51,7 +56,8 @@ void main() {
   late IndividualMatrixChatSDK sdk;
 
   setUpAll(() {
-    registerFallbackValue(Uint8List(0));
+    registerFallbackValue(_FakeSendMediaMessageRequest());
+    registerFallbackValue(_FakeDownloadMediaRequest());
     registerFallbackValue(
       Message(
         chatId: '',
@@ -115,17 +121,7 @@ void main() {
   group('MatrixChatSDK.sendTextMessage multi-attachment', () {
     test('two attachments produce two sendMediaMessage calls', () async {
       var sendMediaCount = 0;
-      when(
-        () => core.sendMediaMessage(
-          any(),
-          any(),
-          contentType: any(named: 'contentType'),
-          filename: any(named: 'filename'),
-          caption: any(named: 'caption'),
-          extraContent: any(named: 'extraContent'),
-          notification: any(named: 'notification'),
-        ),
-      ).thenAnswer((_) async {
+      when(() => core.sendMediaMessage(any())).thenAnswer((_) async {
         sendMediaCount++;
         return '\$event-$sendMediaCount';
       });
@@ -147,17 +143,7 @@ void main() {
 
       await sdk.sendTextMessage('Hello', attachments: attachments);
 
-      verify(
-        () => core.sendMediaMessage(
-          any(),
-          any(),
-          contentType: any(named: 'contentType'),
-          filename: any(named: 'filename'),
-          caption: any(named: 'caption'),
-          extraContent: any(named: 'extraContent'),
-          notification: any(named: 'notification'),
-        ),
-      ).called(2);
+      verify(() => core.sendMediaMessage(any())).called(2);
 
       // One logical Message is persisted (queued), then updated to sent.
       verify(() => repo.createMessage(any())).called(1);
@@ -166,18 +152,10 @@ void main() {
 
     test('caption is only passed on the first sendMediaMessage', () async {
       final captions = <String?>[];
-      when(
-        () => core.sendMediaMessage(
-          any(),
-          any(),
-          contentType: any(named: 'contentType'),
-          filename: any(named: 'filename'),
-          caption: any(named: 'caption'),
-          extraContent: any(named: 'extraContent'),
-          notification: any(named: 'notification'),
-        ),
-      ).thenAnswer((inv) async {
-        captions.add(inv.namedArguments[#caption] as String?);
+      when(() => core.sendMediaMessage(any())).thenAnswer((inv) async {
+        final request =
+            inv.positionalArguments.single as SendMediaMessageRequest;
+        captions.add(request.caption);
         return '\$event-${captions.length}';
       });
 
@@ -208,19 +186,10 @@ void main() {
       () async {
         final correlationIds = <String?>[];
         final attachmentIds = <String?>[];
-        when(
-          () => core.sendMediaMessage(
-            any(),
-            any(),
-            contentType: any(named: 'contentType'),
-            filename: any(named: 'filename'),
-            caption: any(named: 'caption'),
-            extraContent: any(named: 'extraContent'),
-            notification: any(named: 'notification'),
-          ),
-        ).thenAnswer((inv) async {
-          final extra =
-              inv.namedArguments[#extraContent] as Map<String, dynamic>?;
+        when(() => core.sendMediaMessage(any())).thenAnswer((inv) async {
+          final request =
+              inv.positionalArguments.single as SendMediaMessageRequest;
+          final extra = request.extraContent;
           correlationIds.add(extra?[MatrixEventField.correlationId] as String?);
           attachmentIds.add(extra?[MatrixEventField.attachmentId] as String?);
           return '\$event-${correlationIds.length}';
@@ -256,17 +225,7 @@ void main() {
 
     test('returns error message and stops on send failure', () async {
       var sendCount = 0;
-      when(
-        () => core.sendMediaMessage(
-          any(),
-          any(),
-          contentType: any(named: 'contentType'),
-          filename: any(named: 'filename'),
-          caption: any(named: 'caption'),
-          extraContent: any(named: 'extraContent'),
-          notification: any(named: 'notification'),
-        ),
-      ).thenAnswer((_) async {
+      when(() => core.sendMediaMessage(any())).thenAnswer((_) async {
         sendCount++;
         if (sendCount == 1) {
           throw Exception('Network error');
@@ -302,17 +261,7 @@ void main() {
       'returns single logical message on full success with transportId',
       () async {
         var sendMediaCount = 0;
-        when(
-          () => core.sendMediaMessage(
-            any(),
-            any(),
-            contentType: any(named: 'contentType'),
-            filename: any(named: 'filename'),
-            caption: any(named: 'caption'),
-            extraContent: any(named: 'extraContent'),
-            notification: any(named: 'notification'),
-          ),
-        ).thenAnswer((_) async {
+        when(() => core.sendMediaMessage(any())).thenAnswer((_) async {
           sendMediaCount++;
           return '\$event-$sendMediaCount';
         });
@@ -353,20 +302,11 @@ void main() {
       () async {
         Map<String, dynamic>? sentExtraContent;
         String? sentContentType;
-        when(
-          () => core.sendMediaMessage(
-            any(),
-            any(),
-            contentType: any(named: 'contentType'),
-            filename: any(named: 'filename'),
-            caption: any(named: 'caption'),
-            extraContent: any(named: 'extraContent'),
-            notification: any(named: 'notification'),
-          ),
-        ).thenAnswer((inv) async {
-          sentContentType = inv.namedArguments[#contentType] as String?;
-          sentExtraContent =
-              inv.namedArguments[#extraContent] as Map<String, dynamic>?;
+        when(() => core.sendMediaMessage(any())).thenAnswer((inv) async {
+          final request =
+              inv.positionalArguments.single as SendMediaMessageRequest;
+          sentContentType = request.contentType;
+          sentExtraContent = request.extraContent;
           return '\$voice-event';
         });
 
@@ -414,18 +354,10 @@ void main() {
 
     test('voice attachment defaults missing mediaType to audio/mp4', () async {
       String? sentContentType;
-      when(
-        () => core.sendMediaMessage(
-          any(),
-          any(),
-          contentType: any(named: 'contentType'),
-          filename: any(named: 'filename'),
-          caption: any(named: 'caption'),
-          extraContent: any(named: 'extraContent'),
-          notification: any(named: 'notification'),
-        ),
-      ).thenAnswer((inv) async {
-        sentContentType = inv.namedArguments[#contentType] as String?;
+      when(() => core.sendMediaMessage(any())).thenAnswer((inv) async {
+        final request =
+            inv.positionalArguments.single as SendMediaMessageRequest;
+        sentContentType = request.contentType;
         return '\$voice-event';
       });
 
@@ -452,7 +384,7 @@ void main() {
 
       expect(
         () => sdk.sendTextMessage('Hi', attachments: [attachment]),
-        throwsA(isA<StateError>()),
+        throwsA(isA<MeetingPlaceChatSDKException>()),
       );
     });
 
@@ -495,20 +427,10 @@ void main() {
       'notification is passed only on the last sendMediaMessage call',
       () async {
         final notifications = <ChannelNotification?>[];
-        when(
-          () => core.sendMediaMessage(
-            any(),
-            any(),
-            contentType: any(named: 'contentType'),
-            filename: any(named: 'filename'),
-            caption: any(named: 'caption'),
-            extraContent: any(named: 'extraContent'),
-            notification: any(named: 'notification'),
-          ),
-        ).thenAnswer((inv) async {
-          notifications.add(
-            inv.namedArguments[#notification] as ChannelNotification?,
-          );
+        when(() => core.sendMediaMessage(any())).thenAnswer((inv) async {
+          final request =
+              inv.positionalArguments.single as SendMediaMessageRequest;
+          notifications.add(request.notification);
           return '\$event-${notifications.length}';
         });
 
@@ -545,16 +467,17 @@ void main() {
         format: 'test-format',
       );
 
-      expect(() => sdk.downloadMedia(attachment), throwsA(isA<StateError>()));
+      expect(
+        () => sdk.downloadMedia(attachment),
+        throwsA(isA<MeetingPlaceChatSDKException>()),
+      );
     });
 
     test(
       'delegates to coreSDK.downloadMedia with MatrixEventMediaReference',
       () async {
         final bytes = Uint8List.fromList([1, 2, 3, 4]);
-        when(
-          () => core.downloadMedia(any(), any()),
-        ).thenAnswer((_) async => bytes);
+        when(() => core.downloadMedia(any())).thenAnswer((_) async => bytes);
 
         final attachment = ChatAttachment(
           id: 'attachment-1',
@@ -568,9 +491,9 @@ void main() {
 
         expect(result, bytes);
         final captured = verify(
-          () => core.downloadMedia(captureAny(), captureAny()),
+          () => core.downloadMedia(captureAny()),
         ).captured;
-        final reference = captured[1];
+        final reference = (captured.single as DownloadMediaRequest).reference;
         expect(reference, isA<MatrixEventMediaReference>());
         expect((reference as MatrixEventMediaReference).eventId, '\$event-id');
       },

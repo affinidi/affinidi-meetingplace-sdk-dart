@@ -26,13 +26,15 @@ void main() async {
       final type = SDKConnectionOfferType.invitation;
 
       final actual = await aliceSDK.publishOffer(
-        offerName: offerName,
-        offerDescription: offerDescription,
-        contactCard: ContactCardFixture.getContactCardFixture(
-          did: 'did:test:alice',
-          contactInfo: expInfo,
+        PublishOfferRequest(
+          offerName: offerName,
+          offerDescription: offerDescription,
+          contactCard: ContactCardFixture.getContactCardFixture(
+            did: 'did:test:alice',
+            contactInfo: expInfo,
+          ),
+          type: type,
         ),
-        type: type,
       );
 
       expect(actual.connectionOffer.offerName, equals(offerName));

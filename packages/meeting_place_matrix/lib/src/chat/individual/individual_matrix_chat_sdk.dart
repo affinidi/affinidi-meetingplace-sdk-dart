@@ -53,7 +53,7 @@ class IndividualMatrixChatSDK extends MeetingPlaceMatrixChatSDK
   });
 
   @override
-  Future<Chat> startChatSession() async {
+  Future<Chat> startChatSession() => withSdkExceptionHandling(() async {
     final chat = await super.startChatSession();
     final channel = await getChannel();
 
@@ -70,7 +70,7 @@ class IndividualMatrixChatSDK extends MeetingPlaceMatrixChatSDK
 
     unawaited(startChatPresenceUpdates());
     return chat;
-  }
+  });
 
   @override
   Future<void> endChatSession() async {
@@ -118,7 +118,7 @@ class IndividualMatrixChatSDK extends MeetingPlaceMatrixChatSDK
   }
 
   @override
-  Future<void> proposeProfileUpdate() async {
+  Future<void> proposeProfileUpdate() => withSdkExceptionHandling(() async {
     final card = currentContactCard;
     if (card == null) {
       logger.info(
@@ -139,5 +139,5 @@ class IndividualMatrixChatSDK extends MeetingPlaceMatrixChatSDK
     }
 
     logger.info('Completed sending profile hash', name: _logkey);
-  }
+  });
 }

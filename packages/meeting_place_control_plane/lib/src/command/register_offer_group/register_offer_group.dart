@@ -25,6 +25,7 @@ class RegisterOfferGroupCommand
     this.mediatorWSSEndpoint,
     this.metadata,
   });
+
   /// The human-readable name of the group offer.
   final String offerName;
 

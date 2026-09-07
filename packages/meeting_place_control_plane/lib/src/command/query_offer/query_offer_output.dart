@@ -28,6 +28,7 @@ class SuccessQueryOfferCommandOutput extends QueryOfferCommandOutput {
     this.groupDid,
     this.score,
   });
+
   /// The human-readable name of the offer.
   final String offerName;
 

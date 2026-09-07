@@ -17,6 +17,7 @@ class RegisterOfferCommandOutput {
     this.offerDescription,
     this.score,
   });
+
   /// The DID of the mediator handling the registered offer.
   final String mediatorDid;
 

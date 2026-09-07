@@ -16,6 +16,7 @@ class RegisterOfferGroupCommandOutput {
     required this.maximumUsage,
     required this.oobInvitationMessage,
   });
+
   /// The unique identifier of the registered group offer.
   final String groupId;
 

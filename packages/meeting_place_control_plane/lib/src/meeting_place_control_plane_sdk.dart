@@ -115,18 +115,12 @@ class MeetingPlaceControlPlaneSDK {
   /// with the control plane API.
   bool isInitialized = false;
 
-  /// Sets the [device] variable of the [MeetingPlaceControlPlaneSDK]
-  /// instance.
-  ///
-  /// The given [device] is a [Device] object that defines the deviceToken
-  /// string and its platformType.
   set device(Device? device) {
     _device = device;
   }
 
-  /// Returns the [device] variable of the [MeetingPlaceControlPlaneSDK]
-  /// instance, a [Device] object that defines the deviceToken string and its
-  /// platformType.
+  /// The [Device] registered with this [MeetingPlaceControlPlaneSDK]
+  /// instance, defining its deviceToken string and platformType.
   ///
   /// Throws a [MeetingPlaceControlPlaneSDKException] with code
   /// [MeetingPlaceControlPlaneSDKErrorCode.missingDevice] when the device is

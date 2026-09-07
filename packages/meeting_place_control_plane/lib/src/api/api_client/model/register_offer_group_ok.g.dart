@@ -19,8 +19,6 @@ class _$RegisterOfferGroupOK extends RegisterOfferGroupOK {
   final String offerLink;
   @override
   final String groupId;
-  @override
-  final String groupDid;
 
   factory _$RegisterOfferGroupOK([
     void Function(RegisterOfferGroupOKBuilder)? updates,
@@ -33,7 +31,6 @@ class _$RegisterOfferGroupOK extends RegisterOfferGroupOK {
     this.maximumUsage,
     required this.offerLink,
     required this.groupId,
-    required this.groupDid,
   }) : super._();
   @override
   RegisterOfferGroupOK rebuild(
@@ -53,8 +50,7 @@ class _$RegisterOfferGroupOK extends RegisterOfferGroupOK {
         validUntil == other.validUntil &&
         maximumUsage == other.maximumUsage &&
         offerLink == other.offerLink &&
-        groupId == other.groupId &&
-        groupDid == other.groupDid;
+        groupId == other.groupId;
   }
 
   @override
@@ -66,7 +62,6 @@ class _$RegisterOfferGroupOK extends RegisterOfferGroupOK {
     _$hash = $jc(_$hash, maximumUsage.hashCode);
     _$hash = $jc(_$hash, offerLink.hashCode);
     _$hash = $jc(_$hash, groupId.hashCode);
-    _$hash = $jc(_$hash, groupDid.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -79,8 +74,7 @@ class _$RegisterOfferGroupOK extends RegisterOfferGroupOK {
           ..add('validUntil', validUntil)
           ..add('maximumUsage', maximumUsage)
           ..add('offerLink', offerLink)
-          ..add('groupId', groupId)
-          ..add('groupDid', groupDid))
+          ..add('groupId', groupId))
         .toString();
   }
 }
@@ -113,10 +107,6 @@ class RegisterOfferGroupOKBuilder
   String? get groupId => _$this._groupId;
   set groupId(String? groupId) => _$this._groupId = groupId;
 
-  String? _groupDid;
-  String? get groupDid => _$this._groupDid;
-  set groupDid(String? groupDid) => _$this._groupDid = groupDid;
-
   RegisterOfferGroupOKBuilder() {
     RegisterOfferGroupOK._defaults(this);
   }
@@ -130,7 +120,6 @@ class RegisterOfferGroupOKBuilder
       _maximumUsage = $v.maximumUsage;
       _offerLink = $v.offerLink;
       _groupId = $v.groupId;
-      _groupDid = $v.groupDid;
       _$v = null;
     }
     return this;
@@ -170,11 +159,6 @@ class RegisterOfferGroupOKBuilder
             groupId,
             r'RegisterOfferGroupOK',
             'groupId',
-          ),
-          groupDid: BuiltValueNullFieldError.checkNotNull(
-            groupDid,
-            r'RegisterOfferGroupOK',
-            'groupDid',
           ),
         );
     replace(_$result);

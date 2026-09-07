@@ -6,7 +6,6 @@ import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
 import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
-import '../../utils/string.dart';
 import 'group_notify_channel.dart';
 import 'group_notify_channel_exception.dart';
 import 'group_notify_channel_output.dart';
@@ -66,13 +65,12 @@ class GroupNotifyChannelHandler
 
     final builder = GroupNotifyChannelInputBuilder()
       ..offerLink = command.offerLink
-      ..groupDid = command.groupDid
       ..type = command.type
       ..memberDid = command.memberDid;
 
     try {
       _logger.info(
-        '[MPX API] Calling /group-notify-channel for groupDid: ${command.groupDid.topAndTail()}, type: ${command.type}',
+        '[MPX API] Calling /group-notify-channel for offerLink: ${command.offerLink}, type: ${command.type}',
         name: methodName,
       );
       await _apiClient.client.groupNotifyChannel(

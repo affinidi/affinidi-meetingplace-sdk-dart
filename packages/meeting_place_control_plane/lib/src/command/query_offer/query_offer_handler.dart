@@ -101,7 +101,6 @@ class QueryOfferHandler
         didcommMessage: OobInvitationMessage.fromBase64(
           response.didcommMessage,
         ),
-        groupDid: response.groupDid,
         groupId: response.groupId,
         transport: OfferTransport.fromString(response.transport),
         score: response.score,

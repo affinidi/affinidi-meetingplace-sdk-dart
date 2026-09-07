@@ -8,16 +8,12 @@ class GroupNotifyChannelCommand
   /// Creates a new instance of [GroupNotifyChannelCommand].
   GroupNotifyChannelCommand({
     required this.offerLink,
-    required this.groupDid,
     required this.type,
     this.memberDid,
   });
 
   /// The Offer link associated with the group chat.
   final String offerLink;
-
-  /// The channel DID for the group chat.
-  final String groupDid;
 
   /// The notification type to send to group members.
   final String type;

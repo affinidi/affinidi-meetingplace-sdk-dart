@@ -25,7 +25,6 @@ class SuccessQueryOfferCommandOutput extends QueryOfferCommandOutput {
     required this.didcommMessage,
     required this.transport,
     this.groupId,
-    this.groupDid,
     this.score,
   });
 
@@ -65,9 +64,6 @@ class SuccessQueryOfferCommandOutput extends QueryOfferCommandOutput {
   /// The unique identifier of the group offer, when the offer is a group
   /// invitation.
   final String? groupId;
-
-  /// The DID of the group chat, when the offer is a group invitation.
-  final String? groupDid;
 
   /// The score assigned to the offer, when provided.
   final int? score;

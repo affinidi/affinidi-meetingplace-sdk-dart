@@ -133,7 +133,6 @@ class RegisterOfferGroupHandler
       );
       return RegisterOfferGroupCommandOutput(
         groupId: response.data!.groupId,
-        groupDid: response.data!.groupDid,
         offerLink: response.data!.offerLink,
         mnemonic: response.data!.mnemonic,
         expiresAt: response.data?.validUntil != null

@@ -8,7 +8,6 @@ class RegisterOfferGroupCommandOutput {
   /// Creates a new instance of [RegisterOfferGroupCommandOutput].
   RegisterOfferGroupCommandOutput({
     required this.groupId,
-    required this.groupDid,
     required this.mediatorDid,
     required this.offerLink,
     required this.mnemonic,
@@ -19,9 +18,6 @@ class RegisterOfferGroupCommandOutput {
 
   /// The unique identifier of the registered group offer.
   final String groupId;
-
-  /// The DID of the group chat associated with the registered group offer.
-  final String groupDid;
 
   /// The DID of the mediator handling the registered group offer.
   final String mediatorDid;

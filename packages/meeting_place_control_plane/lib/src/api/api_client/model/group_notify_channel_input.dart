@@ -12,7 +12,6 @@ part 'group_notify_channel_input.g.dart';
 ///
 /// Properties:
 /// * [offerLink] - The Offer link associated with the group chat.
-/// * [groupDid] - The channel DID for the group chat.
 /// * [type] - The notification type to send to group members.
 @BuiltValue()
 abstract class GroupNotifyChannelInput
@@ -20,10 +19,6 @@ abstract class GroupNotifyChannelInput
   /// The Offer link associated with the group chat.
   @BuiltValueField(wireName: r'offerLink')
   String get offerLink;
-
-  /// The channel DID for the group chat.
-  @BuiltValueField(wireName: r'groupDid')
-  String get groupDid;
 
   /// The notification type to send to group members.
   @BuiltValueField(wireName: r'type')
@@ -66,11 +61,6 @@ class _$GroupNotifyChannelInputSerializer
     yield r'offerLink';
     yield serializers.serialize(
       object.offerLink,
-      specifiedType: const FullType(String),
-    );
-    yield r'groupDid';
-    yield serializers.serialize(
-      object.groupDid,
       specifiedType: const FullType(String),
     );
     yield r'type';
@@ -120,15 +110,6 @@ class _$GroupNotifyChannelInputSerializer
                   )
                   as String;
           result.offerLink = valueDes;
-          break;
-        case r'groupDid':
-          final valueDes =
-              serializers.deserialize(
-                    value,
-                    specifiedType: const FullType(String),
-                  )
-                  as String;
-          result.groupDid = valueDes;
           break;
         case r'type':
           final valueDes =

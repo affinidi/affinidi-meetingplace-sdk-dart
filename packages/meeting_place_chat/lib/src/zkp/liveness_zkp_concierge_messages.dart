@@ -4,7 +4,7 @@ import 'model/liveness_zkp_concierge_ids.dart';
 import 'model/liveness_zkp_concierge_notice.dart';
 import 'model/liveness_zkp_concierge_types.dart';
 
-/// Factories for human ZKP concierge notices
+/// Factories for human ZKP concierge notices.
 abstract final class LivenessZkpConciergeMessages {
   static LivenessZkpConciergeNotice humanZkpRequest({
     required String chatId,

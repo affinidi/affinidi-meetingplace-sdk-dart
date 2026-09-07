@@ -164,9 +164,8 @@ abstract class BaseChatSDK {
 
   /// Stream of live chat events ([StreamData]) for this session.
   ///
-  /// **Returns:**
-  /// - A [ChatStream] or `null` if the chat session has not yet started
-  ///   or resumed.
+  /// Returns a [ChatStream], or `null` if the chat session has not yet
+  /// started or resumed.
   Future<ChatStream?> get chatStreamSubscription async {
     if (transportSubscriptionFuture == null) return null;
     await transportSubscriptionFuture;

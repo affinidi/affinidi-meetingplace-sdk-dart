@@ -22,11 +22,8 @@ part 'message.g.dart';
 class Message extends ChatItem {
   /// Factory constructor to create a [Message] from JSON.
   ///
-  /// **Parameters:**
-  /// - [json]: A `Map<String, dynamic>` containing serialized [Message] data.
-  ///
-  /// **Returns:**
-  /// - A new [Message] instance.
+  /// [json] is a `Map<String, dynamic>` containing serialized [Message]
+  /// data. Returns a new [Message] instance.
   factory Message.fromJson(Map<String, dynamic> json) {
     return _$MessageFromJson(json);
   }
@@ -37,11 +34,8 @@ class Message extends ChatItem {
   /// It sets the status to [ChatItemStatus.received] and marks
   /// the message as not created by the current user (`createdByMe = false`).
   ///
-  /// **Parameters:**
-  /// - [message]: The received `ChatMessage`.
-  ///
-  /// **Returns:**
-  /// - A new [Message] instance representing the received message.
+  /// [message] is the received `ChatMessage`. Returns a new [Message]
+  /// instance representing the received message.
   factory Message.fromReceivedMessage({
     required ChatMessage message,
     required String chatId,
@@ -66,11 +60,8 @@ class Message extends ChatItem {
   /// and marks the message as created by the current user
   ///  (`createdByMe = true`).
   ///
-  /// **Parameters:**
-  /// - [message]: The sent `ChatMessage`.
-  ///
-  /// **Returns:**
-  /// - A new [Message] instance representing the sent message.
+  /// [message] is the sent `ChatMessage`. Returns a new [Message] instance
+  /// representing the sent message.
   factory Message.fromSentMessage({
     required ChatMessage message,
     required String chatId,
@@ -91,16 +82,13 @@ class Message extends ChatItem {
   ///  from any `ChatMessage`.
   ///
   /// Handles both direct and group messages, mapping text and attachments.
-  /// **Parameters:**
-  /// - [message]: The `ChatMessage` to parse.
-  /// - [chatId]: The chat ID derived from DIDs.
-  /// - [senderDid]: DID of the user who sent the message.
-  /// - [createdByMe]: Whether the message was created by the current user.
-  /// - [status]: The current status of the message.
-  /// - [attachments]: Optional list of [ChatAttachment]s.
   ///
-  /// **Returns:**
-  /// - A new [Message] instance.
+  /// [message] is the `ChatMessage` to parse. [chatId] is the chat ID
+  /// derived from DIDs. [senderDid] is the DID of the user who sent the
+  /// message. [createdByMe] indicates whether the message was created by
+  /// the current user. [status] is the current status of the message.
+  /// [attachments] is an optional list of [ChatAttachment]s. Returns a new
+  /// [Message] instance.
   factory Message.fromPlaintextMessage(
     ChatMessage message, {
     required String chatId,
@@ -124,20 +112,17 @@ class Message extends ChatItem {
 
   /// Creates a new [Message].
   ///
-  /// **Parameters:**
-  /// - [chatId]: Unique identifier of the chat this message belongs to.
-  /// - [messageId]: Unique identifier of the message.
-  /// - [senderDid]: DID of the user who sent the message.
-  /// - [isFromMe]: Whether the message was sent by the current user.
-  /// - [dateCreated]: The timestamp indicating when the message was created,
-  /// in UTC.
-  /// - [status]: Current status of the message.
-  /// - [type]: Defaults to [ChatItemType.message].
-  /// - [value]: The plain text content of the message.
-  /// - [attachments]: Optional list of [ChatAttachment]s included with the
-  /// message (default: empty list).
-  /// - [reactions]: Optional list of reactions applied to the message
-  /// (default: empty list).
+  /// [chatId] is the unique identifier of the chat this message belongs to.
+  /// [messageId] is the unique identifier of the message. [senderDid] is
+  /// the DID of the user who sent the message. [isFromMe] indicates whether
+  /// the message was sent by the current user. [dateCreated] is the
+  /// timestamp indicating when the message was created, in UTC. [status] is
+  /// the current status of the message. [type] defaults to
+  /// [ChatItemType.message]. [value] is the plain text content of the
+  /// message. [attachments] is an optional list of [ChatAttachment]s
+  /// included with the message (default: empty list). [reactions] is an
+  /// optional list of reactions applied to the message (default: empty
+  /// list).
   Message({
     required super.chatId,
     required super.messageId,
@@ -209,8 +194,7 @@ class Message extends ChatItem {
 
   /// Serializes this [Message] into a JSON object.
   ///
-  /// **Returns:**
-  /// - A `Map<String, dynamic>` representation of the message.
+  /// Returns a `Map<String, dynamic>` representation of the message.
   @override
   Map<String, dynamic> toJson() {
     return _$MessageToJson(this);

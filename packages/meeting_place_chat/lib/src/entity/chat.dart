@@ -14,10 +14,10 @@ class Chat {
 
   /// Creates a new [Chat] instance.
   ///
-  /// **Parameters:**
-  /// - [id]: The unique identifier for this chat (usually derived from DIDs).
-  /// - [stream]: An optional [ChatStream] used for live subscriptions.
-  /// - [messages]: The list of [ChatItem]s (messages) that belong to this chat.
+  /// [id] is the unique identifier for this chat (usually derived from
+  /// DIDs). [stream] is an optional [ChatStream] used for live
+  /// subscriptions. [messages] is the list of [ChatItem]s that belong to
+  /// this chat.
   Chat({required this.id, required this.stream, required this.messages});
 
   /// Derives a stable chat id from the two participating DIDs.

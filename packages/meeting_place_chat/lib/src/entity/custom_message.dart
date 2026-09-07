@@ -8,14 +8,14 @@ import '../entity/chat_attachment.dart';
 /// [CustomMessage] captures only the application-level fields that callers
 /// need to supply. The SDK fills in the `from`/`to` DIDs and any
 /// transport-specific envelope fields internally.
-///
-/// **Parameters:**
-/// - [type]: The protocol message type URI
-///   (e.g. `ChatProtocol.chatMessage.value`).
-/// - [id]: Optional message identifier. Defaults to a generated UUID v4.
-/// - [body]: Message body as a plain map.
-/// - [attachments]: Optional list of [ChatAttachment]s.
 class CustomMessage {
+  /// Creates a new [CustomMessage].
+  ///
+  /// [type] is the protocol message type URI (e.g.
+  /// `ChatProtocol.chatMessage.value`). [id] is an optional message
+  /// identifier, defaulting to a generated UUID v4. [body] is the message
+  /// body as a plain map. [attachments] is an optional list of
+  /// [ChatAttachment]s.
   CustomMessage({
     required this.type,
     required this.body,

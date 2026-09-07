@@ -58,7 +58,7 @@ enum ChatFeature {
   /// Contact-card proposal and acceptance flow.
   contactDetailsUpdate,
 
-  /// Human liveness zero-knowledge proof
+  /// Human liveness zero-knowledge proof.
   humanZkp,
 
   /// Real-time audio and video calling. Offered only on transports with a

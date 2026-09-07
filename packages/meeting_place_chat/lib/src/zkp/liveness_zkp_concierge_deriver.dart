@@ -127,11 +127,12 @@ abstract final class LivenessZkpConciergeDeriver {
     ).map(LivenessZkpConciergeChatMapper.toConciergeMessage).toList();
   }
 
+  /// Rebuilds the chat item list with derived human ZKP concierge messages.
+  ///
   /// TODO(pagination): Replace full history scan with one of:
   /// - incremential updates when a zkp message is upserted
   /// - persisted zkp flow state or a target repository for latest zkp
   ///  attachments per chat
-  /// Rebuilds the chat item list with derived human ZKP concierge messages.
   static List<ChatItem> appendDerivedHumanZkpConciergeMessages(
     List<ChatItem> existing, {
     required String contactName,

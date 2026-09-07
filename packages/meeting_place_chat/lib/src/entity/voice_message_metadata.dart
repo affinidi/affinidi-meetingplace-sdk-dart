@@ -30,6 +30,10 @@ class VoiceMessageMetadata {
       attachment.metadata?[mediaKindKey] == voiceKind;
 
   /// Builds a voice-message [ChatAttachment] with inline base64 audio bytes.
+  ///
+  /// Throws an [ArgumentError] if [base64] is empty, and throws an
+  /// [ArgumentError] if [mediaType] (or [defaultMediaType] when [mediaType]
+  /// is not supplied) is not an `audio/*` MIME type.
   static ChatAttachment buildAttachment({
     required String base64,
     required int durationMs,

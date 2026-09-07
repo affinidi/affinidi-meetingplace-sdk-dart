@@ -3,6 +3,57 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-09-07
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_chat` - `v0.0.1-dev.65`](#meeting_place_chat---v001-dev65)
+ - [`meeting_place_control_plane` - `v0.0.1-dev.26`](#meeting_place_control_plane---v001-dev26)
+ - [`meeting_place_core` - `v0.0.1-dev.53`](#meeting_place_core---v001-dev53)
+ - [`meeting_place_credentials` - `v0.0.1-dev.19`](#meeting_place_credentials---v001-dev19)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.65`](#meeting_place_drift_repository---v001-dev65)
+ - [`meeting_place_matrix` - `v0.0.1-dev.25`](#meeting_place_matrix---v001-dev25)
+ - [`meeting_place_mediator` - `v0.0.1-dev.17`](#meeting_place_mediator---v001-dev17)
+
+---
+
+#### `meeting_place_chat` - `v0.0.1-dev.65`
+
+ - **DOCS**: update documentation (#336).
+
+#### `meeting_place_control_plane` - `v0.0.1-dev.26`
+
+ - **DOCS**: update documentation (#336).
+
+#### `meeting_place_core` - `v0.0.1-dev.53`
+
+ - **DOCS**: update documentation (#336).
+
+#### `meeting_place_credentials` - `v0.0.1-dev.19`
+
+ - **DOCS**: update documentation (#336).
+
+#### `meeting_place_drift_repository` - `v0.0.1-dev.65`
+
+ - **DOCS**: update documentation (#336).
+
+#### `meeting_place_matrix` - `v0.0.1-dev.25`
+
+ - **DOCS**: update documentation (#336).
+
+#### `meeting_place_mediator` - `v0.0.1-dev.17`
+
+ - **DOCS**: update documentation (#336).
+
+
 ## 2026-09-04
 
 ### Changes

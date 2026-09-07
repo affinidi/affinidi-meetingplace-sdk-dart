@@ -1,3 +1,7 @@
+## 0.0.1-dev.26
+
+ - **DOCS**: update documentation (#336).
+
 ## 0.0.1-dev.25
 
  - **FIX**: drop reencryption/messageToRelay fields from group commands (#326).

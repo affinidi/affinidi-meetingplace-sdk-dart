@@ -1,3 +1,7 @@
+## 0.0.1-dev.17
+
+ - **DOCS**: update documentation (#336).
+
 ## 0.0.1-dev.16
 
  - **FIX**: surface busy auto-reject on cancelled-call stream (#275).

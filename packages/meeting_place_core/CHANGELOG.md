@@ -1,3 +1,7 @@
+## 0.0.1-dev.53
+
+ - **DOCS**: update documentation (#336).
+
 ## 0.0.1-dev.52
 
  - **FIX**: auto-exchange attachments during connection setup (#329).

@@ -8,9 +8,9 @@ import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
 import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
-import 'did_document_upload.dart';
 import 'did_document_upload_exception.dart';
-import 'did_document_upload_output.dart';
+import 'upload_did_web_document_request.dart';
+import 'upload_did_web_document_result.dart';
 
 /// A concrete implementation of the [CommandHandler] interface.
 ///
@@ -21,7 +21,7 @@ class UploadDidWebDocumentHandler
     implements
         CommandHandler<
           UploadDidWebDocumentRequest,
-          UploadDidWebDocumentCommandOutput
+          UploadDidWebDocumentResult
         > {
   /// Returns an instance of [UploadDidWebDocumentHandler].
   ///
@@ -52,14 +52,14 @@ class UploadDidWebDocumentHandler
   /// - [command]: Upload DID Document command object.
   ///
   /// **Returns:**
-  /// - [UploadDidWebDocumentCommandOutput]: The upload DID document command
+  /// - [UploadDidWebDocumentResult]: The upload DID document command
   /// output object.
   ///
   /// **Throws:**
   /// - [UploadDidWebDocumentException]: Exception thrown by the upload DID
   /// document operation.
   @override
-  Future<UploadDidWebDocumentCommandOutput> handle(
+  Future<UploadDidWebDocumentResult> handle(
     UploadDidWebDocumentRequest command,
   ) async {
     final methodName = 'handle';
@@ -72,7 +72,7 @@ class UploadDidWebDocumentHandler
         proof: command.proof,
       );
       _logger.info('Uploaded DID document: ${record.did}', name: methodName);
-      return UploadDidWebDocumentCommandOutput(record: record);
+      return UploadDidWebDocumentResult(record: record);
     } on DioException catch (e, stackTrace) {
       if (e.response?.statusCode == HttpStatus.conflict) {
         _logger.warning('DID document already registered', name: methodName);

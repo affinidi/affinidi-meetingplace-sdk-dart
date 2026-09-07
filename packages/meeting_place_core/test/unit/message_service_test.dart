@@ -67,7 +67,7 @@ void main() {
         ).thenAnswer((_) async => buildChannel(notificationToken: 'tok-1'));
         when(
           () => controlPlaneSDK.notifyChannel(any<NotifyChannelRequest>()),
-        ).thenAnswer((_) async => NotifyChannelCommandOutput(success: true));
+        ).thenAnswer((_) async => NotifyChannelResult(success: true));
 
         await service.notifyChannel(
           const IndividualChannelNotification(
@@ -135,9 +135,7 @@ void main() {
           () => controlPlaneSDK.notifyGroupChannel(
             any<GroupNotifyChannelRequest>(),
           ),
-        ).thenAnswer(
-          (_) async => GroupNotifyChannelCommandOutput(success: true),
-        );
+        ).thenAnswer((_) async => NotifyGroupChannelResult(success: true));
 
         await service.notifyChannel(
           const GroupChannelNotification(
@@ -164,9 +162,7 @@ void main() {
           () => controlPlaneSDK.notifyGroupChannel(
             any<GroupNotifyChannelRequest>(),
           ),
-        ).thenAnswer(
-          (_) async => GroupNotifyChannelCommandOutput(success: true),
-        );
+        ).thenAnswer((_) async => NotifyGroupChannelResult(success: true));
 
         await service.notifyChannel(
           const GroupChannelNotification(

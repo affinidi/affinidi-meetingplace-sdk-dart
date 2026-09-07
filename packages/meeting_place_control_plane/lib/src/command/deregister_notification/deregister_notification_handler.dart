@@ -8,10 +8,10 @@ import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
 import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
-import 'deregister_notification.dart';
 import 'deregister_notification_error_code.dart';
 import 'deregister_notification_exception.dart';
-import 'deregister_notification_output.dart';
+import 'deregister_notification_request.dart';
+import 'deregister_notification_result.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.
 ///
@@ -22,7 +22,7 @@ class DeregisterNotificationHandler
     implements
         CommandHandler<
           DeregisterNotificationRequest,
-          DeregisterNotificationOutput
+          DeregisterNotificationResult
         > {
   /// Returns an instance of [DeregisterNotificationHandler].
   ///
@@ -53,14 +53,14 @@ class DeregisterNotificationHandler
   /// - [command]: Deregister notifications command object.
   ///
   /// **Returns:**
-  /// - [DeregisterNotificationOutput]: The deregister notificaiton command
+  /// - [DeregisterNotificationResult]: The deregister notificaiton command
   /// output object.
   ///
   /// **Throws:**
   /// - [DeregisterNotificationsException]: Exception thrown by the deregister
   /// notification operation.
   @override
-  Future<DeregisterNotificationOutput> handle(
+  Future<DeregisterNotificationResult> handle(
     DeregisterNotificationRequest command,
   ) async {
     final methodName = 'handle';
@@ -79,14 +79,14 @@ class DeregisterNotificationHandler
       );
 
       _logger.info('Completed deregistering notification', name: methodName);
-      return DeregisterNotificationOutput(success: true);
+      return DeregisterNotificationResult(success: true);
     } on DioException catch (e, stackTrace) {
       if (e.response?.statusCode == HttpStatus.notFound) {
         _logger.warning(
           '[MPX API] deregister notification 404',
           name: methodName,
         );
-        return DeregisterNotificationOutput(
+        return DeregisterNotificationResult(
           success: false,
           errorCode: DeregisterNotificationErrorCode.notFound,
         );

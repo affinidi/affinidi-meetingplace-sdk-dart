@@ -6,9 +6,9 @@ import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
 import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
-import 'notify_acceptance.dart';
 import 'notify_acceptance_exception.dart';
-import 'notify_acceptance_output.dart';
+import 'notify_acceptance_request.dart';
+import 'notify_acceptance_result.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.
 ///
@@ -16,8 +16,7 @@ import 'notify_acceptance_output.dart';
 /// receiving responses, and validating the returned data for Notify Acceptance
 /// operation.
 class NotifyAcceptanceHandler
-    implements
-        CommandHandler<NotifyAcceptanceRequest, NotifyAcceptanceCommandOutput> {
+    implements CommandHandler<NotifyAcceptanceRequest, NotifyAcceptanceResult> {
   /// Returns an instance of [NotifyAcceptanceHandler].
   ///
   /// **Parameters:**
@@ -47,16 +46,14 @@ class NotifyAcceptanceHandler
   /// - [command]: Notify Acceptance command object.
   ///
   /// **Returns:**
-  /// - [NotifyAcceptanceCommandOutput]: The notify acceptance command output
+  /// - [NotifyAcceptanceResult]: The notify acceptance command output
   /// object.
   ///
   /// **Throws:**
   /// - [NotifyAcceptanceException]: Exception thrown by the notify acceptance
   /// operation.
   @override
-  Future<NotifyAcceptanceCommandOutput> handle(
-    NotifyAcceptanceRequest command,
-  ) async {
+  Future<NotifyAcceptanceResult> handle(NotifyAcceptanceRequest command) async {
     final methodName = 'handle';
     _logger.info('Started handling notify acceptance', name: methodName);
 
@@ -76,7 +73,7 @@ class NotifyAcceptanceHandler
       );
 
       _logger.info('Completed handling notify acceptance', name: methodName);
-      return NotifyAcceptanceCommandOutput(success: true);
+      return NotifyAcceptanceResult(success: true);
     } catch (e, stackTrace) {
       _logger.error(
         'Failed to notify acceptance',

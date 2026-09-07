@@ -9,9 +9,9 @@ import '../../core/didcomm/didcomm_challenge_response.dart';
 import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
 import '../../utils/string.dart';
-import 'authenticate.dart';
 import 'authenticate_exception.dart';
-import 'authenticate_output.dart';
+import 'authenticate_request.dart';
+import 'authenticate_result.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.
 ///
@@ -19,7 +19,7 @@ import 'authenticate_output.dart';
 /// receiving responses, and validating the returned data for Authenticate
 /// operation.
 class AuthenticateHandler
-    implements CommandHandler<AuthenticateRequest, AuthenticateCommandOutput> {
+    implements CommandHandler<AuthenticateRequest, AuthenticateResult> {
   /// Returns an instance of [AuthenticateHandler].
   ///
   /// **Parameters:**
@@ -168,9 +168,9 @@ class AuthenticateHandler
   /// - [command]: Authenticate command object.
   ///
   /// **Returns:**
-  /// - [AuthenticateCommandOutput]: The authenticate command output object.
+  /// - [AuthenticateResult]: The authenticate command output object.
   @override
-  Future<AuthenticateCommandOutput> handle(AuthenticateRequest command) async {
+  Future<AuthenticateResult> handle(AuthenticateRequest command) async {
     final methodName = 'handle';
     _logger.info(
       'Started authentication for service DID: '
@@ -192,6 +192,6 @@ class AuthenticateHandler
       '${command.controlPlaneDid.topAndTail()}',
       name: methodName,
     );
-    return AuthenticateCommandOutput(credentials: authCredentials);
+    return AuthenticateResult(credentials: authCredentials);
   }
 }

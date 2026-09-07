@@ -9,9 +9,9 @@ import '../../core/command/command_handler.dart';
 import '../../core/device/device.dart';
 import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
-import 'delete_pending_notifications.dart';
 import 'delete_pending_notifications_exception.dart';
-import 'delete_pending_notifications_output.dart';
+import 'delete_pending_notifications_request.dart';
+import 'delete_pending_notifications_result.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.
 ///
@@ -22,7 +22,7 @@ class DeletePendingNotificationsHandler
     implements
         CommandHandler<
           DeletePendingNotificationsRequest,
-          DeletePendingNotificationsCommandOutput
+          DeletePendingNotificationsResult
         > {
   /// Returns an instance of [DeletePendingNotificationsHandler].
   ///
@@ -53,14 +53,14 @@ class DeletePendingNotificationsHandler
   /// - [command]: Accept offer command object.
   ///
   /// **Returns:**
-  /// - [DeletePendingNotificationsCommandOutput]: The delete pending
+  /// - [DeletePendingNotificationsResult]: The delete pending
   /// notificaiton command output object.
   ///
   /// **Throws:**
   /// - [DeletePendingNotificationsException]: Exception thrown by the delete
   /// pending notification handler.
   @override
-  Future<DeletePendingNotificationsCommandOutput> handle(
+  Future<DeletePendingNotificationsResult> handle(
     DeletePendingNotificationsRequest command,
   ) async {
     final methodName = 'handle';
@@ -76,7 +76,7 @@ class DeletePendingNotificationsHandler
         'Completed deleting pending notifications: $deletedNotificationIds',
         name: methodName,
       );
-      return DeletePendingNotificationsCommandOutput(
+      return DeletePendingNotificationsResult(
         deletedNotificationIds: deletedNotificationIds,
       );
     } on DeletePendingNotificationsException {

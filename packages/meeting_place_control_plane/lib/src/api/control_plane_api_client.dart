@@ -2,7 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:dio/dio.dart';
 import 'package:ssi/ssi.dart';
 
-import '../command/authenticate/authenticate_output.dart';
+import '../command/authenticate/authenticate_result.dart';
 import '../constants/sdk_constants.dart';
 import '../loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import '../loggers/meeting_place_control_plane_sdk_logger.dart';
@@ -23,7 +23,7 @@ class ControlPlaneApiClient {
   ControlPlaneApiClient._({
     required Dio dio,
     required String basePath,
-    required Future<AuthenticateCommandOutput> Function() authenticate,
+    required Future<AuthenticateResult> Function() authenticate,
     required String controlPlaneDid,
     required MeetingPlaceControlPlaneSDKLogger logger,
   }) : _mpxClient = api_client.ControlPlaneApi(
@@ -59,7 +59,7 @@ class ControlPlaneApiClient {
   /// required for a fully functional [ControlPlaneApiClient] instance.
   static Future<ControlPlaneApiClient> init({
     required ControlPlaneApiClientOptions options,
-    required Future<AuthenticateCommandOutput> Function() authenticate,
+    required Future<AuthenticateResult> Function() authenticate,
     DidResolver? didResolver,
     MeetingPlaceControlPlaneSDKLogger? logger,
   }) async {

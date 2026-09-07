@@ -5,9 +5,9 @@ import '../../core/command/command_handler.dart';
 import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
 import '../../utils/string.dart';
-import 'register_notification.dart';
 import 'register_notification_exception.dart';
-import 'register_notification_output.dart';
+import 'register_notification_request.dart';
+import 'register_notification_result.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.
 ///
@@ -19,7 +19,7 @@ class RegisterNotificationHandler
     implements
         CommandHandler<
           RegisterNotificationRequest,
-          RegisterNotificationOutput
+          RegisterNotificationResult
         > {
   /// Returns an instance of [RegisterNotificationHandler].
   ///
@@ -50,14 +50,14 @@ class RegisterNotificationHandler
   /// - [command]: Register Notification command object.
   ///
   /// **Returns:**
-  /// - [RegisterNotificationOutput]: The register notification command output
+  /// - [RegisterNotificationResult]: The register notification command output
   /// object.
   ///
   /// **Throws:**
   /// - [RegisterNotificationException]: Exception thrown by the register
   /// notification operation.
   @override
-  Future<RegisterNotificationOutput> handle(
+  Future<RegisterNotificationResult> handle(
     RegisterNotificationRequest command,
   ) async {
     final methodName = 'handle';
@@ -83,7 +83,7 @@ class RegisterNotificationHandler
       );
 
       _logger.info('Completed registering notification', name: methodName);
-      return RegisterNotificationOutput(
+      return RegisterNotificationResult(
         notificationToken: response.data!.notificationToken,
       );
     } catch (e, stackTrace) {

@@ -6,9 +6,9 @@ import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
 import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
-import 'notify_acceptance_group.dart';
 import 'notify_acceptance_group_exception.dart';
-import 'notify_acceptance_output.dart';
+import 'notify_acceptance_group_request.dart';
+import 'notify_group_acceptance_result.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.
 ///
@@ -19,7 +19,7 @@ class NotifyAcceptanceGroupHandler
     implements
         CommandHandler<
           NotifyAcceptanceGroupRequest,
-          NotifyAcceptanceGroupCommandOutput
+          NotifyGroupAcceptanceResult
         > {
   /// Returns an instance of [NotifyAcceptanceGroupHandler].
   ///
@@ -50,14 +50,14 @@ class NotifyAcceptanceGroupHandler
   /// - [command]: Notify Acceptance Group command object.
   ///
   /// **Returns:**
-  /// - [NotifyAcceptanceGroupCommandOutput]: The notify acceptance group
+  /// - [NotifyGroupAcceptanceResult]: The notify acceptance group
   /// command output object.
   ///
   /// **Throws:**
   /// - [NotifyAcceptanceGroupException]: Exception thrown by the notify
   /// acceptance group operation.
   @override
-  Future<NotifyAcceptanceGroupCommandOutput> handle(
+  Future<NotifyGroupAcceptanceResult> handle(
     NotifyAcceptanceGroupRequest command,
   ) async {
     final methodName = 'handle';
@@ -79,7 +79,7 @@ class NotifyAcceptanceGroupHandler
       );
 
       _logger.info('Completed notifying acceptance group', name: methodName);
-      return NotifyAcceptanceGroupCommandOutput(success: true);
+      return NotifyGroupAcceptanceResult(success: true);
     } catch (e, stackTrace) {
       _logger.error(
         'Notify acceptance group for offer failed -> ${e.toString()}',

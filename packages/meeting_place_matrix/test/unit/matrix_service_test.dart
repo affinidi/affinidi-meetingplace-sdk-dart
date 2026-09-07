@@ -1993,12 +1993,12 @@ void main() {
 // ---------------------------------------------------------------------------
 
 /// Stubs [MeetingPlaceControlPlaneSDK.getMatrixToken] and returns its output.
-MatrixTokenCommandOutput _stubMatrixToken(
+GetMatrixTokenResult _stubMatrixToken(
   MockMeetingPlaceControlPlaneSDK controlPlane,
   MockDidManager didManager,
 ) {
   final token = _FakeMatrixLoginToken();
-  final output = _FakeMatrixTokenOutput(token);
+  final output = _FakeGetMatrixTokenResult(token);
   when(
     () => controlPlane.getMatrixToken(
       any(
@@ -2034,8 +2034,8 @@ class _FakeMatrixLoginToken extends Fake implements MatrixLoginToken {
   String toJwt() => _testJwt;
 }
 
-class _FakeMatrixTokenOutput extends Fake implements MatrixTokenCommandOutput {
-  _FakeMatrixTokenOutput(this.token);
+class _FakeGetMatrixTokenResult extends Fake implements GetMatrixTokenResult {
+  _FakeGetMatrixTokenResult(this.token);
 
   @override
   final MatrixLoginToken token;

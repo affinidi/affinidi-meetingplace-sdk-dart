@@ -174,7 +174,7 @@ void main() {
       ),
     ).thenAnswer(
       (_) async =>
-          cp.RegisterNotificationOutput(notificationToken: notificationToken),
+          cp.RegisterNotificationResult(notificationToken: notificationToken),
     );
 
     when(
@@ -218,7 +218,7 @@ void main() {
 
     when(
       () => mockControlPlaneSDK.notifyChannel(any<cp.NotifyChannelRequest>()),
-    ).thenAnswer((_) async => cp.NotifyChannelCommandOutput(success: true));
+    ).thenAnswer((_) async => cp.NotifyChannelResult(success: true));
   });
 
   group('processMessage joinChannelRoom transport guard', () {

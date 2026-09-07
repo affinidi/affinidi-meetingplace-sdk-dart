@@ -572,14 +572,14 @@ class MeetingPlaceControlPlaneSDK {
       UpdateOffersScoreHandler(apiClient: apiClient, logger: _logger),
     );
 
-    await _dispatcher.dispatch<AuthenticateRequest, AuthenticateCommandOutput>(
+    await _dispatcher.dispatch<AuthenticateRequest, AuthenticateResult>(
       AuthenticateRequest(controlPlaneDid: controlPlaneDid),
     );
 
     isInitialized = true;
   }
 
-  Future<AuthenticateCommandOutput> _authenticate() =>
+  Future<AuthenticateResult> _authenticate() =>
       _execute(AuthenticateRequest(controlPlaneDid: controlPlaneDid));
 
   Future<T> _execute<T>(DiscoveryCommand<T> command) {

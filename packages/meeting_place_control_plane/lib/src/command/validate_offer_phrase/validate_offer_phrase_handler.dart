@@ -7,9 +7,9 @@ import '../../core/command/command_dispatcher.dart';
 import '../../core/command/command_handler.dart';
 import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
-import 'validate_offer_phrase.dart';
+import 'validate_offer_mnemonic_result.dart';
 import 'validate_offer_phrase_exception.dart';
-import 'validate_offer_phrase_output.dart';
+import 'validate_offer_phrase_request.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.
 ///
@@ -20,7 +20,7 @@ class ValidateOfferPhraseHandler
     implements
         CommandHandler<
           ValidateOfferPhraseRequest,
-          ValidateOfferPhraseCommandOutput
+          ValidateOfferMnemonicResult
         > {
   /// Returns an instance of [ValidateOfferPhraseHandler].
   ///
@@ -54,14 +54,14 @@ class ValidateOfferPhraseHandler
   /// - [command]: Validate offer phrase command object.
   ///
   /// **Returns:**
-  /// - [ValidateOfferPhraseCommandOutput]: The validate offer phrase command
+  /// - [ValidateOfferMnemonicResult]: The validate offer phrase command
   /// output object.
   ///
   /// **Throws:**
   /// - [ValidateOfferPhraseExceptions]: Exception thrown by the validate offer
   /// phrase operation.
   @override
-  Future<ValidateOfferPhraseCommandOutput> handle(
+  Future<ValidateOfferMnemonicResult> handle(
     ValidateOfferPhraseRequest command,
   ) async {
     final methodName = 'handle';
@@ -85,7 +85,7 @@ class ValidateOfferPhraseHandler
         'Completed validating offer phrase: ${command.mnemonic}',
         name: methodName,
       );
-      return ValidateOfferPhraseCommandOutput(
+      return ValidateOfferMnemonicResult(
         isAvailable: response.data?.isInUse == false,
       );
     } on DioException catch (dioException, stackTrace) {

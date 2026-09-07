@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 
-import '../command/authenticate/authenticate_output.dart';
+import '../command/authenticate/authenticate_result.dart';
 import '../constants/sdk_constants.dart';
 import '../loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import '../loggers/meeting_place_control_plane_sdk_logger.dart';
@@ -27,7 +27,7 @@ class RefreshAuthCredentialsInterceptor extends Interceptor {
   static const String _errorCodeTokenExpired = 'AUTHORIZATION_TOKEN_EXPIRED';
 
   final Dio dio;
-  final Future<AuthenticateCommandOutput> Function() authenticate;
+  final Future<AuthenticateResult> Function() authenticate;
   final MeetingPlaceControlPlaneSDKLogger _logger;
 
   AuthCredentials? _authCredentials;

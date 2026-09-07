@@ -14,7 +14,7 @@ import 'package:test/test.dart';
 import 'mocks.dart';
 
 class _MockAuthenticate extends Mock {
-  Future<AuthenticateCommandOutput> call();
+  Future<AuthenticateResult> call();
 }
 
 DidDocument _didDocument(String did, Uri apiBaseUri) => DidDocument.fromJson({
@@ -41,7 +41,7 @@ void main() {
   test('uploadDidDocument sends proof objects in the request body', () async {
     final authenticate = _MockAuthenticate();
     when(authenticate.call).thenAnswer(
-      (_) async => AuthenticateCommandOutput(
+      (_) async => AuthenticateResult(
         credentials: AuthCredentials(
           accessToken: 'access-token',
           refreshToken: 'refresh-token',

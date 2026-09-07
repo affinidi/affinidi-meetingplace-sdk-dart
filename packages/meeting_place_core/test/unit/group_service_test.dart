@@ -513,7 +513,7 @@ void main() {
 
       when(
         () => controlPlaneSDK.addGroupMember(any<cp.GroupAddMemberRequest>()),
-      ).thenAnswer((_) async => FakeGroupAddMemberCommandOutput());
+      ).thenAnswer((_) async => FakeAddGroupMemberResult());
 
       final result = await service.approveMembershipRequest(channel: channel);
 

@@ -7,9 +7,9 @@ import '../../core/command/command_handler.dart';
 import '../../core/didcomm/didcomm_challenge_response.dart';
 import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
-import 'matrix_token.dart';
+import 'get_matrix_token_result.dart';
 import 'matrix_token_exception.dart';
-import 'matrix_token_output.dart';
+import 'matrix_token_request.dart';
 
 /// A concrete implementation of the [CommandHandler] interface.
 ///
@@ -17,7 +17,7 @@ import 'matrix_token_output.dart';
 /// challenge-response authentication payload, sending the request, and
 /// validating the returned data for the Matrix token operation.
 class MatrixTokenHandler
-    implements CommandHandler<MatrixTokenRequest, MatrixTokenCommandOutput> {
+    implements CommandHandler<MatrixTokenRequest, GetMatrixTokenResult> {
   /// Returns an instance of [MatrixTokenHandler].
   ///
   /// **Parameters:**
@@ -43,7 +43,7 @@ class MatrixTokenHandler
   final String controlPlaneDid;
   final MeetingPlaceControlPlaneSDKLogger _logger;
 
-  MatrixTokenCommandOutput _parseResponseData(MatrixTokenOK? data) {
+  GetMatrixTokenResult _parseResponseData(MatrixTokenOK? data) {
     if (data == null) {
       _logger.error('Response data is null', name: _logKey);
       throw MatrixTokenException.invalidResponse(
@@ -59,7 +59,7 @@ class MatrixTokenHandler
       );
     }
 
-    return MatrixTokenCommandOutput(token: MatrixLoginToken.fromJwt(token));
+    return GetMatrixTokenResult(token: MatrixLoginToken.fromJwt(token));
   }
 
   /// Overrides the method [CommandHandler.handle].
@@ -72,13 +72,13 @@ class MatrixTokenHandler
   /// - [command]: Matrix token command object.
   ///
   /// **Returns:**
-  /// - [MatrixTokenCommandOutput]: The matrix token command output object.
+  /// - [GetMatrixTokenResult]: The matrix token command output object.
   ///
   /// **Throws:**
   /// - [MatrixTokenException]: Exception thrown by the matrix token
   /// operation.
   @override
-  Future<MatrixTokenCommandOutput> handle(MatrixTokenRequest command) async {
+  Future<GetMatrixTokenResult> handle(MatrixTokenRequest command) async {
     try {
       final challengeResponse = await DidCommChallengeResponse.buildForMatrix(
         apiClient: apiClient,

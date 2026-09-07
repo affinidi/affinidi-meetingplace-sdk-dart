@@ -7,9 +7,9 @@ import '../../core/command/command_handler.dart';
 import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
 import '../../utils/string.dart';
-import 'group_add_member.dart';
+import 'add_group_member_result.dart';
 import 'group_add_member_exception.dart';
-import 'group_add_member_output.dart';
+import 'group_add_member_request.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.
 ///
@@ -17,8 +17,7 @@ import 'group_add_member_output.dart';
 /// receiving responses, and validating the returned data for Group Add Member
 /// operation.
 class GroupAddMemberHandler
-    implements
-        CommandHandler<GroupAddMemberRequest, GroupAddMemberCommandOutput> {
+    implements CommandHandler<GroupAddMemberRequest, AddGroupMemberResult> {
   /// Returns an instance of [GroupAddMemberHandler].
   ///
   /// **Parameters:**
@@ -52,16 +51,14 @@ class GroupAddMemberHandler
   /// - [command]: Group Add Member command object.
   ///
   /// **Returns:**
-  /// - [GroupAddMemberCommandOutput]: The group add member command output
+  /// - [AddGroupMemberResult]: The group add member command output
   ///   object.
   ///
   /// **Throws:**
   /// - [GroupAddMemberException]: Exception thrown by the group add member
   ///   operation.
   @override
-  Future<GroupAddMemberCommandOutput> handle(
-    GroupAddMemberRequest command,
-  ) async {
+  Future<AddGroupMemberResult> handle(GroupAddMemberRequest command) async {
     final methodName = 'handle';
     _logger.info('Started adding member to group', name: methodName);
 
@@ -83,7 +80,7 @@ class GroupAddMemberHandler
       );
 
       _logger.info('Completed adding member to group', name: methodName);
-      return GroupAddMemberCommandOutput(success: true);
+      return AddGroupMemberResult(success: true);
     } catch (e, stackTrace) {
       _logger.error(
         'Failed to add member to group',

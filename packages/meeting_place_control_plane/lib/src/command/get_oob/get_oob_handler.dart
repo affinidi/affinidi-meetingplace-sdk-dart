@@ -16,7 +16,8 @@ import 'get_oob_exception.dart';
 /// receiving responses, and validating the returned data for Get Out-Of-Band
 ///  operation.
 class GetOobHandler
-    implements CommandHandler<GetOobRequest, GetOobCommandOutput> {
+    implements
+        CommandHandler<GetOobRequest, GetDirectConnectionInvitationResult> {
   /// Returns an instance of [GetOobHandler].
   ///
   /// **Parameters:**
@@ -53,10 +54,12 @@ class GetOobHandler
   /// - [command]: Get Out-Of-Band command object.
   ///
   /// **Returns:**
-  /// - [GetOobCommandOutput]: The get Out-Of-Band command
+  /// - [GetDirectConnectionInvitationResult]: The get Out-Of-Band command
   /// output object.
   @override
-  Future<GetOobCommandOutput> handle(GetOobRequest command) async {
+  Future<GetDirectConnectionInvitationResult> handle(
+    GetOobRequest command,
+  ) async {
     final methodName = 'handle';
     _logger.info('Started getting OOB', name: methodName);
 
@@ -77,7 +80,7 @@ class GetOobHandler
         name: methodName,
       );
 
-      return GetOobCommandOutput(
+      return GetDirectConnectionInvitationResult(
         invitationMessage: response.data!.didcommMessage,
         mediatorDid: response.data!.mediatorDid,
       );

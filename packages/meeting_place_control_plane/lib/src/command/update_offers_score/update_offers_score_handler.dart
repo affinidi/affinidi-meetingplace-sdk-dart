@@ -9,16 +9,13 @@ import '../../core/command/command_handler.dart';
 import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
 import 'failed_offer.dart';
-import 'update_offers_score.dart';
-import 'update_offers_score_output.dart';
+import 'update_offers_score_request.dart';
+import 'update_offers_score_result.dart';
 
 /// Handles the update offers score API call.
 class UpdateOffersScoreHandler
     implements
-        CommandHandler<
-          UpdateOffersScoreRequest,
-          UpdateOffersScoreCommandOutput
-        > {
+        CommandHandler<UpdateOffersScoreRequest, UpdateOffersScoreResult> {
   UpdateOffersScoreHandler({
     required ControlPlaneApiClient apiClient,
     MeetingPlaceControlPlaneSDKLogger? logger,
@@ -36,7 +33,7 @@ class UpdateOffersScoreHandler
   final MeetingPlaceControlPlaneSDKLogger _logger;
 
   @override
-  Future<UpdateOffersScoreCommandOutput> handle(
+  Future<UpdateOffersScoreResult> handle(
     UpdateOffersScoreRequest command,
   ) async {
     final methodName = 'handle';
@@ -64,7 +61,7 @@ class UpdateOffersScoreHandler
           .toList();
 
       _logger.info('Updated offers score', name: methodName);
-      return UpdateOffersScoreCommandOutput(
+      return UpdateOffersScoreResult(
         updatedOffers: updatedOffers,
         failedOffers: failedOffers,
       );
@@ -74,10 +71,7 @@ class UpdateOffersScoreHandler
         name: methodName,
       );
       if (error.response?.statusCode == HttpStatus.notFound) {
-        return UpdateOffersScoreCommandOutput(
-          updatedOffers: [],
-          failedOffers: [],
-        );
+        return UpdateOffersScoreResult(updatedOffers: [], failedOffers: []);
       }
       rethrow;
     }

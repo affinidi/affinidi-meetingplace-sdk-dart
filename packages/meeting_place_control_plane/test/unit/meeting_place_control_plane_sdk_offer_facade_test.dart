@@ -101,7 +101,8 @@ void main() {
 
     group('and finding an offer by mnemonic', () {
       test('it executes the matching command and returns its output', () async {
-        final FindOfferByMnemonicResult output = NullQueryOfferCommandOutput();
+        final FindOfferByMnemonicResult output =
+            NullFindOfferByMnemonicResult();
         sdk.stubbedResult = output;
 
         final request = QueryOfferRequest(mnemonic: 'coffee-chat');

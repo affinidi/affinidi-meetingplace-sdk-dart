@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:meeting_place_control_plane/src/command/did_document_upload/did_document_upload.dart';
 import 'package:meeting_place_control_plane/src/command/did_document_upload/did_document_upload_exception.dart';
 import 'package:meeting_place_control_plane/src/command/did_document_upload/did_document_upload_handler.dart';
+import 'package:meeting_place_control_plane/src/command/did_document_upload/upload_did_web_document_request.dart';
 import 'package:meeting_place_control_plane/src/core/model/did_document_hosting_record.dart';
 import 'package:meeting_place_control_plane/src/core/model/did_web_proof.dart';
 import 'package:meeting_place_control_plane/src/meeting_place_control_plane_sdk_error_code.dart';

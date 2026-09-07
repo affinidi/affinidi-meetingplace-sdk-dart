@@ -231,7 +231,7 @@ void main() {
           any<cp.FinaliseAcceptanceRequest>(),
         ),
       ).thenAnswer(
-        (_) async => cp.FinaliseAcceptanceOutput(
+        (_) async => cp.FinaliseAcceptanceResult(
           success: true,
           notificationToken: 'notification-token',
         ),

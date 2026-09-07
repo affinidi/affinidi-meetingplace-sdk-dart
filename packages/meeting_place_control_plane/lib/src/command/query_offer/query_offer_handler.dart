@@ -14,9 +14,9 @@ import '../../core/protocol/message/oob_invitation_message.dart';
 import '../../core/protocol/transport.dart';
 import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
-import 'query_offer.dart';
+import 'find_offer_by_mnemonic_result.dart';
 import 'query_offer_exception.dart';
-import 'query_offer_output.dart';
+import 'query_offer_request.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.
 ///
@@ -24,7 +24,7 @@ import 'query_offer_output.dart';
 /// receiving responses, and validating the returned data for Query Offer
 /// operation.
 class QueryOfferHandler
-    implements CommandHandler<QueryOfferRequest, QueryOfferCommandOutput> {
+    implements CommandHandler<QueryOfferRequest, FindOfferByMnemonicResult> {
   /// Returns an instance of [QueryOfferHandler].
   ///
   /// **Parameters:**
@@ -57,14 +57,14 @@ class QueryOfferHandler
   /// - [command]: query offer command object.
   ///
   /// **Returns:**
-  /// - [QueryOfferCommandOutput]: The query offer command output
+  /// - [FindOfferByMnemonicResult]: The query offer command output
   /// object.
   ///
   /// **Throws:**
   /// - [QueryOfferException]: Exception thrown by the query offer
   /// operation.
   @override
-  Future<QueryOfferCommandOutput> handle(QueryOfferRequest command) async {
+  Future<FindOfferByMnemonicResult> handle(QueryOfferRequest command) async {
     final methodName = 'handle';
     _logger.info('Started querying offer', name: methodName);
 
@@ -81,11 +81,11 @@ class QueryOfferHandler
 
       if (response == null) {
         _logger.warning('Query offer returned null response', name: methodName);
-        return NullQueryOfferCommandOutput();
+        return NullFindOfferByMnemonicResult();
       }
 
       _logger.info('Completed querying offer', name: methodName);
-      return SuccessQueryOfferCommandOutput(
+      return SuccessFindOfferByMnemonicResult(
         offerLink: response.offerLink,
         offerName: response.name,
         offerDescription: response.description,
@@ -113,16 +113,16 @@ class QueryOfferHandler
         final data = e.response?.data as Map<String, dynamic>?;
 
         if (data?['errorCode'] == 'QUERY_LIMIT_EXCEEDED') {
-          return LimitExceededQueryOfferCommandOutput();
+          return LimitExceededFindOfferByMnemonicResult();
         }
 
         if (data?['errorCode'] == 'OFFER_EXPIRED') {
-          return ExpiredQueryOfferCommandOutput();
+          return ExpiredFindOfferByMnemonicResult();
         }
       }
 
       if (e is DioException && e.response?.statusCode == HttpStatus.notFound) {
-        return NullQueryOfferCommandOutput();
+        return NullFindOfferByMnemonicResult();
       }
 
       _logger.error(

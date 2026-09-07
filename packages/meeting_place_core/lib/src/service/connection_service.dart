@@ -90,17 +90,17 @@ class ConnectionService {
       QueryOfferRequest(mnemonic: mnemonic),
     );
 
-    if (response is NullQueryOfferCommandOutput) {
+    if (response is NullFindOfferByMnemonicResult) {
       _logger.error('Connection offer not found', name: methodName);
       throw ConnectionOfferException.offerNotFoundError();
     }
 
-    if (response is LimitExceededQueryOfferCommandOutput) {
+    if (response is LimitExceededFindOfferByMnemonicResult) {
       _logger.error('Offer query limit exceeded', name: methodName);
       throw ConnectionOfferException.limitExceeded();
     }
 
-    if (response is ExpiredQueryOfferCommandOutput) {
+    if (response is ExpiredFindOfferByMnemonicResult) {
       _logger.error('Connection offer has expired', name: methodName);
       throw ConnectionOfferException.expired();
     }
@@ -108,7 +108,7 @@ class ConnectionService {
     FindOfferErrorCodes? errorCode;
     var ownedByMe = false;
 
-    final queryOfferResult = response as SuccessQueryOfferCommandOutput;
+    final queryOfferResult = response as SuccessFindOfferByMnemonicResult;
 
     try {
       await _connectionOfferService.ensureConnectionOfferIsClaimable(

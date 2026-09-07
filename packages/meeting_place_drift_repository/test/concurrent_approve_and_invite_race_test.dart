@@ -116,8 +116,8 @@ class _FakeChannel extends Fake implements Channel {}
 
 class _FakePlainTextMessage extends Fake implements PlainTextMessage {}
 
-class _FakeGroupAddMemberCommandOutput extends Fake
-    implements cp.GroupAddMemberCommandOutput {}
+class _FakeAddGroupMemberResult extends Fake
+    implements cp.AddGroupMemberResult {}
 
 class _FakeFetchMessagesOptions extends Fake implements FetchMessagesOptions {}
 
@@ -176,7 +176,7 @@ void main() {
         recipientDidDocument: DidDocument.create(id: 'did:fallback'),
       ),
     );
-    registerFallbackValue(_FakeGroupAddMemberCommandOutput());
+    registerFallbackValue(_FakeAddGroupMemberResult());
     registerFallbackValue(
       cp.GroupAddMemberRequest(
         mnemonic: '',
@@ -357,7 +357,7 @@ void main() {
       // Adding the group member through the control plane is a no-op.
       when(
         () => controlPlaneSDK.addGroupMember(any<cp.GroupAddMemberRequest>()),
-      ).thenAnswer((_) async => _FakeGroupAddMemberCommandOutput());
+      ).thenAnswer((_) async => _FakeAddGroupMemberResult());
 
       // ── Handler mediator stub ────────────────────────────────────────────
       // Carol's InvitationAcceptanceGroup message, as fetched from mediator.

@@ -13,7 +13,7 @@ import '../command.dart';
 /// Acceptance operation.
 class FinaliseAcceptanceHandler
     implements
-        CommandHandler<FinaliseAcceptanceRequest, FinaliseAcceptanceOutput> {
+        CommandHandler<FinaliseAcceptanceRequest, FinaliseAcceptanceResult> {
   /// Returns an instance of [FinaliseAcceptanceHandler].
   ///
   /// **Parameters:**
@@ -43,14 +43,14 @@ class FinaliseAcceptanceHandler
   /// - [command]: Finalise Acceptance command object.
   ///
   /// **Returns:**
-  /// - [FinaliseAcceptanceOutput]: The finalise acceptance command
+  /// - [FinaliseAcceptanceResult]: The finalise acceptance command
   /// output object.
   ///
   /// **Throws:**
   /// - [FinaliseAcceptanceException]: Exception thrown by the finalise
   /// acceptance operation.
   @override
-  Future<FinaliseAcceptanceOutput> handle(
+  Future<FinaliseAcceptanceResult> handle(
     FinaliseAcceptanceRequest command,
   ) async {
     final methodName = 'handle';
@@ -77,7 +77,7 @@ class FinaliseAcceptanceHandler
       );
 
       _logger.info('Completed finalising acceptance', name: methodName);
-      return FinaliseAcceptanceOutput(
+      return FinaliseAcceptanceResult(
         success: true,
         notificationToken: response.data!.notificationToken,
       );

@@ -8,9 +8,9 @@ import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
 import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
-import 'deregister_offer.dart';
 import 'deregister_offer_exception.dart';
-import 'deregister_output.dart';
+import 'deregister_offer_request.dart';
+import 'deregister_offer_result.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.
 ///
@@ -18,8 +18,7 @@ import 'deregister_output.dart';
 /// receiving responses, and validating the returned data for Deregister
 /// Offer operation.
 class DeregisterOfferHandler
-    implements
-        CommandHandler<DeregisterOfferRequest, DeregisterOfferCommandOutput> {
+    implements CommandHandler<DeregisterOfferRequest, DeregisterOfferResult> {
   /// Returns an instance of [DeregisterOfferHandler].
   ///
   /// **Parameters:**
@@ -49,16 +48,14 @@ class DeregisterOfferHandler
   /// - [command]: Deregister offer command object.
   ///
   /// **Returns:**
-  /// - [DeregisterOfferCommandOutput]: The deregister offer command
+  /// - [DeregisterOfferResult]: The deregister offer command
   /// output object.
   ///
   /// **Throws:**
   /// - [DeregisterOfferException]: Exception thrown by the deregister
   /// offer operation.
   @override
-  Future<DeregisterOfferCommandOutput> handle(
-    DeregisterOfferRequest command,
-  ) async {
+  Future<DeregisterOfferResult> handle(DeregisterOfferRequest command) async {
     final methodName = 'handle';
     _logger.info(
       'Started deregistering offer: ${command.offerLink}',
@@ -79,7 +76,7 @@ class DeregisterOfferHandler
         'Completed deregistering offer: ${command.offerLink}',
         name: methodName,
       );
-      return DeregisterOfferCommandOutput(success: true);
+      return DeregisterOfferResult(success: true);
     } on DeregisterOfferException {
       _logger.warning(
         'Deregister offer failed: ${command.offerLink}',
@@ -96,7 +93,7 @@ class DeregisterOfferHandler
           'deregistered, treating as success',
           name: methodName,
         );
-        return DeregisterOfferCommandOutput(success: true);
+        return DeregisterOfferResult(success: true);
       }
 
       _logger.error(

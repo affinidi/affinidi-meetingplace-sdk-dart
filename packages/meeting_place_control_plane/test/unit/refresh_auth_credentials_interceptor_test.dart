@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 class MockDio extends Mock implements Dio {}
 
 class MockAuthenticator extends Mock {
-  Future<AuthenticateCommandOutput> authenticate(AuthenticateRequest command);
+  Future<AuthenticateResult> authenticate(AuthenticateRequest command);
 }
 
 class MockRequestInterceptorHandler extends Mock
@@ -93,9 +93,7 @@ void main() {
         refreshExpiresAt: DateTime.now().toUtc().add(const Duration(days: 30)),
       );
 
-      final authResult = AuthenticateCommandOutput(
-        credentials: authCredentials,
-      );
+      final authResult = AuthenticateResult(credentials: authCredentials);
 
       when(
         () => mockAuthenticator.authenticate(any<AuthenticateRequest>()),
@@ -129,9 +127,7 @@ void main() {
         refreshExpiresAt: DateTime.now().toUtc().add(const Duration(days: 30)),
       );
 
-      final authResult = AuthenticateCommandOutput(
-        credentials: authCredentials,
-      );
+      final authResult = AuthenticateResult(credentials: authCredentials);
 
       when(
         () => mockAuthenticator.authenticate(any<AuthenticateRequest>()),
@@ -167,7 +163,7 @@ void main() {
         refreshExpiresAt: DateTime.now().toUtc().add(const Duration(days: 30)),
       );
 
-      final expiredAuthResult = AuthenticateCommandOutput(
+      final expiredAuthResult = AuthenticateResult(
         credentials: expiredCredentials,
       );
 
@@ -190,9 +186,7 @@ void main() {
         refreshExpiresAt: DateTime.now().toUtc().add(const Duration(days: 30)),
       );
 
-      final newAuthResult = AuthenticateCommandOutput(
-        credentials: newCredentials,
-      );
+      final newAuthResult = AuthenticateResult(credentials: newCredentials);
 
       when(
         () => mockAuthenticator.authenticate(any<AuthenticateRequest>()),
@@ -230,9 +224,7 @@ void main() {
         refreshExpiresAt: DateTime.now().toUtc().add(const Duration(days: 30)),
       );
 
-      final authResult = AuthenticateCommandOutput(
-        credentials: authCredentials,
-      );
+      final authResult = AuthenticateResult(credentials: authCredentials);
 
       final retryResponse = Response(
         requestOptions: requestOptions,
@@ -351,9 +343,7 @@ void main() {
         refreshExpiresAt: DateTime.now().toUtc().add(const Duration(days: 30)),
       );
 
-      final authResult = AuthenticateCommandOutput(
-        credentials: authCredentials,
-      );
+      final authResult = AuthenticateResult(credentials: authCredentials);
 
       when(
         () => mockAuthenticator.authenticate(any<AuthenticateRequest>()),
@@ -387,9 +377,7 @@ void main() {
         refreshExpiresAt: DateTime.now().toUtc().add(const Duration(days: 30)),
       );
 
-      final authResult = AuthenticateCommandOutput(
-        credentials: authCredentials,
-      );
+      final authResult = AuthenticateResult(credentials: authCredentials);
 
       when(
         () => mockAuthenticator.authenticate(any<AuthenticateRequest>()),
@@ -431,9 +419,7 @@ void main() {
         refreshExpiresAt: DateTime.now().toUtc().add(const Duration(days: 30)),
       );
 
-      final authResult = AuthenticateCommandOutput(
-        credentials: authCredentials,
-      );
+      final authResult = AuthenticateResult(credentials: authCredentials);
 
       // Simulate that retry also fails with 401
       final retryError = DioException(

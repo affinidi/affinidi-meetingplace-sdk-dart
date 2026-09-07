@@ -13,6 +13,8 @@ import 'model/liveness_zkp_concierge_types.dart';
 
 /// Derives human liveness ZKP concierge rows from chat [Message] items.
 abstract final class LivenessZkpConciergeDeriver {
+  /// Whether [message] carries a human liveness ZKP request, proof, or
+  /// declined attachment (and no plain text body).
   static bool messageHasZkpAttachments(Message message) {
     if (message.value.isNotEmpty || message.attachments.isEmpty) return false;
 
@@ -30,6 +32,8 @@ abstract final class LivenessZkpConciergeDeriver {
     );
   }
 
+  /// Whether [item] is a [ConciergeMessage] carrying a human liveness ZKP
+  /// concierge type.
   static bool isHumanZkpConcierge(ChatItem item) {
     if (item is! ConciergeMessage) return false;
     return LivenessZkpConciergeTypes.isHumanZkpType(item.conciergeType.value);
@@ -61,6 +65,13 @@ abstract final class LivenessZkpConciergeDeriver {
     );
   }
 
+  /// Derives the human liveness ZKP concierge notices implied by [item].
+  ///
+  /// Returns an empty list when [item] carries no ZKP attachments. Otherwise
+  /// inspects [attachmentKinds] (computed from [item] when not supplied) and
+  /// [Message.isFromMe] to decide which of a request, request-initiated,
+  /// proof-shared, or declined notice applies, using [contactName] to
+  /// populate the notice payload.
   static List<LivenessZkpConciergeNotice> deriveNoticesFromMessage(
     Message item, {
     required String contactName,
@@ -115,6 +126,11 @@ abstract final class LivenessZkpConciergeDeriver {
     return out;
   }
 
+  /// Derives the human liveness ZKP concierge messages implied by [item].
+  ///
+  /// Convenience wrapper around [deriveNoticesFromMessage] that maps each
+  /// resulting notice to a [ConciergeMessage] via
+  /// [LivenessZkpConciergeChatMapper.toConciergeMessage].
   static List<ConciergeMessage> deriveConciergeMessagesFromMessage(
     Message item, {
     required String contactName,

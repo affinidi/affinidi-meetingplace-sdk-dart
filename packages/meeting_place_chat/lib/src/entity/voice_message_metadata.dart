@@ -10,6 +10,11 @@ import 'chat_attachment.dart';
 /// a general media file and lets new media kinds add their own metadata view
 /// without changing the shared type.
 class VoiceMessageMetadata {
+  /// Creates a new [VoiceMessageMetadata].
+  ///
+  /// Throws an [ArgumentError] if [durationMs] is negative, or if any
+  /// [waveform] sample is outside the [waveformMinSample]-[waveformMaxSample]
+  /// range.
   VoiceMessageMetadata({int? durationMs, List<int>? waveform})
     : durationMs = _validateDurationMs(durationMs),
       waveform = _validateWaveform(waveform);

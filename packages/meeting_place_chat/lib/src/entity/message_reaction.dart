@@ -9,8 +9,10 @@ part 'message_reaction.g.dart';
 /// the same [senderDid] is a single reaction that toggles off when repeated.
 @JsonSerializable()
 class MessageReaction {
+  /// Creates a new [MessageReaction].
   const MessageReaction({required this.emoji, required this.senderDid});
 
+  /// Deserialises a [MessageReaction] from a JSON map.
   factory MessageReaction.fromJson(Map<String, dynamic> json) =>
       _$MessageReactionFromJson(json);
 
@@ -20,6 +22,7 @@ class MessageReaction {
   /// DID of the participant who applied this reaction.
   final String senderDid;
 
+  /// Serialises this [MessageReaction] to a JSON map.
   Map<String, dynamic> toJson() => _$MessageReactionToJson(this);
 
   @override

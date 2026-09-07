@@ -17,6 +17,8 @@ enum MeetingPlaceChatSDKErrorCode {
   operationNotSupported('chat_operation_not_supported'),
 
   // others
+  /// Fallback code used when an unexpected error is wrapped into a
+  /// `MeetingPlaceChatSDKException`, e.g. by `withSdkExceptionHandling`.
   generic('generic');
 
   const MeetingPlaceChatSDKErrorCode(this.value);

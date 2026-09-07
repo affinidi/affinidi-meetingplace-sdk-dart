@@ -7,6 +7,8 @@ import 'chat_item.dart';
 /// for receiving messages in real time, and a collection of
 /// persisted [ChatItem] messages.
 class Chat {
+  /// Creates a [Chat] for a chat that no longer has a live [stream] (e.g.
+  /// the other party has been removed), retaining its persisted [messages].
   factory Chat.deleted({
     required String id,
     required List<ChatItem> messages,

@@ -19,6 +19,8 @@ import '../../transport/didcomm/protocol.dart' as protocol;
 /// the protocol payloads inline.
 class IndividualDidcommChatSDK extends BaseChatSDK
     implements MeetingPlaceChatSDK {
+  /// Creates an [IndividualDidcommChatSDK] for the one-to-one chat between
+  /// [did] and [otherPartyDid], routed through [mediatorDid].
   IndividualDidcommChatSDK({
     required super.coreSDK,
     required super.did,
@@ -678,6 +680,8 @@ class IndividualDidcommChatSDK extends BaseChatSDK
     }
   }
 
+  /// Stops the periodic presence-signal loop started by
+  /// [startChatPresenceUpdates].
   void stopChatPresenceInterval() {
     _isSendingChatPresence = false;
   }

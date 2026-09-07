@@ -2,6 +2,7 @@
 /// chat-level handlers. Transport adapters translate
 /// transport-specific events into this shape before dispatch.
 class IncomingChatEvent {
+  /// Creates an [IncomingChatEvent].
   IncomingChatEvent({
     required this.type,
     required this.senderDid,

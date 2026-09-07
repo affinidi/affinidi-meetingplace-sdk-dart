@@ -26,6 +26,8 @@ import '../logger/logger_formatter.dart';
 /// activity/contact-details updates, subscribing to incoming events, fetching
 /// history) are abstract and implemented by transport-flavoured subclasses.
 abstract class BaseChatSDK {
+  /// Creates a [BaseChatSDK] for the chat between [did] and [otherPartyDid],
+  /// wiring up [chatStream] and the local chat event pipeline.
   BaseChatSDK({
     required this.coreSDK,
     required this.did,
@@ -42,12 +44,28 @@ abstract class BaseChatSDK {
   static const String _className = 'BaseChatSDK';
   static const String _logkey = 'BaseChatSDK';
 
+  /// The underlying Meeting Place Core SDK used to send messages, subscribe
+  /// to transports, and read/update channel state.
   final MeetingPlaceCoreSDK coreSDK;
+
+  /// The DID of the local (signed-in) participant in this chat.
   final String did;
+
+  /// The DID of the other participant in this chat.
   final String otherPartyDid;
+
+  /// The DID of the mediator that routes messages between [did] and
+  /// [otherPartyDid].
   final String mediatorDid;
+
+  /// Persists and retrieves this chat's messages and sync state.
   final ChatRepository chatRepository;
+
+  /// SDK-wide behavioural options (e.g. delete window, presence/activity
+  /// intervals) applied by this chat session.
   final MeetingPlaceChatSDKOptions options;
+
+  /// The local contact card supplied when this chat session was created.
   final ContactCard? card;
   ContactCard? _currentContactCard;
   final MeetingPlaceChatSDKLogger _logger;
@@ -57,9 +75,15 @@ abstract class BaseChatSDK {
   /// The freshest contact card available for the signed-in identity.
   ContactCard? get currentContactCard => _currentContactCard;
 
+  /// The logger used by this chat session and its subclasses.
   MeetingPlaceChatSDKLogger get logger => _logger;
 
+  /// The live event stream for this chat session. Replaced with a fresh
+  /// [ChatStream] each time [startChatSession] runs.
   ChatStream chatStream;
+
+  /// Subscription to the local-only chat event pipeline, set up by
+  /// [attachLocalChatEventListener] and cancelled by [end].
   StreamSubscription<ChatEvent>? localChatEventSubscription;
 
   /// Applies local chat stream events that mutate the in-memory session state.
@@ -264,6 +288,11 @@ abstract class BaseChatSDK {
     chatStream.dispose();
   }
 
+  /// Looks up the [Channel] for [otherPartyDid].
+  ///
+  /// Throws a [MeetingPlaceChatSDKException] with
+  /// [MeetingPlaceChatSDKErrorCode.channelNotFound] if no such channel
+  /// exists.
   Future<Channel> getChannel() => withSdkExceptionHandling(() async {
     return await coreSDK.findChannelByOtherPartyPermanentDid(otherPartyDid) ??
         (throw MeetingPlaceChatSDKException.channelNotFound(

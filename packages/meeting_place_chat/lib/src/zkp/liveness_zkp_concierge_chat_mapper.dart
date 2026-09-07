@@ -4,6 +4,8 @@ import 'model/liveness_zkp_concierge_notice.dart';
 
 /// Maps human liveness ZKP concierge notices to chat [ConciergeMessage] rows.
 abstract final class LivenessZkpConciergeChatMapper {
+  /// Converts [notice] into a [ConciergeMessage] ready to store alongside the
+  /// chat's other items.
   static ConciergeMessage toConciergeMessage(
     LivenessZkpConciergeNotice notice,
   ) {

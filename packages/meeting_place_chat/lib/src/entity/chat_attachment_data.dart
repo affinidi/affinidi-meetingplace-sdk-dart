@@ -3,8 +3,13 @@
 /// Mirrors the data representation options supported by DIDComm attachments
 /// but without any transport-layer dependencies.
 class ChatAttachmentData {
+  /// Creates a new [ChatAttachmentData].
+  ///
+  /// All parameters are optional; a real attachment typically supplies
+  /// exactly one of [base64], [json], or [links].
   ChatAttachmentData({this.jws, this.hash, this.links, this.base64, this.json});
 
+  /// Deserialises a [ChatAttachmentData] from a JSON map.
   factory ChatAttachmentData.fromJson(Map<String, dynamic> json) {
     return ChatAttachmentData(
       jws: json['jws'] as String?,
@@ -32,6 +37,8 @@ class ChatAttachmentData {
   /// Inline JSON content.
   final String? json;
 
+  /// Serialises this [ChatAttachmentData] to a JSON map, omitting any unset
+  /// fields.
   Map<String, dynamic> toJson() {
     final result = <String, dynamic>{};
     if (jws != null) result['jws'] = jws;

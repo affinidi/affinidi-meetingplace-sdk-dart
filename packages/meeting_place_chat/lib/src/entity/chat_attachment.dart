@@ -15,6 +15,14 @@ typedef CoreAttachment = Attachment;
 /// internally. The JSON serialization is wire-compatible with DIDComm so that
 /// persisted messages remain readable.
 class ChatAttachment {
+  /// Creates a new [ChatAttachment].
+  ///
+  /// [id] is the unique identifier for the attachment. [description],
+  /// [filename], [mediaType], and [format] describe the attached content.
+  /// [lastModifiedTime] and [byteCount] carry file metadata. [data] is the
+  /// attachment's payload, and [transportId] is the transport-level
+  /// reference for downloading its bytes. [metadata] holds any extensible,
+  /// media-kind-specific fields.
   ChatAttachment({
     required this.id,
     this.description,

@@ -1,9 +1,12 @@
+/// An optional update to a participant's `hasAudio` state, distinguishing
+/// "no change" (`hasValue` is `false`) from "set to `null`"
+/// (`hasValue` is `true`, `value` is `null`).
+typedef AudioVideoCallParticipantHasAudio = ({bool hasValue, bool? value});
+
 /// Domain model for a single participant in an audio/video call.
 ///
 /// Wraps only the fields the presentation layer needs. Transport-specific
 /// types (e.g. LiveKit `Participant`) stay inside the plugin implementation.
-typedef AudioVideoCallParticipantHasAudio = ({bool hasValue, bool? value});
-
 class AudioVideoCallParticipant {
   const AudioVideoCallParticipant({
     required this.participantId,
@@ -38,7 +41,7 @@ class AudioVideoCallParticipant {
   /// Whether the participant is currently speaking.
   final bool isSpeaking;
 
-  /// Whether this participant represents own user.
+  /// Whether this participant represents the local user.
   final bool isSelf;
 
   AudioVideoCallParticipant copyWith({

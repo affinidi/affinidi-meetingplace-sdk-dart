@@ -146,6 +146,7 @@ abstract interface class MeetingPlaceTransport {
   // ---------------------------------------------------------------------------
 
   /// The backend server identifier.
+  ///
   /// Null if the transport does not have a single server identity.
   String? get serverId;
 

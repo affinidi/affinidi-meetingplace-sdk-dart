@@ -786,6 +786,7 @@ class MeetingPlaceCoreSDK {
   }
 
   /// Attempts to locate a previously published offer on MeetingPlace.
+  ///
   /// This method searches for an existing offer using the provided [mnemonic].
   ///
   /// **Parameters:**

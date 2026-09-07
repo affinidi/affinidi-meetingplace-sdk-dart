@@ -14,6 +14,7 @@ abstract class OutgoingMessage {
 }
 
 /// Parameters required to dispatch a control-plane channel notification.
+///
 /// Either an individual peer or all members of a group are notified,
 /// depending on the concrete subtype.
 sealed class ChannelNotification {

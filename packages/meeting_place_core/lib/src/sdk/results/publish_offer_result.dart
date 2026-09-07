@@ -17,6 +17,7 @@ class PublishOfferResult<T extends ConnectionOffer> {
   final DidManager publishedOfferDidManager;
 
   /// DidManager representing DID of group owner.
+  ///
   /// Is only returned if connection offer is of type GroupConnectionOffer
   final DidManager? groupOwnerDidManager;
 }

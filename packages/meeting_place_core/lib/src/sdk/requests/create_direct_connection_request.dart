@@ -12,6 +12,7 @@ class CreateDirectConnectionRequest {
   });
 
   /// An object that contains information about who is offering the offer.
+  ///
   /// This helps others know whom they are connecting with and provides
   /// necessary contact details.
   final ContactCard contactCard;

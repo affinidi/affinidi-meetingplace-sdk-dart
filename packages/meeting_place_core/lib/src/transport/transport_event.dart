@@ -39,6 +39,7 @@ class TransportEvent {
   final bool isReplay;
 
   /// Transport-specific metadata not part of the standard event payload.
+  ///
   /// Transports may populate this with implementation details that higher
   /// layers need without polluting [content].
   final Map<String, dynamic>? metadata;

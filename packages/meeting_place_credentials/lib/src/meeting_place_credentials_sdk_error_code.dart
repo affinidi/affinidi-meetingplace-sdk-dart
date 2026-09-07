@@ -1,4 +1,7 @@
-/// Error codes used by `MeetingPlaceCredentialsSDKException`.
+/// @docImport 'meeting_place_credentials_sdk_exception.dart';
+library;
+
+/// Error codes used by [MeetingPlaceCredentialsSDKException].
 enum MeetingPlaceCredentialsSDKErrorCode {
   // vrc codes
   /// The received VC blob could not be parsed as a valid VRC.

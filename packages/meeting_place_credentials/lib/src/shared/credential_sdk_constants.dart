@@ -1,7 +1,11 @@
+/// @docImport '../rcard/model/r_card_constants.dart';
+/// @docImport '../vrc/model/vrc_constants.dart';
+library;
+
 /// Shared credential type constants for all credentials.
 ///
-/// R-Card specific constants live in `RCardConstants`.
-/// VRC specific constants live in `VrcConstants`.
+/// R-Card specific constants live in [RCardConstants].
+/// VRC specific constants live in [VrcConstants].
 class CredentialsSDKConstants {
   CredentialsSDKConstants._();
 

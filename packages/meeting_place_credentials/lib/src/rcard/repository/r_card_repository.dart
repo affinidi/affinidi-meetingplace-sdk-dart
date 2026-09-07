@@ -1,10 +1,13 @@
+/// @docImport '../../meeting_place_credentials_sdk.dart';
+library;
+
 import '../model/r_card.dart';
 
 /// Repository interface for persisting and querying [RCard] entities.
 ///
 /// Implementations are provided by `meeting_place_drift_repository` via
 /// `RCardRepositoryDrift`, and injected into
-/// `MeetingPlaceCredentialsSDK` at construction time.
+/// [MeetingPlaceCredentialsSDK] at construction time.
 abstract interface class RCardRepository {
   /// Inserts or updates [rCard], keyed on [RCard.subjectDid].
   ///

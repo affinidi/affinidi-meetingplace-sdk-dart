@@ -21,7 +21,7 @@ class NotifyOutreachHandler
              sdkName: sdkName,
            );
 
-  static const String _className = 'NotifyChannelHandler';
+  static const String _className = 'NotifyOutreachHandler';
 
   final ControlPlaneApiClient _apiClient;
   final MeetingPlaceControlPlaneSDKLogger _logger;

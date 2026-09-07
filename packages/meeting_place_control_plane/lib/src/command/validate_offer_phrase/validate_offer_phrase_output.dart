@@ -1,5 +1,8 @@
 import 'validate_offer_phrase.dart' show ValidateOfferPhraseCommand;
 
+/// The result returned when an offer mnemonic is validated.
+typedef ValidateOfferMnemonicResult = ValidateOfferPhraseCommandOutput;
+
 /// Model that represents the output data returned from a successful execution
 /// of [ValidateOfferPhraseCommand] operation.
 class ValidateOfferPhraseCommandOutput {

@@ -1,5 +1,8 @@
 import 'deregister_offer.dart' show DeregisterOfferCommand;
 
+/// The result returned when an offer is deregistered.
+typedef DeregisterOfferResult = DeregisterOfferCommandOutput;
+
 /// Model that represents the output data returned from a successful
 /// execution of [DeregisterOfferCommand] operation.
 class DeregisterOfferCommandOutput {

@@ -4,6 +4,9 @@ import '../../core/protocol/message/oob_invitation_message.dart';
 import '../../core/protocol/transport.dart';
 import 'query_offer.dart' show QueryOfferCommand;
 
+/// The result returned when finding an offer by its mnemonic phrase.
+typedef FindOfferByMnemonicResult = QueryOfferCommandOutput;
+
 /// Base class for the possible outcomes of a [QueryOfferCommand] operation.
 abstract class QueryOfferCommandOutput {}
 

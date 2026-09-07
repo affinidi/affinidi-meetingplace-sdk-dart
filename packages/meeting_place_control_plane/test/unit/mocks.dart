@@ -11,6 +11,10 @@ class MockDidWebDocumentApi extends Mock implements DidWebDocumentApi {}
 class MockMeetingPlaceControlPlaneSDK extends Mock
     implements MeetingPlaceControlPlaneSDK {}
 
+class MockDidManager extends Mock implements DidManager {}
+
+class MockDidResolver extends Mock implements DidResolver {}
+
 class FakeAuthenticateCommand extends Fake implements AuthenticateCommand {}
 
 class FakeDidResolver implements DidResolver {

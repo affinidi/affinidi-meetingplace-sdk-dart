@@ -2,6 +2,9 @@ import '../../../meeting_place_control_plane.dart' show AcceptOfferCommand;
 import '../command.dart' show AcceptOfferCommand;
 import 'accept_offer.dart' show AcceptOfferCommand;
 
+/// The result returned when an offer is accepted.
+typedef AcceptOfferResult = AcceptOfferCommandOutput;
+
 /// Model that represents the output data returned from a successful execution
 /// of [AcceptOfferCommand] operation.
 class AcceptOfferCommandOutput {

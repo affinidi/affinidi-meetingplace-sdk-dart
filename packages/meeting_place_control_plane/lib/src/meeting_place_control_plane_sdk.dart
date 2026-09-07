@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:didcomm/didcomm.dart';
 import 'package:ssi/ssi.dart';
 
 import 'api/control_plane_api_client.dart';
@@ -7,9 +8,8 @@ import 'api/control_plane_api_client_options.dart';
 import 'api/did_web_document_api.dart';
 import 'command/accept_offer/accept_offer_handler.dart';
 import 'command/accept_offer_group/accept_offer_group_handler.dart';
-import 'command/authenticate/authenticate.dart';
 import 'command/authenticate/authenticate_handler.dart';
-import 'command/authenticate/authenticate_output.dart';
+import 'command/command.dart';
 import 'command/create_oob/create_oob_handler.dart';
 import 'command/delete_pending_notifications/'
     'delete_pending_notifications_handler.dart';
@@ -39,6 +39,9 @@ import 'constants/sdk_constants.dart';
 import 'core/command/command.dart';
 import 'core/command/command_dispatcher.dart';
 import 'core/device/device.dart';
+import 'core/offer_type.dart';
+import 'core/protocol/contact_card/contact_card.dart';
+import 'core/protocol/transport.dart';
 import 'core/sdk_error_handler.dart';
 import 'loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import 'loggers/meeting_place_control_plane_sdk_logger.dart';
@@ -135,6 +138,147 @@ class MeetingPlaceControlPlaneSDK {
     }
     return _device!;
   }
+
+  /// Registers an offer with the control plane.
+  ///
+  /// **Throws:**
+  /// - [MeetingPlaceControlPlaneSDKErrorCode.registerOfferMediatorNotSet]
+  ///   when no mediator DID is configured.
+  /// - [MeetingPlaceControlPlaneSDKErrorCode.registerOfferMnemonicInUse] when
+  ///   [customMnemonic] is already registered.
+  /// - [MeetingPlaceControlPlaneSDKErrorCode.registerOfferGeneric] or
+  ///   [MeetingPlaceControlPlaneSDKErrorCode.networkError] when registration
+  ///   fails.
+  Future<RegisterOfferResult> registerOffer({
+    required String offerName,
+    required String offerDescription,
+    required ContactCard contactCard,
+    required Device device,
+    required OfferType type,
+    required PlainTextMessage oobInvitationMessage,
+    required OfferTransport transport,
+    DateTime? validUntil,
+    int? maximumUsage,
+    String? customMnemonic,
+    String? mediatorDid,
+    int? score,
+  }) => execute(
+    RegisterOfferCommand(
+      offerName: offerName,
+      offerDescription: offerDescription,
+      contactCard: contactCard,
+      device: device,
+      type: type,
+      oobInvitationMessage: oobInvitationMessage,
+      transport: transport,
+      validUntil: validUntil,
+      maximumUsage: maximumUsage,
+      customMnemonic: customMnemonic,
+      mediatorDid: mediatorDid,
+      score: score,
+    ),
+  );
+
+  /// Deregisters an offer from the control plane.
+  ///
+  /// **Throws:**
+  /// - [MeetingPlaceControlPlaneSDKErrorCode.deregisterOfferFailedError],
+  ///   [MeetingPlaceControlPlaneSDKErrorCode.deregisterOfferGeneric], or
+  ///   [MeetingPlaceControlPlaneSDKErrorCode.networkError] when deregistration
+  ///   fails.
+  Future<DeregisterOfferResult> deregisterOffer({
+    required String offerLink,
+    required String mnemonic,
+  }) =>
+      execute(DeregisterOfferCommand(offerLink: offerLink, mnemonic: mnemonic));
+
+  /// Finds an offer by its mnemonic phrase.
+  ///
+  /// The returned [QueryOfferCommandOutput] represents success, not found,
+  /// expiration, or a query-limit result.
+  ///
+  /// **Throws:**
+  /// - [MeetingPlaceControlPlaneSDKErrorCode.queryOfferOfferGeneric] or
+  ///   [MeetingPlaceControlPlaneSDKErrorCode.networkError] when the query
+  ///   fails.
+  Future<FindOfferByMnemonicResult> findOfferByMnemonic({
+    required String mnemonic,
+  }) => execute(QueryOfferCommand(mnemonic: mnemonic));
+
+  /// Checks whether an offer mnemonic phrase is available.
+  ///
+  /// **Throws:**
+  /// - Validation-specific [MeetingPlaceControlPlaneSDKErrorCode] values:
+  ///   `validate_offer_phrase_authentication`,
+  ///   `validate_offer_phrase_rate_limit`, and `validate_offer_phrase_timeout`.
+  ///   [MeetingPlaceControlPlaneSDKErrorCode.validateOfferPhraseGeneric], or
+  ///   [MeetingPlaceControlPlaneSDKErrorCode.networkError] when validation
+  ///   fails.
+  Future<ValidateOfferMnemonicResult> validateOfferMnemonic({
+    required String mnemonic,
+  }) => execute(ValidateOfferPhraseCommand(mnemonic: mnemonic));
+
+  /// Updates the score assigned to the offers identified by [mnemonics].
+  ///
+  /// **Throws:**
+  /// - [MeetingPlaceControlPlaneSDKErrorCode.generic] or
+  ///   [MeetingPlaceControlPlaneSDKErrorCode.networkError] when the update
+  ///   fails.
+  Future<UpdateOffersScoreResult> updateOffersScore({
+    required int score,
+    required List<String> mnemonics,
+  }) => execute(UpdateOffersScoreCommand(score: score, mnemonics: mnemonics));
+
+  /// Accepts a registered offer.
+  ///
+  /// **Throws:**
+  /// - [MeetingPlaceControlPlaneSDKErrorCode.acceptOfferAlreadyAccepted],
+  ///   [MeetingPlaceControlPlaneSDKErrorCode.acceptOfferLimitExceeded],
+  ///   [MeetingPlaceControlPlaneSDKErrorCode.acceptOfferGeneric], or
+  ///   [MeetingPlaceControlPlaneSDKErrorCode.networkError] when acceptance
+  ///   fails.
+  Future<AcceptOfferResult> acceptOffer({
+    required String mnemonic,
+    required Device device,
+    required String offerLink,
+    required ContactCard contactCard,
+    required String acceptOfferDid,
+  }) => execute(
+    AcceptOfferCommand(
+      mnemonic: mnemonic,
+      device: device,
+      offerLink: offerLink,
+      contactCard: contactCard,
+      acceptOfferDid: acceptOfferDid,
+    ),
+  );
+
+  /// Finalises an accepted offer.
+  ///
+  /// **Throws:**
+  /// - [MeetingPlaceControlPlaneSDKErrorCode.finaliseAcceptanceError],
+  ///   [MeetingPlaceControlPlaneSDKErrorCode.finaliseAcceptanceGeneric], or
+  ///   [MeetingPlaceControlPlaneSDKErrorCode.networkError] when finalisation
+  ///   fails.
+  Future<FinaliseAcceptanceResult> finaliseAcceptance({
+    required String mnemonic,
+    required String offerLink,
+    required String offerPublishedDid,
+    required String otherPartyAcceptOfferDid,
+    required String otherPartyPermanentChannelDid,
+    required Device device,
+    ContactCard? contactCard,
+  }) => execute(
+    FinaliseAcceptanceCommand(
+      mnemonic: mnemonic,
+      offerLink: offerLink,
+      offerPublishedDid: offerPublishedDid,
+      otherPartyAcceptOfferDid: otherPartyAcceptOfferDid,
+      otherPartyPermanentChannelDid: otherPartyPermanentChannelDid,
+      device: device,
+      contactCard: contactCard,
+    ),
+  );
 
   /// Private method that initialises the ControlPlaneApiClient.
   ///

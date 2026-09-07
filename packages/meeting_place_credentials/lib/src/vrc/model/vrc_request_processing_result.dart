@@ -22,6 +22,7 @@ final class VrcRequestProcessingResultWaiting
 }
 
 /// A VRC was auto-issued to the peer (simultaneous-request initiator path).
+///
 /// [sentVcBlob] is the raw VC JSON of the issued VRC.
 final class VrcRequestProcessingResultIssued
     extends VrcRequestProcessingResult {

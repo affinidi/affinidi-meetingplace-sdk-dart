@@ -15,7 +15,7 @@ import 'vdip_client_exception.dart';
 
 /// Client for sending and receiving VDIP (Verifiable Data Issuance Protocol)
 /// messages over the shared DIDComm connection managed by
-/// `MeetingPlaceCoreSDK`.
+/// [MeetingPlaceCoreSDK].
 ///
 /// Obtain an instance via `MeetingPlaceCoreSDK.vdip` — do not construct
 /// directly.
@@ -211,7 +211,7 @@ class VdipClient {
   /// the sender and recipient DIDs from [channel], constructs the
   /// [VdipIssuedCredentialBody], and delivers the message.
   ///
-  /// Throws `VdipClientException` if the channel DIDs are missing.
+  /// Throws [VdipClientException] if the channel DIDs are missing.
   Future<void> issueCredential({
     required Channel channel,
     required VcDataModelV2 credential,

@@ -89,7 +89,7 @@ import 'utils/cached_did_resolver.dart';
 /// Wallet Compatibility Notice:
 /// Depending on the discovery API version, you can use any wallet
 /// implementation. However, there is one limitation: when using the
-/// Affinidi-hosted version of the API, you must use the `PersistentWallet`
+/// Affinidi-hosted version of the API, you must use the [PersistentWallet]
 /// with `p256` keys. This restriction is temporary and will be lifted in the
 /// coming weeks as we transition to a new server-side wallet implementation
 /// replacing the current KMS-based solution.
@@ -102,32 +102,32 @@ class MeetingPlaceCoreSDK {
   /// list.
   ///
   /// ### Parameters
-  /// - `wallet` (`Wallet`): The wallet instance used for cryptographic
+  /// - `wallet` ([Wallet]): The wallet instance used for cryptographic
   ///   operations.
-  /// - `repositoryConfig` (`RepositoryConfig`): Configuration for repository
+  /// - `repositoryConfig` ([RepositoryConfig]): Configuration for repository
   ///   storage.
-  /// - `controlPlaneDid` (`String`): The DID (Decentralized Identifier) of
+  /// - `controlPlaneDid` ([String]): The DID (Decentralized Identifier) of
   ///   this service.
   /// - `mediatorSDK` (`MediatorSDK`): Instance of the mediator SDK used for
   ///   routing messages.
-  /// - `controlPlaneSDK` (`MeetingPlaceControlPlaneSDK`): Instance of the
+  /// - `controlPlaneSDK` ([MeetingPlaceControlPlaneSDK]): Instance of the
   ///   control plane SDK for discovering other agents.
-  /// - `connectionManager` (`ConnectionManager`): Manages connections between
+  /// - `connectionManager` ([ConnectionManager]): Manages connections between
   ///   agents.
-  /// - `connectionService` (`ConnectionService`): Service that handles
+  /// - `connectionService` ([ConnectionService]): Service that handles
   ///   connection protocols.
   /// - `discoveryEventService` (`DiscoveryEventService`): Service that handles
   ///   discovery events.
   /// - `discoveryEventStreamManager` (`DiscoveryEventStreamManager`): Manages
   ///   streaming of discovery events.
-  /// - `groupService` (`GroupService`): Handles group-related operations.
-  /// - `outreachService` (`OutreachService`): Handles outreach notifications
-  /// - `messageService` (`MessageService`): Handles message sending and
+  /// - `groupService` ([GroupService]): Handles group-related operations.
+  /// - `outreachService` ([OutreachService]): Handles outreach notifications
+  /// - `messageService` ([MessageService]): Handles message sending and
   ///   receiving.
-  /// - `didResolver` (`DidResolver`): Resolves DIDs to their corresponding DID
+  /// - `didResolver` ([DidResolver]): Resolves DIDs to their corresponding DID
   ///   Documents.
-  /// - `mediatorDid` (`String`): The DID of the mediator agent.
-  /// - `channelService` (`ChannelService`): Handles channel-related operations.
+  /// - `mediatorDid` ([String]): The DID of the mediator agent.
+  /// - `channelService` ([ChannelService]): Handles channel-related operations.
   ///
   /// ### Notes
   /// - Parameters marked as `required` must be provided when creating an

@@ -4,6 +4,7 @@ import 'package:didcomm/didcomm.dart';
 import 'package:uuid/uuid.dart';
 
 /// [OobInvitationMessage] is a special type of [OutOfBandMessage].
+///
 /// Represents an out-of-band invitation message.
 ///
 /// **Parameters:**

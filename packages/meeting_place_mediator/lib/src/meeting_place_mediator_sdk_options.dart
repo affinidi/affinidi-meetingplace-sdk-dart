@@ -30,6 +30,7 @@ class MeetingPlaceMediatorSDKOptions {
   final int maxRetries;
 
   /// The maximum delay between retry attempts when a network issue occurs.
+  ///
   /// This value sets the upper bound for the delay between retries.
   final Duration maxRetriesDelay;
 

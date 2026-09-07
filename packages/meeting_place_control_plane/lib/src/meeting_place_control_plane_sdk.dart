@@ -98,7 +98,7 @@ class MeetingPlaceControlPlaneSDK {
   final MeetingPlaceControlPlaneSDKLogger _logger;
 
   late final SDKErrorHandler _sdkErrorHandler;
-  late final ControlPlaneApiClient _controlPlaneApiClient;
+  ControlPlaneApiClient? _controlPlaneApiClient;
   late final CommandDispatcher _dispatcher;
 
   Device? _device;
@@ -142,7 +142,7 @@ class MeetingPlaceControlPlaneSDK {
   /// [MeetingPlaceControlPlaneSDK].
   Future<void> _init() async {
     _dispatcher = CommandDispatcher();
-    _controlPlaneApiClient = await ControlPlaneApiClient.init(
+    final apiClient = await ControlPlaneApiClient.init(
       controlPlaneSDK: this,
       options: ControlPlaneApiClientOptions(
         controlPlaneDid: controlPlaneDid,
@@ -155,10 +155,13 @@ class MeetingPlaceControlPlaneSDK {
       didResolver: didResolver,
       logger: _logger,
     );
+    // Store the client as soon as it's constructed (before authentication
+    // runs) so dispose() can still close it if init fails afterwards.
+    _controlPlaneApiClient = apiClient;
 
     _dispatcher.registerHandler(
       AuthenticateHandler(
-        apiClient: _controlPlaneApiClient,
+        apiClient: apiClient,
         didManager: didManager,
         didResolver: didResolver,
         logger: _logger,
@@ -170,12 +173,12 @@ class MeetingPlaceControlPlaneSDK {
      * dependency injection
      */
     _dispatcher.registerHandler(
-      RegisterDeviceHandler(mpxClient: _controlPlaneApiClient, logger: _logger),
+      RegisterDeviceHandler(mpxClient: apiClient, logger: _logger),
     );
 
     _dispatcher.registerHandler(
       RegisterOfferHandler(
-        apiClient: _controlPlaneApiClient,
+        apiClient: apiClient,
         mediatorDid: mediatorDid,
         sdkConfig: controlPlaneSDKConfig,
         didResolver: didResolver,
@@ -185,7 +188,7 @@ class MeetingPlaceControlPlaneSDK {
 
     _dispatcher.registerHandler(
       RegisterOfferGroupHandler(
-        apiClient: _controlPlaneApiClient,
+        apiClient: apiClient,
         mediatorDid: mediatorDid,
         sdkConfig: controlPlaneSDKConfig,
         didResolver: didResolver,
@@ -194,109 +197,76 @@ class MeetingPlaceControlPlaneSDK {
     );
 
     _dispatcher.registerHandler(
-      DeregisterOfferHandler(
-        apiClient: _controlPlaneApiClient,
-        logger: _logger,
-      ),
+      DeregisterOfferHandler(apiClient: apiClient, logger: _logger),
     );
     _dispatcher.registerHandler(
       ValidateOfferPhraseHandler(
-        apiClient: _controlPlaneApiClient,
+        apiClient: apiClient,
         dispatcher: _dispatcher,
         logger: _logger,
       ),
     );
 
     _dispatcher.registerHandler(
-      AcceptOfferHandler(apiClient: _controlPlaneApiClient, logger: _logger),
+      AcceptOfferHandler(apiClient: apiClient, logger: _logger),
     );
     _dispatcher.registerHandler(
-      AcceptOfferGroupHandler(
-        apiClient: _controlPlaneApiClient,
-        logger: _logger,
-      ),
+      AcceptOfferGroupHandler(apiClient: apiClient, logger: _logger),
     );
     _dispatcher.registerHandler(
-      NotifyAcceptanceHandler(
-        apiClient: _controlPlaneApiClient,
-        logger: _logger,
-      ),
+      NotifyAcceptanceHandler(apiClient: apiClient, logger: _logger),
     );
     _dispatcher.registerHandler(
-      NotifyAcceptanceGroupHandler(
-        apiClient: _controlPlaneApiClient,
-        logger: _logger,
-      ),
+      NotifyAcceptanceGroupHandler(apiClient: apiClient, logger: _logger),
     );
     _dispatcher.registerHandler(
       QueryOfferHandler(
-        apiClient: _controlPlaneApiClient,
+        apiClient: apiClient,
         dispatcher: _dispatcher,
         logger: _logger,
       ),
     );
     _dispatcher.registerHandler(
-      FinaliseAcceptanceHandler(
-        apiClient: _controlPlaneApiClient,
-        logger: _logger,
-      ),
+      FinaliseAcceptanceHandler(apiClient: apiClient, logger: _logger),
     );
     _dispatcher.registerHandler(
-      RegisterNotificationHandler(
-        apiClient: _controlPlaneApiClient,
-        logger: _logger,
-      ),
+      RegisterNotificationHandler(apiClient: apiClient, logger: _logger),
     );
     _dispatcher.registerHandler(
-      GetPendingNotificationsHandler(
-        apiClient: _controlPlaneApiClient,
-        logger: _logger,
-      ),
+      GetPendingNotificationsHandler(apiClient: apiClient, logger: _logger),
     );
 
     _dispatcher.registerHandler(
-      NotifyChannelHandler(apiClient: _controlPlaneApiClient, logger: _logger),
+      NotifyChannelHandler(apiClient: apiClient, logger: _logger),
     );
 
     _dispatcher.registerHandler(
-      DeletePendingNotificationsHandler(
-        apiClient: _controlPlaneApiClient,
-        logger: _logger,
-      ),
+      DeletePendingNotificationsHandler(apiClient: apiClient, logger: _logger),
     );
 
     _dispatcher.registerHandler(
-      GroupAddMemberHandler(apiClient: _controlPlaneApiClient, logger: _logger),
+      GroupAddMemberHandler(apiClient: apiClient, logger: _logger),
     );
 
     _dispatcher.registerHandler(
-      GroupDeregisterMemberHandler(
-        apiClient: _controlPlaneApiClient,
-        logger: _logger,
-      ),
+      GroupDeregisterMemberHandler(apiClient: apiClient, logger: _logger),
     );
 
     _dispatcher.registerHandler(
-      GroupDeleteHandler(apiClient: _controlPlaneApiClient, logger: _logger),
+      GroupDeleteHandler(apiClient: apiClient, logger: _logger),
     );
 
     _dispatcher.registerHandler(
-      GroupNotifyChannelHandler(
-        apiClient: _controlPlaneApiClient,
-        logger: _logger,
-      ),
+      GroupNotifyChannelHandler(apiClient: apiClient, logger: _logger),
     );
 
     _dispatcher.registerHandler(
-      DeregisterNotificationHandler(
-        apiClient: _controlPlaneApiClient,
-        logger: _logger,
-      ),
+      DeregisterNotificationHandler(apiClient: apiClient, logger: _logger),
     );
 
     _dispatcher.registerHandler(
       CreateOobHandler(
-        apiClient: _controlPlaneApiClient,
+        apiClient: apiClient,
         mediatorDid: mediatorDid,
         didResolver: didResolver,
         logger: _logger,
@@ -305,20 +275,18 @@ class MeetingPlaceControlPlaneSDK {
 
     _dispatcher.registerHandler(
       GetOobHandler(
-        apiClient: _controlPlaneApiClient,
+        apiClient: apiClient,
         mediatorDid: mediatorDid,
         didResolver: didResolver,
         logger: _logger,
       ),
     );
 
-    _dispatcher.registerHandler(
-      NotifyOutreachHandler(apiClient: _controlPlaneApiClient),
-    );
+    _dispatcher.registerHandler(NotifyOutreachHandler(apiClient: apiClient));
 
     _dispatcher.registerHandler(
       MatrixTokenHandler(
-        apiClient: _controlPlaneApiClient,
+        apiClient: apiClient,
         didResolver: didResolver,
         controlPlaneDid: controlPlaneDid,
         logger: _logger,
@@ -327,15 +295,12 @@ class MeetingPlaceControlPlaneSDK {
 
     _dispatcher.registerHandler(
       UploadDidWebDocumentHandler(
-        didWebDocumentApi: DidWebDocumentApi(dio: _controlPlaneApiClient.dio),
+        didWebDocumentApi: DidWebDocumentApi(dio: apiClient.dio),
       ),
     );
 
     _dispatcher.registerHandler(
-      UpdateOffersScoreHandler(
-        apiClient: _controlPlaneApiClient,
-        logger: _logger,
-      ),
+      UpdateOffersScoreHandler(apiClient: apiClient, logger: _logger),
     );
 
     await _dispatcher.dispatch<AuthenticateCommand, AuthenticateCommandOutput>(
@@ -401,16 +366,19 @@ class MeetingPlaceControlPlaneSDK {
 
   /// Releases resources held by this SDK instance, closing the underlying
   /// HTTP client. Safe to call whether or not the SDK has been initialized.
+  ///
+  /// Closes the HTTP client whenever one was constructed, even if
+  /// initialization did not fully complete (e.g. authentication failed),
+  /// since the client is created before authentication runs.
   Future<void> dispose() async {
     if (_initializing != null) {
       try {
         await _initializing;
       } catch (_) {
-        // Initialization failed; nothing was set up to dispose.
+        // Initialization failed partway through; fall through to close
+        // whatever was already constructed.
       }
     }
-    if (isInitialized) {
-      _controlPlaneApiClient.close();
-    }
+    _controlPlaneApiClient?.close();
   }
 }

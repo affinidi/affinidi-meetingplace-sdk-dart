@@ -335,8 +335,11 @@ void main() {
             type: ChannelType.individual,
             isConnectionInitiator: false,
           );
+
           expect(
-            () => service
+            () =>
+                service
+                // ignore: lines_longer_than_80_chars
                 .markDirectConnectionChannelInauguratedForNonConnectionInitiator(
                   notDirectConnectionChannel,
                   otherPartyPermanentChannelDid: 'otherDid',
@@ -356,8 +359,11 @@ void main() {
             type: ChannelType.directConnection,
             isConnectionInitiator: true,
           );
+
           expect(
-            () => service
+            () =>
+                service
+                // ignore: lines_longer_than_80_chars
                 .markDirectConnectionChannelInauguratedForNonConnectionInitiator(
                   initiatorDirectConnectionChannel,
                   otherPartyPermanentChannelDid: 'otherDid',
@@ -377,8 +383,11 @@ void main() {
             type: ChannelType.directConnection,
             isConnectionInitiator: false,
           );
+
           expect(
-            () => service
+            () =>
+                service
+                // ignore: lines_longer_than_80_chars
                 .markDirectConnectionChannelInauguratedForNonConnectionInitiator(
                   wrongStatusDirectConnectionChannel,
                   otherPartyPermanentChannelDid: 'otherDid',

@@ -1,4 +1,7 @@
-/// A transport-agnostic data container for a `ChatAttachment`.
+/// @docImport 'chat_attachment.dart';
+library;
+
+/// A transport-agnostic data container for a [ChatAttachment].
 ///
 /// Mirrors the data representation options supported by DIDComm attachments
 /// but without any transport-layer dependencies.

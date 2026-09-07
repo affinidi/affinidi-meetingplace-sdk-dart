@@ -1,7 +1,10 @@
+/// @docImport 'meeting_place_chat_sdk.dart';
+library;
+
 import 'meeting_place_chat_sdk_error_code.dart';
 
 /// The unified exception type thrown by every operational public method on
-/// `MeetingPlaceChatSDK` and its implementations.
+/// [MeetingPlaceChatSDK] and its implementations.
 class MeetingPlaceChatSDKException implements Exception {
   /// Creates a [MeetingPlaceChatSDKException] instance.
   MeetingPlaceChatSDKException({

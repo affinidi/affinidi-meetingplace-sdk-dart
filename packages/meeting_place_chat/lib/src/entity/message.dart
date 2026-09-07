@@ -1,3 +1,6 @@
+/// @docImport 'package:didcomm/didcomm.dart';
+library;
+
 import 'package:json_annotation/json_annotation.dart';
 
 import '../transport/didcomm/protocol/chat_message/chat_message.dart';
@@ -15,9 +18,9 @@ part 'message.g.dart';
 /// - User reactions ([reactions])
 ///
 /// A [Message] can be created in three main ways:
-/// - From a received `PlainTextMessage`
-/// - From a sent `ChatMessage`
-/// - From any `PlainTextMessage` using the generic factory
+/// - From a received [PlainTextMessage]
+/// - From a sent [ChatMessage]
+/// - From any [PlainTextMessage] using the generic factory
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class Message extends ChatItem {
   /// Factory constructor to create a [Message] from JSON.
@@ -29,12 +32,12 @@ class Message extends ChatItem {
   }
 
   /// Factory constructor to create a [Message]
-  /// from a received `ChatMessage`.
+  /// from a received [ChatMessage].
   ///
   /// It sets the status to [ChatItemStatus.received] and marks
   /// the message as not created by the current user (`createdByMe = false`).
   ///
-  /// [message] is the received `ChatMessage`. Returns a new [Message]
+  /// [message] is the received [ChatMessage]. Returns a new [Message]
   /// instance representing the received message.
   factory Message.fromReceivedMessage({
     required ChatMessage message,
@@ -60,7 +63,7 @@ class Message extends ChatItem {
   /// and marks the message as created by the current user
   ///  (`createdByMe = true`).
   ///
-  /// [message] is the sent `ChatMessage`. Returns a new [Message] instance
+  /// [message] is the sent [ChatMessage]. Returns a new [Message] instance
   /// representing the sent message.
   factory Message.fromSentMessage({
     required ChatMessage message,
@@ -79,11 +82,11 @@ class Message extends ChatItem {
   }
 
   /// Generic factory constructor to create a [Message]
-  ///  from any `ChatMessage`.
+  ///  from any [ChatMessage].
   ///
   /// Handles both direct and group messages, mapping text and attachments.
   ///
-  /// [message] is the `ChatMessage` to parse. [chatId] is the chat ID
+  /// [message] is the [ChatMessage] to parse. [chatId] is the chat ID
   /// derived from DIDs. [senderDid] is the DID of the user who sent the
   /// message. [createdByMe] indicates whether the message was created by
   /// the current user. [status] is the current status of the message.

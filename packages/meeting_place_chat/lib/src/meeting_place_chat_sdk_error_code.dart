@@ -1,4 +1,7 @@
-/// Error codes carried by `MeetingPlaceChatSDKException`, letting consumers
+/// @docImport 'meeting_place_chat_sdk_exception.dart';
+library;
+
+/// Error codes carried by [MeetingPlaceChatSDKException], letting consumers
 /// branch on the specific failure without parsing message text.
 enum MeetingPlaceChatSDKErrorCode {
   /// No channel exists for the chat's `otherPartyDid`.

@@ -349,8 +349,8 @@ class MeetingPlaceCoreSDK {
       offerService: offerService,
       didResolver: didResolver,
       channelTransport: channelTransport,
-      onBuildConnectionMessageAttachments: 
-      options.onBuildConnectionMessageAttachments,
+      onBuildConnectionMessageAttachments:
+          options.onBuildConnectionMessageAttachments,
       logger: mpxLogger,
     );
 
@@ -411,7 +411,7 @@ class MeetingPlaceCoreSDK {
       channelRepository: repositoryConfig.channelRepository,
       channelService: channelService,
       streamManager: controlPlaneEventStreamManager,
-      channelTransport: channelTransport, 
+      channelTransport: channelTransport,
       identityService: identityService,
       didResolver: didResolver,
       options: ControlPlaneEventHandlerManagerOptions(
@@ -419,8 +419,8 @@ class MeetingPlaceCoreSDK {
         maxRetriesDelay: options.eventHandlerMessageFetchMaxRetriesDelay,
         messageTypesForSequenceTracking:
             options.messageTypesForSequenceTracking,
-        onBuildConnectionMessageAttachments: 
-        options.onBuildConnectionMessageAttachments,
+        onBuildConnectionMessageAttachments:
+            options.onBuildConnectionMessageAttachments,
         onAttachmentsReceived: (channel, attachments) =>
             channelAttachmentsController.add(
               ChannelAttachmentEvent(
@@ -466,8 +466,8 @@ class MeetingPlaceCoreSDK {
           channelAttachmentsController.add(
             ChannelAttachmentEvent(channel: channel, attachments: attachments),
           ),
-      onBuildConnectionMessageAttachments: 
-      options.onBuildConnectionMessageAttachments,
+      onBuildConnectionMessageAttachments:
+          options.onBuildConnectionMessageAttachments,
       logger: mpxLogger,
     );
 

@@ -61,8 +61,8 @@ class ConnectionService {
        _connectionOfferService = offerService,
        _didResolver = didResolver,
        _channelTransport = channelTransport,
-       _onBuildConnectionMessageAttachments = 
-       onBuildConnectionMessageAttachments,
+       _onBuildConnectionMessageAttachments =
+           onBuildConnectionMessageAttachments,
        _logger =
            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
 

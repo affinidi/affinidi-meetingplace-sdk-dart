@@ -300,7 +300,7 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
       );
     } catch (e, stackTrace) {
       logger.error(
-        '''Failed to send channel-inauguration notification for did: ${did.topAndTail()}''',
+        '''Failed to send ${ChannelActivityType.channelInauguration} notification for did: ${did.topAndTail()}''',
         error: e,
         stackTrace: stackTrace,
         name: '_notifyChannel',

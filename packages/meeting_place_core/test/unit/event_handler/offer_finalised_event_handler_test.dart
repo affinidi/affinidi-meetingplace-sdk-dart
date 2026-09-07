@@ -340,10 +340,8 @@ void main() {
       expect(received, isEmpty);
     });
 
-    test(
-      "attaches onBuildConnectionMessageAttachments' result to the "
-      'sent ChannelInauguration message',
-      () async {
+    test("attaches onBuildConnectionMessageAttachments' result to the "
+        'sent ChannelInauguration message', () async {
       final channel = createChannel(transport: ChannelTransport.didcomm);
       final builtAttachment = Attachment(
         id: 'built-attachment',
@@ -361,8 +359,9 @@ void main() {
         channelTransport: mockMeetingPlaceTransport,
         identityService: mockIdentityService,
         options: ControlPlaneEventHandlerManagerOptions(
-          onBuildConnectionMessageAttachments: (ch, getDidManager)
-           async => [builtAttachment],
+          onBuildConnectionMessageAttachments: (ch, getDidManager) async => [
+            builtAttachment,
+          ],
         ),
         logger: DefaultMeetingPlaceCoreSDKLogger(),
       );

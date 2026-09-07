@@ -114,11 +114,13 @@ class MediatorService {
     required DidManager ownerDidManager,
     required AclBody acl,
     required String mediatorDid,
+    int expiresInSeconds = 60,
   }) {
     return _mediatorSDK.updateAcl(
       ownerDidManager: ownerDidManager,
       acl: acl,
       mediatorDid: mediatorDid,
+      expiresInSeconds: expiresInSeconds,
     );
   }
 

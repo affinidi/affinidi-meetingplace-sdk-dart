@@ -152,16 +152,20 @@ class MeetingPlaceMediatorSDK {
   ///   - [AccessListSet]: Replaces the entire ACL with the provided permissions
   /// - [mediatorDid]: Optional mediator DID to authenticate against. If not
   ///   provided, the SDK instance's default mediator DID will be used.
+  /// - [expiresInSeconds]: How long the ACL update grant is valid for, in
+  ///   seconds. Defaults to 60.
   Future<void> updateAcl({
     required DidManager ownerDidManager,
     required AclBody acl,
     String? mediatorDid,
+    int expiresInSeconds = 60,
   }) async {
     return _withSdkExceptionHandling(() {
       return _mediatorService.updateAcl(
         ownerDidManager: ownerDidManager,
         mediatorDid: mediatorDid ?? _mediatorDid,
         acl: acl,
+        expiresInSeconds: expiresInSeconds,
       );
     });
   }

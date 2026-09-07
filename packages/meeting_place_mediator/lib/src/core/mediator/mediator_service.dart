@@ -415,6 +415,7 @@ class MediatorService {
     required DidManager ownerDidManager,
     required String mediatorDid,
     required AclBody acl,
+    int expiresInSeconds = 60,
   }) async {
     final methodName = 'updateAcl';
     _logger.info('Started updating ACL', name: methodName);
@@ -433,6 +434,7 @@ class MediatorService {
             from: ownerDidDocument.id,
             to: [client.mediatorDidDocument.id],
             body: acl,
+            expiresInSeconds: expiresInSeconds,
           ),
         );
       });

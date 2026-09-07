@@ -1,3 +1,6 @@
+/// @docImport '../event_handler/vdip_activity_event_handler.dart';
+library;
+
 import 'dart:async';
 
 import 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart';
@@ -17,7 +20,7 @@ import 'vdip_client_exception.dart';
 /// messages over the shared DIDComm connection managed by
 /// [MeetingPlaceCoreSDK].
 ///
-/// Obtain an instance via `MeetingPlaceCoreSDK.vdip` — do not construct
+/// Obtain an instance via [MeetingPlaceCoreSDK.vdip] — do not construct
 /// directly.
 class VdipClient {
   /// Creates a [VdipClient].
@@ -63,7 +66,7 @@ class VdipClient {
   /// Ids of VDIP messages already forwarded to [incomingMessages]. A single
   /// message can be delivered through more than one transport path (the
   /// foreground mediator WebSocket opened by [subscribe] and the Control Plane
-  /// push wake handled by `VdipActivityEventHandler`), so [dispatch] guards
+  /// push wake handled by [VdipActivityEventHandler]), so [dispatch] guards
   /// against re-emitting the same message id. Insertion-ordered for
   /// oldest-first eviction.
   final _seenMessageIds = <String>{};
@@ -73,7 +76,7 @@ class VdipClient {
   var _isDisposed = false;
 
   /// Registers a [processor] that is called for every VDIP message handled
-  /// by `VdipActivityEventHandler`, **before** the message is deleted from
+  /// by [VdipActivityEventHandler], **before** the message is deleted from
   /// the mediator.
   ///
   /// Unlike [incomingMessages], processors are guaranteed to be called even
@@ -88,7 +91,7 @@ class VdipClient {
 
   /// The list of processors registered via [registerMessageProcessor].
   ///
-  /// Called sequentially by `VdipActivityEventHandler` for each incoming
+  /// Called sequentially by [VdipActivityEventHandler] for each incoming
   /// VDIP message before that message is deleted from the mediator.
   List<Future<void> Function(PlainTextMessage)> get messageProcessors =>
       List.unmodifiable(_messageProcessors);

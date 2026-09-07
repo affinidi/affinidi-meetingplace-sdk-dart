@@ -1,3 +1,6 @@
+/// @docImport 'meeting_place_transport.dart';
+library;
+
 import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_mediator/meeting_place_mediator.dart'
     show
@@ -15,7 +18,7 @@ import '../service/mediator/mediator_service.dart';
 import '../service/message/message_service.dart';
 
 /// DIDComm-specific messaging operations that don't have a channel-level
-/// analogue on `MeetingPlaceTransport` and so aren't exposed through it.
+/// analogue on [MeetingPlaceTransport] and so aren't exposed through it.
 ///
 /// This includes mediator-specific concerns such as queueing/fetching
 /// messages and subscribing to a mediator stream.

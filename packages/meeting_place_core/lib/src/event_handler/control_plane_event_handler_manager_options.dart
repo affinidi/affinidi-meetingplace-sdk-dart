@@ -1,3 +1,6 @@
+/// @docImport 'control_plane_event_handler_manager.dart';
+library;
+
 import 'package:didcomm/didcomm.dart' show Attachment;
 
 import '../entity/channel.dart';
@@ -5,7 +8,7 @@ import '../meeting_place_core_sdk_options.dart';
 
 export '../meeting_place_core_sdk_options.dart' show OnBuildAttachmentsCallback;
 
-/// Configuration for `ControlPlaneEventHandlerManager`.
+/// Configuration for [ControlPlaneEventManager].
 class ControlPlaneEventHandlerManagerOptions {
   /// Creates [ControlPlaneEventHandlerManagerOptions].
   const ControlPlaneEventHandlerManagerOptions({

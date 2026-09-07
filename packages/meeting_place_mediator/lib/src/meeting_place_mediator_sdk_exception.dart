@@ -1,4 +1,4 @@
-/// Represents an Meeting Place Mediator SDK exception.
+/// Represents a Meeting Place Mediator SDK exception.
 class MeetingPlaceMediatorSDKException implements Exception {
   /// Creates a [MeetingPlaceMediatorSDKException] instance.
   MeetingPlaceMediatorSDKException({

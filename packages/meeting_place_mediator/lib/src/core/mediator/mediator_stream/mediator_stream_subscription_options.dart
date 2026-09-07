@@ -10,7 +10,7 @@ class MediatorStreamSubscriptionOptions {
     this.fetchMessagesOnConnect = true,
   });
 
-  /// Default options instance
+  /// Default options instance.
   static const defaults = MediatorStreamSubscriptionOptions();
 
   /// Delay before deleting messages from the mediator after they have been

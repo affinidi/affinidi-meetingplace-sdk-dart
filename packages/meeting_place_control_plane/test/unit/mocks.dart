@@ -17,19 +17,32 @@ class MockDidManager extends Mock implements DidManager {}
 class MockDidResolver extends Mock implements DidResolver {}
 
 class RecordingMeetingPlaceControlPlaneSDK extends MeetingPlaceControlPlaneSDK {
-  RecordingMeetingPlaceControlPlaneSDK()
+  factory RecordingMeetingPlaceControlPlaneSDK() {
+    final recorder = _CommandRecorder();
+    return RecordingMeetingPlaceControlPlaneSDK._(recorder);
+  }
+
+  RecordingMeetingPlaceControlPlaneSDK._(this._recorder)
     : super(
         didManager: MockDidManager(),
         controlPlaneDid: 'did:web:control-plane.example',
         mediatorDid: 'did:web:mediator.example',
         didResolver: MockDidResolver(),
+        commandExecutor: _recorder.record,
       );
 
+  final _CommandRecorder _recorder;
+
+  DiscoveryCommand<dynamic>? get lastCommand => _recorder.lastCommand;
+
+  set stubbedResult(Object? result) => _recorder.stubbedResult = result;
+}
+
+class _CommandRecorder {
   DiscoveryCommand<dynamic>? lastCommand;
   Object? stubbedResult;
 
-  @override
-  Future<T> execute<T>(DiscoveryCommand<T> command) async {
+  Future<T> record<T>(DiscoveryCommand<T> command) async {
     lastCommand = command;
     return stubbedResult as T;
   }

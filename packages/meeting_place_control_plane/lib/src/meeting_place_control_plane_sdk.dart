@@ -55,6 +55,9 @@ import 'meeting_place_control_plane_sdk_options.dart';
 /// before a [Device] has been set on the SDK instance.
 class MissingDeviceException implements Exception {}
 
+/// Executes a control-plane command on behalf of the SDK.
+typedef CommandExecutor = Future<T> Function<T>(DiscoveryCommand<T> command);
+
 /// The **MeetingPlaceControlPlaneSDK** provides the libraries to enable the
 /// discovery of other participants to establish a connection and
 /// communicate securely.
@@ -77,12 +80,14 @@ class MeetingPlaceControlPlaneSDK {
     required this.didResolver,
     this.controlPlaneSDKConfig = const MeetingPlaceControlPlaneSDKOptions(),
     MeetingPlaceControlPlaneSDKLogger? logger,
+    CommandExecutor? commandExecutor,
   }) : _logger =
            logger ??
            DefaultMeetingPlaceControlPlaneSDKLogger(
              className: className,
              sdkName: sdkName,
-           ) {
+           ),
+       _commandExecutor = commandExecutor {
     _sdkErrorHandler = SDKErrorHandler(
       logger: _logger,
       controlPlaneDid: controlPlaneDid,
@@ -108,6 +113,7 @@ class MeetingPlaceControlPlaneSDK {
   /// The DID resolver used to resolve DIDs encountered by the SDK.
   final DidResolver didResolver;
   final MeetingPlaceControlPlaneSDKLogger _logger;
+  final CommandExecutor? _commandExecutor;
 
   late final SDKErrorHandler _sdkErrorHandler;
   ControlPlaneApiClient? _controlPlaneApiClient;
@@ -163,7 +169,7 @@ class MeetingPlaceControlPlaneSDK {
     String? customMnemonic,
     String? mediatorDid,
     int? score,
-  }) => execute(
+  }) => _execute(
     RegisterOfferCommand(
       offerName: offerName,
       offerDescription: offerDescription,
@@ -190,8 +196,9 @@ class MeetingPlaceControlPlaneSDK {
   Future<DeregisterOfferResult> deregisterOffer({
     required String offerLink,
     required String mnemonic,
-  }) =>
-      execute(DeregisterOfferCommand(offerLink: offerLink, mnemonic: mnemonic));
+  }) => _execute(
+    DeregisterOfferCommand(offerLink: offerLink, mnemonic: mnemonic),
+  );
 
   /// Finds an offer by its mnemonic phrase.
   ///
@@ -203,7 +210,7 @@ class MeetingPlaceControlPlaneSDK {
   /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when the query fails.
   Future<FindOfferByMnemonicResult> findOfferByMnemonic({
     required String mnemonic,
-  }) => execute(QueryOfferCommand(mnemonic: mnemonic));
+  }) => _execute(QueryOfferCommand(mnemonic: mnemonic));
 
   /// Checks whether an offer mnemonic phrase is available.
   ///
@@ -213,7 +220,7 @@ class MeetingPlaceControlPlaneSDK {
   /// occurs.
   Future<ValidateOfferMnemonicResult> validateOfferMnemonic({
     required String mnemonic,
-  }) => execute(ValidateOfferPhraseCommand(mnemonic: mnemonic));
+  }) => _execute(ValidateOfferPhraseCommand(mnemonic: mnemonic));
 
   /// Updates the score assigned to the offers identified by [mnemonics].
   ///
@@ -223,7 +230,7 @@ class MeetingPlaceControlPlaneSDK {
   Future<UpdateOffersScoreResult> updateOffersScore({
     required int score,
     required List<String> mnemonics,
-  }) => execute(UpdateOffersScoreCommand(score: score, mnemonics: mnemonics));
+  }) => _execute(UpdateOffersScoreCommand(score: score, mnemonics: mnemonics));
 
   /// Accepts a registered offer.
   ///
@@ -238,7 +245,7 @@ class MeetingPlaceControlPlaneSDK {
     required String offerLink,
     required ContactCard contactCard,
     required String acceptOfferDid,
-  }) => execute(
+  }) => _execute(
     AcceptOfferCommand(
       mnemonic: mnemonic,
       device: device,
@@ -263,7 +270,7 @@ class MeetingPlaceControlPlaneSDK {
     required String otherPartyPermanentChannelDid,
     required Device device,
     ContactCard? contactCard,
-  }) => execute(
+  }) => _execute(
     FinaliseAcceptanceCommand(
       mnemonic: mnemonic,
       offerLink: offerLink,
@@ -299,7 +306,7 @@ class MeetingPlaceControlPlaneSDK {
     String? mediatorEndpoint,
     String? mediatorWSSEndpoint,
     String? metadata,
-  }) => execute(
+  }) => _execute(
     RegisterOfferGroupCommand(
       offerName: offerName,
       offerDescription: offerDescription,
@@ -328,7 +335,7 @@ class MeetingPlaceControlPlaneSDK {
     required String offerLink,
     required ContactCard contactCard,
     required String acceptOfferDid,
-  }) => execute(
+  }) => _execute(
     AcceptOfferGroupCommand(
       mnemonic: mnemonic,
       device: device,
@@ -351,7 +358,7 @@ class MeetingPlaceControlPlaneSDK {
     required String acceptOfferDid,
     required String offerLink,
     ContactCard? contactCard,
-  }) => execute(
+  }) => _execute(
     GroupAddMemberCommand(
       mnemonic: mnemonic,
       groupId: groupId,
@@ -371,7 +378,7 @@ class MeetingPlaceControlPlaneSDK {
   Future<DeregisterGroupMemberResult> deregisterGroupMember({
     required String groupId,
     required String memberId,
-  }) => execute(
+  }) => _execute(
     GroupDeregisterMemberCommand(groupId: groupId, memberId: memberId),
   );
 
@@ -381,7 +388,7 @@ class MeetingPlaceControlPlaneSDK {
   /// [MeetingPlaceControlPlaneSDKErrorCode.groupDeleteGeneric] or
   /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when deletion fails.
   Future<DeleteGroupResult> deleteGroup({required String groupId}) =>
-      execute(GroupDeleteCommand(groupId: groupId));
+      _execute(GroupDeleteCommand(groupId: groupId));
 
   /// Notifies members of a group channel event.
   ///
@@ -396,7 +403,7 @@ class MeetingPlaceControlPlaneSDK {
     required String groupDid,
     required String type,
     String? memberDid,
-  }) => execute(
+  }) => _execute(
     GroupNotifyChannelCommand(
       offerLink: offerLink,
       groupDid: groupDid,
@@ -416,7 +423,7 @@ class MeetingPlaceControlPlaneSDK {
     required String acceptOfferDid,
     required String offerLink,
     required String senderInfo,
-  }) => execute(
+  }) => _execute(
     NotifyAcceptanceCommand(
       mnemonic: mnemonic,
       acceptOfferDid: acceptOfferDid,
@@ -436,7 +443,7 @@ class MeetingPlaceControlPlaneSDK {
     required String acceptOfferDid,
     required String offerLink,
     required String senderInfo,
-  }) => execute(
+  }) => _execute(
     NotifyAcceptanceGroupCommand(
       mnemonic: mnemonic,
       acceptOfferDid: acceptOfferDid,
@@ -455,7 +462,7 @@ class MeetingPlaceControlPlaneSDK {
     required String notificationToken,
     required String did,
     required String type,
-  }) => execute(
+  }) => _execute(
     NotifyChannelCommand(
       notificationToken: notificationToken,
       did: did,
@@ -472,7 +479,7 @@ class MeetingPlaceControlPlaneSDK {
   Future<NotifyOutreachResult> notifyOutreach({
     required String mnemonic,
     required String senderInfo,
-  }) => execute(
+  }) => _execute(
     NotifyOutreachCommand(mnemonic: mnemonic, senderInfo: senderInfo),
   );
 
@@ -486,7 +493,7 @@ class MeetingPlaceControlPlaneSDK {
     required String myDid,
     required String theirDid,
     required Device device,
-  }) => execute(
+  }) => _execute(
     RegisterNotificationCommand(
       myDid: myDid,
       theirDid: theirDid,
@@ -502,7 +509,7 @@ class MeetingPlaceControlPlaneSDK {
   /// fails.
   Future<DeregisterNotificationResult> deregisterNotification({
     required String notificationToken,
-  }) => execute(
+  }) => _execute(
     DeregisterNotificationCommand(notificationToken: notificationToken),
   );
 
@@ -514,7 +521,7 @@ class MeetingPlaceControlPlaneSDK {
   /// `getPendingNotificationsGeneric`, or `networkError` when fetching fails.
   Future<GetPendingNotificationsResult> getPendingNotifications({
     required Device device,
-  }) => execute(GetPendingNotificationsCommand(device: device));
+  }) => _execute(GetPendingNotificationsCommand(device: device));
 
   /// Deletes pending notifications for [device].
   ///
@@ -526,7 +533,7 @@ class MeetingPlaceControlPlaneSDK {
   Future<DeletePendingNotificationsResult> deletePendingNotifications({
     required Device device,
     required List<String> notificationIds,
-  }) => execute(
+  }) => _execute(
     DeletePendingNotificationsCommand(
       device: device,
       notificationIds: notificationIds,
@@ -542,7 +549,7 @@ class MeetingPlaceControlPlaneSDK {
   createDirectConnectionInvitation({
     required PlainTextMessage oobInvitationMessage,
     required String mediatorDid,
-  }) => execute(
+  }) => _execute(
     CreateOobCommand(
       oobInvitationMessage: oobInvitationMessage,
       mediatorDid: mediatorDid,
@@ -556,7 +563,7 @@ class MeetingPlaceControlPlaneSDK {
   /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when retrieval fails.
   Future<GetDirectConnectionInvitationResult> getDirectConnectionInvitation({
     required String oobId,
-  }) => execute(GetOobCommand(oobId: oobId));
+  }) => _execute(GetOobCommand(oobId: oobId));
 
   /// Registers a device to receive push notifications.
   ///
@@ -567,7 +574,7 @@ class MeetingPlaceControlPlaneSDK {
   Future<RegisterDeviceResult> registerDevice({
     required String deviceToken,
     required PlatformType platformType,
-  }) => execute(
+  }) => _execute(
     RegisterDeviceCommand(deviceToken: deviceToken, platformType: platformType),
   );
 
@@ -580,7 +587,7 @@ class MeetingPlaceControlPlaneSDK {
   Future<GetMatrixTokenResult> getMatrixToken({
     required DidManager didManager,
     required Uri homeserver,
-  }) => execute(
+  }) => _execute(
     MatrixTokenCommand(didManager: didManager, homeserver: homeserver),
   );
 
@@ -594,7 +601,7 @@ class MeetingPlaceControlPlaneSDK {
     required Map<String, dynamic> didDocument,
     required DidWebProof controlProof,
     required DidWebProof proof,
-  }) => execute(
+  }) => _execute(
     UploadDidWebDocumentCommand(
       didDocument: didDocument,
       controlProof: controlProof,
@@ -609,7 +616,7 @@ class MeetingPlaceControlPlaneSDK {
   Future<void> _init() async {
     _dispatcher = CommandDispatcher();
     final apiClient = await ControlPlaneApiClient.init(
-      controlPlaneSDK: this,
+      authenticate: _authenticate,
       options: ControlPlaneApiClientOptions(
         controlPlaneDid: controlPlaneDid,
         maxRetries: controlPlaneSDKConfig.maxRetries,
@@ -776,15 +783,14 @@ class MeetingPlaceControlPlaneSDK {
     isInitialized = true;
   }
 
-  /// Executes the provided [command].
-  ///
-  /// This method checks first if the [MeetingPlaceControlPlaneSDK] instance
-  /// has been initialised before executing the provided command using the
-  /// [CommandDispatcher]. The [command] is a [DiscoveryCommand] with an
-  /// overloaded generic class that extends the [DiscoveryCommand] parent
-  /// class, and the result depends on the provided [DiscoveryCommand].
-  Future<T> execute<T>(DiscoveryCommand<T> command) {
-    final methodName = 'execute';
+  Future<AuthenticateCommandOutput> _authenticate() =>
+      _execute(AuthenticateCommand(controlPlaneDid: controlPlaneDid));
+
+  Future<T> _execute<T>(DiscoveryCommand<T> command) {
+    final commandExecutor = _commandExecutor;
+    if (commandExecutor != null) return commandExecutor(command);
+
+    final methodName = '_execute';
     _logger.info('Executing command: ${command.runtimeType}', name: methodName);
 
     return _withSdkExceptionHandling(() async {

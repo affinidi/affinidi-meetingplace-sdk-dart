@@ -13,6 +13,10 @@ import 'package:test/test.dart';
 
 import 'mocks.dart';
 
+class _MockAuthenticate extends Mock {
+  Future<AuthenticateCommandOutput> call();
+}
+
 DidDocument _didDocument(String did, Uri apiBaseUri) => DidDocument.fromJson({
   '@context': ['https://www.w3.org/ns/did/v1'],
   'id': did,
@@ -35,10 +39,8 @@ void main() {
   });
 
   test('uploadDidDocument sends proof objects in the request body', () async {
-    final mockControlPlaneSDK = MockMeetingPlaceControlPlaneSDK();
-    when(
-      () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
-    ).thenAnswer(
+    final authenticate = _MockAuthenticate();
+    when(authenticate.call).thenAnswer(
       (_) async => AuthenticateCommandOutput(
         credentials: AuthCredentials(
           accessToken: 'access-token',
@@ -93,7 +95,7 @@ void main() {
 
     final client = await ControlPlaneApiClient.init(
       options: ControlPlaneApiClientOptions(controlPlaneDid: controlPlaneDid),
-      controlPlaneSDK: mockControlPlaneSDK,
+      authenticate: authenticate.call,
       didResolver: FakeDidResolver({
         controlPlaneDid: _didDocument(controlPlaneDid, apiBaseUri),
       }),

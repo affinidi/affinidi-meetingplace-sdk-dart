@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 
-import '../../meeting_place_control_plane.dart';
+import '../command/authenticate/authenticate_output.dart';
 import '../constants/sdk_constants.dart';
+import '../loggers/default_meeting_place_control_plane_sdk_logger.dart';
+import '../loggers/meeting_place_control_plane_sdk_logger.dart';
 import 'auth_credentials.dart';
 
 /// A [Dio] interceptor class that intercepts and modifies the HTTP requests
@@ -12,8 +14,7 @@ class RefreshAuthCredentialsInterceptor extends Interceptor {
   /// interceptor class.
   RefreshAuthCredentialsInterceptor({
     required this.dio,
-    required this.controlPlaneSDK,
-    required this.controlPlaneDid,
+    required this.authenticate,
     MeetingPlaceControlPlaneSDKLogger? logger,
   }) : _logger =
            logger ??
@@ -26,8 +27,7 @@ class RefreshAuthCredentialsInterceptor extends Interceptor {
   static const String _errorCodeTokenExpired = 'AUTHORIZATION_TOKEN_EXPIRED';
 
   final Dio dio;
-  final MeetingPlaceControlPlaneSDK controlPlaneSDK;
-  final String controlPlaneDid;
+  final Future<AuthenticateCommandOutput> Function() authenticate;
   final MeetingPlaceControlPlaneSDKLogger _logger;
 
   AuthCredentials? _authCredentials;
@@ -117,9 +117,7 @@ class RefreshAuthCredentialsInterceptor extends Interceptor {
   Future<String> _refreshToken() async {
     _logger.info('Refresh access token', name: 'refreshToken');
 
-    final authenticationResult = await controlPlaneSDK.execute(
-      AuthenticateCommand(controlPlaneDid: controlPlaneDid),
-    );
+    final authenticationResult = await authenticate();
 
     _authCredentials = authenticationResult.credentials;
     return authenticationResult.credentials.accessToken;

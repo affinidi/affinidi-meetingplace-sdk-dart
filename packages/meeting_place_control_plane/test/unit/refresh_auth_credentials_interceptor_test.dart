@@ -8,8 +8,9 @@ import 'package:test/test.dart';
 
 class MockDio extends Mock implements Dio {}
 
-class MockMeetingPlaceControlPlaneSDK extends Mock
-    implements MeetingPlaceControlPlaneSDK {}
+class MockAuthenticator extends Mock {
+  Future<AuthenticateCommandOutput> authenticate(AuthenticateCommand command);
+}
 
 class MockRequestInterceptorHandler extends Mock
     implements RequestInterceptorHandler {}
@@ -28,7 +29,7 @@ class FakeDioException extends Fake implements DioException {}
 void main() {
   late RefreshAuthCredentialsInterceptor interceptor;
   late MockDio mockDio;
-  late MockMeetingPlaceControlPlaneSDK mockControlPlaneSDK;
+  late MockAuthenticator mockAuthenticator;
   late MockRequestInterceptorHandler mockRequestHandler;
   late MockErrorInterceptorHandler mockErrorHandler;
 
@@ -43,14 +44,15 @@ void main() {
 
   setUp(() {
     mockDio = MockDio();
-    mockControlPlaneSDK = MockMeetingPlaceControlPlaneSDK();
+    mockAuthenticator = MockAuthenticator();
     mockRequestHandler = MockRequestInterceptorHandler();
     mockErrorHandler = MockErrorInterceptorHandler();
 
     interceptor = RefreshAuthCredentialsInterceptor(
       dio: mockDio,
-      controlPlaneSDK: mockControlPlaneSDK,
-      controlPlaneDid: controlPlaneDid,
+      authenticate: () => mockAuthenticator.authenticate(
+        AuthenticateCommand(controlPlaneDid: controlPlaneDid),
+      ),
     );
   });
 
@@ -62,7 +64,7 @@ void main() {
       await interceptor.onRequest(requestOptions, mockRequestHandler);
 
       verify(() => mockRequestHandler.next(requestOptions)).called(1);
-      verifyNever(() => mockControlPlaneSDK.execute(any()));
+      verifyNever(() => mockAuthenticator.authenticate(any()));
     });
 
     test('should skip authentication when secure flag is empty', () async {
@@ -75,7 +77,7 @@ void main() {
       await interceptor.onRequest(requestOptions, mockRequestHandler);
 
       verify(() => mockRequestHandler.next(requestOptions)).called(1);
-      verifyNever(() => mockControlPlaneSDK.execute(any()));
+      verifyNever(() => mockAuthenticator.authenticate(any()));
     });
 
     test('should refresh token for secure endpoints', () async {
@@ -96,7 +98,7 @@ void main() {
       );
 
       when(
-        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
       ).thenAnswer((_) async => authResult);
       when(() => mockRequestHandler.next(any())).thenReturn(null);
 
@@ -108,7 +110,7 @@ void main() {
       );
 
       verify(
-        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
       ).called(1);
 
       verify(() => mockRequestHandler.next(requestOptions)).called(1);
@@ -132,7 +134,7 @@ void main() {
       );
 
       when(
-        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
       ).thenAnswer((_) async => authResult);
       when(() => mockRequestHandler.next(any())).thenReturn(null);
 
@@ -145,7 +147,7 @@ void main() {
       await interceptor.onRequest(secondRequestOptions, mockRequestHandler);
 
       verify(
-        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
       ).called(1);
       verify(() => mockRequestHandler.next(any())).called(2);
     });
@@ -170,7 +172,7 @@ void main() {
       );
 
       when(
-        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
       ).thenAnswer((_) async => expiredAuthResult);
       when(() => mockRequestHandler.next(any())).thenReturn(null);
 
@@ -193,7 +195,7 @@ void main() {
       );
 
       when(
-        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
       ).thenAnswer((_) async => newAuthResult);
 
       // Act
@@ -202,7 +204,7 @@ void main() {
       // Assert
       expect(secondRequestOptions.headers['Authorization'], 'Bearer new-token');
       verify(
-        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
       ).called(2);
     });
   });
@@ -239,7 +241,7 @@ void main() {
       );
 
       when(
-        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
       ).thenAnswer((_) async => authResult);
       when(
         () => mockDio.fetch<dynamic>(any()),
@@ -254,7 +256,7 @@ void main() {
       );
 
       verify(
-        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
       ).called(1);
       verify(() => mockDio.fetch<dynamic>(requestOptions)).called(1);
       verify(() => mockErrorHandler.resolve(retryResponse)).called(1);
@@ -279,7 +281,7 @@ void main() {
       await interceptor.onError(dioError, mockErrorHandler);
 
       verify(() => mockErrorHandler.next(dioError)).called(1);
-      verifyNever(() => mockControlPlaneSDK.execute(any()));
+      verifyNever(() => mockAuthenticator.authenticate(any()));
     });
 
     test('should handle retry failure gracefully', () async {
@@ -298,7 +300,7 @@ void main() {
       final refreshException = Exception('Refresh failed');
 
       when(
-        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
       ).thenThrow(refreshException);
       when(() => mockErrorHandler.next(any())).thenReturn(null);
 
@@ -306,7 +308,7 @@ void main() {
       await interceptor.onError(dioError, mockErrorHandler);
 
       verify(
-        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
       ).called(1);
       verify(() => mockErrorHandler.next(dioError)).called(1);
     });
@@ -329,7 +331,7 @@ void main() {
       await interceptor.onError(dioError, mockErrorHandler);
 
       verify(() => mockErrorHandler.next(dioError)).called(1);
-      verifyNever(() => mockControlPlaneSDK.execute(any()));
+      verifyNever(() => mockAuthenticator.authenticate(any()));
     });
   });
 
@@ -354,7 +356,7 @@ void main() {
       );
 
       when(
-        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
       ).thenAnswer((_) async => authResult);
       when(() => mockRequestHandler.next(any())).thenReturn(null);
 
@@ -367,7 +369,7 @@ void main() {
       await interceptor.onRequest(secondRequest, mockRequestHandler);
 
       verify(
-        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
       ).called(2);
     });
 
@@ -390,7 +392,7 @@ void main() {
       );
 
       when(
-        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
       ).thenAnswer((_) async => authResult);
       when(() => mockRequestHandler.next(any())).thenReturn(null);
 
@@ -403,7 +405,7 @@ void main() {
       await interceptor.onRequest(secondRequest, mockRequestHandler);
 
       verify(
-        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
       ).called(2);
     });
   });
@@ -445,7 +447,7 @@ void main() {
       );
 
       when(
-        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
       ).thenAnswer((_) async => authResult);
       when(() => mockDio.fetch<dynamic>(any())).thenThrow(retryError);
       when(() => mockErrorHandler.next(any())).thenReturn(null);
@@ -454,7 +456,7 @@ void main() {
       await interceptor.onError(dioError, mockErrorHandler);
 
       verify(
-        () => mockControlPlaneSDK.execute(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
       ).called(1);
       verify(() => mockErrorHandler.next(dioError)).called(1);
     });
@@ -463,7 +465,7 @@ void main() {
       // Arrange
       final requestOptions = RequestOptions(
         path: '/secure',
-        extra: {'auth_retry': true}, // Already retried
+        extra: {'retry_auth': false},
       );
       final dioError = DioException(
         requestOptions: requestOptions,
@@ -478,7 +480,7 @@ void main() {
       when(() => mockErrorHandler.next(any())).thenReturn(null);
       await interceptor.onError(dioError, mockErrorHandler);
 
-      verifyNever(() => mockControlPlaneSDK.execute(any()));
+      verifyNever(() => mockAuthenticator.authenticate(any()));
       verify(() => mockErrorHandler.next(dioError)).called(1);
     });
   });

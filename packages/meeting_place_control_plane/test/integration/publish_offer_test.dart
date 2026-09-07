@@ -14,15 +14,13 @@ void main() async {
       platformType: PlatformType.didcomm,
     );
 
-    await sdk.execute(
-      RegisterDeviceCommand(
-        deviceToken: device.deviceToken,
-        platformType: device.platformType,
-      ),
+    await sdk.registerDevice(
+      deviceToken: device.deviceToken,
+      platformType: device.platformType,
     );
 
     final mnemonic = const Uuid().v4();
-    final command = RegisterOfferCommand(
+    Future<RegisterOfferResult> registerOffer() => sdk.registerOffer(
       offerName: 'Offer name',
       offerDescription: 'Offer description',
       contactCard: ContactCardImpl(
@@ -42,10 +40,10 @@ void main() async {
       ),
     );
 
-    await sdk.execute(command);
+    await registerOffer();
 
     expect(
-      () => sdk.execute(command),
+      registerOffer,
       throwsA(
         isA<MeetingPlaceControlPlaneSDKException>().having(
           (e) => e.code,

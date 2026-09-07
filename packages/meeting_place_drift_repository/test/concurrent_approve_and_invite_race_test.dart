@@ -186,15 +186,6 @@ void main() {
         contactCard: _card('did:fallback'),
       ),
     );
-    registerFallbackValue(
-      cp.GroupAddMemberCommand(
-        mnemonic: '',
-        groupId: '',
-        memberDid: '',
-        acceptOfferDid: '',
-        offerLink: '',
-      ),
-    );
   });
 
   group('concurrent approve + invitation-accept both persist '
@@ -354,9 +345,16 @@ void main() {
       // mediatorSDK.sendMessage: inauguration message — no-op.
       when(() => mediatorSDK.sendMessage(any())).thenAnswer((_) async {});
 
-      // controlPlaneSDK.execute: GroupAddMemberCommand — no-op.
+      // Adding the group member through the control plane is a no-op.
       when(
-        () => controlPlaneSDK.execute<cp.GroupAddMemberCommandOutput>(any()),
+        () => controlPlaneSDK.addGroupMember(
+          mnemonic: any(named: 'mnemonic'),
+          groupId: any(named: 'groupId'),
+          memberDid: any(named: 'memberDid'),
+          acceptOfferDid: any(named: 'acceptOfferDid'),
+          offerLink: any(named: 'offerLink'),
+          contactCard: any(named: 'contactCard'),
+        ),
       ).thenAnswer((_) async => _FakeGroupAddMemberCommandOutput());
 
       // ── Handler mediator stub ────────────────────────────────────────────

@@ -15,6 +15,27 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`meeting_place_matrix` - `v0.0.1-dev.26`](#meeting_place_matrix---v001-dev26)
+
+---
+
+#### `meeting_place_matrix` - `v0.0.1-dev.26`
+
+ - **FIX**: propose profile updates on group chat session start (#337).
+
+
+## 2026-09-07
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`meeting_place_chat` - `v0.0.1-dev.65`](#meeting_place_chat---v001-dev65)
  - [`meeting_place_control_plane` - `v0.0.1-dev.26`](#meeting_place_control_plane---v001-dev26)
  - [`meeting_place_core` - `v0.0.1-dev.53`](#meeting_place_core---v001-dev53)

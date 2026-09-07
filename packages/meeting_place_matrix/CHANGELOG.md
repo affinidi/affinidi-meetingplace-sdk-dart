@@ -1,3 +1,7 @@
+## 0.0.1-dev.26
+
+ - **FIX**: propose profile updates on group chat session start (#337).
+
 ## 0.0.1-dev.25
 
  - **DOCS**: update documentation (#336).

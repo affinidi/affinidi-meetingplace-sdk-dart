@@ -1,18 +1,5 @@
-// Tests for GroupMatrixChatSDK.startChatSession — specifically the
-// control-plane subscription re-arm that prevents duplicate concierge cards
-// (Fix A in the duplicate-group-request-card fix).
-//
-// Fix A: `await _controlPlaneSubscription?.cancel()` in startChatSession()
-// ensures the previous listener is torn down before a new one is armed.
-// Without it, every call to startChatSession() stacks another live listener
-// on the control-plane stream, causing duplicate concierge cards for each
-// InvitationGroupAccept event that arrives.
-//
-// To prove the test genuinely guards Fix A, it must FAIL when the cancel
-// line is removed.  Remove `await _controlPlaneSubscription?.cancel();` from
-// group_matrix_chat_sdk.dart and re-run: the test below will report
-// "Expected: <1>, Actual: <2>" because both the stale and the new listener
-// process the event and each calls chatRepository.createMessage once.
+// Tests for GroupMatrixChatSDK.startChatSession — covers two independent
+// fixes.
 
 import 'dart:async';
 
@@ -22,6 +9,8 @@ import 'package:meeting_place_matrix/src/chat/group/group_matrix_chat_sdk.dart';
 import 'package:meeting_place_matrix/src/matrix_room_subscription.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
+
+import '../../../fakes/fake_fallbacks.dart';
 
 // ---------------------------------------------------------------------------
 // Mocks / fakes
@@ -123,6 +112,7 @@ ControlPlaneStreamEvent _acceptEvent() => ControlPlaneStreamEvent(
 GroupMatrixChatSDK _buildSdk({
   required _MockCoreSDK coreSDK,
   required _MockChatRepository chatRepository,
+  ContactCard? card,
 }) => GroupMatrixChatSDK(
   coreSDK: coreSDK,
   did: 'did:test:alice', // matches group.ownerDid → isGroupOwner = true
@@ -133,6 +123,22 @@ GroupMatrixChatSDK _buildSdk({
     chatPresenceSendInterval: const Duration(hours: 1),
   ),
   group: _groupNoMembers(),
+  card: card,
+);
+
+/// Channel returned by coreSDK.findChannelByOtherPartyPermanentDid, holding
+/// the contact card as last stored on the channel (used by
+/// ProposeProfileUpdateAction to detect a stale card).
+Channel _channel(ContactCard card) => Channel(
+  offerLink: 'offer://test',
+  publishOfferDid: 'did:test:pub',
+  mediatorDid: 'did:test:med',
+  status: ChannelStatus.inaugurated,
+  contactCard: card,
+  type: ChannelType.group,
+  transport: ChannelTransport.matrix,
+  isConnectionInitiator: false,
+  otherPartyPermanentChannelDid: 'did:test:group',
 );
 
 // ---------------------------------------------------------------------------
@@ -148,15 +154,9 @@ void main() {
       ),
     );
     registerFallbackValue(_stubConcierge());
+    registerFallbackValue(FakeChannel());
   });
 
-  // -------------------------------------------------------------------------
-  // Fix A: startChatSession() cancels the previous control-plane subscription
-  // before arming a new one.
-  //
-  // This test drives the REAL GroupMatrixChatSDK.startChatSession() — not a
-  // hand-rolled stub — so it FAILS when the cancel line is removed.
-  // -------------------------------------------------------------------------
   group(
     'GroupMatrixChatSDK.startChatSession — control-plane subscription re-arm',
     () {
@@ -235,6 +235,81 @@ void main() {
         // Exactly one live subscription → exactly one createMessage call.
         // Remove `await _controlPlaneSubscription?.cancel();` from
         // startChatSession() and this expectation becomes called(2).
+        verify(() => chatRepository.createMessage(any())).called(1);
+      });
+    },
+  );
+
+  group(
+    'GroupMatrixChatSDK.startChatSession — automatic profile-update proposal',
+    () {
+      late _MockCoreSDK coreSDK;
+      late _MockChatRepository chatRepository;
+      late StreamController<ControlPlaneStreamEvent> controlPlaneController;
+      late Completer<IncomingMessageHandle> subscribeCompleter;
+      late _SilentHandle handle;
+
+      setUp(() {
+        coreSDK = _MockCoreSDK();
+        chatRepository = _MockChatRepository();
+        controlPlaneController =
+            StreamController<ControlPlaneStreamEvent>.broadcast();
+        subscribeCompleter = Completer<IncomingMessageHandle>();
+        handle = _SilentHandle();
+
+        when(
+          () => coreSDK.subscribe(any()),
+        ).thenAnswer((_) => subscribeCompleter.future);
+
+        when(
+          () => coreSDK.controlPlaneEventsStream,
+        ).thenAnswer((_) => controlPlaneController.stream);
+
+        when(
+          () => chatRepository.listMessages(any()),
+        ).thenAnswer((_) async => []);
+
+        when(
+          () => chatRepository.getSyncMarker(any()),
+        ).thenAnswer((_) async => null);
+
+        when(
+          () => chatRepository.createMessage(any()),
+        ).thenAnswer((inv) async => inv.positionalArguments.first as ChatItem);
+
+        // The channel's last-stored card differs from the SDK's current
+        // card, so ProposeProfileUpdateAction should propose an update.
+        when(
+          () => coreSDK.findChannelByOtherPartyPermanentDid('did:test:group'),
+        ).thenAnswer((_) async => _channel(_card('did:test:group-stale')));
+
+        when(() => coreSDK.updateChannel(any())).thenAnswer((_) async {});
+      });
+
+      tearDown(() async {
+        subscribeCompleter.complete(handle);
+        await handle.dispose();
+        await controlPlaneController.close();
+      });
+
+      test('proposes a profile update when the current card differs from the '
+          'stored channel card', () async {
+        final sdk = _buildSdk(
+          coreSDK: coreSDK,
+          chatRepository: chatRepository,
+          card: _card('did:test:alice-fresh'),
+        );
+
+        await sdk.startChatSession();
+
+        // proposeProfileUpdate() runs unawaited from onChatSessionStarted();
+        // wait for it to complete rather than guessing at wall-clock delay.
+        // Bounded so a regression (no createMessage call) fails fast instead
+        // of hanging for the suite's full 120s timeout.
+        await untilCalled(
+          () => chatRepository.createMessage(any()),
+        ).timeout(const Duration(seconds: 2));
+
         verify(() => chatRepository.createMessage(any())).called(1);
       });
     },

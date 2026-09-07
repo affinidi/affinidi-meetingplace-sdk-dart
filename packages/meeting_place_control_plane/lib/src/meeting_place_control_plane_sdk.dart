@@ -403,6 +403,134 @@ class MeetingPlaceControlPlaneSDK {
     ),
   );
 
+  /// Notifies an offer publisher that their offer was accepted.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.notifyAcceptanceGeneric] or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when notification
+  /// fails.
+  Future<NotifyAcceptanceResult> notifyAcceptance({
+    required String mnemonic,
+    required String acceptOfferDid,
+    required String offerLink,
+    required String senderInfo,
+  }) => execute(
+    NotifyAcceptanceCommand(
+      mnemonic: mnemonic,
+      acceptOfferDid: acceptOfferDid,
+      offerLink: offerLink,
+      senderInfo: senderInfo,
+    ),
+  );
+
+  /// Notifies a group offer publisher that their offer was accepted.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.notifyAcceptanceGeneric] or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when notification
+  /// fails.
+  Future<NotifyGroupAcceptanceResult> notifyGroupAcceptance({
+    required String mnemonic,
+    required String acceptOfferDid,
+    required String offerLink,
+    required String senderInfo,
+  }) => execute(
+    NotifyAcceptanceGroupCommand(
+      mnemonic: mnemonic,
+      acceptOfferDid: acceptOfferDid,
+      offerLink: offerLink,
+      senderInfo: senderInfo,
+    ),
+  );
+
+  /// Notifies a channel of an event.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.notifyChannelGeneric] or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when notification
+  /// fails.
+  Future<NotifyChannelResult> notifyChannel({
+    required String notificationToken,
+    required String did,
+    required String type,
+  }) => execute(
+    NotifyChannelCommand(
+      notificationToken: notificationToken,
+      did: did,
+      type: type,
+    ),
+  );
+
+  /// Sends an outreach notification for an offer.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.notifyOutreachGeneric] or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when notification
+  /// fails.
+  Future<NotifyOutreachResult> notifyOutreach({
+    required String mnemonic,
+    required String senderInfo,
+  }) => execute(
+    NotifyOutreachCommand(mnemonic: mnemonic, senderInfo: senderInfo),
+  );
+
+  /// Registers a device to receive notifications between two parties.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.registerNotificationGeneric] or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when registration
+  /// fails.
+  Future<RegisterNotificationResult> registerNotification({
+    required String myDid,
+    required String theirDid,
+    required Device device,
+  }) => execute(
+    RegisterNotificationCommand(
+      myDid: myDid,
+      theirDid: theirDid,
+      device: device,
+    ),
+  );
+
+  /// Deregisters a notification channel.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.deregisterNotificationGeneric] or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when deregistration
+  /// fails.
+  Future<DeregisterNotificationResult> deregisterNotification({
+    required String notificationToken,
+  }) => execute(
+    DeregisterNotificationCommand(notificationToken: notificationToken),
+  );
+
+  /// Fetches pending notifications for [device].
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with a
+  /// [MeetingPlaceControlPlaneSDKErrorCode] of
+  /// `getPendingNotificationsNotificationPayloadError`,
+  /// `getPendingNotificationsGeneric`, or `networkError` when fetching fails.
+  Future<GetPendingNotificationsResult> getPendingNotifications({
+    required Device device,
+  }) => execute(GetPendingNotificationsCommand(device: device));
+
+  /// Deletes pending notifications for [device].
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with a
+  /// [MeetingPlaceControlPlaneSDKErrorCode] of
+  /// `deletePendingNotificationsDeletionFailedError`,
+  /// `deletePendingNotificationsGeneric`, or `networkError` when deletion
+  /// fails.
+  Future<DeletePendingNotificationsResult> deletePendingNotifications({
+    required Device device,
+    required List<String> notificationIds,
+  }) => execute(
+    DeletePendingNotificationsCommand(
+      device: device,
+      notificationIds: notificationIds,
+    ),
+  );
+
   /// Private method that initialises the ControlPlaneApiClient.
   ///
   /// This is invoked by a public method within the

@@ -1,5 +1,8 @@
 import 'notify_acceptance.dart' show NotifyAcceptanceCommand;
 
+/// The result returned when an offer acceptance notification is sent.
+typedef NotifyAcceptanceResult = NotifyAcceptanceCommandOutput;
+
 /// Model that represents the output data returned from a successful execution
 /// of [NotifyAcceptanceCommand] operation.
 class NotifyAcceptanceCommandOutput {

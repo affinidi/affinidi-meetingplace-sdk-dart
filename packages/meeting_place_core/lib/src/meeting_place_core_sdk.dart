@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
-    hide ContactCard;
+    hide AcceptOfferResult, ContactCard, UpdateOffersScoreResult;
 import 'package:meeting_place_mediator/meeting_place_mediator.dart'
     show
         DefaultMeetingPlaceMediatorSDKLogger,

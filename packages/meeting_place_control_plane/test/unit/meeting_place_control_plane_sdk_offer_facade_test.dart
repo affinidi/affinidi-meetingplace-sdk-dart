@@ -1,37 +1,16 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
-import 'package:meeting_place_control_plane/src/core/command/command.dart';
 import 'package:test/test.dart';
 
 import 'mocks.dart';
 
-class _RecordingMeetingPlaceControlPlaneSDK
-    extends MeetingPlaceControlPlaneSDK {
-  _RecordingMeetingPlaceControlPlaneSDK()
-    : super(
-        didManager: MockDidManager(),
-        controlPlaneDid: 'did:web:control-plane.example',
-        mediatorDid: 'did:web:mediator.example',
-        didResolver: MockDidResolver(),
-      );
-
-  DiscoveryCommand<dynamic>? lastCommand;
-  Object? stubbedResult;
-
-  @override
-  Future<T> execute<T>(DiscoveryCommand<T> command) async {
-    lastCommand = command;
-    return stubbedResult as T;
-  }
-}
-
 void main() {
-  late _RecordingMeetingPlaceControlPlaneSDK sdk;
+  late RecordingMeetingPlaceControlPlaneSDK sdk;
   late Device device;
   late ContactCard contactCard;
 
   setUp(() {
-    sdk = _RecordingMeetingPlaceControlPlaneSDK();
+    sdk = RecordingMeetingPlaceControlPlaneSDK();
     device = Device(
       deviceToken: 'device-token',
       platformType: PlatformType.pushNotification,

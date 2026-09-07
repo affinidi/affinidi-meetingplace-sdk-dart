@@ -72,11 +72,11 @@ class MatrixCallAdapter {
   String? get matrixRoomId => _matrixRoomId;
   String? _matrixRoomId;
 
-  /// Group flag and offer link for the resolved call target, cached in
+  /// Group flag and group id for the resolved call target, cached in
   /// [resolveChannel] so invite/cancel routing stays consistent even when the
   /// resolved channel record is not itself typed as a group channel.
   bool _isGroupCall = false;
-  String _offerLink = '';
+  String? _groupId;
   Future<void>? _cancelTargetResolution;
 
   /// MatrixRTC call ID of the active call.
@@ -261,8 +261,7 @@ class MatrixCallAdapter {
     if (channel.isGroup) {
       await _coreSDK.notifyChannel(
         GroupChannelNotification(
-          offerLink: channel.offerLink,
-          groupDid: _otherPartyChannelDid,
+          groupId: _groupId!,
           type: mediaType == CallMediaType.audio
               ? CallChannelActivityType.callInviteAudio
               : CallChannelActivityType.callInviteVideo,
@@ -330,8 +329,7 @@ class MatrixCallAdapter {
     }
     final notification = _isGroupCall
         ? GroupChannelNotification(
-            offerLink: _offerLink,
-            groupDid: _otherPartyChannelDid,
+            groupId: _groupId!,
             type: CallChannelActivityType.callDecline,
           )
         : IndividualChannelNotification(
@@ -438,15 +436,12 @@ class MatrixCallAdapter {
     return channel?.permanentChannelDid;
   }
 
-  /// Prepares whether the call target is a group and caches the group flag.
+  /// Prepares whether the call target is a group and caches the group flag
+  /// and id.
   Future<void> _resolveCancelTarget(Channel channel) async {
-    _offerLink = channel.offerLink;
-    if (channel.isGroup) {
-      _isGroupCall = true;
-      return;
-    }
     final group = await _coreSDK.findGroupByOfferLink(channel.offerLink);
-    _isGroupCall = group != null;
+    _groupId = group?.id;
+    _isGroupCall = channel.isGroup || group != null;
   }
 
   /// Prepares the cancel target by looking up the channel if not already

@@ -86,11 +86,7 @@ class GroupMatrixChatSDK extends MeetingPlaceMatrixChatSDK
   @override
   @protected
   ChannelNotification buildChannelNotification(String type) =>
-      GroupChannelNotification(
-        offerLink: group.offerLink,
-        groupDid: group.did,
-        type: type,
-      );
+      GroupChannelNotification(groupId: group.id, type: type);
 
   /// The current state of the group, which may be updated over time as events
   /// are received.

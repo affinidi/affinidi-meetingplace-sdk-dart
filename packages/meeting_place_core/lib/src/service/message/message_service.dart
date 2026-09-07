@@ -93,15 +93,13 @@ class MessageService {
             ),
           );
         case GroupChannelNotification(
-          :final offerLink,
-          :final groupDid,
+          :final groupId,
           :final type,
           :final memberDid,
         ):
           await _controlPlaneSDK.execute(
             GroupNotifyChannelCommand(
-              offerLink: offerLink,
-              groupDid: groupDid,
+              groupId: groupId,
               type: type,
               memberDid: memberDid,
             ),

@@ -44,17 +44,13 @@ class IndividualChannelNotification extends ChannelNotification {
 class GroupChannelNotification extends ChannelNotification {
   /// Creates a [GroupChannelNotification].
   const GroupChannelNotification({
-    required this.offerLink,
-    required this.groupDid,
+    required this.groupId,
     required super.type,
     this.memberDid,
   });
 
-  /// The Offer link associated with the group chat.
-  final String offerLink;
-
-  /// The channel DID for the group chat.
-  final String groupDid;
+  /// The unique identifier of the group chat to notify.
+  final String groupId;
 
   /// When set, notify only this single group member instead of all members.
   final String? memberDid;

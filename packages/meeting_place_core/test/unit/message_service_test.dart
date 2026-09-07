@@ -139,8 +139,7 @@ void main() {
 
         await service.notifyChannel(
           const GroupChannelNotification(
-            offerLink: 'offer://group',
-            groupDid: 'did:group',
+            groupId: 'group-1',
             type: 'chat-activity',
           ),
         );
@@ -151,8 +150,7 @@ void main() {
                       .execute<GroupNotifyChannelCommandOutput>(captureAny()),
                 ).captured.single
                 as GroupNotifyChannelCommand;
-        expect(captured.offerLink, 'offer://group');
-        expect(captured.groupDid, 'did:group');
+        expect(captured.groupId, 'group-1');
         expect(captured.type, 'chat-activity');
         expect(captured.memberDid, isNull);
         verifyNever(() => channelService.findChannelByDid(any()));
@@ -167,8 +165,7 @@ void main() {
 
         await service.notifyChannel(
           const GroupChannelNotification(
-            offerLink: 'offer://group',
-            groupDid: 'did:group',
+            groupId: 'group-1',
             type: 'call-invite-video',
             memberDid: 'did:bob',
           ),
@@ -192,8 +189,7 @@ void main() {
         expect(
           () => service.notifyChannel(
             const GroupChannelNotification(
-              offerLink: 'offer://group',
-              groupDid: 'did:group',
+              groupId: 'group-1',
               type: 'chat-activity',
             ),
           ),

@@ -16,7 +16,7 @@ workspace:
   - packages/meeting_place_mediator
 
 environment:
-  sdk: ">=3.10.0 <4.0.0"
+  sdk: ">=3.11.0 <4.0.0"
 
 dev_dependencies:
   coverage: ^1.11.1

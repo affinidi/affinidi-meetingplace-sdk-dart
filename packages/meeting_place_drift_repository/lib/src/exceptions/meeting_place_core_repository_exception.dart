@@ -7,12 +7,12 @@ class MeetingPlaceCoreRepositoryException implements Exception {
   ///
   /// **Parameters:**
   /// - [message]: A descriptive message for the exception.
-  /// - [code]: The type of the exception as a string.
+  /// - [code]: The type of the exception.
   MeetingPlaceCoreRepositoryException(this.message, {required this.code});
 
   /// The descriptive message for the exception.
   final String message;
 
-  /// The code of the exception as a string.
+  /// The code of the exception.
   final MeetingPlaceCoreRepositoryErrorCode code;
 }

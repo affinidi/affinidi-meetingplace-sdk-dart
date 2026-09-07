@@ -1,8 +1,11 @@
+/// @docImport '../../../entity/call_outcome_record.dart';
+library;
+
 import '../../../call/mpx_call_event_type.dart';
 import '../../../matrix_outgoing_message.dart';
 import '../matrix_media_attachment.dart';
 
-/// A [MatrixOutgoingMessage] carrying the canonical `CallOutcomeRecord`.
+/// A [MatrixOutgoingMessage] carrying the canonical [CallOutcomeRecord].
 ///
 /// Sends a `mpx.call.outcome` room event with the record embedded under
 /// `mp_call_outcome`. The event carries no visible chat body; peers reconcile

@@ -44,6 +44,7 @@ abstract final class LivenessZkpDIDCommAttachmentBuilder {
     ),
   ];
 
+  /// One attachment signalling that the peer declined the liveness check.
   static List<Attachment> buildLivenessDeclined({
     String? attachmentId,
     DateTime? lastModified,

@@ -195,6 +195,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
   }
 
   /// Internal helper to insert a contact card of a specific type for a channel.
+  ///
   /// Used during channel creation.
   Future<void> _insertContactCardType({
     required String channelId,
@@ -216,6 +217,7 @@ class ChannelRepositoryDrift implements model.ChannelRepository {
   }
 
   /// Internal helper to update or delete a contact card for a channel.
+  ///
   /// If `card` is not null, updates the existing record; otherwise removes it.
   Future<void> _updateContactCardType({
     required String channelId,

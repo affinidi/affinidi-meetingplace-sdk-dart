@@ -1,5 +1,6 @@
 /// Parameters for `MeetingPlaceCredentialsSDK.requestVrcExchange`.
 class RequestVrcExchangeParams {
+  /// Creates a [RequestVrcExchangeParams] instance.
   const RequestVrcExchangeParams({
     required this.channelDid,
     required this.requesterDid,

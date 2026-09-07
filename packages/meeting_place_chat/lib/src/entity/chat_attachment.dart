@@ -1,20 +1,31 @@
+/// @docImport 'voice_message_metadata.dart';
+library;
+
 import 'package:didcomm/didcomm.dart' show Attachment, AttachmentData;
 
 import 'chat_attachment_data.dart';
 
 export 'chat_attachment_data.dart';
 
-/// Public typedef for the core SDK attachment type (`Attachment` from
+/// Public typedef for the core SDK attachment type ([Attachment] from
 /// `package:didcomm`) so consumers don't need a direct didcomm dependency.
 typedef CoreAttachment = Attachment;
 
 /// A transport-agnostic attachment for chat messages.
 ///
-/// [ChatAttachment] replaces the DIDComm-specific `Attachment` type on the
+/// [ChatAttachment] replaces the DIDComm-specific [Attachment] type on the
 /// public SDK boundary. The SDK converts to and from the wire format
 /// internally. The JSON serialization is wire-compatible with DIDComm so that
 /// persisted messages remain readable.
 class ChatAttachment {
+  /// Creates a new [ChatAttachment].
+  ///
+  /// [id] is the unique identifier for the attachment. [description],
+  /// [filename], [mediaType], and [format] describe the attached content.
+  /// [lastModifiedTime] and [byteCount] carry file metadata. [data] is the
+  /// attachment's payload, and [transportId] is the transport-level
+  /// reference for downloading its bytes. [metadata] holds any extensible,
+  /// media-kind-specific fields.
   ChatAttachment({
     required this.id,
     this.description,
@@ -96,7 +107,7 @@ class ChatAttachment {
   /// (JSON key: `metadata`).
   ///
   /// The map is opaque to [ChatAttachment]; typed views such as
-  /// `VoiceMessageMetadata` own their own keys. `null` for plain attachments.
+  /// [VoiceMessageMetadata] own their own keys. `null` for plain attachments.
   final Map<String, dynamic>? metadata;
 
   /// Serialises this [ChatAttachment] to a JSON map.

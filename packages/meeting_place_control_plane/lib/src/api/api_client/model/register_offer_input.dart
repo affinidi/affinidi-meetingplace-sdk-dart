@@ -73,6 +73,7 @@ abstract class RegisterOfferInput
   int? get maximumUsage;
 
   /// The device token for push notification when the offer is accessed.
+  ///
   /// Maximum length of 2048 characters.
   @BuiltValueField(wireName: r'deviceToken')
   String get deviceToken;

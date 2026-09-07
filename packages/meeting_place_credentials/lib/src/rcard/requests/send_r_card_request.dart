@@ -4,6 +4,7 @@ import '../model/r_card_subject.dart';
 
 /// Parameters for `MeetingPlaceCredentialsSDK.sendRCard`.
 class SendRCardRequest {
+  /// Creates a [SendRCardRequest] instance.
   const SendRCardRequest({
     required this.channel,
     required this.subjectDid,

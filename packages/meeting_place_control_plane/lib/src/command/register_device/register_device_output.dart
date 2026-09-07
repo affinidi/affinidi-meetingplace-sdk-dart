@@ -1,7 +1,11 @@
+import 'register_device.dart' show RegisterDeviceCommand;
+
 /// Model that represents the output data returned from a successful execution
-/// of [RegisterDeviceCommandOutput] operation.
+/// of [RegisterDeviceCommand] operation.
 class RegisterDeviceCommandOutput {
   /// Creates a new instance of [RegisterDeviceCommandOutput].
   RegisterDeviceCommandOutput({required this.success});
+
+  /// Whether the device was registered successfully.
   final bool success;
 }

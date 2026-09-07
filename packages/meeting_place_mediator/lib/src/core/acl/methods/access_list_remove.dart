@@ -9,10 +9,13 @@ part 'access_list_remove.g.dart';
 /// permissions from specified entities.
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class AccessListRemove implements AclBody {
+  /// Deserializes an [AccessListRemove] from its JSON representation.
   factory AccessListRemove.fromJson(Map<String, dynamic> json) {
     return _$AccessListRemoveFromJson(json);
   }
 
+  /// Creates an [AccessListRemove], hashing [ownerDid] and [granteeDids]
+  /// before storing them.
   AccessListRemove({
     required String ownerDid,
     required List<String> granteeDids,
@@ -20,11 +23,15 @@ class AccessListRemove implements AclBody {
     this.ownerDid = hashDid(ownerDid);
     this.granteeDids = hashDids(granteeDids);
   }
+
+  /// The ACL method identifier used when serializing this action.
   static final method = 'access_list_remove';
 
+  /// The hash of the owner's DID.
   @JsonKey(name: 'did_hash')
   late final String ownerDid;
 
+  /// The hashes of the grantee DIDs being revoked access.
   @JsonKey(name: 'hashes')
   late final List<String> granteeDids;
 

@@ -18,7 +18,9 @@ typedef OnBuildAttachmentsCallback =
       Future<DidManager> Function(String did) getDidManager,
     );
 
+/// Tunable configuration for a `MeetingPlaceCoreSDK` instance.
 class MeetingPlaceCoreSDKOptions {
+  /// Creates [MeetingPlaceCoreSDKOptions].
   const MeetingPlaceCoreSDKOptions({
     this.secondsBeforeExpiryReauthenticate = 60,
     this.debounceControlPlaneEvents = const Duration(milliseconds: 200),
@@ -45,6 +47,7 @@ class MeetingPlaceCoreSDKOptions {
   final int secondsBeforeExpiryReauthenticate;
 
   /// Number of miliseconds to wait before processing discovery events.
+  ///
   /// This debounce mechanism is used to let multiple events settle and process
   /// them at once.
   final Duration debounceControlPlaneEvents;
@@ -53,11 +56,13 @@ class MeetingPlaceCoreSDKOptions {
   final String? didResolverAddress;
 
   /// The number of retry attempts for a request when a network issue occurs.
+  ///
   /// If a request fails due to a network error, it will be retried up to this
   /// number of times before ultimately failing.
   final int maxRetries;
 
   /// The maximum delay between retry attempts when a network issue occurs.
+  ///
   /// This value sets the upper bound for the delay between retries.
   final Duration maxRetriesDelay;
 

@@ -13,11 +13,9 @@ class DeregisterOfferException implements ControlPlaneException {
 
   /// Creates a `deregisterFailedError` [DeregisterOfferException] instance.
   ///
-  /// This constructor provides the specific message, error code and the actual
-  /// exception encountered in the operation.
-  ///
-  /// **Parameters:**
-  /// - [innerException]: The exception object.
+  /// This constructor provides the specific message and error code for the
+  /// operation, using the response [statusCode] and [data], and wrapping
+  /// the given [innerException].
   factory DeregisterOfferException.deregisterFailedError({
     required int? statusCode,
     required String data,
@@ -33,11 +31,8 @@ class DeregisterOfferException implements ControlPlaneException {
 
   /// Creates a `generic` [DeregisterOfferException] instance.
   ///
-  /// This constructor provides the specific message, error code and the actual
-  /// exception encountered in the operation.
-  ///
-  /// **Parameters:**
-  /// - [innerException]: The exception object.
+  /// This constructor provides the specific message and error code for the
+  /// operation, wrapping the given [innerException].
   factory DeregisterOfferException.generic({Object? innerException}) {
     return DeregisterOfferException._(
       message: 'Deregister offer failed: ${innerException.toString()}.',

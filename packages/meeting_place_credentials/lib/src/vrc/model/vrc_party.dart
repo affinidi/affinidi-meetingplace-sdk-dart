@@ -1,7 +1,10 @@
+/// @docImport 'vrc_credential_subject.dart';
+library;
+
 /// A party (DID + display name) referenced in a Verifiable
 /// Relationship Credential.
 ///
-/// Used for the `from` and `to` fields of `VrcCredentialSubject`.
+/// Used for the `from` and `to` fields of [VrcCredentialSubject].
 class VrcParty {
   /// Creates a [VrcParty] with the given [did] and [name].
   const VrcParty({required this.did, required this.name});

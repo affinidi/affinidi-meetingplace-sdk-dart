@@ -2,6 +2,7 @@ import 'package:ssi/ssi.dart';
 
 import '../../entity/connection_offer.dart';
 
+/// The result of publishing a connection offer.
 class PublishOfferResult<T extends ConnectionOffer> {
   PublishOfferResult({
     required this.connectionOffer,
@@ -16,6 +17,7 @@ class PublishOfferResult<T extends ConnectionOffer> {
   final DidManager publishedOfferDidManager;
 
   /// DidManager representing DID of group owner.
+  ///
   /// Is only returned if connection offer is of type GroupConnectionOffer
   final DidManager? groupOwnerDidManager;
 }

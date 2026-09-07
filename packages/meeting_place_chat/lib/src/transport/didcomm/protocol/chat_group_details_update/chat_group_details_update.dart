@@ -6,7 +6,15 @@ import 'chat_group_details_update_body.dart';
 
 export 'chat_group_details_update_body.dart';
 
+/// A DIDComm message broadcasting a group's current details (membership,
+/// admins, group DID/key material) to its participants.
+///
+/// Sent locally via [ChatGroupDetailsUpdate.create] or [fromGroup], or
+/// reconstructed from an incoming `PlainTextMessage` via
+/// [ChatGroupDetailsUpdate.fromPlainTextMessage].
 class ChatGroupDetailsUpdate {
+  /// Creates a new outgoing [ChatGroupDetailsUpdate] with a freshly
+  /// generated [id] and the given group details as its [body].
   factory ChatGroupDetailsUpdate.create({
     required String from,
     required List<String> to,
@@ -34,6 +42,8 @@ class ChatGroupDetailsUpdate {
     );
   }
 
+  /// Reconstructs a [ChatGroupDetailsUpdate] from an incoming
+  /// `PlainTextMessage`.
   factory ChatGroupDetailsUpdate.fromPlainTextMessage(
     PlainTextMessage message,
   ) {
@@ -46,6 +56,9 @@ class ChatGroupDetailsUpdate {
     );
   }
 
+  /// Creates a [ChatGroupDetailsUpdate] with the given parameters.
+  ///
+  /// [createdTime] defaults to now (UTC) when omitted.
   ChatGroupDetailsUpdate({
     required this.id,
     required this.from,
@@ -54,12 +67,23 @@ class ChatGroupDetailsUpdate {
     DateTime? createdTime,
   }) : createdTime = createdTime ?? DateTime.now().toUtc();
 
+  /// Unique identifier of this message.
   final String id;
+
+  /// DID of the sender.
   final String from;
+
+  /// DIDs of the recipients.
   final List<String> to;
+
+  /// The group's details carried by this update.
   final ChatGroupDetailsUpdateBody body;
+
+  /// When this update was created.
   final DateTime createdTime;
 
+  /// Converts this update into a `PlainTextMessage` ready to be sent over
+  /// DIDComm.
   PlainTextMessage toPlainTextMessage() {
     return PlainTextMessage(
       id: id,
@@ -73,6 +97,8 @@ class ChatGroupDetailsUpdate {
 
   // TODO: move factory methods to extensions to keep protocol clean ->
   // apply for all
+  /// Builds a [ChatGroupDetailsUpdate] from the current state of [group],
+  /// addressed to the group and sent by [senderDid].
   static ChatGroupDetailsUpdate fromGroup(
     Group group, {
     required String senderDid,

@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 
 abstract class AuthInterceptor extends Interceptor {
   /// Get auth information on given route for the given type.
+  ///
   /// Can return an empty list if type is not present on auth data or
   /// if route doesn't need authentication.
   List<Map<String, String>> getAuthInfo(

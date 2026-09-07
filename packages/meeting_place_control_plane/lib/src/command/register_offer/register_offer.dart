@@ -27,21 +27,41 @@ class RegisterOfferCommand
     this.score,
   });
 
+  /// The human-readable name of the offer.
   final String offerName;
+
+  /// A description of the offer shown to potential recipients.
   final String offerDescription;
+
+  /// The contact card shared with users who accept the offer.
   final ContactCard contactCard;
+
+  /// The device used to register the offer.
   final Device device;
+
+  /// The type of offer being registered.
   final OfferType type;
+
+  /// The out-of-band DIDComm invitation message embedded in the offer.
   final PlainTextMessage oobInvitationMessage;
 
+  /// The point in time after which the offer expires, when set.
   final DateTime? validUntil;
+
+  /// The maximum number of times the offer can be accepted, when set.
   final int? maximumUsage;
+
+  /// A custom mnemonic phrase to assign to the offer instead of a generated
+  /// one, when set.
   final String? customMnemonic;
 
+  /// The DID of the mediator to use for the offer, overriding the SDK
+  /// default mediator, when set.
   final String? mediatorDid;
 
   /// Transport selected by the publisher.
   final OfferTransport transport;
 
+  /// The initial score assigned to the offer, when set.
   final int? score;
 }

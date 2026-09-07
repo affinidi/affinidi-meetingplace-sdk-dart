@@ -1,3 +1,7 @@
+/// A library to discover, publish, and connect over the MeetingPlace
+/// control plane (offers, invitations, notifications, and DID hosting).
+library;
+
 export 'src/command/command.dart';
 export 'src/core/device/device.dart';
 export 'src/core/device/device_platform.dart';

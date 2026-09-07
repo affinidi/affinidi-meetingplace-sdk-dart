@@ -15,12 +15,30 @@ import 'core/command/command.dart';
 import 'core/command/command_dispatcher.dart';
 import 'core/exception/sdk_exception_mapper.dart';
 import 'core/mediator/fetch_message_result.dart';
-import 'core/mediator/mediator_exception.dart' show MediatorException;
 import 'core/mediator/mediator_resolver.dart';
 import 'core/mediator/mediator_service.dart';
 import 'protocol/message/oob_invitation_message.dart';
 
+/// The main entry point for interacting with a Meeting Place mediator
+/// instance.
+///
+/// Provides authentication, ACL management, out-of-band (OOB) invitations,
+/// and sending, queueing, fetching, and streaming of DIDComm messages
+/// through a mediator. Call [dispose] to release held resources once this
+/// instance is no longer needed.
 class MeetingPlaceMediatorSDK {
+  /// Creates a [MeetingPlaceMediatorSDK] targeting the mediator identified
+  /// by [mediatorDid].
+  ///
+  /// - [didResolver]: Used to resolve DID documents while communicating with
+  ///   the mediator.
+  /// - [options]: SDK-wide configuration; defaults to the default
+  ///   [MeetingPlaceMediatorSDKOptions] when not provided.
+  /// - [mediatorResolver]: Optional resolver used by
+  ///   [findMediatorDidFromUrl]; a default instance is created when not
+  ///   provided.
+  /// - [logger]: Optional logger; defaults to a
+  ///   [DefaultMeetingPlaceMediatorSDKLogger] when not provided.
   MeetingPlaceMediatorSDK({
     required String mediatorDid,
     required DidResolver didResolver,
@@ -58,6 +76,9 @@ class MeetingPlaceMediatorSDK {
       GetOobHandler(mediatorService: _mediatorService),
     );
   }
+
+  /// The class name used to identify this SDK as the log source when no
+  /// logger is provided.
   static const String className = 'MeetingPlaceMediatorSDK';
 
   late final MediatorResolver _mediatorResolver;
@@ -92,6 +113,9 @@ class MeetingPlaceMediatorSDK {
   ///   mediator. This contains the identity credentials needed for the session.
   /// - [mediatorDid]: Optional mediator DID to authenticate against. If not
   ///   provided, the SDK instance's default mediator DID will be used.
+  /// - [forceNewSession]: Whether to bypass the cached session client and
+  ///   authenticate again, even if a valid session already exists for the
+  ///   same DID manager and mediator combination.
   ///
   /// Returns a session client that holds authentication details for mediator
   /// interactions.
@@ -149,7 +173,7 @@ class MeetingPlaceMediatorSDK {
   /// - [oobDidManager]: Responsible for managing out-of-band (OOB) DID
   ///   exchanges.
   /// - [mediatorDid]: Optional mediator DID to authenticate against.
-  /// If not provided, the SDK instance’s default mediator DID will be used.
+  /// If not provided, the SDK instance's default mediator DID will be used.
   Future<Uri> createOob(DidManager oobDidManager, String? mediatorDid) {
     return _withSdkExceptionHandling(() async {
       final output = await _execute(
@@ -171,7 +195,8 @@ class MeetingPlaceMediatorSDK {
   /// Returns the OOB invitation message details if found, or null if no OOB
   /// invitation is associated with the provided URL.
   ///
-  /// Throws a [MediatorException] if there is an error during retrieval.
+  /// Throws a [MeetingPlaceMediatorSDKException] if there is an error during
+  /// retrieval.
   Future<OobInvitationMessage?> findOob(Uri oobUrl) {
     return _withSdkExceptionHandling(() async {
       final output = await _execute(GetOobCommand(oobUrl: oobUrl));
@@ -207,6 +232,12 @@ class MeetingPlaceMediatorSDK {
 
   /// Encrypts and signs the message using the sender's DID, then sends it to
   /// [MediatorMessageRequest.recipientDidDocument] via DIDComm.
+  ///
+  /// - [request]: The [MediatorMessageRequest] describing the message to
+  ///   send, the sender and recipient, and the mediator to route it through.
+  ///
+  /// Throws a [MeetingPlaceMediatorSDKException] if there is an error during
+  /// sending.
   Future<void> sendMessage(MediatorMessageRequest request) {
     return _withSdkExceptionHandling(
       () => _mediatorService.sendMessage(
@@ -223,6 +254,12 @@ class MeetingPlaceMediatorSDK {
 
   /// Stores incoming DIDComm messages to manage the sending process
   /// efficiently, ensuring messages are properly handled and dispatched.
+  ///
+  /// - [request]: The [MediatorMessageRequest] describing the message to
+  ///   queue, the sender and recipient, and the mediator to route it through.
+  ///
+  /// Throws a [MeetingPlaceMediatorSDKException] if there is an error during
+  /// queueing.
   Future<void> queueMessage(MediatorMessageRequest request) {
     return _withSdkExceptionHandling(
       () => _mediatorService.queueMessage(
@@ -238,6 +275,15 @@ class MeetingPlaceMediatorSDK {
   }
 
   /// Fetches messages from the mediator.
+  ///
+  /// - [request]: The [FetchMessagesRequest] describing which mediator to
+  ///   fetch from and how to filter, batch, and unwrap the messages.
+  ///
+  /// Returns the successfully decoded [FetchMessageResult]s; messages that
+  /// failed to decode are excluded from the result.
+  ///
+  /// If [FetchMessagesRequest.deleteFailedMessages] is `true`, messages that
+  /// failed to decode are deleted from the mediator after this fetch.
   Future<List<FetchMessageResult>> fetchMessages(
     FetchMessagesRequest request,
   ) async {

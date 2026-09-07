@@ -74,11 +74,7 @@ enum ChatProtocol {
 
   /// Looks up a [ChatProtocol] by its URI [value].
   ///
-  /// **Parameters:**
-  /// - [value]: The URI string of the protocol.
-  ///
-  /// **Returns:**
-  /// - The matching [ChatProtocol], or `null` if no match is found.
+  /// Returns the matching [ChatProtocol], or `null` if no match is found.
   static ChatProtocol? byValue(String value) {
     return ChatProtocol.values.firstWhereOrNull((e) => e.value == value);
   }

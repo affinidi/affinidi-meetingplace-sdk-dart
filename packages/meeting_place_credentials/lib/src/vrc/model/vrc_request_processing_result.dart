@@ -1,6 +1,7 @@
 /// Result of processing a received VRC issuance request in the
 /// credentials SDK.
 sealed class VrcRequestProcessingResult {
+  /// Base constructor for [VrcRequestProcessingResult] subclasses.
   const VrcRequestProcessingResult();
 }
 
@@ -21,6 +22,7 @@ final class VrcRequestProcessingResultWaiting
 }
 
 /// A VRC was auto-issued to the peer (simultaneous-request initiator path).
+///
 /// [sentVcBlob] is the raw VC JSON of the issued VRC.
 final class VrcRequestProcessingResultIssued
     extends VrcRequestProcessingResult {

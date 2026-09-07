@@ -1,3 +1,7 @@
+/// @docImport '../../../../entity/call_metadata.dart';
+/// @docImport '../contracts/audio_video_call_session.dart';
+library;
+
 import 'package:meeting_place_core/meeting_place_core.dart' show ContactCard;
 
 import './audio_video_call_error_code.dart';
@@ -5,7 +9,7 @@ import './audio_video_call_participant.dart';
 import './audio_video_call_status.dart';
 import './call_role.dart';
 
-/// All state that an `AudioVideoCallSession` publishes for the presentation
+/// All state that an [AudioVideoCallSession] publishes for the presentation
 /// layer to observe via `AudioVideoCallSession.state`.
 ///
 /// UI-only fields (mic/camera toggle display state, permission errors) live in
@@ -22,8 +26,15 @@ class AudioVideoCallState {
     this.isGroupCall = false,
   });
 
+  /// The current phase of the call.
   final AudioVideoCallStatus status;
+
+  /// All participants currently in the call, including the local user
+  /// (identifiable via [AudioVideoCallParticipant.isSelf]).
   final List<AudioVideoCallParticipant> participants;
+
+  /// Contact cards for [participants], keyed by
+  /// [AudioVideoCallParticipant.did].
   final Map<String, ContactCard> participantContactCardsByDid;
 
   /// Non-null only when [status] is [AudioVideoCallStatus.error].
@@ -44,7 +55,7 @@ class AudioVideoCallState {
   /// The transport call session ID (format: `roomId@microsecondsSinceEpoch`).
   ///
   /// Set when the call session is prepared. Use this to embed in
-  /// `CallMetadata` so call chat items can be joined to call-log entries.
+  /// [CallMetadata] so call chat items can be joined to call-log entries.
   /// `null` until the session is established.
   final String? callId;
 
@@ -67,6 +78,10 @@ class AudioVideoCallState {
   /// The default initial state: idle, no participants, no error.
   static const initial = AudioVideoCallState();
 
+  /// Returns a copy with the given fields replaced.
+  ///
+  /// [clearErrorCode] resets [errorCode] to `null` even when a new
+  /// [errorCode] is not supplied; it takes precedence over [errorCode].
   AudioVideoCallState copyWith({
     AudioVideoCallStatus? status,
     List<AudioVideoCallParticipant>? participants,

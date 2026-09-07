@@ -28,6 +28,8 @@ class ChannelDatabase extends _$ChannelDatabase {
   /// - [directory]: The directory where the database file is stored.
   /// - [logStatements]: A boolean indicating whether to log SQL statements
   /// (default is false).
+  /// - [inMemory]: When `true` the database is held in memory only —
+  ///   useful for tests (default `false`).
   ///
   /// **Returns:**
   /// - An instance of [ChannelDatabase].
@@ -234,10 +236,16 @@ class ChannelContactCards extends Table {
 
 /// Enumeration representing the type of ContactCard.
 enum ContactCardType {
+  /// The contact card belonging to the local party.
   mine(1),
+
+  /// The contact card belonging to the other party.
   other(2);
 
+  /// Constructs a [ContactCardType] with its stored [value].
   const ContactCardType(this.value);
+
+  /// The integer value persisted in the database for this type.
   final int value;
 }
 

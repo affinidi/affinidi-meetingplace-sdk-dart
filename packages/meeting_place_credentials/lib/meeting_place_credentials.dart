@@ -1,3 +1,8 @@
+/// A library to issue, exchange, and verify MeetingPlace credentials
+/// (R-Cards, VRCs, and ZKP liveness credentials).
+
+library;
+
 export 'src/meeting_place_credentials_sdk.dart';
 export 'src/meeting_place_credentials_sdk_error_code.dart';
 export 'src/meeting_place_credentials_sdk_exception.dart';

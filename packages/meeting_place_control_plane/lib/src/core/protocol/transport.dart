@@ -2,7 +2,10 @@
 /// lowercase `name` of the enum and is forwarded verbatim to the control
 /// plane and surfaced back to the acceptor via QueryOffer.
 enum OfferTransport {
+  /// The offer is exchanged over DIDComm.
   didcomm,
+
+  /// The offer is exchanged over Matrix.
   matrix;
 
   /// Returns the wire string representation.

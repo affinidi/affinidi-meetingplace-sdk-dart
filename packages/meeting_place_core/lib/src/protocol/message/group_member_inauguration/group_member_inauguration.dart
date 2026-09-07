@@ -5,7 +5,10 @@ import '../../protocol.dart';
 import 'group_member_inauguration_body.dart';
 import 'group_member_inauguration_member.dart';
 
+/// A group-member-inauguration DIDComm message, sent to inaugurate a new
+/// member into a group and share the group's current membership.
 class GroupMemberInauguration {
+  /// Creates a new [GroupMemberInauguration] message with a generated [id].
   factory GroupMemberInauguration.create({
     required String from,
     required List<String> to,
@@ -29,6 +32,7 @@ class GroupMemberInauguration {
     );
   }
 
+  /// Creates a [GroupMemberInauguration] from a decoded [PlainTextMessage].
   factory GroupMemberInauguration.fromPlainTextMessage(
     PlainTextMessage message,
   ) {
@@ -49,6 +53,8 @@ class GroupMemberInauguration {
     );
   }
 
+  /// Creates a [GroupMemberInauguration] from its constituent message
+  /// fields.
   GroupMemberInauguration({
     required this.id,
     required this.from,
@@ -58,13 +64,25 @@ class GroupMemberInauguration {
     DateTime? createdTime,
   }) : createdTime = createdTime ?? DateTime.now().toUtc();
 
+  /// The DIDComm message id.
   final String id;
+
+  /// The DID of the sender.
   final String from;
+
+  /// The DIDs of the message recipients.
   final List<String> to;
+
+  /// The message body carrying the group's membership and admin DIDs.
   final GroupMemberInaugurationBody body;
+
+  /// The new member's contact card, if shared.
   final ContactCard? contactCard;
+
+  /// When this message was created.
   final DateTime createdTime;
 
+  /// Converts this message to a [PlainTextMessage] for transport.
   PlainTextMessage toPlainTextMessage() {
     return PlainTextMessage(
       id: id,

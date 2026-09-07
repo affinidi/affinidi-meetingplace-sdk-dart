@@ -7,6 +7,8 @@ import 'chat_item.dart';
 /// for receiving messages in real time, and a collection of
 /// persisted [ChatItem] messages.
 class Chat {
+  /// Creates a [Chat] for a chat that no longer has a live [stream] (e.g.
+  /// the other party has been removed), retaining its persisted [messages].
   factory Chat.deleted({
     required String id,
     required List<ChatItem> messages,
@@ -14,10 +16,10 @@ class Chat {
 
   /// Creates a new [Chat] instance.
   ///
-  /// **Parameters:**
-  /// - [id]: The unique identifier for this chat (usually derived from DIDs).
-  /// - [stream]: An optional [ChatStream] used for live subscriptions.
-  /// - [messages]: The list of [ChatItem]s (messages) that belong to this chat.
+  /// [id] is the unique identifier for this chat (usually derived from
+  /// DIDs). [stream] is an optional [ChatStream] used for live
+  /// subscriptions. [messages] is the list of [ChatItem]s that belong to
+  /// this chat.
   Chat({required this.id, required this.stream, required this.messages});
 
   /// Derives a stable chat id from the two participating DIDs.

@@ -1,4 +1,7 @@
-/// Error codes carried by `MeetingPlaceChatSDKException`, letting consumers
+/// @docImport 'meeting_place_chat_sdk_exception.dart';
+library;
+
+/// Error codes carried by [MeetingPlaceChatSDKException], letting consumers
 /// branch on the specific failure without parsing message text.
 enum MeetingPlaceChatSDKErrorCode {
   /// No channel exists for the chat's `otherPartyDid`.
@@ -17,6 +20,8 @@ enum MeetingPlaceChatSDKErrorCode {
   operationNotSupported('chat_operation_not_supported'),
 
   // others
+  /// Fallback code used when an unexpected error is wrapped into a
+  /// `MeetingPlaceChatSDKException`, e.g. by `withSdkExceptionHandling`.
   generic('generic');
 
   const MeetingPlaceChatSDKErrorCode(this.value);

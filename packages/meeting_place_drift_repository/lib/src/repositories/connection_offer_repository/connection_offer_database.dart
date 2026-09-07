@@ -25,8 +25,6 @@ part 'connection_offer_database.g.dart';
 /// - passphrase: Optional encryption passphrase for secure storage.
 /// - directory: Filesystem directory where the database file is stored.
 /// - logStatements: Whether to log executed SQL statements (default: `false`).
-/// part 'connection_offer_database.g.dart';
-
 @DriftDatabase(
   tables: [ConnectionOffers, ConnectionContactCards, GroupConnectionOffers],
 )
@@ -39,6 +37,8 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
   /// - [directory]: The directory where the database file is stored.
   /// - [logStatements]: A boolean indicating whether to log SQL statements
   /// (default is false).
+  /// - [inMemory]: When `true` the database is held in memory only —
+  ///   useful for tests (default `false`).
   ///
   /// **Returns:**
   /// - An instance of [ConnectionOfferDatabase].
@@ -69,6 +69,7 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
   int get schemaVersion => 4;
 
   /// Migration strategy applied before opening the database.
+  ///
   /// Ensures foreign key constraints are enforced.
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -207,6 +208,7 @@ class ConnectionOffers extends Table {
   TextColumn get externalRef => text().nullable()();
 
   /// Chat transport selected by the publisher for this offer.
+  ///
   /// Defaults to [ChannelTransport.didcomm] for offers persisted before
   /// per-offer transport selection existed.
   IntColumn get transport => integer()
@@ -216,6 +218,7 @@ class ConnectionOffers extends Table {
   /// VRC score of the offer owner.
   IntColumn get score => integer().nullable()();
 
+  /// Primary key for the connection offers table.
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -223,7 +226,7 @@ class ConnectionOffers extends Table {
 /// Table representing group connection offers.
 @DataClassName('GroupConnectionOffer')
 class GroupConnectionOffers extends Table {
-  ///The connection offer ID this group connection offer is associated with.
+  /// The connection offer ID this group connection offer is associated with.
   TextColumn get connectionOfferId => text().customConstraint(
     'REFERENCES connection_offers(id) ON DELETE CASCADE UNIQUE NOT NULL',
   )();
@@ -234,7 +237,7 @@ class GroupConnectionOffers extends Table {
   /// The group ID associated with the group connection offer.
   TextColumn get groupId => text()();
 
-  ///The group's owner DID.
+  /// The group's owner DID.
   TextColumn get groupOwnerDid => text().nullable()();
 
   /// The group's DID.

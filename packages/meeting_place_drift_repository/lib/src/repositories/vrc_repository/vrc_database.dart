@@ -31,6 +31,7 @@ class VrcDatabase extends _$VrcDatabase {
   @visibleForTesting
   VrcDatabase.forTesting(DatabaseConnection super.connection);
 
+  /// The current schema version of the database.
   @override
   int get schemaVersion => 1;
 }
@@ -65,6 +66,7 @@ class Vrcs extends Table {
   /// Optional credential format metadata.
   TextColumn get credentialFormat => text().nullable()();
 
+  /// Primary key for the VRCs table.
   @override
   Set<Column> get primaryKey => {id};
 }

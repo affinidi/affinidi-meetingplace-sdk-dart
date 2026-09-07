@@ -4,6 +4,7 @@ import '../connection_offer_type.dart';
 
 /// Parameters for `MeetingPlaceCoreSDK.publishOffer`.
 class PublishOfferRequest {
+  /// Creates a [PublishOfferRequest].
   const PublishOfferRequest({
     required this.offerName,
     required this.type,

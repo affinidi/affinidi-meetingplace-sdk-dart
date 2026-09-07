@@ -1,13 +1,18 @@
 import 'dart:convert';
 
-/// Output of `MatrixTokenCommand`.
+import 'matrix_token.dart' show MatrixTokenCommand;
+
+/// Output of [MatrixTokenCommand].
 class MatrixTokenCommandOutput {
+  /// Creates a new instance of [MatrixTokenCommandOutput].
   MatrixTokenCommandOutput({required this.token});
 
+  /// The decoded Matrix login token issued for the requesting DID.
   final MatrixLoginToken token;
 }
 
 class MatrixLoginToken {
+  /// Creates a new instance of [MatrixLoginToken].
   MatrixLoginToken({
     required this.iss,
     required this.sub,
@@ -18,6 +23,7 @@ class MatrixLoginToken {
     required String rawJwt,
   }) : _rawJwt = rawJwt;
 
+  /// Decodes a [MatrixLoginToken] from the payload of a raw JWT string.
   factory MatrixLoginToken.fromJwt(String jwt) {
     final parts = jwt.split('.');
     if (parts.length != 3) {
@@ -41,11 +47,22 @@ class MatrixLoginToken {
 
   String toJwt() => _rawJwt;
 
+  /// The issuer claim (`iss`) of the JWT.
   final String iss;
+
+  /// The subject claim (`sub`) of the JWT, identifying the token holder.
   final String sub;
+
+  /// The audience claim (`aud`) of the JWT.
   final String aud;
+
+  /// The expiration claim (`exp`) of the JWT.
   final String exp;
+
+  /// The issued-at claim (`iat`) of the JWT.
   final String iat;
+
+  /// The JWT ID claim (`jti`) of the JWT.
   final String jti;
   final String _rawJwt;
 }

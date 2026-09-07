@@ -252,6 +252,7 @@ class GroupsRepositoryDrift implements model.GroupRepository {
   }
 
   /// Deletes the single member row identified by `(groupId, memberDid)`.
+  ///
   /// Only that row is touched; a no-op when it does not exist.
   @override
   Future<void> removeMember(String groupId, String memberDid) async {

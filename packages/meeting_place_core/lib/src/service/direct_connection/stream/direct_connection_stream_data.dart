@@ -3,11 +3,13 @@ import 'package:didcomm/didcomm.dart';
 import '../../../entity/channel.dart';
 
 /// Represents the type of event that can occur during a direct connection.
+///
 /// Used by [DirectConnectionStreamData] to indicate the reason why the event
 /// was emitted to the direct connection stream.
 enum EventType { connectionSetup, connectionAccepted }
 
 /// Defines an event emitted to the direct connection stream.
+///
 /// A [DirectConnectionStreamData] instance is created whenever a direct
 /// connection trigger occurs, such as a connection setup or connection
 /// acceptance. It encapsulates the type of event, the associated message, and

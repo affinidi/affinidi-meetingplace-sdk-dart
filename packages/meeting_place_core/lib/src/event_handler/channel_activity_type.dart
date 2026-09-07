@@ -5,7 +5,11 @@
 /// by SDK producers and consumers so literal strings are never scattered across
 /// the codebase.
 abstract final class ChannelActivityType {
+  /// Signals a chat message or other chat-related activity on the channel.
   static const String chatActivity = 'chat-activity';
+
+  /// Signals that the channel has been inaugurated (fully established
+  /// between both parties).
   static const String channelInauguration = 'channel-inauguration';
 
   /// Signals that the sender requests VDIP credential issuance.

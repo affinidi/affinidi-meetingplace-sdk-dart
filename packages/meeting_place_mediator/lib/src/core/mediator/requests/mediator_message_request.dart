@@ -1,9 +1,12 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:ssi/ssi.dart';
 
-/// Parameters for `MeetingPlaceMediatorSDK.sendMessage` and
-/// `MeetingPlaceMediatorSDK.queueMessage`.
+import '../../../meeting_place_mediator_sdk.dart' show MeetingPlaceMediatorSDK;
+
+/// Parameters for [MeetingPlaceMediatorSDK.sendMessage] and
+/// [MeetingPlaceMediatorSDK.queueMessage].
 class MediatorMessageRequest {
+  /// Creates a [MediatorMessageRequest].
   const MediatorMessageRequest({
     required this.message,
     required this.senderDidManager,

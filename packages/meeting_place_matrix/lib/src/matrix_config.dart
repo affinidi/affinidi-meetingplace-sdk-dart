@@ -1,6 +1,12 @@
+/// @docImport 'meeting_place_matrix_sdk.dart';
+library;
+
 import 'package:matrix/matrix.dart' show DatabaseApi;
 import 'package:meeting_place_core/meeting_place_core.dart';
 
+/// [MeetingPlaceCoreConfig] for a Matrix-backed [MeetingPlaceMatrixSDK],
+/// adding the Matrix homeserver, local database, and optional LiveKit
+/// call settings.
 class MatrixConfig extends MeetingPlaceCoreConfig {
   MatrixConfig({
     required super.mediatorDid,
@@ -14,8 +20,13 @@ class MatrixConfig extends MeetingPlaceCoreConfig {
     this.outgoingCallTimeout = const Duration(seconds: 60),
   }) : serverName = serverName ?? homeserver.host;
 
+  /// URL of the Matrix homeserver to authenticate against.
   final Uri homeserver;
+
+  /// Opens the local Matrix session/crypto database for this device.
   final MatrixDatabaseFactory databaseFactory;
+
+  /// Stable identifier for this device's Matrix session.
   final String deviceId;
 
   /// The Matrix server name used for user ID derivation (`@hash:<serverName>`).
@@ -45,6 +56,8 @@ class MatrixConfig extends MeetingPlaceCoreConfig {
   final Duration outgoingCallTimeout;
 }
 
+/// Identifies which local Matrix database a [MatrixDatabaseFactory] should
+/// open or create.
 class MatrixDatabaseContext {
   const MatrixDatabaseContext({
     required this.userScope,
@@ -52,15 +65,29 @@ class MatrixDatabaseContext {
     required this.databaseName,
   });
 
+  /// Identifier for the local user/wallet the database belongs to, used to
+  /// keep multiple accounts' databases isolated on the same device.
   final String userScope;
+
+  /// The Matrix homeserver the session in this database is scoped to.
   final Uri homeserver;
+
+  /// Name to give the underlying database file/store.
   final String databaseName;
 }
 
+/// Opens the local storage backing a Matrix client's session and crypto
+/// state.
+///
+/// Implementations live in the consumer app layer, which decides how (or
+/// whether) persistent storage is provisioned per platform.
 abstract interface class MatrixDatabaseFactory {
+  /// Opens the database identified by [context], or returns `null` to run
+  /// the Matrix client without persistent storage.
   Future<DatabaseApi?> openDatabase(MatrixDatabaseContext context);
 }
 
+/// [MatrixDatabaseFactory] that delegates to a caller-supplied callback.
 class CallbackMatrixDatabaseFactory implements MatrixDatabaseFactory {
   const CallbackMatrixDatabaseFactory({
     required Future<DatabaseApi?> Function(MatrixDatabaseContext context)
@@ -70,18 +97,22 @@ class CallbackMatrixDatabaseFactory implements MatrixDatabaseFactory {
   final Future<DatabaseApi?> Function(MatrixDatabaseContext context)
   _openDatabase;
 
+  /// Forwards to the callback supplied at construction.
   @override
   Future<DatabaseApi?> openDatabase(MatrixDatabaseContext context) {
     return _openDatabase(context);
   }
 }
 
+/// [MatrixDatabaseFactory] for consumers that have not configured a local
+/// Matrix database; [openDatabase] always throws.
 class UnsupportedMatrixDatabaseFactory implements MatrixDatabaseFactory {
   const UnsupportedMatrixDatabaseFactory({
     this.message =
         'Matrix database initialization is not configured for this consumer.',
   });
 
+  /// Explanation included in the [UnsupportedError] thrown by [openDatabase].
   final String message;
 
   @override

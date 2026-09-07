@@ -1,3 +1,9 @@
+/// Transport-agnostic SDK for the MeetingPlace connection, messaging, and
+/// group protocols: publishing and accepting connection offers, managing
+/// channels and groups, and sending/receiving messages over DIDComm or a
+/// pluggable `MeetingPlaceTransport`.
+library;
+
 // external exports
 export 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart'
     show VdipIssuedCredentialBody;

@@ -11,6 +11,7 @@ part 'invitation_accept.g.dart';
 /// - Notifying the user of the successful acceptance
 @JsonSerializable(includeIfNull: false, createToJson: false)
 class InvitationAccept {
+  /// Creates a new instance of [InvitationAccept].
   InvitationAccept({
     required this.id,
     required this.acceptOfferAsDid,
@@ -18,14 +19,24 @@ class InvitationAccept {
     this.pendingCount = 0,
     this.isEmpty = false,
   });
+
+  /// The unique identifier of this event.
   final String id;
 
+  /// The DID that accepted the offer.
   @JsonKey(name: 'did')
   final String acceptOfferAsDid;
+
+  /// A link identifying the offer that was accepted.
   final String offerLink;
+
+  /// Whether there is no pending acceptance data to report.
   final bool isEmpty;
+
+  /// The number of pending, unprocessed acceptance items.
   final int pendingCount;
 
+  /// Creates an [InvitationAccept] from the given JSON [json].
   static InvitationAccept fromJson(Map<String, dynamic> json) {
     return _$InvitationAcceptFromJson(json);
   }

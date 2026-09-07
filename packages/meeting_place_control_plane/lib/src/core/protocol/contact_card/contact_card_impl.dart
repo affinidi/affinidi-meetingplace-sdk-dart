@@ -2,13 +2,18 @@ import 'dart:convert';
 
 import 'contact_card.dart';
 
+/// The default [ContactCard] implementation.
 class ContactCardImpl implements ContactCard {
+  /// Creates a new instance of [ContactCardImpl].
   ContactCardImpl({
     required this.did,
     required this.type,
     required this.contactInfo,
   });
 
+  /// Creates a [ContactCardImpl] from the given JSON [json].
+  ///
+  /// Missing `did` and `type` fields default to an empty string.
   factory ContactCardImpl.fromJson(Map<String, dynamic> json) {
     return ContactCardImpl(
       did: json['did'] as String? ?? '',
@@ -17,6 +22,8 @@ class ContactCardImpl implements ContactCard {
     );
   }
 
+  /// Creates an empty [ContactCardImpl] with blank [did] and [type] and no
+  /// [contactInfo].
   factory ContactCardImpl.empty() {
     return ContactCardImpl(did: '', type: '', contactInfo: {});
   }
@@ -56,6 +63,10 @@ class ContactCardImpl implements ContactCard {
         jsonEncode(contactInfo) == jsonEncode(other.contactInfo);
   }
 
+  /// Decodes a [ContactCardImpl] from its [toBase64] representation.
+  ///
+  /// Set [addPadding] to `true` when [base64] may be missing its trailing
+  /// `=` padding characters.
   static ContactCardImpl fromBase64(String base64, {bool addPadding = false}) {
     final codec = const Base64Codec();
     final normalized = codec.decode(

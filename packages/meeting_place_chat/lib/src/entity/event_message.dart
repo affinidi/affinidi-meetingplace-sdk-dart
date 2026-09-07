@@ -31,9 +31,16 @@ sealed class EventMessageType {
   /// The string identifier for this type.
   final String value;
 
+  /// The SDK is awaiting a member to join the group.
   static const awaitingGroupMemberToJoin = _AwaitingGroupMemberToJoin();
+
+  /// The group was deleted.
   static const groupDeleted = _GroupDeleted();
+
+  /// A member joined the group.
   static const groupMemberJoinedGroup = _GroupMemberJoinedGroup();
+
+  /// A member left the group.
   static const groupMemberLeftGroup = _GroupMemberLeftGroup();
 
   @override
@@ -67,10 +74,17 @@ final class _CustomEventMessageType extends EventMessageType {
   const _CustomEventMessageType(super.value);
 }
 
+/// Why a member is no longer part of a group.
 enum GroupMemberLeaveReason {
+  /// Indicates the group member left voluntarily.
   leave,
+
+  /// Indicates the group member was removed by another party.
   kick;
 
+  /// Deserialises a [GroupMemberLeaveReason] from its [name].
+  ///
+  /// Falls back to [leave] for `null` or unrecognized values.
   static GroupMemberLeaveReason fromJson(String? json) {
     return values.firstWhere(
       (reason) => reason.name == json,
@@ -90,12 +104,34 @@ class _EventMessageTypeConverter
   String toJson(EventMessageType object) => object.value;
 }
 
+/// [EventMessage] is a special type of [ChatItem] used to represent
+/// group lifecycle notifications rendered inline in the chat.
+///
+/// Examples include:
+/// - A member joining or leaving a group.
+/// - Awaiting a member to join a group.
+/// - A group being deleted.
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class EventMessage extends ChatItem {
+  /// Factory constructor to create an [EventMessage] from JSON.
+  ///
+  /// [json] is the JSON map containing serialized [EventMessage] data.
+  /// Returns a new [EventMessage] instance.
   factory EventMessage.fromJson(Map<String, dynamic> json) {
     return _$EventMessageFromJson(json);
   }
 
+  /// Creates a new [EventMessage].
+  ///
+  /// [chatId] is the unique identifier of the chat this message belongs to.
+  /// [messageId] is the unique identifier of the message within the chat.
+  /// [senderDid] is the DID of the user who sent the message. [isFromMe]
+  /// indicates whether the message was sent by the current user.
+  /// [dateCreated] is the timestamp indicating when the message was
+  /// created, in UTC. [status] is the current status of the message.
+  /// [eventType] is the [EventMessageType] of this message. [data] is
+  /// additional structured metadata for the event. [type] is always set to
+  /// [ChatItemType.eventMessage].
   EventMessage({
     required super.chatId,
     required super.messageId,
@@ -189,10 +225,17 @@ class EventMessage extends ChatItem {
     },
   );
 
+  /// Type of event message.
   @_EventMessageTypeConverter()
   final EventMessageType eventType;
+
+  /// Structured metadata payload for the event (e.g. `memberDid`,
+  /// `contactCard`, `reason`).
   final Map<String, dynamic> data;
 
+  /// Serializes the [EventMessage] into a JSON object.
+  ///
+  /// Returns a `Map<String, dynamic>` representation of the message.
   @override
   Map<String, dynamic> toJson() {
     return _$EventMessageToJson(this);

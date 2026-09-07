@@ -17,6 +17,10 @@ import '../meeting_place_chat.dart';
 /// - Contact details: propose, accept, or reject contact-card updates.
 abstract interface class MeetingPlaceChatSDK {
   /// Creates a [MeetingPlaceChatSDK] instance based on [Channel].
+  ///
+  /// Throws an [ArgumentError] if [channel] is a group channel, and throws
+  /// an [ArgumentError] if [channel]'s transport is not
+  /// [ChannelTransport.didcomm].
   static MeetingPlaceChatSDK initialiseChatFromChannel(
     Channel channel, {
     required MeetingPlaceCoreSDK coreSDK,
@@ -51,6 +55,7 @@ abstract interface class MeetingPlaceChatSDK {
     );
   }
 
+  /// The transport capabilities supported by this chat SDK.
   ///
   /// Each concrete chat SDK declares its own set, so this reflects both the
   /// transport and the chat type (individual vs group). Query before exposing
@@ -110,7 +115,7 @@ abstract interface class MeetingPlaceChatSDK {
   /// [localOnly] is `true`, hides the message for the local user without
   /// sending any wire traffic, with no time limit. When `false` (default),
   /// broadcasts a redaction so all participants drop the message; allowed
-  /// only within `deleteMessageWindow`.
+  /// only within [deleteMessageWindow].
   Future<void> deleteMessage(Message message, {bool localOnly = false});
 
   /// Updates a persisted [message] in the local repository and re-emits it
@@ -144,19 +149,19 @@ abstract interface class MeetingPlaceChatSDK {
 
   /// Approves a pending connection request represented by [message]. Group
   /// chats only — implementations for individual chats throw
-  /// `MeetingPlaceChatSDKException` with
-  /// `MeetingPlaceChatSDKErrorCode.operationNotSupported`.
+  /// [MeetingPlaceChatSDKException] with
+  /// [MeetingPlaceChatSDKErrorCode.operationNotSupported].
   Future<void> approveConnectionRequest(ConciergeMessage message);
 
   /// Rejects a pending connection request represented by [message]. Group
   /// chats only — implementations for individual chats throw
-  /// `MeetingPlaceChatSDKException` with
-  /// `MeetingPlaceChatSDKErrorCode.operationNotSupported`.
+  /// [MeetingPlaceChatSDKException] with
+  /// [MeetingPlaceChatSDKErrorCode.operationNotSupported].
   Future<void> rejectConnectionRequest(ConciergeMessage message);
 
   /// Removes [memberDid] from the group. Group chats only — implementations
-  /// for individual chats throw `MeetingPlaceChatSDKException` with
-  /// `MeetingPlaceChatSDKErrorCode.operationNotSupported`. Caller must be
+  /// for individual chats throw [MeetingPlaceChatSDKException] with
+  /// [MeetingPlaceChatSDKErrorCode.operationNotSupported]. Caller must be
   /// the group owner.
   Future<void> removeMember(String memberDid);
 

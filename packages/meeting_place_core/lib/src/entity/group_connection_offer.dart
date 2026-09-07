@@ -6,8 +6,10 @@ import 'connection_offer.dart';
 
 part 'group_connection_offer.g.dart';
 
+/// A [ConnectionOffer] to join a group.
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class GroupConnectionOffer extends ConnectionOffer {
+  /// Creates a [GroupConnectionOffer].
   GroupConnectionOffer({
     required this.groupId,
     this.groupDid,
@@ -39,15 +41,27 @@ class GroupConnectionOffer extends ConnectionOffer {
     super.score,
   });
 
+  /// Creates a [GroupConnectionOffer] from its JSON representation.
   factory GroupConnectionOffer.fromJson(Map<String, dynamic> json) {
     return _$GroupConnectionOfferFromJson(json);
   }
+
+  /// The id of the group this offer joins.
   final String groupId;
+
+  /// The DID of the group this offer joins, once known.
   final String? groupDid;
+
+  /// The DID of the group's owner.
   final String? groupOwnerDid;
+
+  /// The DID of the member accepting this offer.
   final String? memberDid;
+
+  /// Additional metadata associated with this offer.
   final String? metadata;
 
+  /// Returns a copy of this offer with the given fields replaced.
   @override
   GroupConnectionOffer copyWith({
     String? groupId,
@@ -103,6 +117,7 @@ class GroupConnectionOffer extends ConnectionOffer {
     );
   }
 
+  /// Returns a copy of this offer marked as accepted by [memberDid].
   GroupConnectionOffer acceptGroupOffer({
     required String groupId,
     required String memberDid,
@@ -124,6 +139,8 @@ class GroupConnectionOffer extends ConnectionOffer {
     );
   }
 
+  /// Returns a copy of this offer marked as finalised, with the group's DID
+  /// and notification token recorded.
   GroupConnectionOffer groupFinalise({
     required String groupId,
     required String groupDid,
@@ -138,11 +155,13 @@ class GroupConnectionOffer extends ConnectionOffer {
     );
   }
 
+  /// Converts this offer to its JSON representation.
   @override
   Map<String, dynamic> toJson() {
     return _$GroupConnectionOfferToJson(this);
   }
 
+  /// Returns a copy of this offer marked as deleted.
   @override
   GroupConnectionOffer markAsDeleted() {
     return copyWith(status: ConnectionOfferStatus.deleted);

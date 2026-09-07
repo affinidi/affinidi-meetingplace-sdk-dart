@@ -1,9 +1,10 @@
-import '../../meeting_place_matrix.dart';
-
 /// Single source of truth for all call state machine rules and transitions.
 ///
 /// Documents every valid state, transition, event, and guard. Consumers must
 /// import and use these guards, never re-derive state logic inline.
+library;
+
+import '../../meeting_place_matrix.dart';
 
 /// Returns true if caller can still send cancel (not yet answered).
 ///

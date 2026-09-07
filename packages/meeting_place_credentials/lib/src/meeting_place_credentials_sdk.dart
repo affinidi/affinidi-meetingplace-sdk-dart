@@ -36,7 +36,7 @@ import 'vrc/vrc_vdip_stream_manager.dart';
 /// The Meeting Place Credentials SDK.
 ///
 /// A thin facade that wires R-Card and VRC exchange flows on top of
-/// `MeetingPlaceCoreSDK`. All stateful stream management is delegated to
+/// [MeetingPlaceCoreSDK]. All stateful stream management is delegated to
 /// [RCardChannelStreamManager] (OOB / inauguration path),
 /// [CredentialsVdipStreamManager] (VDIP routing),
 /// [RCardVdipStreamManager] (chat-time R-Card path), and
@@ -61,7 +61,7 @@ import 'vrc/vrc_vdip_stream_manager.dart';
 /// });
 /// ```
 class MeetingPlaceCredentialsSDK {
-  /// Creates a `MeetingPlaceCredentialsSDK` backed by the given [coreSDK].
+  /// Creates a [MeetingPlaceCredentialsSDK] backed by the given [coreSDK].
   ///
   /// - [rCardRepository]: Repository used to persist every incoming R-Card.
   ///   Construct one with `RCardRepositoryDrift` from

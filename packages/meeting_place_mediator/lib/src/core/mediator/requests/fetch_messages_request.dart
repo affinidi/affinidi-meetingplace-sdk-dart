@@ -1,10 +1,12 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:ssi/ssi.dart';
 
+import '../../../meeting_place_mediator_sdk.dart' show MeetingPlaceMediatorSDK;
 import '../../../meeting_place_mediator_sdk_options.dart';
 
-/// Parameters for `MeetingPlaceMediatorSDK.fetchMessages`.
+/// Parameters for [MeetingPlaceMediatorSDK.fetchMessages].
 class FetchMessagesRequest {
+  /// Creates a [FetchMessagesRequest].
   const FetchMessagesRequest({
     required this.didManager,
     this.mediatorDid,

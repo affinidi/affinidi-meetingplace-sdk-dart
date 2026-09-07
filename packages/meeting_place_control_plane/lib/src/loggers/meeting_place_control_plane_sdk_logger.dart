@@ -1,4 +1,4 @@
-/// Logger interface for Discovery SDK
+/// Logger interface for Discovery SDK.
 ///
 /// This interface allows consumers to provide their own logging implementation
 /// to capture and handle SDK logs according to their needs.

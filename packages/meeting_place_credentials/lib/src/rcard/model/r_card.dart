@@ -1,3 +1,7 @@
+/// @docImport '../../meeting_place_credentials_sdk.dart';
+/// @docImport '../parser/r_card_parser.dart';
+library;
+
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
 
@@ -10,7 +14,7 @@ import 'r_card_constants.dart';
 ///
 /// Every instance reaching `MeetingPlaceCredentialsSDK.receivedRCards`,
 /// `.receivedRCardsOnChannel`, or `.consumePendingRCard` has already passed
-/// full proof verification (signature, expiry, revocation) via `RCardParser`
+/// full proof verification (signature, expiry, revocation) via [RCardParser]
 /// and been checked against the expected issuer/counterparty binding
 /// (message sender for the VDIP path, channel counterparty for the channel
 /// path) — see `MeetingPlaceCredentialsSDK.rCardRejections` for visibility
@@ -34,7 +38,7 @@ class RCard {
   /// are missing.
   ///
   /// **Performs no cryptographic verification** — unlike the R-Cards
-  /// emitted by `MeetingPlaceCredentialsSDK`'s streams, the signature,
+  /// emitted by [MeetingPlaceCredentialsSDK]'s streams, the signature,
   /// expiry, revocation status, and issuer binding of [vcBlob] are never
   /// checked. Do not use the result of this method for trust decisions;
   /// prefer parsing via `MeetingPlaceCredentialsSDK.parseRCard` or the

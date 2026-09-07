@@ -11,6 +11,10 @@ class VrcRepositoryDrift implements model.VrcRepository {
 
   final db.VrcDatabase _database;
 
+  /// Inserts or updates [vrc], keyed on [model.Vrc.id].
+  ///
+  /// When the stored [model.Vrc.vcBlob] is unchanged, only the remaining
+  /// fields are refreshed; otherwise the full record is inserted or replaced.
   @override
   Future<void> upsert(model.Vrc vrc) async {
     await _database.transaction(() async {
@@ -53,6 +57,8 @@ class VrcRepositoryDrift implements model.VrcRepository {
     });
   }
 
+  /// Returns a live stream of all stored VRCs ordered by
+  /// [model.Vrc.issuedAt] descending.
   @override
   Stream<List<model.Vrc>> watchAll() {
     return (_database.select(_database.vrcs)
@@ -61,6 +67,8 @@ class VrcRepositoryDrift implements model.VrcRepository {
         .map((rows) => rows.map(_mapRow).toList());
   }
 
+  /// Returns a snapshot of all stored VRCs ordered by [model.Vrc.issuedAt]
+  /// descending.
   @override
   Future<List<model.Vrc>> listAll() async {
     final rows = await (_database.select(
@@ -69,6 +77,7 @@ class VrcRepositoryDrift implements model.VrcRepository {
     return rows.map(_mapRow).toList();
   }
 
+  /// Returns the VRC with the matching [id], or `null`.
   @override
   Future<model.Vrc?> getById(String id) async {
     final row = await (_database.select(
@@ -77,6 +86,8 @@ class VrcRepositoryDrift implements model.VrcRepository {
     return row == null ? null : _mapRow(row);
   }
 
+  /// Returns all VRCs held by [holderDid], ordered by [model.Vrc.issuedAt]
+  /// descending.
   @override
   Future<List<model.Vrc>> listByHolderDid(String holderDid) async {
     final rows =
@@ -87,6 +98,7 @@ class VrcRepositoryDrift implements model.VrcRepository {
     return rows.map(_mapRow).toList();
   }
 
+  /// Returns the number of VRCs held by [holderDid].
   @override
   Future<int> countByHolderDid(String holderDid) async {
     final countExp = _database.vrcs.id.count();
@@ -97,6 +109,7 @@ class VrcRepositoryDrift implements model.VrcRepository {
     return row.read(countExp) ?? 0;
   }
 
+  /// Removes the VRC identified by [id].
   @override
   Future<void> deleteById(String id) async {
     await (_database.delete(

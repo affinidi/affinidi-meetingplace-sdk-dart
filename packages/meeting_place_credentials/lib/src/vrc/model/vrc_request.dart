@@ -38,6 +38,7 @@ class VrcRequest {
       credentialMetaData[VrcConstants.requestMetadataKeyChannelId] as String?;
 
   /// Legacy selected identity DID from the proposal metadata, or `null`.
+  ///
   /// Prefer [identityDid] which falls back to this value.
   String? get selectedIdentity =>
       credentialMetaData[VrcConstants.requestMetadataKeySelectedIdentity]

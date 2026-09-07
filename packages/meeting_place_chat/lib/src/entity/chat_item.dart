@@ -11,7 +11,7 @@ enum ChatItemType {
   /// profile updates, joining group chat approvals).
   conciergeMessage,
 
-  /// An event type message sent to the user
+  /// An event type message sent to the user.
   eventMessage,
 }
 
@@ -51,16 +51,14 @@ enum ChatItemStatus {
 class ChatItem {
   /// Creates a new [ChatItem].
   ///
-  /// **Parameters:**
-  /// - [chatId]: Unique identifier of the chat this item belongs to.
-  /// - [messageId]: Unique identifier of the message within the chat.
-  /// - [senderDid]: DID of the user who sent the message.
-  /// - [isFromMe]: Whether the message was sent by the current user.
-  /// - [dateCreated]: The timestamp indicating when the message was created,
-  /// in UTC.
-  /// - [status]: Current status of the message (e.g. sent, delivered).
-  /// - [type]: Type of message ([ChatItemType.message]
-  ///  or [ChatItemType.conciergeMessage]).
+  /// [chatId] is the unique identifier of the chat this item belongs to.
+  /// [messageId] is the unique identifier of the message within the chat.
+  /// [senderDid] is the DID of the user who sent the message. [isFromMe]
+  /// indicates whether the message was sent by the current user.
+  /// [dateCreated] is the timestamp indicating when the message was
+  /// created, in UTC. [status] is the current status of the message (e.g.
+  /// sent, delivered). [type] is the type of message ([ChatItemType.message]
+  /// or [ChatItemType.conciergeMessage]).
   ChatItem({
     required this.chatId,
     required this.messageId,
@@ -96,8 +94,7 @@ class ChatItem {
 
   /// Serializes the [ChatItem] into a JSON object.
   ///
-  /// **Returns:**
-  /// - A `Map<String, dynamic>` representation of the chat item.
+  /// Returns a `Map<String, dynamic>` representation of the chat item.
   Map<String, dynamic> toJson() {
     return _$ChatItemToJson(this);
   }

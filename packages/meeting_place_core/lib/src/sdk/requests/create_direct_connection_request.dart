@@ -2,6 +2,7 @@ import '../../protocol/contact_card/contact_card.dart';
 
 /// Parameters for `MeetingPlaceCoreSDK.createDirectConnection`.
 class CreateDirectConnectionRequest {
+  /// Creates a [CreateDirectConnectionRequest].
   const CreateDirectConnectionRequest({
     required this.contactCard,
     this.type,
@@ -11,6 +12,7 @@ class CreateDirectConnectionRequest {
   });
 
   /// An object that contains information about who is offering the offer.
+  ///
   /// This helps others know whom they are connecting with and provides
   /// necessary contact details.
   final ContactCard contactCard;

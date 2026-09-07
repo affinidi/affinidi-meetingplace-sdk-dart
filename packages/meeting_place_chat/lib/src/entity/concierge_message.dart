@@ -94,29 +94,23 @@ enum ConciergeStatus {
 class ConciergeMessage extends ChatItem {
   /// Factory constructor to create a [ConciergeMessage] from JSON.
   ///
-  /// **Parameters:**
-  /// - [json]: The JSON map containing serialized [ConciergeMessage] data.
-  ///
-  /// **Returns:**
-  /// - A new [ConciergeMessage] instance.
+  /// [json] is the JSON map containing serialized [ConciergeMessage] data.
+  /// Returns a new [ConciergeMessage] instance.
   factory ConciergeMessage.fromJson(Map<String, dynamic> json) {
     return _$ConciergeMessageFromJson(json);
   }
 
   /// Creates a new [ConciergeMessage].
   ///
-  /// **Parameters:**
-  /// - [chatId]: Unique identifier of the chat this message belongs to.
-  /// - [messageId]: Unique identifier of the message within the chat.
-  /// - [senderDid]: DID of the user who sent the message.
-  /// - [isFromMe]: Whether the message was sent by the current user.
-  /// - [dateCreated]: The timestamp indicating when the message was created,
-  /// in UTC.
-  /// - [status]: Current status of the message.
-  /// - [data]: Additional structured metadata required for the concierge
-  /// request.
-  /// - [conciergeType]: The [ConciergeMessageType] of this message.
-  /// - [type]: Always set to [ChatItemType.conciergeMessage].
+  /// [chatId] is the unique identifier of the chat this message belongs to.
+  /// [messageId] is the unique identifier of the message within the chat.
+  /// [senderDid] is the DID of the user who sent the message. [isFromMe]
+  /// indicates whether the message was sent by the current user.
+  /// [dateCreated] is the timestamp indicating when the message was
+  /// created, in UTC. [status] is the current status of the message.
+  /// [data] is additional structured metadata required for the concierge
+  /// request. [conciergeType] is the [ConciergeMessageType] of this
+  /// message. [type] is always set to [ChatItemType.conciergeMessage].
   ConciergeMessage({
     required super.chatId,
     required super.messageId,
@@ -132,14 +126,13 @@ class ConciergeMessage extends ChatItem {
   /// Structured metadata payload for the concierge request.
   final Map<String, dynamic> data;
 
-  /// Type of concierge message
+  /// Type of concierge message.
   @_ConciergeMessageTypeConverter()
   final ConciergeMessageType conciergeType;
 
   /// Serializes the [ConciergeMessage] into a JSON object.
   ///
-  /// **Returns:**
-  /// - A `Map<String, dynamic>` representation of the message.
+  /// Returns a `Map<String, dynamic>` representation of the message.
   @override
   Map<String, dynamic> toJson() {
     return _$ConciergeMessageToJson(this);

@@ -5,7 +5,17 @@ import '../event/stream_data.dart';
 import '../logger/default_meeting_place_chat_sdk_logger.dart';
 import '../logger/meeting_place_chat_sdk_logger.dart';
 
+/// A buffered, broadcast [Stream] of [StreamData] for a single chat.
+///
+/// Events pushed via [pushData] before any consumer is listening are
+/// buffered and flushed to the stream once a listener attaches, so events
+/// that arrive between a chat being opened and its UI subscribing are not
+/// lost.
 class ChatStream {
+  /// Creates a [ChatStream].
+  ///
+  /// [logger] is an optional logger; defaults to a
+  /// [DefaultMeetingPlaceChatSDKLogger] when not supplied.
   ChatStream({MeetingPlaceChatSDKLogger? logger})
     : _logger =
           logger ??
@@ -44,10 +54,15 @@ class ChatStream {
     }
   }
 
+  /// The underlying broadcast stream of [StreamData].
   Stream<StreamData> get stream {
     return _controller.stream;
   }
 
+  /// Subscribes [onData] (and optionally [onError], [onDone],
+  /// [cancelOnError]) to [stream], flushing any buffered events first.
+  ///
+  /// Returns this [ChatStream] to allow chaining.
   ChatStream listen(
     void Function(StreamData) onData, {
     Function? onError,
@@ -64,6 +79,8 @@ class ChatStream {
     return this;
   }
 
+  /// Pushes [data] to [stream], or buffers it if no consumer is currently
+  /// listening. No-ops if the stream has already been [dispose]d.
   void pushData(StreamData data) {
     final methodName = 'pushData';
 
@@ -85,6 +102,7 @@ class ChatStream {
     _controller.add(data);
   }
 
+  /// Closes the underlying stream controller. No-ops if already closed.
   void dispose() {
     final methodName = 'dispose';
 
@@ -97,6 +115,7 @@ class ChatStream {
     _controller.close();
   }
 
+  /// Forwards [e] as an error event on [stream].
   void addError(Object e) {
     final methodName = 'addError';
 

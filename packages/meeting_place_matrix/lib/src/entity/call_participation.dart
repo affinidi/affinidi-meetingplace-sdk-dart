@@ -170,7 +170,7 @@ final RegExp _participantDidPattern = RegExp(
 );
 
 /// Reads the `participant_dids` list, or `null` when [key]'s value is
-/// present but not a `List` at all (a structurally wrong payload, same
+/// present but not a [List] at all (a structurally wrong payload, same
 /// contract as every other field in this class: fail the whole block).
 ///
 /// Once it's known to be a list, bad individual entries (wrong type,

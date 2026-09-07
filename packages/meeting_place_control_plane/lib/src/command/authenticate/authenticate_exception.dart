@@ -12,13 +12,11 @@ class AuthenticateException implements ControlPlaneException {
     this.innerException,
   });
 
-  /// Creates `emptyChallengeReturned` [AuthenticateException] instance.
+  /// Creates a `emptyChallengeReturned` [AuthenticateException] instance.
   ///
-  /// This constructor provides the specific message, error code and the actual
-  /// exception encountered in the operation.
-  ///
-  /// **Parameters:**
-  /// - [innerException]: The exception object.
+  /// This constructor provides the specific message and error code for the
+  /// operation, using the [did] that returned an empty challenge and
+  /// wrapping the given [innerException].
   factory AuthenticateException.emptyChallengeReturned({
     required String did,
     Object? innerException,
@@ -32,13 +30,10 @@ class AuthenticateException implements ControlPlaneException {
     );
   }
 
-  /// Creates `generic` error [AuthenticateException] instance.
+  /// Creates a `generic` error [AuthenticateException] instance.
   ///
-  /// This constructor provides the specific message, error code and the actual
-  /// exception encountered in the operation.
-  ///
-  /// **Parameters:**
-  /// - [innerException]: The exception object.
+  /// This constructor provides the specific message and error code for the
+  /// operation, wrapping the given [innerException].
   factory AuthenticateException.generic({Object? innerException}) {
     return AuthenticateException._(
       message: 'Authentication failed: ${innerException.toString()}.',
@@ -47,13 +42,10 @@ class AuthenticateException implements ControlPlaneException {
     );
   }
 
-  /// Creates `invalidResponseData` error [AuthenticateException] instance.
+  /// Creates a `invalidResponseData` error [AuthenticateException] instance.
   ///
-  /// This constructor provides the specific message, error code and the actual
-  /// exception encountered in the operation.
-  ///
-  /// **Parameters:**
-  /// - [innerException]: The exception object.
+  /// This constructor provides the specific [message] and error code for
+  /// the operation, wrapping the given [innerException].
   factory AuthenticateException.invalidResponseData({
     required String message,
     Object? innerException,

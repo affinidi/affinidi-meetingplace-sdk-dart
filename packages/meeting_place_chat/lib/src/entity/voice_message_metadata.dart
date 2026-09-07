@@ -10,6 +10,11 @@ import 'chat_attachment.dart';
 /// a general media file and lets new media kinds add their own metadata view
 /// without changing the shared type.
 class VoiceMessageMetadata {
+  /// Creates a new [VoiceMessageMetadata].
+  ///
+  /// Throws an [ArgumentError] if [durationMs] is negative, or if any
+  /// [waveform] sample is outside the [waveformMinSample]-[waveformMaxSample]
+  /// range.
   VoiceMessageMetadata({int? durationMs, List<int>? waveform})
     : durationMs = _validateDurationMs(durationMs),
       waveform = _validateWaveform(waveform);
@@ -30,6 +35,10 @@ class VoiceMessageMetadata {
       attachment.metadata?[mediaKindKey] == voiceKind;
 
   /// Builds a voice-message [ChatAttachment] with inline base64 audio bytes.
+  ///
+  /// Throws an [ArgumentError] if [base64] is empty, and throws an
+  /// [ArgumentError] if [mediaType] (or [defaultMediaType] when [mediaType]
+  /// is not supplied) is not an `audio/*` MIME type.
   static ChatAttachment buildAttachment({
     required String base64,
     required int durationMs,

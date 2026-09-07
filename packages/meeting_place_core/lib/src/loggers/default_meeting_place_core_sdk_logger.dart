@@ -18,7 +18,10 @@ class DefaultMeetingPlaceCoreSDKLogger implements MeetingPlaceCoreSDKLogger {
     this.sdkName = constants.coreSDKName,
   });
 
+  /// Identifies the logging source in each formatted message.
   final String className;
+
+  /// The log name passed to `dart:developer`'s `log`.
   final String sdkName;
 
   String _formatMessage(String message, String? method) {

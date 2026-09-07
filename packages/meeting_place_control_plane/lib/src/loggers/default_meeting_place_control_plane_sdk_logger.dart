@@ -19,7 +19,11 @@ class DefaultMeetingPlaceControlPlaneSDKLogger
     this.sdkName = constants.sdkName,
   });
 
+  /// The name identifying the logging source, included in every logged
+  /// message.
   final String className;
+
+  /// The log name passed through to `dart:developer`'s `log` calls.
   final String sdkName;
 
   String _formatMessage(String message, String? method) {

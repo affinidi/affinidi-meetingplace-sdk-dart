@@ -9,6 +9,7 @@
 sealed class MeetingPlaceLiveKitCallException implements Exception {
   const MeetingPlaceLiveKitCallException(this.message);
 
+  /// Human-readable description of the failure.
   final String message;
 
   @override
@@ -34,5 +35,6 @@ final class MeetingPlaceLiveKitCallOperationException
     this.innerException,
   });
 
+  /// The underlying error that caused this exception, if any.
   final Object? innerException;
 }

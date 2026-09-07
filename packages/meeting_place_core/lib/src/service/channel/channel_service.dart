@@ -319,6 +319,7 @@ class ChannelService {
   }
 
   /// Advances [Channel.messageSyncMarker] to [marker] and persists the change.
+  ///
   /// Used after a Matrix history fetch or after delivering an event from a
   /// live subscription, so that future fetches return only newer events.
   Future<void> updateMessageSyncMarker(Channel channel, String marker) async {

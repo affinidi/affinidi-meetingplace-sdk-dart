@@ -66,7 +66,7 @@ class CallOutcomeRecord {
   static const _startedAtKey = 'started_at_ms';
   static const _endedAtKey = 'ended_at_ms';
 
-  /// Transport call session ID. Matches CallMetadata.callId on both sides.
+  /// Transport call session ID. Matches `CallMetadata.callId` on both sides.
   final String callId;
 
   /// The canonical terminal outcome.

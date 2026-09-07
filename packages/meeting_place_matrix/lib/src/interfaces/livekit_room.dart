@@ -1,3 +1,6 @@
+/// @docImport '../services/audio_video_call_service.dart';
+library;
+
 import '../models/call_e2ee_state.dart';
 import '../transport/matrix/call/call.dart';
 
@@ -8,7 +11,7 @@ typedef OnCallE2EEStateChanged =
 /// Callback invoked when a peer participant disconnects.
 typedef OnParticipantDisconnected = void Function(String participantId);
 
-/// Abstracts all LiveKit room operations required by `AudioVideoCallService`.
+/// Abstracts all LiveKit room operations required by [AudioVideoCallService].
 ///
 /// Implementations live in the Flutter consumer layer and depend on
 /// livekit_client. The SDK layer depends only on this abstraction, keeping

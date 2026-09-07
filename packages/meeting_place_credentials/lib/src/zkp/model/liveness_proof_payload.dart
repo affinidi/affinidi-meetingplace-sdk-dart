@@ -30,14 +30,19 @@ final class LivenessProofPayload {
     return LivenessProofPayload(proof: proof, publicSignals: publicSignals);
   }
 
+  /// Creates a liveness proof payload for [proof] and [publicSignals].
   const LivenessProofPayload({
     required this.proof,
     required this.publicSignals,
   });
 
+  /// The serialized zero-knowledge liveness proof.
   final String proof;
+
+  /// The serialized public signals accompanying [proof].
   final String publicSignals;
 
+  /// Serializes the payload into the DIDComm attachment JSON shape.
   Map<String, dynamic> toJson() => {
     LivenessZkpProtocol.typeJsonKey:
         LivenessZkpProtocol.livenessProofPayloadType,

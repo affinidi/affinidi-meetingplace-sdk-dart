@@ -16,6 +16,9 @@ enum CallParticipantEventType {
 class CallParticipantEvent {
   const CallParticipantEvent({required this.type, required this.participant});
 
+  /// Whether the participant joined or left.
   final CallParticipantEventType type;
+
+  /// The peer participant this event is about.
   final AudioVideoCallParticipant participant;
 }

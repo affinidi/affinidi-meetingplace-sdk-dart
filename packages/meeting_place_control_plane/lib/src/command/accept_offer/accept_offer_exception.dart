@@ -12,11 +12,8 @@ class AcceptOfferException implements ControlPlaneException {
 
   /// Creates a `limitExceededError` [AcceptOfferException] instance.
   ///
-  /// This constructor provides the specific message, error code and the actual
-  /// exception encountered in the operation.
-  ///
-  /// **Parameters:**
-  /// - [innerException]: The exception object.
+  /// This constructor provides the specific message and error code for the
+  /// operation, wrapping the given [innerException].
   factory AcceptOfferException.limitExceededError({Object? innerException}) {
     return AcceptOfferException._(
       message:
@@ -28,11 +25,8 @@ class AcceptOfferException implements ControlPlaneException {
 
   /// Creates a `alreadyAcceptedError` [AcceptOfferException] instance.
   ///
-  /// This constructor provides the specific message, error code and the actual
-  /// exception encountered in the operation.
-  ///
-  /// **Parameters:**
-  /// - [innerException]: The exception object.
+  /// This constructor provides the specific message and error code for the
+  /// operation, wrapping the given [innerException].
   factory AcceptOfferException.alreadyAcceptedError({Object? innerException}) {
     return AcceptOfferException._(
       message: 'Offer acceptance failed: offer has already been accepted.',
@@ -43,11 +37,8 @@ class AcceptOfferException implements ControlPlaneException {
 
   /// Creates a `generic` [AcceptOfferException] instance.
   ///
-  /// This constructor provides the specific message, error code and the actual
-  /// exception encountered in the operation.
-  ///
-  /// **Parameters:**
-  /// - [innerException]: The exception object.
+  /// This constructor provides the specific message and error code for the
+  /// operation, wrapping the given [innerException].
   factory AcceptOfferException.generic({Object? innerException}) {
     return AcceptOfferException._(
       message: 'Offer acceptance failed: ${innerException.toString()}.',

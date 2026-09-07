@@ -15,7 +15,26 @@ import '../../message/plaintext_message_extension.dart';
 import '../mediator_exception.dart';
 import 'mediator_stream_data.dart';
 
+/// A live subscription to a mediator's WebSocket stream of incoming
+/// messages, returned by [MeetingPlaceMediatorSDK.subscribeToMessages].
+///
+/// Once [initialize]d, this subscription decrypts incoming messages as they
+/// arrive over the WebSocket connection and buffers them internally until a
+/// listener is attached via [listen]. It automatically reconnects after an
+/// abnormal disconnect, and reauthenticates via the [DidManager] supplied at
+/// construction time as needed. Call [dispose] to close the connection and
+/// release resources once the subscription is no longer needed.
 class MediatorStreamSubscription {
+  /// Creates a [MediatorStreamSubscription] that authenticates via
+  /// [didManager] and receives messages over [client]'s WebSocket
+  /// connection.
+  ///
+  /// - [deleteMessageDelay]: Delay before a processed message is deleted
+  ///   from the mediator; `null` deletes it immediately.
+  /// - [messageWrappingTypes]: The DIDComm message wrapping types expected
+  ///   when unpacking incoming messages.
+  /// - [logger]: Optional logger; defaults to a
+  ///   [DefaultMeetingPlaceMediatorSDKLogger] when not provided.
   MediatorStreamSubscription({
     required MediatorClient client,
     required DidManager didManager,
@@ -46,12 +65,25 @@ class MediatorStreamSubscription {
   final MeetingPlaceMediatorSDKLogger _logger;
 
   StreamController<MediatorStreamData>? _streamController;
+
+  /// Whether this subscription has been closed via [dispose].
   bool get isClosed => _controller.isClosed;
 
+  /// The broadcast stream of decrypted incoming messages.
+  ///
+  /// Most consumers should use [listen] instead, since it also schedules
+  /// message deletion and flushes any events buffered before a listener was
+  /// attached.
   Stream<MediatorStreamData> get stream => _controller.stream;
   StreamController<MediatorStreamData> get _controller =>
       _streamController ??= StreamController<MediatorStreamData>.broadcast();
 
+  /// Establishes the WebSocket connection to the mediator and starts
+  /// listening for incoming messages.
+  ///
+  /// Throws a [MeetingPlaceMediatorSDKException] if this subscription has
+  /// already been [dispose]d, or if establishing the connection fails for a
+  /// reason other than the client already being connected.
   Future<void> initialize() async {
     const methodName = 'initialize';
 
@@ -106,6 +138,25 @@ class MediatorStreamSubscription {
     );
   }
 
+  /// Subscribes [onData] to receive decrypted messages and schedules their
+  /// deletion from the mediator once processed.
+  ///
+  /// For each incoming message, [onData] is invoked with the decrypted
+  /// message; ephemeral and telemetry messages are delivered but never
+  /// scheduled for deletion. For any other message, if the returned
+  /// [MediatorStreamProcessingResult.keepMessage] is `false`, the message is
+  /// scheduled for deletion from the mediator after the delay configured at
+  /// construction time. If [onData] throws, the error is logged and
+  /// re-emitted on the stream.
+  ///
+  /// [onError], [onDone], and [cancelOnError] are forwarded to the
+  /// underlying stream subscription with their usual [Stream.listen]
+  /// semantics.
+  ///
+  /// Any messages received before this method is first called are buffered
+  /// internally and flushed to [onData] once a listener is attached.
+  ///
+  /// Returns this subscription to allow chaining.
   MediatorStreamSubscription listen(
     FutureOr<MediatorStreamProcessingResult> Function(PlainTextMessage)
     onData, {
@@ -157,6 +208,9 @@ class MediatorStreamSubscription {
     return this;
   }
 
+  /// Closes the stream and disconnects the underlying WebSocket connection.
+  ///
+  /// Safe to call multiple times; calls after the first are a no-op.
   Future<void> dispose() async {
     final methodName = 'dispose';
 

@@ -1,3 +1,6 @@
+/// @docImport '../builder/r_card_builder.dart';
+library;
+
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:ssi/ssi.dart';
@@ -67,7 +70,7 @@ class RCardSubject {
   /// Parses an [RCardSubject] directly from a raw VC blob string.
   ///
   /// Expects a W3C Data Model v2 credential (the format produced by
-  /// `RCardBuilder`).
+  /// [RCardBuilder]).
   ///
   /// Throws a [FormatException] if the blob cannot be parsed as a DM v2
   /// credential or does not contain a recognisable jCard.

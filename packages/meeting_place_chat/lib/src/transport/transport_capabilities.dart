@@ -58,7 +58,7 @@ enum ChatFeature {
   /// Contact-card proposal and acceptance flow.
   contactDetailsUpdate,
 
-  /// Human liveness zero-knowledge proof
+  /// Human liveness zero-knowledge proof.
   humanZkp,
 
   /// Real-time audio and video calling. Offered only on transports with a
@@ -81,6 +81,8 @@ enum ChatFeature {
 /// Each concrete chat SDK declares its own set and returns it from
 /// `capabilities`.
 class TransportCapabilities {
+  /// Creates a [TransportCapabilities] wrapping the given set of supported
+  /// [features].
   const TransportCapabilities(this.features);
 
   /// The features supported by this kind of chat.

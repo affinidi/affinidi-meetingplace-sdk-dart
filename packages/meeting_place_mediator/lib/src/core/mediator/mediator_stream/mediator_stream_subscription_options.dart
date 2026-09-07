@@ -2,6 +2,7 @@ import 'package:didcomm/didcomm.dart';
 
 /// Options for subscribing to mediator messages.
 class MediatorStreamSubscriptionOptions {
+  /// Creates a [MediatorStreamSubscriptionOptions].
   const MediatorStreamSubscriptionOptions({
     this.deleteMessageDelay = const Duration(milliseconds: 3000),
     this.expectedMessageWrappingTypes = const [
@@ -10,7 +11,7 @@ class MediatorStreamSubscriptionOptions {
     this.fetchMessagesOnConnect = true,
   });
 
-  /// Default options instance
+  /// Default options instance.
   static const defaults = MediatorStreamSubscriptionOptions();
 
   /// Delay before deleting messages from the mediator after they have been

@@ -11,7 +11,13 @@ class NotifyChannelCommand
     required this.did,
     required this.type,
   });
+
+  /// The token identifying the notification channel to notify.
   final String notificationToken;
+
+  /// The DID of the channel to notify.
   final String did;
+
+  /// The notification type to send.
   final String type;
 }

@@ -13,7 +13,7 @@ class MeetingPlaceControlPlaneSDKException implements Exception {
   /// The exception code.
   final String code;
 
-  /// The original exception
+  /// The original exception.
   final Object innerException;
 
   @override

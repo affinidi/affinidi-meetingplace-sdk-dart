@@ -1,3 +1,6 @@
+/// @docImport 'r_card_credential_subject.dart';
+library;
+
 import 'r_card_subject.dart';
 
 /// Codec for the jCard format used to embed contact data in R-Card VCs.
@@ -89,7 +92,7 @@ class JCard {
   /// Decodes a jCard list into a flat map suitable for
   /// `RCardCredentialSubject.fromJson`.
   ///
-  /// Maps RFC 6350 property names to `RCardCredentialSubject` field names.
+  /// Maps RFC 6350 property names to [RCardCredentialSubject] field names.
   /// Unknown property names are passed through as-is.
   ///
   /// Returns `null` if [card] is not a valid jCard structure.

@@ -5,5 +5,6 @@ import '../model/liveness_evidence.dart';
 /// Implement in provider packages (AWS Rekognition, Azure Face API, etc.) to
 /// keep credential issuance decoupled from vendor payload shapes.
 abstract interface class LivenessEvidenceAdapter<T> {
+  /// Converts a provider-specific [providerResponse] into [LivenessEvidence].
   LivenessEvidence toLivenessEvidence(T providerResponse);
 }

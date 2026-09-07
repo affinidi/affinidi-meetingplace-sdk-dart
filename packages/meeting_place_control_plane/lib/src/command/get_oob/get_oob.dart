@@ -6,5 +6,7 @@ import 'get_oob_output.dart';
 class GetOobCommand extends DiscoveryCommand<GetOobCommandOutput> {
   /// Creates a new instance of [GetOobCommand].
   GetOobCommand({required this.oobId});
+
+  /// The identifier of the out-of-band invitation to retrieve.
   final String oobId;
 }

@@ -1,8 +1,11 @@
+/// @docImport 'package:meeting_place_core/meeting_place_core.dart';
+library;
+
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import '../../../matrix_room_event.dart';
 
 /// Handles `m.typing` events by pushing a [ChatActivityEvent] onto the chat
-/// stream for the sender DID populated by core's `MessagingService`.
+/// stream for the sender DID populated by core's [MessagingService].
 class TypingHandler {
   TypingHandler({
     required ChatStream chatStream,

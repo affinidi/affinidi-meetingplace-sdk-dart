@@ -10,7 +10,7 @@ import 'chat_message_body.dart';
 /// It provides structured fields for the message text, sequence number,
 /// and attachments.
 ///
-/// A `ChatMessage` can be created locally for sending, or
+/// A [ChatMessage] can be created locally for sending, or
 /// reconstructed from an incoming [PlainTextMessage].
 class ChatMessage {
   /// Factory constructor to create a new outgoing [ChatMessage].

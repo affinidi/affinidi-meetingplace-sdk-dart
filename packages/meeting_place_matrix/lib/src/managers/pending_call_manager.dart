@@ -1,7 +1,10 @@
+/// @docImport '../meeting_place_livekit_call_plugin.dart';
+library;
+
 import '../call/call_media_type.dart';
 
 /// Tracks ringing calls and the busy-guard for
-/// `MeetingPlaceLiveKitCallPlugin`.
+/// [MeetingPlaceLiveKitCallPlugin].
 ///
 /// Holds three pieces of state:
 /// 1. Pending calls (ringing, not yet accepted): callId → otherPartyChannelDid.

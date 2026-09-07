@@ -11,13 +11,10 @@ class AcceptOfferGroupException implements ControlPlaneException {
     this.innerException,
   });
 
-  /// Creates a `generic` error of [AcceptOfferGroupException] instance.
+  /// Creates a `generic` error [AcceptOfferGroupException] instance.
   ///
-  /// This constructor provides the specific message, error code and the actual
-  /// exception encountered in the operation.
-  ///
-  /// **Parameters:**
-  /// - [innerException]: The exception object.
+  /// This constructor provides the specific message and error code for the
+  /// operation, wrapping the given [innerException].
   factory AcceptOfferGroupException.generic({Object? innerException}) {
     return AcceptOfferGroupException._(
       message: 'Offer acceptance group failed: ${innerException.toString()}.',

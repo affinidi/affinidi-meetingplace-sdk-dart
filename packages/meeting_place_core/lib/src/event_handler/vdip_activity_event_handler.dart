@@ -1,3 +1,6 @@
+/// @docImport 'chat_activity_event_handler.dart';
+library;
+
 import 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
 import 'package:ssi/ssi.dart';
@@ -35,7 +38,7 @@ class VdipActivityEventHandler {
   /// state from the mediator so consumers can derive a badge count.
   ///
   /// This handler does NOT dispatch, persist, or delete the VDIP messages.
-  /// Like `ChatActivityEventHandler`, a channel-activity handler only advances
+  /// Like [ChatActivityEventHandler], a channel-activity handler only advances
   /// [Channel.seqNo] and [Channel.messageSyncMarker]; the messages stay on the
   /// mediator and are delivered (and surfaced) the next time the chat session
   /// connects with `fetchMessagesOnConnect`. Dispatching from this push path

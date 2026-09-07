@@ -7,7 +7,11 @@ import '../../contact_card/contact_card_helper.dart';
 import '../../meeting_place_protocol.dart';
 import 'connection_request_approval_body.dart';
 
+/// A connection-request-approval DIDComm message, sent to approve a
+/// connection request raised against a published offer.
 class ConnectionRequestApproval {
+  /// Creates a new [ConnectionRequestApproval] message with a generated
+  /// [id].
   factory ConnectionRequestApproval.create({
     required String from,
     required List<String> to,
@@ -27,6 +31,7 @@ class ConnectionRequestApproval {
     );
   }
 
+  /// Creates a [ConnectionRequestApproval] from a decoded [PlainTextMessage].
   factory ConnectionRequestApproval.fromPlainTextMessage(
     PlainTextMessage message,
   ) {
@@ -44,6 +49,8 @@ class ConnectionRequestApproval {
     );
   }
 
+  /// Creates a [ConnectionRequestApproval] from its constituent message
+  /// fields.
   ConnectionRequestApproval({
     required this.id,
     required this.from,
@@ -55,15 +62,31 @@ class ConnectionRequestApproval {
     DateTime? createdTime,
   }) : createdTime = createdTime ?? DateTime.now().toUtc();
 
+  /// The DIDComm message id.
   final String id;
+
+  /// The DID of the sender.
   final String from;
+
+  /// The DIDs of the message recipients.
   final List<String> to;
+
+  /// The id of the thread this message replies to.
   final String parentThreadId;
+
+  /// The message body carrying the approved channel's DID.
   final ConnectionRequestApprovalBody body;
+
+  /// The sender's contact card, if shared.
   final ContactCard? contactCard;
+
+  /// Attachments carried alongside this message.
   final List<Attachment>? attachments;
+
+  /// When this message was created.
   final DateTime createdTime;
 
+  /// Converts this message to a [PlainTextMessage] for transport.
   PlainTextMessage toPlainTextMessage() {
     final attachmentsList = <Attachment>[];
     if (contactCard != null) {

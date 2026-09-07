@@ -25,11 +25,8 @@ class UploadDidWebDocumentException implements ControlPlaneException {
 
   /// Creates a `generic` [UploadDidWebDocumentException] instance.
   ///
-  /// This constructor provides the specific message, error code and the actual
-  /// exception encountered in the operation.
-  ///
-  /// **Parameters:**
-  /// - [innerException]: The exception object.
+  /// This constructor provides the specific message and error code for the
+  /// operation, wrapping the given [innerException].
   factory UploadDidWebDocumentException.generic({Object? innerException}) {
     return UploadDidWebDocumentException._(
       message: 'DID document upload failed.',

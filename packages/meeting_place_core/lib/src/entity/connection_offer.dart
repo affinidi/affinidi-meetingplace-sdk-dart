@@ -5,21 +5,38 @@ import 'channel.dart';
 
 part 'connection_offer.g.dart';
 
+/// The kind of invitation a [ConnectionOffer] was published as.
 enum ConnectionOfferType {
+  /// An invitation published for a party to discover and accept.
   meetingPlaceInvitation,
+
+  /// An invitation sent as outreach to a specific prospective contact.
   meetingPlaceOutreachInvitation,
 }
 
+/// The stage of a [ConnectionOffer] in its lifecycle.
 enum ConnectionOfferStatus {
+  /// The offer has been published and is available to be accepted.
   published,
+
+  /// The offer's channel details have been finalised between both parties.
   finalised,
+
+  /// The offer has been accepted by another party.
   accepted,
+
+  /// The channel resulting from the offer has been inaugurated.
   channelInaugurated,
+
+  /// The offer has been deleted.
   deleted,
 }
 
+/// An offer to connect, published by one party and accepted by another to
+/// establish a [Channel].
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class ConnectionOffer {
+  /// Creates a [ConnectionOffer].
   ConnectionOffer({
     required this.offerName,
     required this.offerLink,
@@ -46,29 +63,66 @@ class ConnectionOffer {
     this.score,
   });
 
+  /// Creates a [ConnectionOffer] from its JSON representation.
   factory ConnectionOffer.fromJson(Map<String, dynamic> json) {
     return _$ConnectionOfferFromJson(json);
   }
+
+  /// The display name of the offer.
   final String offerName;
+
+  /// The link used to share and accept the offer.
   final String offerLink;
+
+  /// An optional human-readable description of the offer.
   final String? offerDescription;
+
+  /// A mnemonic identifying the offer.
   final String mnemonic;
+
+  /// When the offer was created.
   final DateTime createdAt;
+
+  /// DID used to publish the offer.
   final String publishOfferDid;
+
+  /// DID of the mediator used to exchange messages for this offer.
   final String mediatorDid;
+
+  /// The out-of-band invitation message backing this offer.
   final String oobInvitationMessage;
+
+  /// Contact card of the offer owner.
   final ContactCard contactCard;
+
+  /// The kind of invitation this offer was published as.
   final ConnectionOfferType type;
+
+  /// The current stage of the offer in its lifecycle.
   final ConnectionOfferStatus status;
+
+  /// Whether this offer was published by the local party.
   final bool ownedByMe;
 
+  /// When the offer expires, if it has an expiry.
   final DateTime? expiresAt;
+
+  /// The maximum number of times the offer can be accepted, if limited.
   final int? maximumUsage;
+
+  /// Outbound message id that initiated the finalisation of this offer.
   final String? outboundMessageId;
+
+  /// DID that was used to accept the offer.
   final String? acceptOfferDid;
+
+  /// Permanent DID that is used for message exchange.
   final String? permanentChannelDid;
+
+  /// Permanent DID of the other party that is used for message exchange.
   final String? otherPartyPermanentChannelDid;
 
+  /// Notification token used to notify the party that owns the offer.
   final String? notificationToken;
 
   /// Other's party notification token that is used to notify the other party.
@@ -80,6 +134,9 @@ class ConnectionOffer {
   /// is the token shared by the offer owner.
   final String? otherPartyNotificationToken;
 
+  /// External reference that can be used to correlate the offer with
+  /// external systems. This field is not used by the SDK, and can be set by
+  /// the SDK consumer to store any relevant information.
   final String? externalRef;
 
   /// Transport selected by the publisher for this offer. Determines which
@@ -93,15 +150,24 @@ class ConnectionOffer {
   /// VRC score of the offer owner.
   final int? score;
 
+  /// Converts this offer to its JSON representation.
   Map<String, dynamic> toJson() {
     return _$ConnectionOfferToJson(this);
   }
 
+  /// Whether this offer is in the finalised status.
   bool get isFinalised => status == ConnectionOfferStatus.finalised;
+
+  /// Whether this offer is in the published status.
   bool get isPublished => status == ConnectionOfferStatus.published;
+
+  /// Whether this offer is in the accepted status.
   bool get isAccepted => status == ConnectionOfferStatus.accepted;
+
+  /// Whether this offer is in the deleted status.
   bool get isDeleted => status == ConnectionOfferStatus.deleted;
 
+  /// Returns a copy of this offer with the given fields replaced.
   ConnectionOffer copyWith({
     ContactCard? card,
     String? outboundMessageId,
@@ -146,6 +212,7 @@ class ConnectionOffer {
     );
   }
 
+  /// Returns a copy of this offer marked as accepted by another party.
   ConnectionOffer accept({
     required String acceptOfferDid,
     required String permanentChannelDid,
@@ -198,6 +265,7 @@ class ConnectionOffer {
     );
   }
 
+  /// Returns a copy of this offer marked as deleted.
   ConnectionOffer markAsDeleted() {
     return copyWith(status: ConnectionOfferStatus.deleted);
   }

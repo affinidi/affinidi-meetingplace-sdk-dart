@@ -9,6 +9,7 @@ import '../../entity/channel.dart';
 
 /// Parameters for `MeetingPlaceCoreSDK.approveConnectionRequest`.
 class ApproveConnectionRequestParams {
+  /// Creates an [ApproveConnectionRequestParams].
   const ApproveConnectionRequestParams({
     required this.channel,
     this.attachments,

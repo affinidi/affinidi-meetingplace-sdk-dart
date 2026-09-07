@@ -8,6 +8,10 @@ class MatrixTokenException implements ControlPlaneException {
     this.innerException,
   });
 
+  /// Creates an `invalidResponse` [MatrixTokenException] instance.
+  ///
+  /// This constructor provides the specific message and error code for the
+  /// operation, wrapping the given [innerException].
   factory MatrixTokenException.invalidResponse({
     required String message,
     Object? innerException,
@@ -19,6 +23,10 @@ class MatrixTokenException implements ControlPlaneException {
     );
   }
 
+  /// Creates a `generic` [MatrixTokenException] instance.
+  ///
+  /// This constructor provides the specific message and error code for the
+  /// operation, wrapping the given [innerException].
   factory MatrixTokenException.generic({
     required String message,
     Object? innerException,

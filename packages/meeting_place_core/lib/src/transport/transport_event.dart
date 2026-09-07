@@ -1,5 +1,6 @@
 /// Transport-agnostic representation of a channel event.
 class TransportEvent {
+  /// Creates a [TransportEvent].
   const TransportEvent({
     required this.id,
     required this.type,
@@ -38,6 +39,7 @@ class TransportEvent {
   final bool isReplay;
 
   /// Transport-specific metadata not part of the standard event payload.
+  ///
   /// Transports may populate this with implementation details that higher
   /// layers need without polluting [content].
   final Map<String, dynamic>? metadata;

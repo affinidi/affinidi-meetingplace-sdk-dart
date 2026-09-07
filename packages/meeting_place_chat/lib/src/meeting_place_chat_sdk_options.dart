@@ -8,18 +8,16 @@ import '../meeting_place_chat.dart';
 class MeetingPlaceChatSDKOptions {
   /// Creates a new [MeetingPlaceChatSDKOptions] instance.
   ///
-  /// **Parameters:**
-  /// - [chatPresenceSendInterval]: Interval for sending
-  ///   presence signals (default: `10` seconds).
-  /// - [chatActivityExpiry]: Expiry time for
-  ///   chat activity signals such as "typing" (default: `3` seconds).
-  /// - [deleteMessageWindow]: Maximum age for an original sender to delete
-  ///   a message for all participants (default: `2` minutes).
-  /// - [requiresAcknowledgement]: List of [ChatProtocol] message types
-  ///   that require delivery acknowledgement
-  ///  (default: `[ChatProtocol.chatMessage]`).
-  /// - [memberJoinedIndicator]: List of [ChatProtocol] message types
-  ///   that indicate that new group member opened chat screen the first time.
+  /// [chatPresenceSendInterval] is the interval for sending presence
+  /// signals (default: `10` seconds). [chatActivityExpiry] is the expiry
+  /// time for chat activity signals such as "typing" (default: `3`
+  /// seconds). [deleteMessageWindow] is the maximum age for an original
+  /// sender to delete a message for all participants (default: `2`
+  /// minutes). [requiresAcknowledgement] is the list of [ChatProtocol]
+  /// message types that require delivery acknowledgement (default:
+  /// `[ChatProtocol.chatMessage]`). [memberJoinedIndicator] is the list of
+  /// [ChatProtocol] message types that indicate that a new group member
+  /// opened the chat screen for the first time.
   MeetingPlaceChatSDKOptions({
     this.chatPresenceSendInterval = const Duration(seconds: 10),
     this.chatPresenceExpiry = const Duration(seconds: 15),
@@ -50,10 +48,10 @@ class MeetingPlaceChatSDKOptions {
   /// Defaults to `10` seconds.
   final Duration chatPresenceSendInterval;
 
-  /// The interval (in seconds) at which presence signals
-  /// (e.g., "online") are sent to the other party.
+  /// How long a received presence signal (e.g., "online") stays valid
+  /// before it expires.
   ///
-  /// Defaults to `10` seconds.
+  /// Defaults to `15` seconds.
   final Duration chatPresenceExpiry;
 
   /// The expiry duration (in seconds) for activity messages

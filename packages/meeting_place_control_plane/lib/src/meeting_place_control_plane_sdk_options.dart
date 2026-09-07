@@ -1,5 +1,6 @@
 /// Control Plane SDK configuration settings.
 class MeetingPlaceControlPlaneSDKOptions {
+  /// Creates a new instance of [MeetingPlaceControlPlaneSDKOptions].
   const MeetingPlaceControlPlaneSDKOptions({
     this.maxRetries = 3,
     this.maxRetriesDelay = const Duration(milliseconds: 2000),
@@ -9,11 +10,13 @@ class MeetingPlaceControlPlaneSDKOptions {
   });
 
   /// The number of retry attempts for a request when a network issue occurs.
+  ///
   /// If a request fails due to a network error, it will be retried up to this
   /// number of times before ultimately failing.
   final int maxRetries;
 
   /// The maximum delay between retry attempts when a network issue occurs.
+  ///
   /// This value sets the upper bound for the delay between retries.
   final Duration maxRetriesDelay;
 

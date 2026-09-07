@@ -5,6 +5,7 @@ import '../../meeting_place_core.dart';
 
 part 'channel.g.dart';
 
+/// The stage of a [Channel] in its lifecycle.
 enum ChannelStatus {
   /// Indicates that the accepting party has accepted the offer, and is waiting
   /// for the offer owner to approve the acceptance request.
@@ -19,13 +20,32 @@ enum ChannelStatus {
   inaugurated,
 }
 
-enum ChannelType { individual, group, directConnection }
+/// The kind of connection a [Channel] was created from.
+enum ChannelType {
+  /// The channel was created from an individual connection offer.
+  individual,
+
+  /// The channel was created from a group connection offer.
+  group,
+
+  /// The channel was created from an out-of-band invitation.
+  directConnection,
+}
 
 /// Transport used for message exchange on a channel.
-enum ChannelTransport { didcomm, matrix }
+enum ChannelTransport {
+  /// Messages are exchanged as DIDComm messages.
+  didcomm,
 
+  /// Messages are exchanged over a Matrix room.
+  matrix,
+}
+
+/// A connection between two parties, used to exchange messages once
+/// inaugurated.
 @JsonSerializable(includeIfNull: false, explicitToJson: true)
 class Channel {
+  /// Creates a [Channel], generating an [id] if none is given.
   Channel({
     String? id,
     required this.offerLink,
@@ -48,10 +68,13 @@ class Channel {
     this.externalRef,
   }) : id = id ?? const Uuid().v4();
 
+  /// Creates a [Channel] from its JSON representation.
   factory Channel.fromJson(Map<String, dynamic> json) {
     return _$ChannelFromJson(json);
   }
 
+  /// Creates an individual [Channel] for the accepting party of
+  /// [connectionOffer].
   factory Channel.individualFromAcceptedConnectionOffer(
     ConnectionOffer connectionOffer, {
     required String permanentChannelDid,
@@ -75,6 +98,7 @@ class Channel {
     );
   }
 
+  /// Creates a group [Channel] for the accepting party of [connectionOffer].
   factory Channel.groupFromAcceptedConnectionOffer(
     GroupConnectionOffer connectionOffer, {
     required String permanentChannelDid,
@@ -178,28 +202,30 @@ class Channel {
   /// Sequence number to keep track of latest message in the channel.
   int seqNo = 0;
 
-  /// Check if the channel is of type individual.
+  /// Whether the channel is of type individual.
   bool get isIndividual => type == ChannelType.individual;
 
-  /// Check if the channel is of type direct connection.
+  /// Whether the channel is of type direct connection.
   bool get isDirectConnection => type == ChannelType.directConnection;
 
-  /// Check if the channel is of type group.
+  /// Whether the channel is of type group.
   bool get isGroup => type == ChannelType.group;
 
-  /// Check if the channel is in the inaugurated status.
+  /// Whether the channel is in the inaugurated status.
   bool get isInaugurated => status == ChannelStatus.inaugurated;
 
-  /// Check if the channel is in the approved status.
+  /// Whether the channel is in the approved status.
   bool get isApproved => status == ChannelStatus.approved;
 
-  /// Check if the channel is waiting for approval.
+  /// Whether the channel is waiting for approval.
   bool get isWaitingForApproval => status == ChannelStatus.waitingForApproval;
 
+  /// Converts this channel to its JSON representation.
   Map<String, dynamic> toJson() {
     return _$ChannelToJson(this);
   }
 
+  /// Increments [seqNo] by one.
   void increaseSeqNo() {
     seqNo++;
   }

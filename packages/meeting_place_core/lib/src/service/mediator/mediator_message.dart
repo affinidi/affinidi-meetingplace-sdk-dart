@@ -17,7 +17,7 @@ class MediatorMessage {
   final int? seqNo;
   final String? fromDid;
 
-  /// Create a MediatorMessage from a PlainTextMessage
+  /// Creates a [MediatorMessage] from a [PlainTextMessage].
   static Future<MediatorMessage> fromPlainTextMessage(
     PlainTextMessage message, {
     required MeetingPlaceCoreSDKLogger logger,

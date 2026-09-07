@@ -11,7 +11,7 @@ import 'call_status.dart';
 /// current [CallStatus] and the local participation duration. Keeping this off
 /// [ChatAttachment] keeps the attachment a general type and lets call items add
 /// their own metadata view without changing the shared type, mirroring
-/// `VoiceMessageMetadata`.
+/// [VoiceMessageMetadata].
 ///
 /// Group calls additionally carry a [CallParticipation] block; a `null`
 /// participation means a 1:1 call.

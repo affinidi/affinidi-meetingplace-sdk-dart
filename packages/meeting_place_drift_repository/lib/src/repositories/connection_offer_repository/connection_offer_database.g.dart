@@ -685,6 +685,7 @@ class ConnectionOffer extends DataClass implements Insertable<ConnectionOffer> {
   final String? externalRef;
 
   /// Chat transport selected by the publisher for this offer.
+  ///
   /// Defaults to [ChannelTransport.didcomm] for offers persisted before
   /// per-offer transport selection existed.
   final ChannelTransport transport;
@@ -2084,7 +2085,7 @@ class $GroupConnectionOffersTable extends GroupConnectionOffers
 
 class GroupConnectionOffer extends DataClass
     implements Insertable<GroupConnectionOffer> {
-  ///The connection offer ID this group connection offer is associated with.
+  /// The connection offer ID this group connection offer is associated with.
   final String connectionOfferId;
 
   /// The member DID associated with the group connection offer.
@@ -2093,7 +2094,7 @@ class GroupConnectionOffer extends DataClass
   /// The group ID associated with the group connection offer.
   final String groupId;
 
-  ///The group's owner DID.
+  /// The group's owner DID.
   final String? groupOwnerDid;
 
   /// The group's DID.

@@ -19,6 +19,8 @@ import 'outgoing_message.dart';
 /// operations. Dispatches each call to the appropriate transport. Exception
 /// wrapping is handled by the caller (typically the meeting place core SDK).
 class MessagingService {
+  /// Creates a [MessagingService] backed by the given transports and
+  /// services.
   MessagingService({
     required MeetingPlaceTransport channelTransport,
     required MessageService messageService,
@@ -197,6 +199,7 @@ class MessagingService {
     );
   }
 
+  /// Disposes the underlying channel transport.
   Future<void> dispose() => _channelTransport.dispose();
 }
 

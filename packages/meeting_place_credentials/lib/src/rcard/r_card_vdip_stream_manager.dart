@@ -1,3 +1,6 @@
+/// @docImport '../meeting_place_credentials_sdk.dart';
+library;
+
 import 'dart:async';
 
 import 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart';
@@ -83,7 +86,7 @@ class RCardVdipStreamManager {
   /// Returns the parsed [RCard] if [message] is a valid
   /// `vdip-issued-credentials` R-Card, or `null` otherwise.
   ///
-  /// Used by `MeetingPlaceCredentialsSDK` as a `VdipClient` message
+  /// Used by [MeetingPlaceCredentialsSDK] as a [VdipClient] message
   /// processor to guarantee R-Card persistence regardless of whether
   /// [stream] has an active subscriber at dispatch time.
   Future<RCard?> processMessage(PlainTextMessage message) async {

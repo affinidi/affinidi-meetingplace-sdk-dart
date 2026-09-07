@@ -11,7 +11,10 @@ class DefaultMeetingPlaceMatrixSDKLogger
     this.sdkName = constants.sdkName,
   });
 
+  /// Name prefixed to every log message, identifying the logging component.
   final String className;
+
+  /// The `dart:developer` log `name` used to group these log entries.
   final String sdkName;
 
   String _formatMessage(String message, String? method) {

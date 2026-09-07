@@ -13,11 +13,8 @@ class CreateOobException implements ControlPlaneException {
 
   /// Creates a `generic` [CreateOobException] instance.
   ///
-  /// This constructor provides the specific message, error code and the actual
-  /// exception encountered in the operation.
-  ///
-  /// **Parameters:**
-  /// - [innerException]: The exception object.
+  /// This constructor provides the specific message and error code for the
+  /// operation, wrapping the given [innerException].
   factory CreateOobException.generic({Object? innerException}) {
     return CreateOobException._(
       message: 'Create oob exception: ${innerException.toString()}.',

@@ -9,12 +9,14 @@ part 'did_document_hosting_record.g.dart';
 /// via standard did:web resolution semantics.
 @JsonSerializable()
 class DidDocumentHostingRecord {
+  /// Creates a new instance of [DidDocumentHostingRecord].
   DidDocumentHostingRecord({
     required this.did,
     required this.segment,
     required this.didDocUrl,
   });
 
+  /// Creates a [DidDocumentHostingRecord] from the given JSON [json].
   factory DidDocumentHostingRecord.fromJson(Map<String, dynamic> json) =>
       _$DidDocumentHostingRecordFromJson(json);
 
@@ -27,5 +29,6 @@ class DidDocumentHostingRecord {
   /// The public URL at which the DID Document is hosted.
   final String didDocUrl;
 
+  /// Converts this [DidDocumentHostingRecord] into a JSON map.
   Map<String, dynamic> toJson() => _$DidDocumentHostingRecordToJson(this);
 }

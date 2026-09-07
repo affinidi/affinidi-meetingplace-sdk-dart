@@ -632,6 +632,8 @@ ORDER BY ci.date_created DESC
     );
   }
 
+  /// Retrieves the last synced transport event ID for [chatId], or `null` if
+  /// no sync marker has been stored yet.
   @override
   Future<String?> getSyncMarker(String chatId) async {
     final row = await (_database.select(
@@ -640,6 +642,8 @@ ORDER BY ci.date_created DESC
     return row?.eventId;
   }
 
+  /// Stores [eventId] as the sync marker for [chatId], replacing any
+  /// existing marker for that chat.
   @override
   Future<void> updateSyncMarker({
     required String chatId,

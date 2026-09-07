@@ -1,6 +1,6 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
-/// Logger interface for Chat SDK
+/// Logger interface for the Matrix SDK.
 ///
 /// This interface allows consumers to provide their own logging implementation
 /// to capture and handle SDK logs according to their needs.

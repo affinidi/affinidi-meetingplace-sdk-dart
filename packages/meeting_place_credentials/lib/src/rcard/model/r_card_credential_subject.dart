@@ -1,3 +1,6 @@
+/// @docImport '../builder/r_card_builder.dart';
+library;
+
 import 'j_card.dart';
 
 /// The structured credential subject of an R-Card VC.
@@ -16,7 +19,7 @@ class RCardCredentialSubject {
   /// Parses an [RCardCredentialSubject] from a credential subject JSON map.
   ///
   /// Expects the credential subject to carry contact data as a jCard in the
-  /// `card` property (RFC 7095), which is the format `RCardBuilder` always
+  /// `card` property (RFC 7095), which is the format [RCardBuilder] always
   /// produces. Throws [FormatException] if `card` is absent or malformed.
   factory RCardCredentialSubject.fromJson(Map<String, dynamic> json) {
     final decoded = JCard.decode(json['card'], json['id']?.toString());

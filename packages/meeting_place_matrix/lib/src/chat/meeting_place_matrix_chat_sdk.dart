@@ -26,7 +26,7 @@ import 'typing_indicator_manager.dart';
 ///
 /// Holds Matrix-only state (server↔message id maps and the room subscription)
 /// and implements every Matrix-flavoured send and the room subscription/
-/// history flow. `GroupMatrixChatSDK` and `IndividualMatrixChatSDK` extend
+/// history flow. [GroupMatrixChatSDK] and [IndividualMatrixChatSDK] extend
 /// this; the DIDComm individual SDK does not.
 abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     implements MeetingPlaceChatSDK {
@@ -62,9 +62,22 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     logger: _logger,
   );
 
+  /// Maps a Matrix server event ID to the local message ID it was persisted
+  /// under, so a later server event (e.g. a reaction or edit) can be joined
+  /// back to the message it targets.
   @internal
   Map<String, String> get serverEventIdToMessageId => _serverEventIdToMessageId;
 
+  /// Builds the concrete [MeetingPlaceChatSDK] for [channel], selecting the
+  /// implementation from its type and transport:
+  /// - group + matrix → [GroupMatrixChatSDK]
+  /// - individual + matrix → [IndividualMatrixChatSDK]
+  /// - individual + didcomm → [IndividualDidcommChatSDK]
+  ///
+  /// Throws [ArgumentError] for any other combination (e.g. group + didcomm,
+  /// which is not supported), and a plain [Exception] when [channel] is a
+  /// matrix group whose [Channel.offerLink] does not resolve to a known
+  /// group via [MeetingPlaceCoreSDK.findGroupByOfferLink].
   static Future<MeetingPlaceChatSDK> initialiseFromChannel(
     Channel channel, {
     required MeetingPlaceCoreSDK coreSDK,
@@ -259,6 +272,9 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     return outgoing ?? incoming;
   }
 
+  /// Subscribes to the Matrix room's live event stream, routing each
+  /// incoming event through [_handleIncomingRoomEvent], advancing the sync
+  /// marker, and sending a delivery receipt when the event warrants one.
   @internal
   Future<StreamSubscription<MatrixRoomEvent>> subscribeToMatrixRoom() async {
     final handle = await coreSDK.subscribe(
@@ -632,6 +648,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   });
 
   /// Sends a typing indicator (`m.typing`) for the configured activity expiry.
+  ///
   /// The indicator is cleared automatically after
   /// [MeetingPlaceChatSDKOptions.chatActivityExpiry] elapses without a new
   /// call.
@@ -641,6 +658,11 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     await _typingManager.sendActivity();
   });
 
+  /// Sends a `m.typing` notification for [did], marking typing as started or
+  /// stopped depending on [active].
+  ///
+  /// Passed to [TypingIndicatorManager] as its send callback; prefer
+  /// [sendChatActivity] to trigger this indirectly with expiry handling.
   Future<void> setTypingState(bool active) async {
     await coreSDK.sendMessage(
       ChatTypingNotification(

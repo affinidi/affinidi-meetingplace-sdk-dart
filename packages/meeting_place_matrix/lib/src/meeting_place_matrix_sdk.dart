@@ -238,6 +238,18 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     );
   }
 
+  /// Builds a [MeetingPlaceMatrixSDK], wiring the Matrix transport into the
+  /// underlying [MeetingPlaceCoreSDK].
+  ///
+  /// [wallet] and [repositoryConfig] are passed straight through to
+  /// [MeetingPlaceCoreSDK.create]. [config] additionally supplies the Matrix
+  /// homeserver and local database used to build the [MatrixService] behind
+  /// [matrixService], via `channelTransportFactory`.
+  ///
+  /// The call plugin is only created when [rtcDelegate] and [roomFactory] are
+  /// both supplied and [MatrixConfig.livekitServiceUrl] is set on [config];
+  /// otherwise the returned SDK has [isCallSupported] `false` and calling
+  /// e.g. [startCall] throws [MeetingPlaceLiveKitCallOperationException].
   static Future<MeetingPlaceMatrixSDK> create({
     required Wallet wallet,
     required RepositoryConfig repositoryConfig,

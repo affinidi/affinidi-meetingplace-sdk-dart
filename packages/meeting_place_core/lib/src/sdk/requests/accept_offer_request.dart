@@ -3,6 +3,7 @@ import '../../protocol/contact_card/contact_card.dart';
 
 /// Parameters for `MeetingPlaceCoreSDK.acceptOffer`.
 class AcceptOfferRequest<T extends ConnectionOffer> {
+  /// Creates an [AcceptOfferRequest].
   const AcceptOfferRequest({
     required this.connectionOffer,
     required this.contactCard,

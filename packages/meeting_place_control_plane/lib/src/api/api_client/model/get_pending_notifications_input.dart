@@ -23,6 +23,7 @@ abstract class GetPendingNotificationsInput
           GetPendingNotificationsInputBuilder
         > {
   /// The device token for push notification when the offer is processed.
+  ///
   /// Maximum length of 2048 characters.
   @BuiltValueField(wireName: r'deviceToken')
   String get deviceToken;

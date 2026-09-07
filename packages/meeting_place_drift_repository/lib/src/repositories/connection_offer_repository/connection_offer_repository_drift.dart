@@ -326,6 +326,8 @@ class ConnectionOfferRepositoryDrift
         .go();
   }
 
+  /// Retrieves all [model.ConnectionOffer] records matching [externalRef],
+  /// including related group offers and contact cards.
   @override
   Future<List<model.ConnectionOffer>> getConnectionOffersByExternalRef(
     String externalRef,

@@ -4,5 +4,6 @@ import 'incoming_chat_event.dart';
 /// adapter routes incoming events to the right handler based
 /// on [IncomingChatEvent.type].
 abstract interface class ChatEventHandler {
+  /// Processes [event].
   Future<void> handle(IncomingChatEvent event);
 }

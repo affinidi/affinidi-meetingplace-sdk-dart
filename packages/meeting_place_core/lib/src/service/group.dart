@@ -106,6 +106,12 @@ class GroupService {
     final oobDidManager = await _connectionManager.generateDid(_wallet);
     final oobDidDoc = await oobDidManager.getDidDocument();
 
+    // The group DID is no longer issued by the control plane — generate it
+    // locally as a did:key so the group has a stable identifier from the
+    // start.
+    final groupDidManager = await _connectionManager.generateDid(_wallet);
+    final groupDidDoc = await groupDidManager.getDidDocument();
+
     final oobMessage = OobInvitationMessage.create(from: oobDidDoc.id);
 
     await _mediatorSDK.updateAcl(
@@ -136,7 +142,7 @@ class GroupService {
 
     final group = Group(
       id: result.groupId,
-      did: result.groupDid,
+      did: groupDidDoc.id,
       offerLink: result.offerLink,
       ownerDid: ownerDidDocument.id,
       created: DateTime.now().toUtc(),
@@ -156,7 +162,7 @@ class GroupService {
         type: ChannelType.group,
         isConnectionInitiator: true,
         permanentChannelDid: ownerDidDocument.id,
-        otherPartyPermanentChannelDid: result.groupDid,
+        otherPartyPermanentChannelDid: groupDidDoc.id,
         externalRef: externalRef,
         transport: ChannelTransport.matrix,
       );
@@ -166,13 +172,13 @@ class GroupService {
         _allowGroupToMessageGroupOwner(
           groupOwnerDidManager: ownerDid,
           mediatorDid: result.mediatorDid,
-          groupDid: result.groupDid,
+          groupDid: groupDidDoc.id,
         ),
       ).wait;
 
       final connectionOffer = GroupConnectionOffer(
         groupId: result.groupId,
-        groupDid: result.groupDid,
+        groupDid: groupDidDoc.id,
         groupOwnerDid: ownerDidDocument.id,
         memberDid: ownerDidDocument.id,
         metadata: metadata,

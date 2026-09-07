@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:test/test.dart';
 import 'package:uuid/uuid.dart';
@@ -110,12 +111,19 @@ void main() {
       );
 
       final bobChat = await refreshedChatSdk.startChatSession();
+
+      const deepEquals = DeepCollectionEquality();
+
       final conciergeFuture = ChatTestHarness.awaitItem(
         refreshedChatSdk,
         where: (ChatItem item) =>
             item is ConciergeMessage &&
             item.conciergeType ==
-                ConciergeMessageType.permissionToUpdateProfile,
+                ConciergeMessageType.permissionToUpdateProfile &&
+            deepEquals.equals(
+              item.data['profileDetails'],
+              currentCard.toJson(),
+            ),
       );
 
       await refreshedChatSdk.refreshCurrentContactCard(currentCard);
@@ -123,7 +131,13 @@ void main() {
       final concierge = await conciergeFuture as ConciergeMessage;
 
       expect(concierge.chatId, bobChat.id);
-      expect(concierge.data['profileDetails'], equals(currentCard.toJson()));
+      expect(
+        deepEquals.equals(
+          concierge.data['profileDetails'],
+          currentCard.toJson(),
+        ),
+        isTrue,
+      );
 
       await refreshedChatSdk.endChatSession();
     },

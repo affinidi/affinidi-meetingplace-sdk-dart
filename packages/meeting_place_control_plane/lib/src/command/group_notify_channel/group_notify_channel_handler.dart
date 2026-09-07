@@ -64,13 +64,13 @@ class GroupNotifyChannelHandler
     _logger.info('Started notifying group channel', name: methodName);
 
     final builder = GroupNotifyChannelInputBuilder()
-      ..offerLink = command.offerLink
+      ..groupId = command.groupId
       ..type = command.type
       ..memberDid = command.memberDid;
 
     try {
       _logger.info(
-        '[MPX API] Calling /group-notify-channel for offerLink: ${command.offerLink}, type: ${command.type}',
+        '[MPX API] Calling /group-notify-channel for groupId: ${command.groupId}, type: ${command.type}',
         name: methodName,
       );
       await _apiClient.client.groupNotifyChannel(

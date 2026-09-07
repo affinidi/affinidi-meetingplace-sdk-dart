@@ -8,7 +8,7 @@ part of 'group_notify_channel_input.dart';
 
 class _$GroupNotifyChannelInput extends GroupNotifyChannelInput {
   @override
-  final String offerLink;
+  final String groupId;
   @override
   final String type;
   @override
@@ -19,7 +19,7 @@ class _$GroupNotifyChannelInput extends GroupNotifyChannelInput {
   ]) => (GroupNotifyChannelInputBuilder()..update(updates))._build();
 
   _$GroupNotifyChannelInput._({
-    required this.offerLink,
+    required this.groupId,
     required this.type,
     this.memberDid,
   }) : super._();
@@ -36,7 +36,7 @@ class _$GroupNotifyChannelInput extends GroupNotifyChannelInput {
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
     return other is GroupNotifyChannelInput &&
-        offerLink == other.offerLink &&
+        groupId == other.groupId &&
         type == other.type &&
         memberDid == other.memberDid;
   }
@@ -44,7 +44,7 @@ class _$GroupNotifyChannelInput extends GroupNotifyChannelInput {
   @override
   int get hashCode {
     var _$hash = 0;
-    _$hash = $jc(_$hash, offerLink.hashCode);
+    _$hash = $jc(_$hash, groupId.hashCode);
     _$hash = $jc(_$hash, type.hashCode);
     _$hash = $jc(_$hash, memberDid.hashCode);
     _$hash = $jf(_$hash);
@@ -54,7 +54,7 @@ class _$GroupNotifyChannelInput extends GroupNotifyChannelInput {
   @override
   String toString() {
     return (newBuiltValueToStringHelper(r'GroupNotifyChannelInput')
-          ..add('offerLink', offerLink)
+          ..add('groupId', groupId)
           ..add('type', type)
           ..add('memberDid', memberDid))
         .toString();
@@ -66,9 +66,9 @@ class GroupNotifyChannelInputBuilder
         Builder<GroupNotifyChannelInput, GroupNotifyChannelInputBuilder> {
   _$GroupNotifyChannelInput? _$v;
 
-  String? _offerLink;
-  String? get offerLink => _$this._offerLink;
-  set offerLink(String? offerLink) => _$this._offerLink = offerLink;
+  String? _groupId;
+  String? get groupId => _$this._groupId;
+  set groupId(String? groupId) => _$this._groupId = groupId;
 
   String? _type;
   String? get type => _$this._type;
@@ -85,7 +85,7 @@ class GroupNotifyChannelInputBuilder
   GroupNotifyChannelInputBuilder get _$this {
     final $v = _$v;
     if ($v != null) {
-      _offerLink = $v.offerLink;
+      _groupId = $v.groupId;
       _type = $v.type;
       _memberDid = $v.memberDid;
       _$v = null;
@@ -110,10 +110,10 @@ class GroupNotifyChannelInputBuilder
     final _$result =
         _$v ??
         _$GroupNotifyChannelInput._(
-          offerLink: BuiltValueNullFieldError.checkNotNull(
-            offerLink,
+          groupId: BuiltValueNullFieldError.checkNotNull(
+            groupId,
             r'GroupNotifyChannelInput',
-            'offerLink',
+            'groupId',
           ),
           type: BuiltValueNullFieldError.checkNotNull(
             type,

@@ -11,14 +11,14 @@ part 'group_notify_channel_input.g.dart';
 /// List of required parameters to notify all members of a group chat.
 ///
 /// Properties:
-/// * [offerLink] - The Offer link associated with the group chat.
+/// * [groupId] - The unique identifier of the group chat to notify.
 /// * [type] - The notification type to send to group members.
 @BuiltValue()
 abstract class GroupNotifyChannelInput
     implements Built<GroupNotifyChannelInput, GroupNotifyChannelInputBuilder> {
-  /// The Offer link associated with the group chat.
-  @BuiltValueField(wireName: r'offerLink')
-  String get offerLink;
+  /// The unique identifier of the group chat to notify.
+  @BuiltValueField(wireName: r'groupId')
+  String get groupId;
 
   /// The notification type to send to group members.
   @BuiltValueField(wireName: r'type')
@@ -58,9 +58,9 @@ class _$GroupNotifyChannelInputSerializer
     GroupNotifyChannelInput object, {
     FullType specifiedType = FullType.unspecified,
   }) sync* {
-    yield r'offerLink';
+    yield r'groupId';
     yield serializers.serialize(
-      object.offerLink,
+      object.groupId,
       specifiedType: const FullType(String),
     );
     yield r'type';
@@ -102,14 +102,14 @@ class _$GroupNotifyChannelInputSerializer
       final key = serializedList[i] as String;
       final value = serializedList[i + 1];
       switch (key) {
-        case r'offerLink':
+        case r'groupId':
           final valueDes =
               serializers.deserialize(
                     value,
                     specifiedType: const FullType(String),
                   )
                   as String;
-          result.offerLink = valueDes;
+          result.groupId = valueDes;
           break;
         case r'type':
           final valueDes =

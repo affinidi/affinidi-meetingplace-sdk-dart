@@ -7,13 +7,13 @@ class GroupNotifyChannelCommand
     extends DiscoveryCommand<GroupNotifyChannelCommandOutput> {
   /// Creates a new instance of [GroupNotifyChannelCommand].
   GroupNotifyChannelCommand({
-    required this.offerLink,
+    required this.groupId,
     required this.type,
     this.memberDid,
   });
 
-  /// The Offer link associated with the group chat.
-  final String offerLink;
+  /// The unique identifier of the group chat to notify.
+  final String groupId;
 
   /// The notification type to send to group members.
   final String type;

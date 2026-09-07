@@ -4,6 +4,18 @@ on:
   pull_request:
      
 jobs:
+  minimumSDK:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: '3.10.0'
+      - run: dart pub get
+      - run: dart analyze
+
   dart-pipeline:
     uses: affinidi/pipeline-dart/.github/workflows/check.yaml@main
     secrets: inherit

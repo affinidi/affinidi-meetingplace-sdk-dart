@@ -70,9 +70,9 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
 
   /// Builds the concrete [MeetingPlaceChatSDK] for [channel], selecting the
   /// implementation from its type and transport:
-  /// - group + matrix → `GroupMatrixChatSDK`
-  /// - individual + matrix → `IndividualMatrixChatSDK`
-  /// - individual + didcomm → `IndividualDidcommChatSDK`
+  /// - group + matrix → [GroupMatrixChatSDK]
+  /// - individual + matrix → [IndividualMatrixChatSDK]
+  /// - individual + didcomm → [IndividualDidcommChatSDK]
   ///
   /// Throws [ArgumentError] for any other combination (e.g. group + didcomm,
   /// which is not supported), and a plain [Exception] when [channel] is a

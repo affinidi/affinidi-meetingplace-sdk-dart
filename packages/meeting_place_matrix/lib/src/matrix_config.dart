@@ -1,7 +1,10 @@
+/// @docImport 'meeting_place_matrix_sdk.dart';
+library;
+
 import 'package:matrix/matrix.dart' show DatabaseApi;
 import 'package:meeting_place_core/meeting_place_core.dart';
 
-/// [MeetingPlaceCoreConfig] for a Matrix-backed `MeetingPlaceMatrixSDK`,
+/// [MeetingPlaceCoreConfig] for a Matrix-backed [MeetingPlaceMatrixSDK],
 /// adding the Matrix homeserver, local database, and optional LiveKit
 /// call settings.
 class MatrixConfig extends MeetingPlaceCoreConfig {

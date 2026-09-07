@@ -1,4 +1,7 @@
-/// Error codes carried by `MeetingPlaceMatrixSDKException`, letting
+/// @docImport 'exception/matrix_sdk_exception.dart';
+library;
+
+/// Error codes carried by [MeetingPlaceMatrixSDKException], letting
 /// consumers branch on the specific failure without parsing message text.
 enum MeetingPlaceMatrixSDKErrorCode {
   /// Matrix login failed.
@@ -36,7 +39,7 @@ enum MeetingPlaceMatrixSDKErrorCode {
   matrixAuthError('matrix_auth_error'),
 
   /// Fallback code used when an unexpected error is wrapped into a
-  /// `MeetingPlaceMatrixSDKException`.
+  /// [MeetingPlaceMatrixSDKException].
   generic('generic');
 
   const MeetingPlaceMatrixSDKErrorCode(this.value);

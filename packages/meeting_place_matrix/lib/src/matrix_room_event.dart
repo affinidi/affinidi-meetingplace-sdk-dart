@@ -22,6 +22,7 @@ class MatrixRoomEvent {
   final String type;
 
   /// DID of the sender. Set for outgoing events created by this client.
+  ///
   /// Null for incoming events where only the Matrix user ID is known.
   final String? senderDid;
 

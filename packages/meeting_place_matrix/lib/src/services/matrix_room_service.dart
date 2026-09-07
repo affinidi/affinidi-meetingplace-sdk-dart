@@ -609,6 +609,7 @@ class MatrixRoomService {
   }
 
   /// Returns the maximum upload size allowed by the homeserver, in bytes.
+  ///
   /// Returns null if the server does not report a limit.
   Future<int?> getMediaConfig({required DidManager didManager}) async {
     final client = await _ensureSession(didManager);
@@ -645,6 +646,7 @@ class MatrixRoomService {
   }
 
   /// Returns the [matrix.Room] for [roomId], ensuring it is encrypted.
+  ///
   /// If the room is missing or not yet marked as encrypted (e.g. because
   /// background sync is disabled), performs a one-shot sync to load the
   /// latest room state before checking again.
@@ -663,6 +665,7 @@ class MatrixRoomService {
   }
 
   /// Fetches device keys for all current room members in one shot.
+  ///
   /// Called once at join time so the megolm session can be created immediately
   /// on the first send without a blocking round-trip.
   Future<void> _prefetchDeviceKeys(

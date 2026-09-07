@@ -179,6 +179,7 @@ class IncomingRoomEventRouter {
   }
 
   /// Resolves the target DID for a given event, if applicable.
+  ///
   /// Returns `null` by default. Subclasses can override to provide
   /// context-specific resolution (e.g., resolving the affected user in
   /// a membership change from the group's member list).

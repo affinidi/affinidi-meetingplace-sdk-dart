@@ -423,6 +423,7 @@ class MatrixSessionManager {
   }
 
   /// Disposes every cached matrix client and clears the session cache.
+  ///
   /// Safe to call multiple times.
   Future<void> dispose() async {
     _activeSubscriptions.clear();

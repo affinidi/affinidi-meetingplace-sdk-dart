@@ -648,6 +648,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   });
 
   /// Sends a typing indicator (`m.typing`) for the configured activity expiry.
+  ///
   /// The indicator is cleared automatically after
   /// [MeetingPlaceChatSDKOptions.chatActivityExpiry] elapses without a new
   /// call.

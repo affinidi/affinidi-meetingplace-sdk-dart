@@ -278,6 +278,7 @@ class MatrixService {
   );
 
   /// Returns the maximum upload size allowed by the homeserver, in bytes.
+  ///
   /// See [MatrixRoomService.getMediaConfig].
   Future<int?> getMediaConfig({required DidManager didManager}) =>
       _roomService.getMediaConfig(didManager: didManager);

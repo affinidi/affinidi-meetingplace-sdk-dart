@@ -26,7 +26,7 @@ class DidCommChallengeResponse {
   /// sent to Control Plane endpoints requiring DID-based authentication.
   ///
   /// The helper requests a challenge from [apiClient], resolves the recipient
-  /// DID document via [didResolver], constructs a `MeetingplaceAuthChallenge`,
+  /// DID document via [didResolver], constructs a [MeetingplaceAuthChallenge],
   /// signs and encrypts it with [didManager], and finally returns the encoded
   /// payload together with the sender DID.
   ///

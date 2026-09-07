@@ -531,6 +531,31 @@ class MeetingPlaceControlPlaneSDK {
     ),
   );
 
+  /// Creates a direct connection invitation through a mediator.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.createOobGeneric] or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when creation fails.
+  Future<CreateDirectConnectionInvitationResult>
+  createDirectConnectionInvitation({
+    required PlainTextMessage oobInvitationMessage,
+    required String mediatorDid,
+  }) => execute(
+    CreateOobCommand(
+      oobInvitationMessage: oobInvitationMessage,
+      mediatorDid: mediatorDid,
+    ),
+  );
+
+  /// Retrieves a direct connection invitation by [oobId].
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.oobNotFound] or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when retrieval fails.
+  Future<GetDirectConnectionInvitationResult> getDirectConnectionInvitation({
+    required String oobId,
+  }) => execute(GetOobCommand(oobId: oobId));
+
   /// Private method that initialises the ControlPlaneApiClient.
   ///
   /// This is invoked by a public method within the

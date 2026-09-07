@@ -1,5 +1,8 @@
 import 'create_oob.dart' show CreateOobCommand;
 
+/// The result returned when a direct connection invitation is created.
+typedef CreateDirectConnectionInvitationResult = CreateOobCommandOutput;
+
 /// Model that represents the output data returned from a successful execution
 /// of [CreateOobCommand] operation.
 class CreateOobCommandOutput {

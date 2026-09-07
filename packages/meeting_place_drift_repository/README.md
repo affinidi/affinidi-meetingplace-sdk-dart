@@ -38,7 +38,7 @@ The Affinidi Meeting Place - Drift Repository SDK is a package that implements t
 
 ## Requirements
 
-- Dart SDK version ^3.9.2
+- Dart SDK version ^3.11.0
 
 ## Installation
 

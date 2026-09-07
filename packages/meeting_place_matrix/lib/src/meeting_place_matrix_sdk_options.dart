@@ -1,5 +1,8 @@
 import 'package:meeting_place_core/meeting_place_core.dart';
 
+/// [MeetingPlaceCoreSDKOptions] for a Matrix-backed `MeetingPlaceMatrixSDK`,
+/// currently forwarding every option to the base type without adding
+/// Matrix-specific fields.
 class MeetingPlaceMatrixSDKOptions extends MeetingPlaceCoreSDKOptions {
   const MeetingPlaceMatrixSDKOptions({
     super.secondsBeforeExpiryReauthenticate,

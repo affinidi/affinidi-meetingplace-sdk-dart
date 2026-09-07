@@ -1,3 +1,7 @@
+/// Matrix homeserver-backed implementation of the MeetingPlace SDK,
+/// including audio/video calling over LiveKit.
+library;
+
 export 'package:matrix/matrix.dart' show MatrixSdkDatabase;
 
 export 'src/call/call_media_type.dart';

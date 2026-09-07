@@ -1,5 +1,7 @@
 import 'call_media_type.dart';
 
+/// A call-related event received from the control plane, mapped from a
+/// `ChannelActivity` into a typed signal for the call plugin layer.
 sealed class CallSignal {
   const CallSignal({required this.ownChannelDid});
 
@@ -8,6 +10,7 @@ sealed class CallSignal {
   final String ownChannelDid;
 }
 
+/// Signals that a peer is inviting this device into a call.
 final class IncomingCallSignal extends CallSignal {
   const IncomingCallSignal({
     required super.ownChannelDid,
@@ -18,6 +21,7 @@ final class IncomingCallSignal extends CallSignal {
   final CallMediaType mediaType;
 }
 
+/// Signals that a ringing or in-progress call was declined or cancelled.
 final class CallDeclineSignal extends CallSignal {
   const CallDeclineSignal({
     required super.ownChannelDid,

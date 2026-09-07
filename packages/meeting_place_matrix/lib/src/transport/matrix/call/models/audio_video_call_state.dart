@@ -22,8 +22,15 @@ class AudioVideoCallState {
     this.isGroupCall = false,
   });
 
+  /// The current phase of the call.
   final AudioVideoCallStatus status;
+
+  /// All participants currently in the call, including the local user
+  /// (identifiable via [AudioVideoCallParticipant.isSelf]).
   final List<AudioVideoCallParticipant> participants;
+
+  /// Contact cards for [participants], keyed by
+  /// [AudioVideoCallParticipant.did].
   final Map<String, ContactCard> participantContactCardsByDid;
 
   /// Non-null only when [status] is [AudioVideoCallStatus.error].
@@ -67,6 +74,10 @@ class AudioVideoCallState {
   /// The default initial state: idle, no participants, no error.
   static const initial = AudioVideoCallState();
 
+  /// Returns a copy with the given fields replaced.
+  ///
+  /// [clearErrorCode] resets [errorCode] to `null` even when a new
+  /// [errorCode] is not supplied; it takes precedence over [errorCode].
   AudioVideoCallState copyWith({
     AudioVideoCallStatus? status,
     List<AudioVideoCallParticipant>? participants,

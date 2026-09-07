@@ -44,6 +44,11 @@ class AudioVideoCallParticipant {
   /// Whether this participant represents the local user.
   final bool isSelf;
 
+  /// Returns a copy with the given fields replaced.
+  ///
+  /// [hasAudio] takes an [AudioVideoCallParticipantHasAudio] rather than a
+  /// plain `bool?` so a caller can explicitly set it to `null` (`hasValue:
+  /// true, value: null`) instead of that meaning "leave unchanged".
   AudioVideoCallParticipant copyWith({
     String? participantId,
     String? did,

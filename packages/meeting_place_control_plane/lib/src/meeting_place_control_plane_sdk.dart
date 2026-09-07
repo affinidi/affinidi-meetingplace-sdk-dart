@@ -143,6 +143,7 @@ class MeetingPlaceControlPlaneSDK {
   }
 
   /// Private method that initialises the ControlPlaneApiClient.
+  ///
   /// This is invoked by a public method within the
   /// [MeetingPlaceControlPlaneSDK].
   Future<void> _init() async {

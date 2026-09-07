@@ -24,6 +24,7 @@ abstract class RegisterDeviceInput
   // enum platformTypeEnum {  DIDCOMM,  PUSH_NOTIFICATION,  NONE,  };
 
   /// A unique, platform-specific device token used to register the device.
+  ///
   /// Maximum length of 2048 characters.
   @BuiltValueField(wireName: r'deviceToken')
   String get deviceToken;

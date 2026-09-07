@@ -1,5 +1,6 @@
 /// Parameters for `MeetingPlaceCredentialsSDK.storeVrc`.
 class StoreVrcRequest {
+  /// Creates a [StoreVrcRequest] instance.
   const StoreVrcRequest({
     required this.vcBlob,
     required this.referenceId,

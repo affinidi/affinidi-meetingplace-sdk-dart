@@ -2,6 +2,7 @@ import '../model/vrc_exchange_state.dart';
 
 /// Parameters for `MeetingPlaceCredentialsSDK.handleReceivedVrc`.
 class ReceivedVrcParams {
+  /// Creates a [ReceivedVrcParams] instance.
   const ReceivedVrcParams({
     required this.permanentChannelDid,
     required this.vcBlob,

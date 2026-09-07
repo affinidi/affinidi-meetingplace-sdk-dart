@@ -16,8 +16,10 @@ final class LivenessDeclinedPayload {
     return const LivenessDeclinedPayload();
   }
 
+  /// Creates a liveness declined payload.
   const LivenessDeclinedPayload();
 
+  /// Serializes the payload into the DIDComm attachment JSON shape.
   Map<String, dynamic> toJson() => {
     LivenessZkpProtocol.typeJsonKey:
         LivenessZkpProtocol.livenessDeclinedPayloadType,

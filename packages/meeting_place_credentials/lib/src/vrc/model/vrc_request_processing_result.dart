@@ -1,6 +1,7 @@
 /// Result of processing a received VRC issuance request in the
 /// credentials SDK.
 sealed class VrcRequestProcessingResult {
+  /// Base constructor for [VrcRequestProcessingResult] subclasses.
   const VrcRequestProcessingResult();
 }
 

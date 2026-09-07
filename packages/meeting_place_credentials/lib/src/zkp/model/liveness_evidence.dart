@@ -3,6 +3,7 @@
 /// Any liveness vendor (AWS Rekognition, Azure Face API, Onfido, etc.) should
 /// map its response into this model before issuing a liveness VC.
 class LivenessEvidence {
+  /// Creates liveness evidence for a completed check.
   const LivenessEvidence({
     required this.providerId,
     required this.providerTransactionId,

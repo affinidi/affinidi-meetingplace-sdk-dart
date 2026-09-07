@@ -1,5 +1,6 @@
 /// Parameters for `MeetingPlaceCredentialsSDK.sendVrc`.
 class SendVrcRequest {
+  /// Creates a [SendVrcRequest] instance.
   const SendVrcRequest({
     required this.channelDid,
     required this.issuerDid,

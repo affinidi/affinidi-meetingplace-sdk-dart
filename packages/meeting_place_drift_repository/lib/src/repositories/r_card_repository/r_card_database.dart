@@ -46,6 +46,7 @@ class RCardDatabase extends _$RCardDatabase {
   @visibleForTesting
   RCardDatabase.forTesting(DatabaseConnection super.connection);
 
+  /// The current schema version of the database.
   @override
   int get schemaVersion => 1;
 }
@@ -80,6 +81,7 @@ class ReceivedRCards extends Table {
   /// UTC timestamp recording when the R-Card was first received locally.
   DateTimeColumn get receivedAt => dateTime()();
 
+  /// Primary key for the received R-Cards table.
   @override
   Set<Column> get primaryKey => {subjectDid};
 }

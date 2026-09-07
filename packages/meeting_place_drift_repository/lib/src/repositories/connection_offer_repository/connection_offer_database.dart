@@ -216,6 +216,7 @@ class ConnectionOffers extends Table {
   /// VRC score of the offer owner.
   IntColumn get score => integer().nullable()();
 
+  /// Primary key for the connection offers table.
   @override
   Set<Column> get primaryKey => {id};
 }

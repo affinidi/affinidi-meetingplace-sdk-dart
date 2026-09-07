@@ -57,9 +57,11 @@ class GroupsDatabase extends _$GroupsDatabase {
   @visibleForTesting
   GroupsDatabase.forTesting(DatabaseConnection super.connection);
 
+  /// The current schema version of the database.
   @override
   int get schemaVersion => 3;
 
+  /// Migration strategy to handle database version upgrades.
   @override
   MigrationStrategy get migration => MigrationStrategy(
     beforeOpen: (details) async {
@@ -155,6 +157,7 @@ class MeetingPlaceGroups extends Table {
   /// The DID of the owner of the group.
   TextColumn get ownerDid => text().nullable()();
 
+  /// Primary key for the meeting place groups table.
   @override
   Set<Column> get primaryKey => {id};
 }

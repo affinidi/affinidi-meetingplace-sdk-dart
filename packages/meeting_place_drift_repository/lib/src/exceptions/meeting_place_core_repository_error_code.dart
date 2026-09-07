@@ -29,6 +29,10 @@ enum MeetingPlaceCoreRepositoryErrorCode {
   /// Database encryption is not available on this platform build.
   encryptionNotAvailable('encryption_not_available');
 
+  /// Constructs a [MeetingPlaceCoreRepositoryErrorCode] with its stored
+  /// [value].
   const MeetingPlaceCoreRepositoryErrorCode(this.value);
+
+  /// The string value used to identify this error code.
   final String value;
 }

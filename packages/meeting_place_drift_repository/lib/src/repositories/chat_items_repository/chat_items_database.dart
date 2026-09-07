@@ -72,9 +72,11 @@ class ChatItemsDatabase extends _$ChatItemsDatabase {
   @visibleForTesting
   ChatItemsDatabase.forTesting(DatabaseConnection super.connection);
 
+  /// The current schema version of the database.
   @override
   int get schemaVersion => 4;
 
+  /// Migration strategy to handle database version upgrades.
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onUpgrade: (m, from, to) async {
@@ -477,11 +479,16 @@ class _UriConverter extends TypeConverter<Uri, String> {
   }
 }
 
+/// Stores the last synced transport event per chat, used to resume pagination.
 @DataClassName('ChatSyncMarker')
 class ChatSyncMarkers extends Table {
+  /// The chat ID this sync marker is associated with.
   TextColumn get chatId => text()();
+
+  /// The transport event ID of the last synced item for this chat.
   TextColumn get eventId => text()();
 
+  /// Table primary key definition.
   @override
   Set<Column> get primaryKey => {chatId};
 }

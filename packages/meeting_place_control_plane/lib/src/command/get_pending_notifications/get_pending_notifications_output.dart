@@ -6,5 +6,7 @@ import 'get_pending_notifications.dart' show GetPendingNotificationsCommand;
 class GetPendingNotificationsCommandOutput {
   /// Creates a new instance of [GetPendingNotificationsCommandOutput].
   GetPendingNotificationsCommandOutput({required this.events});
+
+  /// The events delivered by the pending notifications.
   final List<ControlPlaneEvent> events;
 }

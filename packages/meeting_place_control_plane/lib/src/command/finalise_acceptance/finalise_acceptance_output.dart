@@ -9,6 +9,9 @@ class FinaliseAcceptanceOutput {
     required this.notificationToken,
   });
 
+  /// Whether the acceptance was successfully finalised.
   final bool success;
+
+  /// The token identifying the notification channel for this acceptance.
   final String notificationToken;
 }

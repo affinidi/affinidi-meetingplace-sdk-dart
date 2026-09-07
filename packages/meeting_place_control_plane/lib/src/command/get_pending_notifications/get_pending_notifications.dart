@@ -10,5 +10,6 @@ class GetPendingNotificationsCommand
   /// Creates a new instance of [GetPendingNotificationsCommand].
   GetPendingNotificationsCommand({required this.device});
 
+  /// The device to fetch pending notifications for.
   final Device device;
 }

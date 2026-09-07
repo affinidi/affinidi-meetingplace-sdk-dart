@@ -5,5 +5,7 @@ import 'register_device.dart' show RegisterDeviceCommand;
 class RegisterDeviceCommandOutput {
   /// Creates a new instance of [RegisterDeviceCommandOutput].
   RegisterDeviceCommandOutput({required this.success});
+
+  /// Whether the device was registered successfully.
   final bool success;
 }

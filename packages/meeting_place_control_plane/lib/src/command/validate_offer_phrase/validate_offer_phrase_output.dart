@@ -5,5 +5,7 @@ import 'validate_offer_phrase.dart' show ValidateOfferPhraseCommand;
 class ValidateOfferPhraseCommandOutput {
   /// Creates a new instance of [ValidateOfferPhraseCommandOutput].
   ValidateOfferPhraseCommandOutput({required this.isAvailable});
+
+  /// Whether the mnemonic phrase is not already in use.
   final bool isAvailable;
 }

@@ -3,7 +3,10 @@ import 'package:uuid/uuid.dart';
 
 import '../control_plane_protocol.dart';
 
+/// A DIDComm plaintext message carrying an authentication challenge that
+/// the recipient must sign to prove control of their DID.
 class MeetingplaceAuthChallenge extends PlainTextMessage {
+  /// Creates a new instance of [MeetingplaceAuthChallenge].
   MeetingplaceAuthChallenge({
     required super.id,
     required super.from,
@@ -18,6 +21,8 @@ class MeetingplaceAuthChallenge extends PlainTextMessage {
          expiresTime: expiresTime,
        );
 
+  /// Creates a [MeetingplaceAuthChallenge] with a freshly generated id and
+  /// a creation time of now, expiring 60 seconds later.
   factory MeetingplaceAuthChallenge.create({
     required String from,
     required List<String> to,

@@ -5,5 +5,7 @@ import 'group_deregister_member.dart' show GroupDeregisterMemberCommand;
 class GroupDeregisterMemberCommandOutput {
   /// Creates a new instance of [GroupDeregisterMemberCommandOutput].
   GroupDeregisterMemberCommandOutput({required this.success});
+
+  /// Whether the member was successfully deregistered from the group.
   final bool success;
 }

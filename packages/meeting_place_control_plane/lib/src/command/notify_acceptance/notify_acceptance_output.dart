@@ -5,5 +5,7 @@ import 'notify_acceptance.dart' show NotifyAcceptanceCommand;
 class NotifyAcceptanceCommandOutput {
   /// Creates a new instance of [NotifyAcceptanceCommandOutput].
   NotifyAcceptanceCommandOutput({required this.success});
+
+  /// Whether the acceptance notification was sent successfully.
   final bool success;
 }

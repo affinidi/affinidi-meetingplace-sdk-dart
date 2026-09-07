@@ -5,5 +5,7 @@ import 'group_notify_channel.dart' show GroupNotifyChannelCommand;
 class GroupNotifyChannelCommandOutput {
   /// Creates a new instance of [GroupNotifyChannelCommandOutput].
   GroupNotifyChannelCommandOutput({required this.success});
+
+  /// Whether the group notification was sent successfully.
   final bool success;
 }

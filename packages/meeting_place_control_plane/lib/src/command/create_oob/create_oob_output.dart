@@ -9,7 +9,13 @@ class CreateOobCommandOutput {
     required this.oobUrl,
     required this.mediatorDid,
   });
+
+  /// The identifier of the created out-of-band invitation.
   final String oobId;
+
+  /// The URL through which the out-of-band invitation can be retrieved.
   final String oobUrl;
+
+  /// The DID of the mediator the invitation is published through.
   final String mediatorDid;
 }

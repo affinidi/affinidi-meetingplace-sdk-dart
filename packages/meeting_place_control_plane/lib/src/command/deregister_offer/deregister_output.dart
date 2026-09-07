@@ -5,5 +5,7 @@ import 'deregister_offer.dart' show DeregisterOfferCommand;
 class DeregisterOfferCommandOutput {
   /// Creates a new instance of [DeregisterOfferCommandOutput].
   DeregisterOfferCommandOutput({required this.success});
+
+  /// Whether the offer was successfully deregistered.
   final bool success;
 }

@@ -12,6 +12,9 @@ class CreateOobCommand extends DiscoveryCommand<CreateOobCommandOutput> {
     required this.mediatorDid,
   });
 
+  /// The out-of-band invitation message to publish.
   final PlainTextMessage oobInvitationMessage;
+
+  /// The DID of the mediator the invitation is published through.
   final String mediatorDid;
 }

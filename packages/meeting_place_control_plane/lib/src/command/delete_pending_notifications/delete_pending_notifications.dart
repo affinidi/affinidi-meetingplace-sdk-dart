@@ -12,6 +12,10 @@ class DeletePendingNotificationsCommand
     required this.device,
     required this.notificationIds,
   });
+
+  /// The device the pending notifications belong to.
   final Device device;
+
+  /// The identifiers of the pending notifications to delete.
   final List<String> notificationIds;
 }

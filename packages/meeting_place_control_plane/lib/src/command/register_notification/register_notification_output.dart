@@ -5,6 +5,11 @@ import 'register_notification.dart' show RegisterNotificationCommand;
 class RegisterNotificationOutput {
   /// Creates a new instance of [RegisterNotificationOutput].
   RegisterNotificationOutput({this.notificationToken, this.error});
+
+  /// The token identifying the registered notification channel, when
+  /// registration succeeds.
   final String? notificationToken;
+
+  /// A description of the error, when registration fails.
   final String? error;
 }

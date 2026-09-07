@@ -8,5 +8,7 @@ class DeletePendingNotificationsCommandOutput {
   DeletePendingNotificationsCommandOutput({
     this.deletedNotificationIds = const [],
   });
+
+  /// The identifiers of the notifications that were successfully deleted.
   final List<String> deletedNotificationIds;
 }

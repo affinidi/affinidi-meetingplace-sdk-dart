@@ -8,6 +8,10 @@ class GetOobCommandOutput {
     required this.invitationMessage,
     required this.mediatorDid,
   });
+
+  /// The retrieved out-of-band invitation message.
   final String invitationMessage;
+
+  /// The DID of the mediator the invitation is published through.
   final String mediatorDid;
 }

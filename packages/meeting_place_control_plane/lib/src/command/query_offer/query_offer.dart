@@ -6,5 +6,7 @@ import 'query_offer_output.dart';
 class QueryOfferCommand extends DiscoveryCommand<QueryOfferCommandOutput> {
   /// Creates a new instance of [QueryOfferCommand].
   QueryOfferCommand({required this.mnemonic});
+
+  /// The mnemonic phrase identifying the offer to query.
   final String mnemonic;
 }

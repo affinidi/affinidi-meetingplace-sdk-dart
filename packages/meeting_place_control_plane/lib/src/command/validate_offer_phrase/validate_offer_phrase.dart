@@ -7,5 +7,7 @@ class ValidateOfferPhraseCommand
     extends DiscoveryCommand<ValidateOfferPhraseCommandOutput> {
   /// Creates a new instance of [ValidateOfferPhraseCommand].
   ValidateOfferPhraseCommand({required this.mnemonic});
+
+  /// The mnemonic phrase to validate for availability.
   final String mnemonic;
 }

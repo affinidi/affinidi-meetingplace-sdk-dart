@@ -19,7 +19,14 @@ class UploadDidWebDocumentCommand
     required this.proof,
   });
 
+  /// The DID Document JSON map, with an `id` field set to a valid
+  /// `did:web` DID.
   final Map<String, dynamic> didDocument;
+
+  /// A compact JWS with an embedded payload, signed by the `controlDid` key.
   final DidWebProof controlProof;
+
+  /// A compact JWS with an embedded payload, signed by the `#auth` key
+  /// inside [didDocument].
   final DidWebProof proof;
 }

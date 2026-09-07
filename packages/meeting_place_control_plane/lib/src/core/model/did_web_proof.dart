@@ -70,6 +70,7 @@ class DidWebProof {
   /// (base64url, no padding).
   final String jws;
 
+  /// Converts this [DidWebProof] into a JSON map.
   Map<String, dynamic> toJson() {
     return {
       'type': type,

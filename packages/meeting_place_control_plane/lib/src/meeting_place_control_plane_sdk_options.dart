@@ -1,5 +1,6 @@
 /// Control Plane SDK configuration settings.
 class MeetingPlaceControlPlaneSDKOptions {
+  /// Creates a new instance of [MeetingPlaceControlPlaneSDKOptions].
   const MeetingPlaceControlPlaneSDKOptions({
     this.maxRetries = 3,
     this.maxRetriesDelay = const Duration(milliseconds: 2000),

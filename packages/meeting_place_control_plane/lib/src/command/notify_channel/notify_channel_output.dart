@@ -5,5 +5,7 @@ import 'notify_channel.dart' show NotifyChannelCommand;
 class NotifyChannelCommandOutput {
   /// Creates a new instance of [NotifyChannelCommandOutput].
   NotifyChannelCommandOutput({required this.success});
+
+  /// Whether the channel notification was sent successfully.
   final bool success;
 }

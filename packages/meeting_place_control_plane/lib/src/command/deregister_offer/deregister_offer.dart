@@ -7,6 +7,10 @@ class DeregisterOfferCommand
     extends DiscoveryCommand<DeregisterOfferCommandOutput> {
   /// Creates a new instance of [DeregisterOfferCommand].
   DeregisterOfferCommand({required this.offerLink, required this.mnemonic});
+
+  /// The link of the offer to deregister.
   final String offerLink;
+
+  /// The mnemonic identifier of the offer to deregister.
   final String mnemonic;
 }

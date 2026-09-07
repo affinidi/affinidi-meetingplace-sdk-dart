@@ -11,6 +11,10 @@ class RegisterDeviceCommand
     required this.deviceToken,
     required this.platformType,
   });
+
+  /// The device's push notification token.
   final String deviceToken;
+
+  /// The platform the device runs on.
   final PlatformType platformType;
 }

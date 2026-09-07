@@ -15,10 +15,22 @@ class GroupAddMemberCommand
     required this.offerLink,
     this.contactCard,
   });
+
+  /// The mnemonic identifier of the group offer being accepted.
   final String mnemonic;
+
+  /// The identifier of the group to add the member to.
   final String groupId;
+
+  /// The DID of the member being added to the group.
   final String memberDid;
+
+  /// The DID used to accept the offer on behalf of the new member.
   final String acceptOfferDid;
+
+  /// The link of the group offer being accepted.
   final String offerLink;
+
+  /// The contact card sharing the identity of the new member, if any.
   final ContactCard? contactCard;
 }

@@ -46,6 +46,8 @@ import 'meeting_place_control_plane_sdk_error_code.dart';
 import 'meeting_place_control_plane_sdk_exception.dart';
 import 'meeting_place_control_plane_sdk_options.dart';
 
+/// Thrown internally when [MeetingPlaceControlPlaneSDK.device] is accessed
+/// before a [Device] has been set on the SDK instance.
 class MissingDeviceException implements Exception {}
 
 /// The **MeetingPlaceControlPlaneSDK** provides the libraries to enable the
@@ -82,12 +84,23 @@ class MeetingPlaceControlPlaneSDK {
     );
   }
 
+  /// The name used to identify this class when no custom `logger` is
+  /// supplied to the constructor.
   static const String className = 'MeetingPlaceControlPlaneSDK';
 
+  /// The DID manager used to resolve and sign with the local DIDs.
   final DidManager didManager;
+
+  /// The control plane API's DID.
   final String controlPlaneDid;
+
+  /// The mediator's DID used when registering and creating offers.
   String mediatorDid;
+
+  /// The SDK configuration used for retries, timeouts, and other settings.
   final MeetingPlaceControlPlaneSDKOptions controlPlaneSDKConfig;
+
+  /// The DID resolver used to resolve DIDs encountered by the SDK.
   final DidResolver didResolver;
   final MeetingPlaceControlPlaneSDKLogger _logger;
 
@@ -97,6 +110,9 @@ class MeetingPlaceControlPlaneSDK {
 
   Device? _device;
   Future<void>? _initializing;
+
+  /// Whether the SDK has completed initialisation, including authentication
+  /// with the control plane API.
   bool isInitialized = false;
 
   /// Sets the [device] variable of the [MeetingPlaceControlPlaneSDK]

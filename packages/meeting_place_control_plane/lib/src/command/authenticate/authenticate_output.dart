@@ -6,5 +6,7 @@ import 'authenticate.dart' show AuthenticateCommand;
 class AuthenticateCommandOutput {
   /// Creates a new instance of [AuthenticateCommandOutput].
   AuthenticateCommandOutput({required this.credentials});
+
+  /// The credentials obtained from a successful authentication.
   final AuthCredentials credentials;
 }

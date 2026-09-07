@@ -8,5 +8,7 @@ class DeregisterNotificationCommand
     extends DiscoveryCommand<DeregisterNotificationOutput> {
   /// Creates a new instance of [DeregisterNotificationCommand].
   DeregisterNotificationCommand({required this.notificationToken});
+
+  /// The push notification token to deregister.
   final String notificationToken;
 }

@@ -7,5 +7,6 @@ class UploadDidWebDocumentCommandOutput {
   /// Creates a new instance of [UploadDidWebDocumentCommandOutput].
   UploadDidWebDocumentCommandOutput({required this.record});
 
+  /// The record describing where the uploaded DID Document is hosted.
   final DidDocumentHostingRecord record;
 }

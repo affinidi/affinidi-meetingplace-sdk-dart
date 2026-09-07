@@ -5,5 +5,7 @@ import 'group_delete.dart' show GroupDeleteCommand;
 class GroupDeleteCommandOutput {
   /// Creates a new instance of [GroupDeleteCommandOutput].
   GroupDeleteCommandOutput({required this.success});
+
+  /// Whether the group was successfully deleted.
   final bool success;
 }

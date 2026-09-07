@@ -626,7 +626,7 @@ class MediatorService {
   }
 
   String _getCacheKey(DidDocument mediatorDidDocument, String did) {
-    final mediatorDidDocumentHash = md5
+    final mediatorDidDocumentHash = sha256
         .convert(utf8.encode(jsonEncode(mediatorDidDocument)))
         .toString();
     return '$mediatorDidDocumentHash-$did';

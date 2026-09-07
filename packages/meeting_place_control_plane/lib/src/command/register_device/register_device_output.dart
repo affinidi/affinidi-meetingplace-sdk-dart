@@ -1,5 +1,8 @@
 import 'register_device.dart' show RegisterDeviceCommand;
 
+/// The result returned when a device is registered.
+typedef RegisterDeviceResult = RegisterDeviceCommandOutput;
+
 /// Model that represents the output data returned from a successful execution
 /// of [RegisterDeviceCommand] operation.
 class RegisterDeviceCommandOutput {

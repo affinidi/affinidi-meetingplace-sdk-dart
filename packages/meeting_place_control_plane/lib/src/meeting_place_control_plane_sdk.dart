@@ -39,6 +39,8 @@ import 'constants/sdk_constants.dart';
 import 'core/command/command.dart';
 import 'core/command/command_dispatcher.dart';
 import 'core/device/device.dart';
+import 'core/device/device_platform.dart';
+import 'core/model/did_web_proof.dart';
 import 'core/offer_type.dart';
 import 'core/protocol/contact_card/contact_card.dart';
 import 'core/protocol/transport.dart';
@@ -555,6 +557,50 @@ class MeetingPlaceControlPlaneSDK {
   Future<GetDirectConnectionInvitationResult> getDirectConnectionInvitation({
     required String oobId,
   }) => execute(GetOobCommand(oobId: oobId));
+
+  /// Registers a device to receive push notifications.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.registerDeviceGeneric] or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when registration
+  /// fails.
+  Future<RegisterDeviceResult> registerDevice({
+    required String deviceToken,
+    required PlatformType platformType,
+  }) => execute(
+    RegisterDeviceCommand(deviceToken: deviceToken, platformType: platformType),
+  );
+
+  /// Gets a Matrix login token for [homeserver].
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.matrixTokenInvalidResponse],
+  /// [MeetingPlaceControlPlaneSDKErrorCode.matrixTokenGeneric], or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when retrieval fails.
+  Future<GetMatrixTokenResult> getMatrixToken({
+    required DidManager didManager,
+    required Uri homeserver,
+  }) => execute(
+    MatrixTokenCommand(didManager: didManager, homeserver: homeserver),
+  );
+
+  /// Uploads a did:web DID Document and its proofs.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with a
+  /// [MeetingPlaceControlPlaneSDKErrorCode] of
+  /// `uploadDidWebDocumentAlreadyRegistered`, `uploadDidWebDocumentGeneric`,
+  /// or `networkError` when upload fails.
+  Future<UploadDidWebDocumentResult> uploadDidWebDocument({
+    required Map<String, dynamic> didDocument,
+    required DidWebProof controlProof,
+    required DidWebProof proof,
+  }) => execute(
+    UploadDidWebDocumentCommand(
+      didDocument: didDocument,
+      controlProof: controlProof,
+      proof: proof,
+    ),
+  );
 
   /// Private method that initialises the ControlPlaneApiClient.
   ///

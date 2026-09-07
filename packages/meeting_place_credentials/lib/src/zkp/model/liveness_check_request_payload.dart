@@ -8,6 +8,8 @@ final class LivenessCheckRequestPayload {
   /// Parses and validates a decoded JSON map from a liveness-request.
   ///
   /// Throws [FormatException] if [LivenessZkpProtocol.typeJsonKey] is missing
+  /// or invalid, or if [LivenessZkpProtocol.challengeNonceJsonKey] is missing
+  /// or not a valid 64-character hex string.
   factory LivenessCheckRequestPayload.fromJson(Map<String, dynamic> json) {
     final type = json[LivenessZkpProtocol.typeJsonKey];
     if (type != LivenessZkpProtocol.livenessRequestPayloadType) {

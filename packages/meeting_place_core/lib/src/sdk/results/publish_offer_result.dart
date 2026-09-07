@@ -2,6 +2,7 @@ import 'package:ssi/ssi.dart';
 
 import '../../entity/connection_offer.dart';
 
+/// The result of publishing a connection offer.
 class PublishOfferResult<T extends ConnectionOffer> {
   PublishOfferResult({
     required this.connectionOffer,

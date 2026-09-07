@@ -1,5 +1,6 @@
 /// Parameters for `MeetingPlaceCoreSDK.removeMemberFromGroup`.
 class RemoveMemberFromGroupRequest {
+  /// Creates a [RemoveMemberFromGroupRequest].
   const RemoveMemberFromGroupRequest({
     required this.groupId,
     required this.memberDid,

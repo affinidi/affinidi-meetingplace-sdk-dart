@@ -5,6 +5,7 @@ import '../../messaging/outgoing_message.dart' show ChannelNotification;
 
 /// Parameters for `MeetingPlaceCoreSDK.sendMediaMessage`.
 class SendMediaMessageRequest {
+  /// Creates a [SendMediaMessageRequest].
   const SendMediaMessageRequest({
     required this.channel,
     required this.fileBytes,

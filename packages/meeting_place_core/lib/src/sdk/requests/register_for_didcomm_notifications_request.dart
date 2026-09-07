@@ -1,5 +1,6 @@
 /// Parameters for `MeetingPlaceCoreSDK.registerForDIDCommNotifications`.
 class RegisterForDidcommNotificationsRequest {
+  /// Creates a [RegisterForDidcommNotificationsRequest].
   const RegisterForDidcommNotificationsRequest({
     this.mediatorDid,
     this.recipientDid,

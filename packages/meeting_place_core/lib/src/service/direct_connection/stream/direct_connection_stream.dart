@@ -2,10 +2,16 @@ import 'dart:async';
 
 import '../../../../meeting_place_core.dart';
 
+/// Callback invoked when a [DirectConnectionStream] is disposed.
 typedef OnDisposeCallback = FutureOr<void> Function();
 
+/// A [CoreSDKStreamSubscription] of [DirectConnectionStreamData] events.
+///
+/// Buffers events pushed via [pushEvent] until a listener attaches via
+/// [listen], then flushes them in order.
 class DirectConnectionStream
     implements CoreSDKStreamSubscription<DirectConnectionStreamData, void> {
+  /// Creates a [DirectConnectionStream].
   DirectConnectionStream({
     OnDisposeCallback? onDispose,
     required MeetingPlaceCoreSDKLogger logger,
@@ -57,6 +63,8 @@ class DirectConnectionStream
     return streamSubscription;
   }
 
+  /// Pushes [data] to the stream, or buffers it if no listener is attached
+  /// yet, or drops it if the stream is already closed.
   void pushEvent(DirectConnectionStreamData data) {
     if (_controller.isClosed) {
       _logger.info('Event skipped due to closed stream');

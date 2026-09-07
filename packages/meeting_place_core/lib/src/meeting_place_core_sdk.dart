@@ -188,6 +188,8 @@ class MeetingPlaceCoreSDK {
        _channelAttachmentsController = channelAttachmentsController,
        _vdipClient = vdipClient;
 
+  /// The wallet used to manage the cryptographic keys backing this SDK
+  /// instance's DIDs.
   final Wallet wallet;
   final RepositoryConfig _repositoryConfig;
   final MeetingPlaceMediatorSDK _mediatorSDK;
@@ -1309,8 +1311,12 @@ class MeetingPlaceCoreSDK {
     return _sdkErrorHandler.handleError(operation);
   }
 
+  /// The channel transport this SDK instance was configured with.
   MeetingPlaceTransport get channelTransport => _channelTransport;
 
+  /// Updates the sync marker for [sdk.UpdateMessageSyncMarkerRequest.channel]
+  /// to anchor future history/sync reads at
+  /// [sdk.UpdateMessageSyncMarkerRequest.eventId].
   Future<void> updateMessageSyncMarker(
     sdk.UpdateMessageSyncMarkerRequest request,
   ) => _withSdkExceptionHandling(
@@ -1320,6 +1326,8 @@ class MeetingPlaceCoreSDK {
     ),
   );
 
+  /// Dispatches [notification] to notify a channel peer or group about
+  /// activity out-of-band.
   Future<void> notifyChannel(ChannelNotification notification) =>
       _withSdkExceptionHandling(
         () => _messageService.notifyChannel(notification),

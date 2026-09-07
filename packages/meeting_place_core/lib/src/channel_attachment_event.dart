@@ -5,6 +5,7 @@ import 'entity/channel.dart';
 /// Emitted when the remote party delivers DIDComm attachments during
 /// channel inauguration.
 class ChannelAttachmentEvent {
+  /// Creates a [ChannelAttachmentEvent].
   ChannelAttachmentEvent({required this.channel, required this.attachments});
 
   /// The channel through which the attachments arrived.

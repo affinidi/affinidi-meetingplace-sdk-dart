@@ -2,6 +2,7 @@ import '../../entity/channel.dart';
 
 /// Parameters for `MeetingPlaceCoreSDK.updateMessageSyncMarker`.
 class UpdateMessageSyncMarkerRequest {
+  /// Creates an [UpdateMessageSyncMarkerRequest].
   const UpdateMessageSyncMarkerRequest({
     required this.channel,
     required this.eventId,

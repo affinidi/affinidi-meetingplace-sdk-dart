@@ -6,7 +6,11 @@ import '../../contact_card/contact_card_helper.dart';
 import '../../meeting_place_protocol.dart';
 import 'invitation_acceptance_group_body.dart';
 
+/// An invitation-acceptance-group DIDComm message, sent to accept an
+/// invitation to join a group.
 class InvitationAcceptanceGroup {
+  /// Creates a new [InvitationAcceptanceGroup] message with a generated
+  /// [id].
   factory InvitationAcceptanceGroup.create({
     required String from,
     required List<String> to,
@@ -24,6 +28,8 @@ class InvitationAcceptanceGroup {
     );
   }
 
+  /// Creates an [InvitationAcceptanceGroup] from a decoded
+  /// [PlainTextMessage].
   factory InvitationAcceptanceGroup.fromPlainTextMessage(
     PlainTextMessage message,
   ) {
@@ -45,6 +51,8 @@ class InvitationAcceptanceGroup {
     );
   }
 
+  /// Creates an [InvitationAcceptanceGroup] from its constituent message
+  /// fields.
   InvitationAcceptanceGroup({
     required this.id,
     required this.from,
@@ -55,14 +63,28 @@ class InvitationAcceptanceGroup {
     DateTime? createdTime,
   }) : createdTime = createdTime ?? DateTime.now().toUtc();
 
+  /// The DIDComm message id.
   final String id;
+
+  /// The DID of the sender.
   final String from;
+
+  /// The DIDs of the message recipients.
   final List<String> to;
+
+  /// The id of the thread this message replies to.
   final String parentThreadId;
+
+  /// The message body carrying the accepted group channel's DID.
   final InvitationAcceptanceGroupBody body;
+
+  /// The sender's contact card, if shared.
   final ContactCard? contactCard;
+
+  /// When this message was created.
   final DateTime createdTime;
 
+  /// Converts this message to a [PlainTextMessage] for transport.
   PlainTextMessage toPlainTextMessage() {
     return PlainTextMessage(
       id: id,

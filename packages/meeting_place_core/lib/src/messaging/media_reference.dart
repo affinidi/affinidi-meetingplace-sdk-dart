@@ -5,6 +5,7 @@
 /// event id; future transports (DIDComm with hosted storage, S3, etc.) will
 /// add their own reference shape without breaking the public surface.
 abstract class MediaReference {
+  /// Creates a [MediaReference].
   const MediaReference();
 
   /// Transport-assigned identifier used to retrieve the media bytes.

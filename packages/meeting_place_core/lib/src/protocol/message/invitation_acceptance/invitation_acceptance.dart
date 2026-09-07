@@ -6,7 +6,10 @@ import '../../contact_card/contact_card_helper.dart';
 import '../../protocol.dart';
 import 'invitation_acceptance_body.dart';
 
+/// An invitation-acceptance DIDComm message, sent to accept an invitation to
+/// connect.
 class InvitationAcceptance {
+  /// Creates a new [InvitationAcceptance] message with a generated [id].
   factory InvitationAcceptance.create({
     required String from,
     required List<String> to,
@@ -26,6 +29,7 @@ class InvitationAcceptance {
     );
   }
 
+  /// Creates an [InvitationAcceptance] from a decoded [PlainTextMessage].
   factory InvitationAcceptance.fromPlainTextMessage(PlainTextMessage message) {
     final parsed = parseMessageAttachments(message.attachments);
 
@@ -41,6 +45,7 @@ class InvitationAcceptance {
     );
   }
 
+  /// Creates an [InvitationAcceptance] from its constituent message fields.
   InvitationAcceptance({
     required this.id,
     required this.from,
@@ -52,15 +57,31 @@ class InvitationAcceptance {
     DateTime? createdTime,
   }) : createdTime = createdTime ?? DateTime.now().toUtc();
 
+  /// The DIDComm message id.
   final String id;
+
+  /// The DID of the sender.
   final String from;
+
+  /// The DIDs of the message recipients.
   final List<String> to;
+
+  /// The id of the thread this message replies to, if any.
   final String? parentThreadId;
+
+  /// The message body carrying the accepted channel's DID.
   final InvitationAcceptanceBody body;
+
+  /// The sender's contact card, if shared.
   final ContactCard? contactCard;
+
+  /// Attachments carried alongside this message.
   final List<Attachment>? attachments;
+
+  /// When this message was created.
   final DateTime createdTime;
 
+  /// Converts this message to a [PlainTextMessage] for transport.
   PlainTextMessage toPlainTextMessage() {
     final attachmentsList = <Attachment>[];
     if (contactCard != null) {

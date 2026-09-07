@@ -18,7 +18,9 @@ typedef OnBuildAttachmentsCallback =
       Future<DidManager> Function(String did) getDidManager,
     );
 
+/// Tunable configuration for a `MeetingPlaceCoreSDK` instance.
 class MeetingPlaceCoreSDKOptions {
+  /// Creates [MeetingPlaceCoreSDKOptions].
   const MeetingPlaceCoreSDKOptions({
     this.secondsBeforeExpiryReauthenticate = 60,
     this.debounceControlPlaneEvents = const Duration(milliseconds: 200),

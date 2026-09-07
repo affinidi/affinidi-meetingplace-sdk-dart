@@ -20,6 +20,7 @@ import 'vdip_client_exception.dart';
 /// Obtain an instance via `MeetingPlaceCoreSDK.vdip` — do not construct
 /// directly.
 class VdipClient {
+  /// Creates a [VdipClient].
   VdipClient({
     required MessageService messageService,
     required ChannelService channelService,

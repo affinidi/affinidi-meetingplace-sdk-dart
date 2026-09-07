@@ -4,6 +4,7 @@ import '../../protocol/contact_card/contact_card.dart';
 
 /// Parameters for `MeetingPlaceCoreSDK.acceptDirectConnection`.
 class AcceptDirectConnectionRequest {
+  /// Creates an [AcceptDirectConnectionRequest].
   const AcceptDirectConnectionRequest({
     required this.directConnectionUrl,
     required this.contactCard,

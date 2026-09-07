@@ -2,6 +2,7 @@ import '../../entity/connection_offer.dart';
 
 /// Parameters for `MeetingPlaceCoreSDK.sendOutreachInvitation`.
 class SendOutreachInvitationRequest {
+  /// Creates a [SendOutreachInvitationRequest].
   const SendOutreachInvitationRequest({
     required this.outreachConnectionOffer,
     required this.inviteToConnectionOffer,

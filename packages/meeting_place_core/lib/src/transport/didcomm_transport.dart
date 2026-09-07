@@ -14,7 +14,13 @@ import '../service/mediator/mediator_message.dart';
 import '../service/mediator/mediator_service.dart';
 import '../service/message/message_service.dart';
 
+/// DIDComm-specific messaging operations that don't have a channel-level
+/// analogue on `MeetingPlaceTransport` and so aren't exposed through it.
+///
+/// This includes mediator-specific concerns such as queueing/fetching
+/// messages and subscribing to a mediator stream.
 class DIDCommTransport {
+  /// Creates a [DIDCommTransport].
   DIDCommTransport({
     required MeetingPlaceMediatorSDK mediatorSDK,
     required MessageService messageService,
@@ -42,10 +48,14 @@ class DIDCommTransport {
   String _defaultMediatorDid;
   final List<MessageWrappingType> _expectedMessageWrappingTypes;
 
+  /// Updates the mediator DID used by default when a call doesn't specify
+  /// one explicitly.
   set defaultMediatorDid(String value) => _defaultMediatorDid = value;
 
+  /// The underlying mediator SDK instance.
   MeetingPlaceMediatorSDK get mediator => _mediatorSDK;
 
+  /// Sends [message] directly to [recipientDid] via the mediator.
   Future<void> sendMessage(
     PlainTextMessage message, {
     required String senderDid,
@@ -67,6 +77,7 @@ class DIDCommTransport {
     );
   }
 
+  /// Queues [message] with the mediator for later delivery to [recipientDid].
   Future<void> queueMessage(
     PlainTextMessage message, {
     required String senderDid,
@@ -91,6 +102,7 @@ class DIDCommTransport {
     });
   }
 
+  /// Fetches queued messages for [did] from the mediator.
   Future<List<MediatorMessage>> fetchMessages({
     required String did,
     String? mediatorDid,
@@ -111,6 +123,7 @@ class DIDCommTransport {
     });
   }
 
+  /// Deletes the messages identified by [messageHashes] from the mediator.
   Future<void> deleteMessages({
     required String did,
     String? mediatorDid,
@@ -126,6 +139,8 @@ class DIDCommTransport {
     });
   }
 
+  /// Subscribes to the live stream of incoming messages for [did] from the
+  /// mediator.
   Future<
     CoreSDKStreamSubscription<MediatorMessage, MediatorStreamProcessingResult>
   >

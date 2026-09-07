@@ -1,5 +1,6 @@
 /// Transport-agnostic representation of a channel event.
 class TransportEvent {
+  /// Creates a [TransportEvent].
   const TransportEvent({
     required this.id,
     required this.type,

@@ -5,7 +5,9 @@ import '../meeting_place_core_sdk_options.dart';
 
 export '../meeting_place_core_sdk_options.dart' show OnBuildAttachmentsCallback;
 
+/// Configuration for `ControlPlaneEventHandlerManager`.
 class ControlPlaneEventHandlerManagerOptions {
+  /// Creates [ControlPlaneEventHandlerManagerOptions].
   const ControlPlaneEventHandlerManagerOptions({
     this.maxRetries = 3,
     this.maxRetriesDelay = const Duration(milliseconds: 5000),

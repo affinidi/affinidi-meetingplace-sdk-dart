@@ -69,6 +69,7 @@ class ConnectionOfferDatabase extends _$ConnectionOfferDatabase {
   int get schemaVersion => 4;
 
   /// Migration strategy applied before opening the database.
+  ///
   /// Ensures foreign key constraints are enforced.
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -207,6 +208,7 @@ class ConnectionOffers extends Table {
   TextColumn get externalRef => text().nullable()();
 
   /// Chat transport selected by the publisher for this offer.
+  ///
   /// Defaults to [ChannelTransport.didcomm] for offers persisted before
   /// per-offer transport selection existed.
   IntColumn get transport => integer()

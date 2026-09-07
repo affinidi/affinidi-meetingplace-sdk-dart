@@ -49,7 +49,7 @@ class ConnectionService {
     required DidResolver didResolver,
     required ChannelService channelService,
     required MeetingPlaceTransport channelTransport,
-    OnBuildAttachmentsCallback? onBuildAttachments,
+    OnBuildAttachmentsCallback? onBuildConnectionMessageAttachments,
     MeetingPlaceCoreSDKLogger? logger,
   }) : _connectionManager = connectionManager,
        _channelService = channelService,
@@ -61,7 +61,8 @@ class ConnectionService {
        _connectionOfferService = offerService,
        _didResolver = didResolver,
        _channelTransport = channelTransport,
-       _onBuildAttachments = onBuildAttachments,
+       _onBuildConnectionMessageAttachments =
+           onBuildConnectionMessageAttachments,
        _logger =
            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
 
@@ -77,7 +78,7 @@ class ConnectionService {
   final MeetingPlaceControlPlaneSDK _controlPlaneSDK;
   final DidResolver _didResolver;
   final MeetingPlaceTransport _channelTransport;
-  final OnBuildAttachmentsCallback? _onBuildAttachments;
+  final OnBuildAttachmentsCallback? _onBuildConnectionMessageAttachments;
   final MeetingPlaceCoreSDKLogger _logger;
 
   Future<(ConnectionOffer? connectionOffer, FindOfferErrorCodes? errorCode)>
@@ -564,7 +565,7 @@ class ConnectionService {
 
     _logger.info('Channel room created', name: methodName);
 
-    final builtAttachments = await _onBuildAttachments?.call(
+    final builtAttachments = await _onBuildConnectionMessageAttachments?.call(
       channel,
       (did) => _connectionManager.getDidManagerForDid(wallet, did),
     );

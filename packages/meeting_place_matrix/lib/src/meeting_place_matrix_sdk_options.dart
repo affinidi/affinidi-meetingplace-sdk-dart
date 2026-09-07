@@ -21,6 +21,6 @@ class MeetingPlaceMatrixSDKOptions extends MeetingPlaceCoreSDKOptions {
     super.signatureScheme,
     super.expectedMessageWrappingTypes,
     super.messageTypesForSequenceTracking,
-    super.onBuildAttachments,
+    super.onBuildConnectionMessageAttachments,
   });
 }

@@ -340,51 +340,56 @@ void main() {
       expect(received, isEmpty);
     });
 
-    test("attaches onBuildAttachments' result to the sent ChannelInauguration "
-        'message', () async {
-      final channel = createChannel(transport: ChannelTransport.didcomm);
-      final builtAttachment = Attachment(
-        id: 'built-attachment',
-        data: AttachmentData(base64: 'YnVpbHQ='),
-      );
+    test(
+      "attaches onBuildConnectionMessageAttachments' result to the sent ChannelInauguration "
+      'message',
+      () async {
+        final channel = createChannel(transport: ChannelTransport.didcomm);
+        final builtAttachment = Attachment(
+          id: 'built-attachment',
+          data: AttachmentData(base64: 'YnVpbHQ='),
+        );
 
-      final handlerWithHook = OfferFinalisedEventHandler(
-        wallet: mockWallet,
-        connectionOfferRepository: mockOfferRepo,
-        channelService: mockChannelService,
-        connectionManager: mockConnectionManager,
-        mediatorService: mockMediatorService,
-        controlPlaneSDK: mockControlPlaneSDK,
-        didResolver: mockDidResolver,
-        channelTransport: mockMeetingPlaceTransport,
-        identityService: mockIdentityService,
-        options: ControlPlaneEventHandlerManagerOptions(
-          onBuildAttachments: (ch, getDidManager) async => [builtAttachment],
-        ),
-        logger: DefaultMeetingPlaceCoreSDKLogger(),
-      );
+        final handlerWithHook = OfferFinalisedEventHandler(
+          wallet: mockWallet,
+          connectionOfferRepository: mockOfferRepo,
+          channelService: mockChannelService,
+          connectionManager: mockConnectionManager,
+          mediatorService: mockMediatorService,
+          controlPlaneSDK: mockControlPlaneSDK,
+          didResolver: mockDidResolver,
+          channelTransport: mockMeetingPlaceTransport,
+          identityService: mockIdentityService,
+          options: ControlPlaneEventHandlerManagerOptions(
+            onBuildConnectionMessageAttachments: (ch, getDidManager) async => [
+              builtAttachment,
+            ],
+          ),
+          logger: DefaultMeetingPlaceCoreSDKLogger(),
+        );
 
-      await handlerWithHook.processMessage(
-        createApprovalMessage(),
-        event: event,
-        connection: connectionOffer,
-        channel: channel,
-      );
+        await handlerWithHook.processMessage(
+          createApprovalMessage(),
+          event: event,
+          connection: connectionOffer,
+          channel: channel,
+        );
 
-      final captured = verify(
-        () => mockMediatorService.sendMessage(
-          captureAny(),
-          senderDidManager: any(named: 'senderDidManager'),
-          recipientDidDocument: any(named: 'recipientDidDocument'),
-          mediatorDid: any(named: 'mediatorDid'),
-        ),
-      ).captured;
+        final captured = verify(
+          () => mockMediatorService.sendMessage(
+            captureAny(),
+            senderDidManager: any(named: 'senderDidManager'),
+            recipientDidDocument: any(named: 'recipientDidDocument'),
+            mediatorDid: any(named: 'mediatorDid'),
+          ),
+        ).captured;
 
-      final sentMessage = captured.single as PlainTextMessage;
-      expect(
-        sentMessage.attachments?.map((a) => a.id),
-        contains(builtAttachment.id),
-      );
-    });
+        final sentMessage = captured.single as PlainTextMessage;
+        expect(
+          sentMessage.attachments?.map((a) => a.id),
+          contains(builtAttachment.id),
+        );
+      },
+    );
   });
 }

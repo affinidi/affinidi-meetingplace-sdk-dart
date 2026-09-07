@@ -34,7 +34,7 @@ class DirectConnectionService {
     required ControlPlaneEventStreamManager controlPlaneEventStreamManager,
     required MeetingPlaceCoreSDKLogger logger,
     void Function(Channel, List<Attachment>)? onAttachmentsReceived,
-    OnBuildAttachmentsCallback? onBuildAttachments,
+    OnBuildAttachmentsCallback? onBuildConnectionMessageAttachments,
   }) : _wallet = wallet,
        _mediatorService = mediatorService,
        _connectionService = connectionService,
@@ -44,7 +44,8 @@ class DirectConnectionService {
        _controlPlaneEventStreamManager = controlPlaneEventStreamManager,
        _controlPlaneSDK = controlPlaneSDK,
        _onAttachmentsReceived = onAttachmentsReceived,
-       _onBuildAttachments = onBuildAttachments,
+       _onBuildConnectionMessageAttachments =
+           onBuildConnectionMessageAttachments,
        _logger = logger;
 
   final Wallet _wallet;
@@ -56,7 +57,7 @@ class DirectConnectionService {
   final ControlPlaneEventStreamManager _controlPlaneEventStreamManager;
   final MeetingPlaceControlPlaneSDK _controlPlaneSDK;
   final void Function(Channel, List<Attachment>)? _onAttachmentsReceived;
-  final OnBuildAttachmentsCallback? _onBuildAttachments;
+  final OnBuildAttachmentsCallback? _onBuildConnectionMessageAttachments;
   final MeetingPlaceCoreSDKLogger _logger;
 
   static final String _logKey = 'DirectConnectionService';
@@ -257,7 +258,7 @@ class DirectConnectionService {
       return MediatorStreamProcessingResult(keepMessage: false);
     });
 
-    final builtAttachments = await _onBuildAttachments?.call(
+    final builtAttachments = await _onBuildConnectionMessageAttachments?.call(
       channel,
       (did) => _connectionManager.getDidManagerForDid(_wallet, did),
     );
@@ -313,10 +314,11 @@ class DirectConnectionService {
       transport: ChannelTransport.didcomm,
     );
 
-    final outgoingAttachments = await _onBuildAttachments?.call(
-      channel,
-      (did) => _connectionManager.getDidManagerForDid(_wallet, did),
-    );
+    final outgoingAttachments = await _onBuildConnectionMessageAttachments
+        ?.call(
+          channel,
+          (did) => _connectionManager.getDidManagerForDid(_wallet, did),
+        );
 
     await _connectionService.sendConnectionRequestApprovalToMediator(
       offerPublishedDidManager: session.didManager,

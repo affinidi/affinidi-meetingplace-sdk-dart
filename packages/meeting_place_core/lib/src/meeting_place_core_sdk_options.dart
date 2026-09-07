@@ -39,7 +39,7 @@ class MeetingPlaceCoreSDKOptions {
       MessageWrappingType.authcryptSignPlaintext,
     ],
     this.messageTypesForSequenceTracking = const [],
-    this.onBuildAttachments,
+    this.onBuildConnectionMessageAttachments,
   });
 
   /// Number of seconds before the access token is refreshed to ensure
@@ -131,7 +131,5 @@ class MeetingPlaceCoreSDKOptions {
   ///
   /// The callback receives the [Channel] being processed and should return
   /// a list of [Attachment] objects to include in the outgoing message.
-  /// TODO: Rename for better clarity, e.g., onBuildConnectionMessageAttachments
-  /// or onBuildInaugurationMessageAttachments
-  final OnBuildAttachmentsCallback? onBuildAttachments;
+  final OnBuildAttachmentsCallback? onBuildConnectionMessageAttachments;
 }

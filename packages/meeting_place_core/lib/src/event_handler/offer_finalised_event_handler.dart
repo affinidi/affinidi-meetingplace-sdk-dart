@@ -200,10 +200,11 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
       otherPartyPermanentChannelDid,
     );
 
-    var outgoingAttachments = await options.onBuildAttachments?.call(
-      channel,
-      (did) => connectionManager.getDidManagerForDid(wallet, did),
-    );
+    var outgoingAttachments = await options.onBuildConnectionMessageAttachments
+        ?.call(
+          channel,
+          (did) => connectionManager.getDidManagerForDid(wallet, did),
+        );
 
     return mediatorService.sendMessage(
       ChannelInauguration.create(

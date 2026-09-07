@@ -86,9 +86,11 @@ class MessageService {
           if (otherPartyNotificationToken == null) return;
 
           await _controlPlaneSDK.notifyChannel(
-            notificationToken: otherPartyNotificationToken,
-            did: recipientDid,
-            type: type,
+            NotifyChannelRequest(
+              notificationToken: otherPartyNotificationToken,
+              did: recipientDid,
+              type: type,
+            ),
           );
         case GroupChannelNotification(
           :final groupId,
@@ -96,9 +98,11 @@ class MessageService {
           :final memberDid,
         ):
           await _controlPlaneSDK.notifyGroupChannel(
-            groupId: groupId,
-            type: type,
-            memberDid: memberDid,
+            GroupNotifyChannelRequest(
+              groupId: groupId,
+              type: type,
+              memberDid: memberDid,
+            ),
           );
       }
     } catch (e) {

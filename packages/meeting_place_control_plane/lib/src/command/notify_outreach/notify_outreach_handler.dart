@@ -9,7 +9,7 @@ import 'notify_outreach_exception.dart';
 
 class NotifyOutreachHandler
     implements
-        CommandHandler<NotifyOutreachCommand, NotifyOutreachCommandOutput> {
+        CommandHandler<NotifyOutreachRequest, NotifyOutreachCommandOutput> {
   NotifyOutreachHandler({
     required ControlPlaneApiClient apiClient,
     MeetingPlaceControlPlaneSDKLogger? logger,
@@ -28,7 +28,7 @@ class NotifyOutreachHandler
 
   @override
   Future<NotifyOutreachCommandOutput> handle(
-    NotifyOutreachCommand command,
+    NotifyOutreachRequest command,
   ) async {
     final builder = NotifyOutreachInputBuilder()
       ..mnemonic = command.mnemonic

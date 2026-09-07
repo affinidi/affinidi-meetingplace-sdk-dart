@@ -14,6 +14,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart' hide KeyPair;
 import 'package:test/test.dart';
 
+import '../fakes/control_plane_request_fakes.dart';
 import '../fixtures/contact_card_fixture.dart';
 import 'event_handler/mocks/mocks.dart';
 
@@ -91,6 +92,7 @@ void main() {
     registerFallbackValue(FakePlainTextMessage());
     registerFallbackValue(FakeDidDocument());
     registerFallbackValue(_group());
+    registerFallbackValue(FakeGroupAddMemberRequest());
     registerFallbackValue(
       MediatorMessageRequest(
         message: FakePlainTextMessage(),
@@ -510,14 +512,7 @@ void main() {
       when(() => mediatorSDK.sendMessage(any())).thenAnswer((_) async {});
 
       when(
-        () => controlPlaneSDK.addGroupMember(
-          mnemonic: any(named: 'mnemonic'),
-          groupId: any(named: 'groupId'),
-          memberDid: any(named: 'memberDid'),
-          acceptOfferDid: any(named: 'acceptOfferDid'),
-          offerLink: any(named: 'offerLink'),
-          contactCard: any(named: 'contactCard'),
-        ),
+        () => controlPlaneSDK.addGroupMember(any<cp.GroupAddMemberRequest>()),
       ).thenAnswer((_) async => FakeGroupAddMemberCommandOutput());
 
       final result = await service.approveMembershipRequest(channel: channel);

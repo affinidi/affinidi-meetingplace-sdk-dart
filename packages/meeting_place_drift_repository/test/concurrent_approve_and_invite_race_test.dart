@@ -177,6 +177,15 @@ void main() {
       ),
     );
     registerFallbackValue(_FakeGroupAddMemberCommandOutput());
+    registerFallbackValue(
+      cp.GroupAddMemberRequest(
+        mnemonic: '',
+        groupId: '',
+        memberDid: '',
+        acceptOfferDid: '',
+        offerLink: '',
+      ),
+    );
     registerFallbackValue(_FakeFetchMessagesOptions());
     registerFallbackValue(DidDocument.create(id: 'did:fallback'));
     registerFallbackValue(GroupMemberStatus.pendingApproval);
@@ -347,14 +356,7 @@ void main() {
 
       // Adding the group member through the control plane is a no-op.
       when(
-        () => controlPlaneSDK.addGroupMember(
-          mnemonic: any(named: 'mnemonic'),
-          groupId: any(named: 'groupId'),
-          memberDid: any(named: 'memberDid'),
-          acceptOfferDid: any(named: 'acceptOfferDid'),
-          offerLink: any(named: 'offerLink'),
-          contactCard: any(named: 'contactCard'),
-        ),
+        () => controlPlaneSDK.addGroupMember(any<cp.GroupAddMemberRequest>()),
       ).thenAnswer((_) async => _FakeGroupAddMemberCommandOutput());
 
       // ── Handler mediator stub ────────────────────────────────────────────

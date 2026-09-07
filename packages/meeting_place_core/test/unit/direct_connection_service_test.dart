@@ -20,6 +20,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
+import '../fakes/control_plane_request_fakes.dart';
+
 class MockMeetingPlaceControlPlaneSDK extends Mock
     implements MeetingPlaceControlPlaneSDK {}
 
@@ -101,9 +103,7 @@ class _DirectConnectionServiceMocks {
 
   void stubGetOobThrows(MeetingPlaceControlPlaneSDKException exception) {
     when(
-      () => controlPlaneSDK.getDirectConnectionInvitation(
-        oobId: any(named: 'oobId'),
-      ),
+      () => controlPlaneSDK.getDirectConnectionInvitation(any<GetOobRequest>()),
     ).thenThrow(exception);
   }
 
@@ -135,6 +135,7 @@ class _DirectConnectionServiceMocks {
 void main() {
   setUpAll(() {
     registerFallbackValue(FakeWallet());
+    registerFallbackValue(FakeGetOobRequest());
     registerFallbackValue(ChannelTransport.matrix);
   });
 

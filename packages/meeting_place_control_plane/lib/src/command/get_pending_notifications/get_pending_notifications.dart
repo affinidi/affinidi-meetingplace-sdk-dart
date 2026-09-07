@@ -3,12 +3,12 @@ import '../../core/device/device.dart';
 import 'get_pending_notifications_output.dart';
 
 /// Model that represents the request sent for the
-/// [GetPendingNotificationsCommand]
+/// [GetPendingNotificationsRequest]
 /// operation.
-class GetPendingNotificationsCommand
+class GetPendingNotificationsRequest
     extends DiscoveryCommand<GetPendingNotificationsCommandOutput> {
-  /// Creates a new instance of [GetPendingNotificationsCommand].
-  GetPendingNotificationsCommand({required this.device});
+  /// Creates a new instance of [GetPendingNotificationsRequest].
+  GetPendingNotificationsRequest({required this.device});
 
   /// The device to fetch pending notifications for.
   final Device device;

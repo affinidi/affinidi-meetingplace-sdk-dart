@@ -47,6 +47,8 @@ class FakeStateEvent extends Fake implements matrix.StateEvent {}
 
 class FakeSyncUpdate extends Fake implements matrix.SyncUpdate {}
 
+class FakeMatrixTokenRequest extends Fake implements MatrixTokenRequest {}
+
 /// A [MatrixClientCache] that accepts pre-seeded [matrix.Client] entries
 /// without going through `MatrixClient.init`.
 class _FakeClientCache extends MatrixClientCache {
@@ -137,6 +139,7 @@ void _stubInjectedVoip(
 void main() {
   setUpAll(() {
     registerFallbackValue(Uri());
+    registerFallbackValue(FakeMatrixTokenRequest());
     registerFallbackValue(<matrix.StateEvent>[FakeStateEvent()]);
     registerFallbackValue(matrix.Direction.b);
   });
@@ -1998,8 +2001,13 @@ MatrixTokenCommandOutput _stubMatrixToken(
   final output = _FakeMatrixTokenOutput(token);
   when(
     () => controlPlane.getMatrixToken(
-      didManager: didManager,
-      homeserver: any(named: 'homeserver'),
+      any(
+        that: isA<MatrixTokenRequest>().having(
+          (request) => request.didManager,
+          'didManager',
+          same(didManager),
+        ),
+      ),
     ),
   ).thenAnswer((_) async => output);
   return output;

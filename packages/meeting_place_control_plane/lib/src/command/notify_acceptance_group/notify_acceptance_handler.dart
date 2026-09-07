@@ -18,7 +18,7 @@ import 'notify_acceptance_output.dart';
 class NotifyAcceptanceGroupHandler
     implements
         CommandHandler<
-          NotifyAcceptanceGroupCommand,
+          NotifyAcceptanceGroupRequest,
           NotifyAcceptanceGroupCommandOutput
         > {
   /// Returns an instance of [NotifyAcceptanceGroupHandler].
@@ -58,7 +58,7 @@ class NotifyAcceptanceGroupHandler
   /// acceptance group operation.
   @override
   Future<NotifyAcceptanceGroupCommandOutput> handle(
-    NotifyAcceptanceGroupCommand command,
+    NotifyAcceptanceGroupRequest command,
   ) async {
     final methodName = 'handle';
     _logger.info('Started notifying acceptance group', name: methodName);

@@ -2,12 +2,12 @@ import '../../core/command/command.dart';
 import '../../core/protocol/contact_card/contact_card.dart';
 import 'group_add_member_output.dart';
 
-/// Model that represents the request sent for the [GroupAddMemberCommand]
+/// Model that represents the request sent for the [GroupAddMemberRequest]
 /// operation.
-class GroupAddMemberCommand
+class GroupAddMemberRequest
     extends DiscoveryCommand<GroupAddMemberCommandOutput> {
-  /// Creates a new instance of [GroupAddMemberCommand].
-  GroupAddMemberCommand({
+  /// Creates a new instance of [GroupAddMemberRequest].
+  GroupAddMemberRequest({
     required this.mnemonic,
     required this.groupId,
     required this.memberDid,

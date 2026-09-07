@@ -24,7 +24,7 @@ import 'query_offer_output.dart';
 /// receiving responses, and validating the returned data for Query Offer
 /// operation.
 class QueryOfferHandler
-    implements CommandHandler<QueryOfferCommand, QueryOfferCommandOutput> {
+    implements CommandHandler<QueryOfferRequest, QueryOfferCommandOutput> {
   /// Returns an instance of [QueryOfferHandler].
   ///
   /// **Parameters:**
@@ -64,7 +64,7 @@ class QueryOfferHandler
   /// - [QueryOfferException]: Exception thrown by the query offer
   /// operation.
   @override
-  Future<QueryOfferCommandOutput> handle(QueryOfferCommand command) async {
+  Future<QueryOfferCommandOutput> handle(QueryOfferRequest command) async {
     final methodName = 'handle';
     _logger.info('Started querying offer', name: methodName);
 

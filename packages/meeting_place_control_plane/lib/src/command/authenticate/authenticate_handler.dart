@@ -19,7 +19,7 @@ import 'authenticate_output.dart';
 /// receiving responses, and validating the returned data for Authenticate
 /// operation.
 class AuthenticateHandler
-    implements CommandHandler<AuthenticateCommand, AuthenticateCommandOutput> {
+    implements CommandHandler<AuthenticateRequest, AuthenticateCommandOutput> {
   /// Returns an instance of [AuthenticateHandler].
   ///
   /// **Parameters:**
@@ -170,7 +170,7 @@ class AuthenticateHandler
   /// **Returns:**
   /// - [AuthenticateCommandOutput]: The authenticate command output object.
   @override
-  Future<AuthenticateCommandOutput> handle(AuthenticateCommand command) async {
+  Future<AuthenticateCommandOutput> handle(AuthenticateRequest command) async {
     final methodName = 'handle';
     _logger.info(
       'Started authentication for service DID: '

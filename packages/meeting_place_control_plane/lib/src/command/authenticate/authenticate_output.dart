@@ -1,8 +1,8 @@
 import '../../api/auth_credentials.dart';
-import 'authenticate.dart' show AuthenticateCommand;
+import 'authenticate.dart' show AuthenticateRequest;
 
 /// Model that represents the output data returned from a successful execution
-/// of [AuthenticateCommand] operation.
+/// of [AuthenticateRequest] operation.
 class AuthenticateCommandOutput {
   /// Creates a new instance of [AuthenticateCommandOutput].
   AuthenticateCommandOutput({required this.credentials});

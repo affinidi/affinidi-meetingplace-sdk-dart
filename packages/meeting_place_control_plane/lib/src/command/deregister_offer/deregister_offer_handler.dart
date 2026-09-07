@@ -19,7 +19,7 @@ import 'deregister_output.dart';
 /// Offer operation.
 class DeregisterOfferHandler
     implements
-        CommandHandler<DeregisterOfferCommand, DeregisterOfferCommandOutput> {
+        CommandHandler<DeregisterOfferRequest, DeregisterOfferCommandOutput> {
   /// Returns an instance of [DeregisterOfferHandler].
   ///
   /// **Parameters:**
@@ -57,7 +57,7 @@ class DeregisterOfferHandler
   /// offer operation.
   @override
   Future<DeregisterOfferCommandOutput> handle(
-    DeregisterOfferCommand command,
+    DeregisterOfferRequest command,
   ) async {
     final methodName = 'handle';
     _logger.info(

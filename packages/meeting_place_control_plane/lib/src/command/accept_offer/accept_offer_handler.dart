@@ -19,7 +19,7 @@ import 'accept_offer_output.dart';
 /// receiving responses, and validating the returned data for Accept Offer
 /// operation.
 class AcceptOfferHandler
-    implements CommandHandler<AcceptOfferCommand, AcceptOfferCommandOutput> {
+    implements CommandHandler<AcceptOfferRequest, AcceptOfferCommandOutput> {
   /// Returns an instance of [AcceptOfferHandler].
   ///
   /// **Parameters:**
@@ -53,7 +53,7 @@ class AcceptOfferHandler
   /// **Throws:**
   /// - [AcceptOfferException]: Exception thrown by the accept offer handler.
   @override
-  Future<AcceptOfferCommandOutput> handle(AcceptOfferCommand command) async {
+  Future<AcceptOfferCommandOutput> handle(AcceptOfferRequest command) async {
     final methodName = 'handle';
     _logger.info('Started accepting offer', name: methodName);
 

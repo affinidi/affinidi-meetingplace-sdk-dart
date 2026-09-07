@@ -2,16 +2,16 @@ import '../../core/offer_type.dart';
 import '../../core/protocol/contact_card/contact_card.dart';
 import '../../core/protocol/message/oob_invitation_message.dart';
 import '../../core/protocol/transport.dart';
-import 'query_offer.dart' show QueryOfferCommand;
+import 'query_offer.dart' show QueryOfferRequest;
 
 /// The result returned when finding an offer by its mnemonic phrase.
 typedef FindOfferByMnemonicResult = QueryOfferCommandOutput;
 
-/// Base class for the possible outcomes of a [QueryOfferCommand] operation.
+/// Base class for the possible outcomes of a [QueryOfferRequest] operation.
 abstract class QueryOfferCommandOutput {}
 
 /// Model that represents the output data returned from a successful execution
-/// of [QueryOfferCommand] operation.
+/// of [QueryOfferRequest] operation.
 class SuccessQueryOfferCommandOutput extends QueryOfferCommandOutput {
   /// Creates a new instance of [SuccessQueryOfferCommandOutput].
   SuccessQueryOfferCommandOutput({
@@ -84,14 +84,14 @@ class SuccessQueryOfferCommandOutput extends QueryOfferCommandOutput {
   bool get isOutreachInvitation => type == OfferType.outreachInvitation;
 }
 
-/// Model that represents the output of a [QueryOfferCommand] operation when
+/// Model that represents the output of a [QueryOfferRequest] operation when
 /// the queried offer does not exist.
 class NullQueryOfferCommandOutput extends QueryOfferCommandOutput {}
 
-/// Model that represents the output of a [QueryOfferCommand] operation when
+/// Model that represents the output of a [QueryOfferRequest] operation when
 /// the offer's query limit has been exceeded.
 class LimitExceededQueryOfferCommandOutput extends QueryOfferCommandOutput {}
 
-/// Model that represents the output of a [QueryOfferCommand] operation when
+/// Model that represents the output of a [QueryOfferRequest] operation when
 /// the queried offer has expired.
 class ExpiredQueryOfferCommandOutput extends QueryOfferCommandOutput {}

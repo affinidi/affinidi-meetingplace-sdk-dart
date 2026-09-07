@@ -2,12 +2,12 @@ import '../../core/command/command.dart';
 import 'notify_acceptance_output.dart';
 
 /// Model that represents the request sent for the
-/// [NotifyAcceptanceGroupCommand]
+/// [NotifyAcceptanceGroupRequest]
 /// operation.
-class NotifyAcceptanceGroupCommand
+class NotifyAcceptanceGroupRequest
     extends DiscoveryCommand<NotifyAcceptanceGroupCommandOutput> {
-  /// Creates a new instance of [NotifyAcceptanceGroupCommand].
-  NotifyAcceptanceGroupCommand({
+  /// Creates a new instance of [NotifyAcceptanceGroupRequest].
+  NotifyAcceptanceGroupRequest({
     required this.mnemonic,
     required this.acceptOfferDid,
     required this.offerLink,

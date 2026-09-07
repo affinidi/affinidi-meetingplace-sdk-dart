@@ -25,7 +25,7 @@ void main() {
     jws: 'test-jws',
   );
 
-  UploadDidWebDocumentCommand makeCommand() => UploadDidWebDocumentCommand(
+  UploadDidWebDocumentRequest makeCommand() => UploadDidWebDocumentRequest(
     didDocument: {'id': 'did:web:example.com:user:alice'},
     controlProof: testProof,
     proof: testProof,

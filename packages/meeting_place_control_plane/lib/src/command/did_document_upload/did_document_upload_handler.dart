@@ -20,7 +20,7 @@ import 'did_document_upload_output.dart';
 class UploadDidWebDocumentHandler
     implements
         CommandHandler<
-          UploadDidWebDocumentCommand,
+          UploadDidWebDocumentRequest,
           UploadDidWebDocumentCommandOutput
         > {
   /// Returns an instance of [UploadDidWebDocumentHandler].
@@ -60,7 +60,7 @@ class UploadDidWebDocumentHandler
   /// document operation.
   @override
   Future<UploadDidWebDocumentCommandOutput> handle(
-    UploadDidWebDocumentCommand command,
+    UploadDidWebDocumentRequest command,
   ) async {
     final methodName = 'handle';
     _logger.info('Uploading DID document', name: methodName);

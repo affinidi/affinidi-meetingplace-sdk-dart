@@ -13,7 +13,7 @@ import '../command.dart';
 /// Acceptance operation.
 class FinaliseAcceptanceHandler
     implements
-        CommandHandler<FinaliseAcceptanceCommand, FinaliseAcceptanceOutput> {
+        CommandHandler<FinaliseAcceptanceRequest, FinaliseAcceptanceOutput> {
   /// Returns an instance of [FinaliseAcceptanceHandler].
   ///
   /// **Parameters:**
@@ -51,7 +51,7 @@ class FinaliseAcceptanceHandler
   /// acceptance operation.
   @override
   Future<FinaliseAcceptanceOutput> handle(
-    FinaliseAcceptanceCommand command,
+    FinaliseAcceptanceRequest command,
   ) async {
     final methodName = 'handle';
     _logger.info('Started finalising acceptance ', name: methodName);

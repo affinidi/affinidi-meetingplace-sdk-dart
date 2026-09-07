@@ -8,11 +8,11 @@ typedef ErrorCallback = void Function();
 typedef TimeoutCallback = void Function();
 typedef FinishedCallback = void Function();
 
-/// Model that represents the request sent for the [AcceptOfferCommand]
+/// Model that represents the request sent for the [AcceptOfferRequest]
 /// operation.
-class AcceptOfferCommand extends DiscoveryCommand<AcceptOfferCommandOutput> {
-  /// Creates a new instance of [AcceptOfferCommand].
-  AcceptOfferCommand({
+class AcceptOfferRequest extends DiscoveryCommand<AcceptOfferCommandOutput> {
+  /// Creates a new instance of [AcceptOfferRequest].
+  AcceptOfferRequest({
     required this.mnemonic,
     required this.device,
     required this.offerLink,

@@ -261,9 +261,11 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
     );
 
     final result = await _controlPlaneSDK.registerNotification(
-      myDid: myDid,
-      theirDid: theirDid,
-      device: _controlPlaneSDK.device,
+      RegisterNotificationRequest(
+        myDid: myDid,
+        theirDid: theirDid,
+        device: _controlPlaneSDK.device,
+      ),
     );
 
     final notificationToken = result.notificationToken;
@@ -290,9 +292,11 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
   }) async {
     try {
       await _controlPlaneSDK.notifyChannel(
-        notificationToken: notificationToken,
-        did: did,
-        type: ChannelActivityType.channelInauguration,
+        NotifyChannelRequest(
+          notificationToken: notificationToken,
+          did: did,
+          type: ChannelActivityType.channelInauguration,
+        ),
       );
     } catch (e, stackTrace) {
       logger.error(

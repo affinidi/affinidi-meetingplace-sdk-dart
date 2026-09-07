@@ -28,13 +28,15 @@ void main() {
         );
         sdk.stubbedResult = output;
 
-        final result = await sdk.createDirectConnectionInvitation(
+        final request = CreateOobRequest(
           oobInvitationMessage: invitation,
           mediatorDid: 'did:web:mediator.example',
         );
+        final result = await sdk.createDirectConnectionInvitation(request);
 
         expect(result, same(output));
-        final command = sdk.lastCommand as CreateOobCommand;
+        expect(sdk.lastCommand, same(request));
+        final command = sdk.lastCommand as CreateOobRequest;
         expect(command.oobInvitationMessage, same(invitation));
         expect(command.mediatorDid, 'did:web:mediator.example');
       });
@@ -48,10 +50,12 @@ void main() {
         );
         sdk.stubbedResult = output;
 
-        final result = await sdk.getDirectConnectionInvitation(oobId: 'oob-id');
+        final request = GetOobRequest(oobId: 'oob-id');
+        final result = await sdk.getDirectConnectionInvitation(request);
 
         expect(result, same(output));
-        final command = sdk.lastCommand as GetOobCommand;
+        expect(sdk.lastCommand, same(request));
+        final command = sdk.lastCommand as GetOobRequest;
         expect(command.oobId, 'oob-id');
       });
     });

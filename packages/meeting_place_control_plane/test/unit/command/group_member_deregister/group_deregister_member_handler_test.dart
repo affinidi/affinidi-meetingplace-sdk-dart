@@ -56,7 +56,7 @@ void main() {
   GroupDeregisterMemberHandler newHandler() =>
       GroupDeregisterMemberHandler(apiClient: apiClient, logger: logger);
 
-  GroupDeregisterMemberCommand newCommand() => GroupDeregisterMemberCommand(
+  GroupDeregisterMemberRequest newCommand() => GroupDeregisterMemberRequest(
     groupId: 'group-1',
     memberId: 'did:test:bob',
   );

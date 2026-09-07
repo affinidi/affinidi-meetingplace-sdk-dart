@@ -3,12 +3,12 @@ import '../../core/device/device.dart';
 import '../../core/protocol/contact_card/contact_card.dart';
 import 'accept_offer_group_output.dart';
 
-/// Model that represents the request sent for the [AcceptOfferGroupCommand]
+/// Model that represents the request sent for the [AcceptOfferGroupRequest]
 /// operation.
-class AcceptOfferGroupCommand
+class AcceptOfferGroupRequest
     extends DiscoveryCommand<AcceptOfferGroupCommandOutput> {
-  /// Creates a new instance of [AcceptOfferGroupCommand].
-  AcceptOfferGroupCommand({
+  /// Creates a new instance of [AcceptOfferGroupRequest].
+  AcceptOfferGroupRequest({
     required this.mnemonic,
     required this.device,
     required this.offerLink,

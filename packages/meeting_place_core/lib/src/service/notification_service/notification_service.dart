@@ -118,8 +118,10 @@ class NotificationService {
     PlatformType platformType,
   ) {
     return _controlPlaneSDK.registerDevice(
-      deviceToken: deviceToken,
-      platformType: platformType,
+      RegisterDeviceRequest(
+        deviceToken: deviceToken,
+        platformType: platformType,
+      ),
     );
   }
 

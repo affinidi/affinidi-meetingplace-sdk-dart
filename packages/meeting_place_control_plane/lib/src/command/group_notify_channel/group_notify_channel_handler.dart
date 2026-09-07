@@ -18,7 +18,7 @@ import 'group_notify_channel_output.dart';
 class GroupNotifyChannelHandler
     implements
         CommandHandler<
-          GroupNotifyChannelCommand,
+          GroupNotifyChannelRequest,
           GroupNotifyChannelCommandOutput
         > {
   /// Returns an instance of [GroupNotifyChannelHandler].
@@ -58,7 +58,7 @@ class GroupNotifyChannelHandler
   /// channel operation.
   @override
   Future<GroupNotifyChannelCommandOutput> handle(
-    GroupNotifyChannelCommand command,
+    GroupNotifyChannelRequest command,
   ) async {
     final methodName = 'handle';
     _logger.info('Started notifying group channel', name: methodName);

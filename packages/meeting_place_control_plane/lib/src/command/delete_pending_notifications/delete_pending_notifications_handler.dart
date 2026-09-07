@@ -21,7 +21,7 @@ import 'delete_pending_notifications_output.dart';
 class DeletePendingNotificationsHandler
     implements
         CommandHandler<
-          DeletePendingNotificationsCommand,
+          DeletePendingNotificationsRequest,
           DeletePendingNotificationsCommandOutput
         > {
   /// Returns an instance of [DeletePendingNotificationsHandler].
@@ -61,7 +61,7 @@ class DeletePendingNotificationsHandler
   /// pending notification handler.
   @override
   Future<DeletePendingNotificationsCommandOutput> handle(
-    DeletePendingNotificationsCommand command,
+    DeletePendingNotificationsRequest command,
   ) async {
     final methodName = 'handle';
     _logger.info('Started deleting pending notifications', name: methodName);

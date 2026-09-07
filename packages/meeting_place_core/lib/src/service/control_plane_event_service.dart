@@ -69,7 +69,7 @@ class ControlPlaneEventService {
 
     try {
       final result = await _controlPlaneSDK.getPendingNotifications(
-        device: _controlPlaneSDK.device,
+        GetPendingNotificationsRequest(device: _controlPlaneSDK.device),
       );
 
       if (result.events.isEmpty) {
@@ -88,8 +88,10 @@ class ControlPlaneEventService {
       );
 
       await _controlPlaneSDK.deletePendingNotifications(
-        notificationIds: processedEvents.map((e) => e.id).toList(),
-        device: _controlPlaneSDK.device,
+        DeletePendingNotificationsRequest(
+          notificationIds: processedEvents.map((e) => e.id).toList(),
+          device: _controlPlaneSDK.device,
+        ),
       );
 
       _queue.remove(processId);
@@ -132,7 +134,7 @@ class ControlPlaneEventService {
 
   Future<List<String>> deleteAll() async {
     final result = await _controlPlaneSDK.getPendingNotifications(
-      device: _controlPlaneSDK.device,
+      GetPendingNotificationsRequest(device: _controlPlaneSDK.device),
     );
 
     if (result.events.isEmpty) {
@@ -140,8 +142,10 @@ class ControlPlaneEventService {
     }
 
     final deleteResult = await _controlPlaneSDK.deletePendingNotifications(
-      notificationIds: result.events.map((e) => e.id).toList(),
-      device: _controlPlaneSDK.device,
+      DeletePendingNotificationsRequest(
+        notificationIds: result.events.map((e) => e.id).toList(),
+        device: _controlPlaneSDK.device,
+      ),
     );
 
     return deleteResult.deletedNotificationIds;

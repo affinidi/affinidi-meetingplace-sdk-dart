@@ -12,6 +12,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
+import '../fakes/control_plane_request_fakes.dart';
 import '../fixtures/contact_card_fixture.dart';
 
 class _MockConnectionManager extends Mock implements ConnectionManager {}
@@ -93,6 +94,7 @@ void main() {
     registerFallbackValue(_FakePlainTextMessage());
     registerFallbackValue(_FakeChannel());
     registerFallbackValue(_MockWallet());
+    registerFallbackValue(FakeFinaliseAcceptanceRequest());
     registerFallbackValue(
       cp.Device(
         deviceToken: '',
@@ -226,15 +228,7 @@ void main() {
 
       when(
         () => mockControlPlaneSDK.finaliseAcceptance(
-          mnemonic: any(named: 'mnemonic'),
-          offerLink: any(named: 'offerLink'),
-          offerPublishedDid: any(named: 'offerPublishedDid'),
-          otherPartyAcceptOfferDid: any(named: 'otherPartyAcceptOfferDid'),
-          otherPartyPermanentChannelDid: any(
-            named: 'otherPartyPermanentChannelDid',
-          ),
-          device: any(named: 'device'),
-          contactCard: any(named: 'contactCard'),
+          any<cp.FinaliseAcceptanceRequest>(),
         ),
       ).thenAnswer(
         (_) async => cp.FinaliseAcceptanceOutput(

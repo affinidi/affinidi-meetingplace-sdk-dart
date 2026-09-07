@@ -29,9 +29,11 @@ class DidWebDocumentService {
     final proof = await _createDocumentProof(didManager, didDocument);
 
     await _controlPlaneSDK.uploadDidWebDocument(
-      didDocument: didDocument.toJson(),
-      controlProof: controlProof,
-      proof: proof,
+      UploadDidWebDocumentRequest(
+        didDocument: didDocument.toJson(),
+        controlProof: controlProof,
+        proof: proof,
+      ),
     );
   }
 

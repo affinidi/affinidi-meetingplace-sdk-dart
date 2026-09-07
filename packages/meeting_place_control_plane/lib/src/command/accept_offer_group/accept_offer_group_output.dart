@@ -1,12 +1,12 @@
-import '../../../meeting_place_control_plane.dart' show AcceptOfferGroupCommand;
-import '../command.dart' show AcceptOfferGroupCommand;
-import 'accept_offer_group.dart' show AcceptOfferGroupCommand;
+import '../../../meeting_place_control_plane.dart' show AcceptOfferGroupRequest;
+import '../command.dart' show AcceptOfferGroupRequest;
+import 'accept_offer_group.dart' show AcceptOfferGroupRequest;
 
 /// The result returned when a group offer is accepted.
 typedef AcceptOfferGroupResult = AcceptOfferGroupCommandOutput;
 
 /// Model that represents the output data returned from a successful execution
-/// of [AcceptOfferGroupCommand] operation.
+/// of [AcceptOfferGroupRequest] operation.
 class AcceptOfferGroupCommandOutput {
   /// Creates a new instance of [AcceptOfferGroupCommandOutput].
   AcceptOfferGroupCommandOutput({

@@ -15,7 +15,7 @@ import 'register_device_output.dart';
 /// operation.
 class RegisterDeviceHandler
     implements
-        CommandHandler<RegisterDeviceCommand, RegisterDeviceCommandOutput> {
+        CommandHandler<RegisterDeviceRequest, RegisterDeviceCommandOutput> {
   /// Returns an instance of [RegisterDeviceHandler].
   ///
   /// **Parameters:**
@@ -57,7 +57,7 @@ class RegisterDeviceHandler
   /// operation.
   @override
   Future<RegisterDeviceCommandOutput> handle(
-    RegisterDeviceCommand command,
+    RegisterDeviceRequest command,
   ) async {
     final methodName = 'handle';
     _logger.info('Started registering device', name: methodName);

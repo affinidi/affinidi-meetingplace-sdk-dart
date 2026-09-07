@@ -3,12 +3,12 @@ import '../../core/device/device.dart';
 import '../../core/protocol/contact_card/contact_card.dart';
 import 'finalise_acceptance_output.dart';
 
-/// Model that represents the request sent for the [FinaliseAcceptanceCommand]
+/// Model that represents the request sent for the [FinaliseAcceptanceRequest]
 /// operation.
-class FinaliseAcceptanceCommand
+class FinaliseAcceptanceRequest
     extends DiscoveryCommand<FinaliseAcceptanceOutput> {
-  /// Creates a new instance of [FinaliseAcceptanceCommand].
-  FinaliseAcceptanceCommand({
+  /// Creates a new instance of [FinaliseAcceptanceRequest].
+  FinaliseAcceptanceRequest({
     required this.mnemonic,
     required this.offerLink,
     required this.offerPublishedDid,

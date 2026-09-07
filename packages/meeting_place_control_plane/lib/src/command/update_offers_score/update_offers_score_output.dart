@@ -1,10 +1,10 @@
 import 'failed_offer.dart';
-import 'update_offers_score.dart' show UpdateOffersScoreCommand;
+import 'update_offers_score.dart' show UpdateOffersScoreRequest;
 
 /// The result returned when offer scores are updated.
 typedef UpdateOffersScoreResult = UpdateOffersScoreCommandOutput;
 
-/// Output model for [UpdateOffersScoreCommand].
+/// Output model for [UpdateOffersScoreRequest].
 class UpdateOffersScoreCommandOutput {
   /// Creates a new instance of [UpdateOffersScoreCommandOutput].
   UpdateOffersScoreCommandOutput({

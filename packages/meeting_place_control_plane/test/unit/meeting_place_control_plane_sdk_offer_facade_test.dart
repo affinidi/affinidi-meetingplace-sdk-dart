@@ -46,7 +46,7 @@ void main() {
         );
         sdk.stubbedResult = output;
 
-        final result = await sdk.registerOffer(
+        final request = RegisterOfferRequest(
           offerName: 'Coffee chat',
           offerDescription: 'Discuss SDK design',
           contactCard: contactCard,
@@ -60,9 +60,11 @@ void main() {
           mediatorDid: 'did:web:custom-mediator.example',
           score: 7,
         );
+        final result = await sdk.registerOffer(request);
 
         expect(result, same(output));
-        final command = sdk.lastCommand as RegisterOfferCommand;
+        expect(sdk.lastCommand, same(request));
+        final command = sdk.lastCommand as RegisterOfferRequest;
         expect(command.offerName, 'Coffee chat');
         expect(command.offerDescription, 'Discuss SDK design');
         expect(command.contactCard, same(contactCard));
@@ -83,13 +85,15 @@ void main() {
         final output = DeregisterOfferResult(success: true);
         sdk.stubbedResult = output;
 
-        final result = await sdk.deregisterOffer(
+        final request = DeregisterOfferRequest(
           offerLink: 'https://example.com/offers/1',
           mnemonic: 'coffee-chat',
         );
+        final result = await sdk.deregisterOffer(request);
 
         expect(result, same(output));
-        final command = sdk.lastCommand as DeregisterOfferCommand;
+        expect(sdk.lastCommand, same(request));
+        final command = sdk.lastCommand as DeregisterOfferRequest;
         expect(command.offerLink, 'https://example.com/offers/1');
         expect(command.mnemonic, 'coffee-chat');
       });
@@ -100,10 +104,12 @@ void main() {
         final FindOfferByMnemonicResult output = NullQueryOfferCommandOutput();
         sdk.stubbedResult = output;
 
-        final result = await sdk.findOfferByMnemonic(mnemonic: 'coffee-chat');
+        final request = QueryOfferRequest(mnemonic: 'coffee-chat');
+        final result = await sdk.findOfferByMnemonic(request);
 
         expect(result, same(output));
-        final command = sdk.lastCommand as QueryOfferCommand;
+        expect(sdk.lastCommand, same(request));
+        final command = sdk.lastCommand as QueryOfferRequest;
         expect(command.mnemonic, 'coffee-chat');
       });
     });
@@ -113,10 +119,12 @@ void main() {
         final output = ValidateOfferMnemonicResult(isAvailable: true);
         sdk.stubbedResult = output;
 
-        final result = await sdk.validateOfferMnemonic(mnemonic: 'coffee-chat');
+        final request = ValidateOfferPhraseRequest(mnemonic: 'coffee-chat');
+        final result = await sdk.validateOfferMnemonic(request);
 
         expect(result, same(output));
-        final command = sdk.lastCommand as ValidateOfferPhraseCommand;
+        expect(sdk.lastCommand, same(request));
+        final command = sdk.lastCommand as ValidateOfferPhraseRequest;
         expect(command.mnemonic, 'coffee-chat');
       });
     });
@@ -130,13 +138,15 @@ void main() {
         );
         sdk.stubbedResult = output;
 
-        final result = await sdk.updateOffersScore(
+        final request = UpdateOffersScoreRequest(
           score: 7,
           mnemonics: mnemonics,
         );
+        final result = await sdk.updateOffersScore(request);
 
         expect(result, same(output));
-        final command = sdk.lastCommand as UpdateOffersScoreCommand;
+        expect(sdk.lastCommand, same(request));
+        final command = sdk.lastCommand as UpdateOffersScoreRequest;
         expect(command.score, 7);
         expect(command.mnemonics, same(mnemonics));
       });
@@ -155,16 +165,18 @@ void main() {
         );
         sdk.stubbedResult = output;
 
-        final result = await sdk.acceptOffer(
+        final request = AcceptOfferRequest(
           mnemonic: 'coffee-chat',
           device: device,
           offerLink: 'https://example.com/offers/1',
           contactCard: contactCard,
           acceptOfferDid: 'did:key:accepting',
         );
+        final result = await sdk.acceptOffer(request);
 
         expect(result, same(output));
-        final command = sdk.lastCommand as AcceptOfferCommand;
+        expect(sdk.lastCommand, same(request));
+        final command = sdk.lastCommand as AcceptOfferRequest;
         expect(command.mnemonic, 'coffee-chat');
         expect(command.device, same(device));
         expect(command.offerLink, 'https://example.com/offers/1');
@@ -181,7 +193,7 @@ void main() {
         );
         sdk.stubbedResult = output;
 
-        final result = await sdk.finaliseAcceptance(
+        final request = FinaliseAcceptanceRequest(
           mnemonic: 'coffee-chat',
           offerLink: 'https://example.com/offers/1',
           offerPublishedDid: 'did:key:publisher',
@@ -190,9 +202,11 @@ void main() {
           device: device,
           contactCard: contactCard,
         );
+        final result = await sdk.finaliseAcceptance(request);
 
         expect(result, same(output));
-        final command = sdk.lastCommand as FinaliseAcceptanceCommand;
+        expect(sdk.lastCommand, same(request));
+        final command = sdk.lastCommand as FinaliseAcceptanceRequest;
         expect(command.mnemonic, 'coffee-chat');
         expect(command.offerLink, 'https://example.com/offers/1');
         expect(command.offerPublishedDid, 'did:key:publisher');

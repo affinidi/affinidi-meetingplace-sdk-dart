@@ -1,12 +1,12 @@
 import 'package:didcomm/didcomm.dart';
 
-import 'register_offer_group.dart' show RegisterOfferGroupCommand;
+import 'register_offer_group.dart' show RegisterOfferGroupRequest;
 
 /// The result returned when a group offer is registered successfully.
 typedef RegisterOfferGroupResult = RegisterOfferGroupCommandOutput;
 
 /// Model that represents the output data returned from a successful execution
-/// of [RegisterOfferGroupCommand] operation.
+/// of [RegisterOfferGroupRequest] operation.
 class RegisterOfferGroupCommandOutput {
   /// Creates a new instance of [RegisterOfferGroupCommandOutput].
   RegisterOfferGroupCommandOutput({

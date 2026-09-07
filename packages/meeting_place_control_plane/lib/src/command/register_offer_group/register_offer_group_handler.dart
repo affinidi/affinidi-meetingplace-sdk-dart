@@ -28,7 +28,7 @@ import 'register_offer_group_output.dart';
 class RegisterOfferGroupHandler
     implements
         CommandHandler<
-          RegisterOfferGroupCommand,
+          RegisterOfferGroupRequest,
           RegisterOfferGroupCommandOutput
         > {
   /// Returns an instance of [RegisterOfferHandler].
@@ -76,7 +76,7 @@ class RegisterOfferGroupHandler
   /// group operation.
   @override
   Future<RegisterOfferGroupCommandOutput> handle(
-    RegisterOfferGroupCommand command,
+    RegisterOfferGroupRequest command,
   ) async {
     final methodName = 'handle';
     _logger.info(

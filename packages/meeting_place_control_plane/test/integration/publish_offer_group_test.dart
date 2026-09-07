@@ -15,28 +15,32 @@ void main() async {
     );
 
     await sdk.registerDevice(
-      deviceToken: device.deviceToken,
-      platformType: device.platformType,
+      RegisterDeviceRequest(
+        deviceToken: device.deviceToken,
+        platformType: device.platformType,
+      ),
     );
 
     final mnemonic = const Uuid().v4();
     Future<RegisterOfferGroupResult> registerOfferGroup() =>
         sdk.registerOfferGroup(
-          offerName: 'Offer name',
-          offerDescription: 'Offer description',
-          contactCard: ContactCardImpl(
-            did: 'did:key:offer-${const Uuid().v4()}',
-            type: 'offer',
-            contactInfo: {
-              'n': {'given': 'Alice'},
-            },
-          ),
-          device: device,
-          customMnemonic: mnemonic,
-          adminDid: 'did:key:1234',
-          oobInvitationMessage: OobInvitationMessage(
-            id: const Uuid().v4(),
-            from: 'did:key:1234',
+          RegisterOfferGroupRequest(
+            offerName: 'Offer name',
+            offerDescription: 'Offer description',
+            contactCard: ContactCardImpl(
+              did: 'did:key:offer-${const Uuid().v4()}',
+              type: 'offer',
+              contactInfo: {
+                'n': {'given': 'Alice'},
+              },
+            ),
+            device: device,
+            customMnemonic: mnemonic,
+            adminDid: 'did:key:1234',
+            oobInvitationMessage: OobInvitationMessage(
+              id: const Uuid().v4(),
+              from: 'did:key:1234',
+            ),
           ),
         );
 

@@ -21,7 +21,7 @@ import 'group_deregister_member_output.dart';
 class GroupDeregisterMemberHandler
     implements
         CommandHandler<
-          GroupDeregisterMemberCommand,
+          GroupDeregisterMemberRequest,
           GroupDeregisterMemberCommandOutput
         > {
   /// Returns an instance of [GroupDeregisterMemberHandler].
@@ -61,7 +61,7 @@ class GroupDeregisterMemberHandler
   /// member operation.
   @override
   Future<GroupDeregisterMemberCommandOutput> handle(
-    GroupDeregisterMemberCommand command,
+    GroupDeregisterMemberRequest command,
   ) async {
     final methodName = 'handle';
     _logger.info('Started deregistering member', name: methodName);

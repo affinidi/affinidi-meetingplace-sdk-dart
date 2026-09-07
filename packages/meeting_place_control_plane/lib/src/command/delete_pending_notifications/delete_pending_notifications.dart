@@ -3,12 +3,12 @@ import '../../core/device/device.dart';
 import 'delete_pending_notifications_output.dart';
 
 /// Model that represents the request sent for the
-/// [DeletePendingNotificationsCommand]
+/// [DeletePendingNotificationsRequest]
 /// operation.
-class DeletePendingNotificationsCommand
+class DeletePendingNotificationsRequest
     extends DiscoveryCommand<DeletePendingNotificationsCommandOutput> {
-  /// Creates a new instance of [DeletePendingNotificationsCommand].
-  DeletePendingNotificationsCommand({
+  /// Creates a new instance of [DeletePendingNotificationsRequest].
+  DeletePendingNotificationsRequest({
     required this.device,
     required this.notificationIds,
   });

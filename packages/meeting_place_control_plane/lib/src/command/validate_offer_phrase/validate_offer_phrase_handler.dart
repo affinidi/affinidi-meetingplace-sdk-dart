@@ -19,7 +19,7 @@ import 'validate_offer_phrase_output.dart';
 class ValidateOfferPhraseHandler
     implements
         CommandHandler<
-          ValidateOfferPhraseCommand,
+          ValidateOfferPhraseRequest,
           ValidateOfferPhraseCommandOutput
         > {
   /// Returns an instance of [ValidateOfferPhraseHandler].
@@ -62,7 +62,7 @@ class ValidateOfferPhraseHandler
   /// phrase operation.
   @override
   Future<ValidateOfferPhraseCommandOutput> handle(
-    ValidateOfferPhraseCommand command,
+    ValidateOfferPhraseRequest command,
   ) async {
     final methodName = 'handle';
     _logger.info(

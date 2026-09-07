@@ -18,7 +18,7 @@ import 'group_add_member_output.dart';
 /// operation.
 class GroupAddMemberHandler
     implements
-        CommandHandler<GroupAddMemberCommand, GroupAddMemberCommandOutput> {
+        CommandHandler<GroupAddMemberRequest, GroupAddMemberCommandOutput> {
   /// Returns an instance of [GroupAddMemberHandler].
   ///
   /// **Parameters:**
@@ -60,7 +60,7 @@ class GroupAddMemberHandler
   ///   operation.
   @override
   Future<GroupAddMemberCommandOutput> handle(
-    GroupAddMemberCommand command,
+    GroupAddMemberRequest command,
   ) async {
     final methodName = 'handle';
     _logger.info('Started adding member to group', name: methodName);

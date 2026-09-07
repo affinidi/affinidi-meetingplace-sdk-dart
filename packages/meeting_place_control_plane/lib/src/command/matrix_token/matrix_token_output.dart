@@ -1,11 +1,11 @@
 import 'dart:convert';
 
-import 'matrix_token.dart' show MatrixTokenCommand;
+import 'matrix_token.dart' show MatrixTokenRequest;
 
 /// The result returned when a Matrix login token is requested.
 typedef GetMatrixTokenResult = MatrixTokenCommandOutput;
 
-/// Output of [MatrixTokenCommand].
+/// Output of [MatrixTokenRequest].
 class MatrixTokenCommandOutput {
   /// Creates a new instance of [MatrixTokenCommandOutput].
   MatrixTokenCommandOutput({required this.token});

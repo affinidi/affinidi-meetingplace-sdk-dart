@@ -21,7 +21,7 @@ import 'deregister_notification_output.dart';
 class DeregisterNotificationHandler
     implements
         CommandHandler<
-          DeregisterNotificationCommand,
+          DeregisterNotificationRequest,
           DeregisterNotificationOutput
         > {
   /// Returns an instance of [DeregisterNotificationHandler].
@@ -61,7 +61,7 @@ class DeregisterNotificationHandler
   /// notification operation.
   @override
   Future<DeregisterNotificationOutput> handle(
-    DeregisterNotificationCommand command,
+    DeregisterNotificationRequest command,
   ) async {
     final methodName = 'handle';
     _logger.info('Started deregistering notification ', name: methodName);

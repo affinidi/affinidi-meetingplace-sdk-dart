@@ -16,13 +16,15 @@ void main() {
         final output = RegisterDeviceResult(success: true);
         sdk.stubbedResult = output;
 
-        final result = await sdk.registerDevice(
+        final request = RegisterDeviceRequest(
           deviceToken: 'device-token',
           platformType: PlatformType.pushNotification,
         );
+        final result = await sdk.registerDevice(request);
 
         expect(result, same(output));
-        final command = sdk.lastCommand as RegisterDeviceCommand;
+        expect(sdk.lastCommand, same(request));
+        final command = sdk.lastCommand as RegisterDeviceRequest;
         expect(command.deviceToken, 'device-token');
         expect(command.platformType, PlatformType.pushNotification);
       });
@@ -45,13 +47,15 @@ void main() {
         );
         sdk.stubbedResult = output;
 
-        final result = await sdk.getMatrixToken(
+        final request = MatrixTokenRequest(
           didManager: didManager,
           homeserver: homeserver,
         );
+        final result = await sdk.getMatrixToken(request);
 
         expect(result, same(output));
-        final command = sdk.lastCommand as MatrixTokenCommand;
+        expect(sdk.lastCommand, same(request));
+        final command = sdk.lastCommand as MatrixTokenRequest;
         expect(command.didManager, same(didManager));
         expect(command.homeserver, same(homeserver));
       });
@@ -85,14 +89,16 @@ void main() {
         );
         sdk.stubbedResult = output;
 
-        final result = await sdk.uploadDidWebDocument(
+        final request = UploadDidWebDocumentRequest(
           didDocument: didDocument,
           controlProof: controlProof,
           proof: proof,
         );
+        final result = await sdk.uploadDidWebDocument(request);
 
         expect(result, same(output));
-        final command = sdk.lastCommand as UploadDidWebDocumentCommand;
+        expect(sdk.lastCommand, same(request));
+        final command = sdk.lastCommand as UploadDidWebDocumentRequest;
         expect(command.didDocument, same(didDocument));
         expect(command.controlProof, same(controlProof));
         expect(command.proof, same(proof));

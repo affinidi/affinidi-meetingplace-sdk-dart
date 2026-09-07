@@ -30,7 +30,7 @@ import 'get_pending_notifications_output.dart';
 class GetPendingNotificationsHandler
     implements
         CommandHandler<
-          GetPendingNotificationsCommand,
+          GetPendingNotificationsRequest,
           GetPendingNotificationsCommandOutput
         > {
   /// Returns an instance of [FinaliseAcceptanceHandler].
@@ -70,7 +70,7 @@ class GetPendingNotificationsHandler
   /// notification operation.
   @override
   Future<GetPendingNotificationsCommandOutput> handle(
-    GetPendingNotificationsCommand command,
+    GetPendingNotificationsRequest command,
   ) async {
     final methodName = 'handle';
     _logger.info('Started getting pending notifications', name: methodName);

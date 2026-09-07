@@ -1,12 +1,12 @@
 import '../../core/command/command.dart';
 import 'notify_acceptance_output.dart';
 
-/// Model that represents the request sent for the [NotifyAcceptanceCommand]
+/// Model that represents the request sent for the [NotifyAcceptanceRequest]
 /// operation.
-class NotifyAcceptanceCommand
+class NotifyAcceptanceRequest
     extends DiscoveryCommand<NotifyAcceptanceCommandOutput> {
-  /// Creates a new instance of [NotifyAcceptanceCommand].
-  NotifyAcceptanceCommand({
+  /// Creates a new instance of [NotifyAcceptanceRequest].
+  NotifyAcceptanceRequest({
     required this.mnemonic,
     required this.acceptOfferDid,
     required this.offerLink,

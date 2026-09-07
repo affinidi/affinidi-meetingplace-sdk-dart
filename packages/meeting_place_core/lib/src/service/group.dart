@@ -121,21 +121,23 @@ class GroupService {
     );
 
     final result = await _controlPlaneSDK.registerOfferGroup(
-      offerName: offerName,
-      offerDescription: offerDescription,
-      contactCard: cp.ContactCardImpl(
-        did: card.did,
-        type: card.type,
-        contactInfo: card.contactInfo,
+      cp.RegisterOfferGroupRequest(
+        offerName: offerName,
+        offerDescription: offerDescription,
+        contactCard: cp.ContactCardImpl(
+          did: card.did,
+          type: card.type,
+          contactInfo: card.contactInfo,
+        ),
+        device: _controlPlaneSDK.device,
+        oobInvitationMessage: oobMessage.toPlainTextMessage(),
+        validUntil: validUntil,
+        maximumUsage: maximumUsage,
+        customMnemonic: customMnemonic,
+        adminDid: ownerDidDocument.id,
+        mediatorDid: mediatorDid,
+        metadata: metadata,
       ),
-      device: _controlPlaneSDK.device,
-      oobInvitationMessage: oobMessage.toPlainTextMessage(),
-      validUntil: validUntil,
-      maximumUsage: maximumUsage,
-      customMnemonic: customMnemonic,
-      adminDid: ownerDidDocument.id,
-      mediatorDid: mediatorDid,
-      metadata: metadata,
     );
 
     final group = Group(
@@ -213,8 +215,10 @@ class GroupService {
         name: methodName,
       );
       await _controlPlaneSDK.deregisterOffer(
-        offerLink: result.offerLink,
-        mnemonic: result.mnemonic,
+        cp.DeregisterOfferRequest(
+          offerLink: result.offerLink,
+          mnemonic: result.mnemonic,
+        ),
       );
       Error.throwWithStackTrace(
         ConnectionOfferException.publishOfferError(innerException: e),
@@ -260,15 +264,17 @@ class GroupService {
     );
 
     final result = await _controlPlaneSDK.acceptOfferGroup(
-      mnemonic: connectionOffer.mnemonic,
-      device: _controlPlaneSDK.device,
-      offerLink: connectionOffer.offerLink,
-      contactCard: cp.ContactCardImpl(
-        did: card.did,
-        type: card.type,
-        contactInfo: card.contactInfo,
+      cp.AcceptOfferGroupRequest(
+        mnemonic: connectionOffer.mnemonic,
+        device: _controlPlaneSDK.device,
+        offerLink: connectionOffer.offerLink,
+        contactCard: cp.ContactCardImpl(
+          did: card.did,
+          type: card.type,
+          contactInfo: card.contactInfo,
+        ),
+        acceptOfferDid: acceptOfferDidDocument.id,
       ),
-      acceptOfferDid: acceptOfferDidDocument.id,
     );
 
     try {
@@ -506,10 +512,12 @@ class GroupService {
     }
 
     await _controlPlaneSDK.notifyGroupAcceptance(
-      mnemonic: connectionOffer.mnemonic,
-      acceptOfferDid: connectionOffer.acceptOfferDid!,
-      offerLink: connectionOffer.offerLink,
-      senderInfo: senderInfo,
+      cp.NotifyAcceptanceGroupRequest(
+        mnemonic: connectionOffer.mnemonic,
+        acceptOfferDid: connectionOffer.acceptOfferDid!,
+        offerLink: connectionOffer.offerLink,
+        senderInfo: senderInfo,
+      ),
     );
     _logger.info(
       'Successfully notified acceptance for offer: '
@@ -641,18 +649,20 @@ class GroupService {
 
     final otherPartyContactCard = channel.otherPartyContactCard;
     await _controlPlaneSDK.addGroupMember(
-      mnemonic: connectionOffer.mnemonic,
-      groupId: group.id,
-      memberDid: member.did,
-      acceptOfferDid: channel.acceptOfferDid!,
-      offerLink: channel.offerLink,
-      contactCard: otherPartyContactCard != null
-          ? cp.ContactCardImpl(
-              did: otherPartyContactCard.did,
-              type: otherPartyContactCard.type,
-              contactInfo: otherPartyContactCard.contactInfo,
-            )
-          : null,
+      cp.GroupAddMemberRequest(
+        mnemonic: connectionOffer.mnemonic,
+        groupId: group.id,
+        memberDid: member.did,
+        acceptOfferDid: channel.acceptOfferDid!,
+        offerLink: channel.offerLink,
+        contactCard: otherPartyContactCard != null
+            ? cp.ContactCardImpl(
+                did: otherPartyContactCard.did,
+                type: otherPartyContactCard.type,
+                contactInfo: otherPartyContactCard.contactInfo,
+              )
+            : null,
+      ),
     );
 
     _logger.info(
@@ -884,7 +894,9 @@ class GroupService {
         name: methodName,
       );
       await _controlPlaneSDK.deregisterNotification(
-        notificationToken: channel.notificationToken!,
+        cp.DeregisterNotificationRequest(
+          notificationToken: channel.notificationToken!,
+        ),
       );
     }
 
@@ -941,7 +953,9 @@ class GroupService {
       didManager: memberDidManager,
     );
 
-    await _controlPlaneSDK.deleteGroup(groupId: group.id);
+    await _controlPlaneSDK.deleteGroup(
+      cp.GroupDeleteRequest(groupId: group.id),
+    );
   }
 
   Future<void> _leaveGroupAsMember({
@@ -968,8 +982,7 @@ class GroupService {
     required String memberDid,
   }) async {
     await _controlPlaneSDK.deregisterGroupMember(
-      groupId: group.id,
-      memberId: memberDid,
+      cp.GroupDeregisterMemberRequest(groupId: group.id, memberId: memberDid),
     );
   }
 }

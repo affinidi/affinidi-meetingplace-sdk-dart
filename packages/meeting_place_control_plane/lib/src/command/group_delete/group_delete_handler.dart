@@ -19,7 +19,7 @@ import 'group_delete_output.dart';
 /// receiving responses, and validating the returned data for Group Delete
 /// operation.
 class GroupDeleteHandler
-    implements CommandHandler<GroupDeleteCommand, GroupDeleteCommandOutput> {
+    implements CommandHandler<GroupDeleteRequest, GroupDeleteCommandOutput> {
   /// Returns an instance of [GroupDeleteHandler].
   ///
   /// **Parameters:**
@@ -54,7 +54,7 @@ class GroupDeleteHandler
   /// **Throws:**
   /// - [GroupDeleteException]: Exception thrown by the group delete operation.
   @override
-  Future<GroupDeleteCommandOutput> handle(GroupDeleteCommand command) async {
+  Future<GroupDeleteCommandOutput> handle(GroupDeleteRequest command) async {
     final methodName = 'handle';
     _logger.info('Started handling group delete', name: methodName);
 

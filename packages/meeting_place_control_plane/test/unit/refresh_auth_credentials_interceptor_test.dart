@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 class MockDio extends Mock implements Dio {}
 
 class MockAuthenticator extends Mock {
-  Future<AuthenticateCommandOutput> authenticate(AuthenticateCommand command);
+  Future<AuthenticateCommandOutput> authenticate(AuthenticateRequest command);
 }
 
 class MockRequestInterceptorHandler extends Mock
@@ -22,7 +22,7 @@ class FakeRequestOptions extends Fake implements RequestOptions {}
 
 class FakeResponse extends Fake implements Response {}
 
-class FakeAuthenticateCommand extends Fake implements AuthenticateCommand {}
+class FakeAuthenticateCommand extends Fake implements AuthenticateRequest {}
 
 class FakeDioException extends Fake implements DioException {}
 
@@ -51,7 +51,7 @@ void main() {
     interceptor = RefreshAuthCredentialsInterceptor(
       dio: mockDio,
       authenticate: () => mockAuthenticator.authenticate(
-        AuthenticateCommand(controlPlaneDid: controlPlaneDid),
+        AuthenticateRequest(controlPlaneDid: controlPlaneDid),
       ),
     );
   });
@@ -98,7 +98,7 @@ void main() {
       );
 
       when(
-        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateRequest>()),
       ).thenAnswer((_) async => authResult);
       when(() => mockRequestHandler.next(any())).thenReturn(null);
 
@@ -110,7 +110,7 @@ void main() {
       );
 
       verify(
-        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateRequest>()),
       ).called(1);
 
       verify(() => mockRequestHandler.next(requestOptions)).called(1);
@@ -134,7 +134,7 @@ void main() {
       );
 
       when(
-        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateRequest>()),
       ).thenAnswer((_) async => authResult);
       when(() => mockRequestHandler.next(any())).thenReturn(null);
 
@@ -147,7 +147,7 @@ void main() {
       await interceptor.onRequest(secondRequestOptions, mockRequestHandler);
 
       verify(
-        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateRequest>()),
       ).called(1);
       verify(() => mockRequestHandler.next(any())).called(2);
     });
@@ -172,7 +172,7 @@ void main() {
       );
 
       when(
-        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateRequest>()),
       ).thenAnswer((_) async => expiredAuthResult);
       when(() => mockRequestHandler.next(any())).thenReturn(null);
 
@@ -195,7 +195,7 @@ void main() {
       );
 
       when(
-        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateRequest>()),
       ).thenAnswer((_) async => newAuthResult);
 
       // Act
@@ -204,7 +204,7 @@ void main() {
       // Assert
       expect(secondRequestOptions.headers['Authorization'], 'Bearer new-token');
       verify(
-        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateRequest>()),
       ).called(2);
     });
   });
@@ -241,7 +241,7 @@ void main() {
       );
 
       when(
-        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateRequest>()),
       ).thenAnswer((_) async => authResult);
       when(
         () => mockDio.fetch<dynamic>(any()),
@@ -256,7 +256,7 @@ void main() {
       );
 
       verify(
-        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateRequest>()),
       ).called(1);
       verify(() => mockDio.fetch<dynamic>(requestOptions)).called(1);
       verify(() => mockErrorHandler.resolve(retryResponse)).called(1);
@@ -300,7 +300,7 @@ void main() {
       final refreshException = Exception('Refresh failed');
 
       when(
-        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateRequest>()),
       ).thenThrow(refreshException);
       when(() => mockErrorHandler.next(any())).thenReturn(null);
 
@@ -308,7 +308,7 @@ void main() {
       await interceptor.onError(dioError, mockErrorHandler);
 
       verify(
-        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateRequest>()),
       ).called(1);
       verify(() => mockErrorHandler.next(dioError)).called(1);
     });
@@ -356,7 +356,7 @@ void main() {
       );
 
       when(
-        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateRequest>()),
       ).thenAnswer((_) async => authResult);
       when(() => mockRequestHandler.next(any())).thenReturn(null);
 
@@ -369,7 +369,7 @@ void main() {
       await interceptor.onRequest(secondRequest, mockRequestHandler);
 
       verify(
-        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateRequest>()),
       ).called(2);
     });
 
@@ -392,7 +392,7 @@ void main() {
       );
 
       when(
-        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateRequest>()),
       ).thenAnswer((_) async => authResult);
       when(() => mockRequestHandler.next(any())).thenReturn(null);
 
@@ -405,7 +405,7 @@ void main() {
       await interceptor.onRequest(secondRequest, mockRequestHandler);
 
       verify(
-        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateRequest>()),
       ).called(2);
     });
   });
@@ -447,7 +447,7 @@ void main() {
       );
 
       when(
-        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateRequest>()),
       ).thenAnswer((_) async => authResult);
       when(() => mockDio.fetch<dynamic>(any())).thenThrow(retryError);
       when(() => mockErrorHandler.next(any())).thenReturn(null);
@@ -456,7 +456,7 @@ void main() {
       await interceptor.onError(dioError, mockErrorHandler);
 
       verify(
-        () => mockAuthenticator.authenticate(any<AuthenticateCommand>()),
+        () => mockAuthenticator.authenticate(any<AuthenticateRequest>()),
       ).called(1);
       verify(() => mockErrorHandler.next(dioError)).called(1);
     });

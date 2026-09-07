@@ -104,8 +104,10 @@ class DirectConnectionService {
         acl: AccessListSet.toPublic(ownerDid: offerIdentity.didDocument.id),
       ),
       _controlPlaneSDK.createDirectConnectionInvitation(
-        oobInvitationMessage: invitationMessage.toPlainTextMessage(),
-        mediatorDid: mediatorDid,
+        CreateOobRequest(
+          oobInvitationMessage: invitationMessage.toPlainTextMessage(),
+          mediatorDid: mediatorDid,
+        ),
       ),
       _mediatorService.subscribe(
         didManager: offerIdentity.didManager,
@@ -425,7 +427,7 @@ class DirectConnectionService {
       // TODO: handle errors here
       final oobId = directConnectionUri.pathSegments.last;
       final oob = await _controlPlaneSDK.getDirectConnectionInvitation(
-        oobId: oobId,
+        GetOobRequest(oobId: oobId),
       );
 
       final invitationMessage = OobInvitationMessage.fromBase64(

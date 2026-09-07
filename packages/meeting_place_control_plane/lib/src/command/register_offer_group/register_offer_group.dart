@@ -5,12 +5,12 @@ import '../../core/device/device.dart';
 import '../../core/protocol/contact_card/contact_card.dart';
 import 'register_offer_group_output.dart';
 
-/// Model that represents the request sent for the [RegisterOfferGroupCommand]
+/// Model that represents the request sent for the [RegisterOfferGroupRequest]
 /// operation.
-class RegisterOfferGroupCommand
+class RegisterOfferGroupRequest
     extends DiscoveryCommand<RegisterOfferGroupCommandOutput> {
-  /// Creates a new instance of [RegisterOfferGroupCommand].
-  RegisterOfferGroupCommand({
+  /// Creates a new instance of [RegisterOfferGroupRequest].
+  RegisterOfferGroupRequest({
     required this.offerName,
     required this.offerDescription,
     required this.contactCard,

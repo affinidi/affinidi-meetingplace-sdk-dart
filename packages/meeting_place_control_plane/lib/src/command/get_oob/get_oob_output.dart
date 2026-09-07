@@ -1,10 +1,10 @@
-import 'get_oob.dart' show GetOobCommand;
+import 'get_oob.dart' show GetOobRequest;
 
 /// The result returned when a direct connection invitation is retrieved.
 typedef GetDirectConnectionInvitationResult = GetOobCommandOutput;
 
 /// Model that represents the output data returned from a successful execution
-/// of [GetOobCommand] operation.
+/// of [GetOobRequest] operation.
 class GetOobCommandOutput {
   /// Creates a new instance of [GetOobCommandOutput].
   GetOobCommandOutput({

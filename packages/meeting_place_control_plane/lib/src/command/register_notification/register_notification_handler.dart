@@ -18,7 +18,7 @@ import 'register_notification_output.dart';
 class RegisterNotificationHandler
     implements
         CommandHandler<
-          RegisterNotificationCommand,
+          RegisterNotificationRequest,
           RegisterNotificationOutput
         > {
   /// Returns an instance of [RegisterNotificationHandler].
@@ -58,7 +58,7 @@ class RegisterNotificationHandler
   /// notification operation.
   @override
   Future<RegisterNotificationOutput> handle(
-    RegisterNotificationCommand command,
+    RegisterNotificationRequest command,
   ) async {
     final methodName = 'handle';
     _logger.info('Started registering notification ', name: methodName);

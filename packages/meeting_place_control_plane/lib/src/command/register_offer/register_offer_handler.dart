@@ -25,7 +25,7 @@ import 'register_offer_output.dart';
 /// operation.
 class RegisterOfferHandler
     implements
-        CommandHandler<RegisterOfferCommand, RegisterOfferCommandOutput> {
+        CommandHandler<RegisterOfferRequest, RegisterOfferCommandOutput> {
   /// Returns an instance of [RegisterOfferHandler].
   ///
   /// **Parameters:**
@@ -71,7 +71,7 @@ class RegisterOfferHandler
   /// operation.
   @override
   Future<RegisterOfferCommandOutput> handle(
-    RegisterOfferCommand command,
+    RegisterOfferRequest command,
   ) async {
     final methodName = 'handle';
     _logger.info(

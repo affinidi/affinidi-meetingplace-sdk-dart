@@ -18,7 +18,7 @@ import 'notify_channel_output.dart';
 /// operation.
 class NotifyChannelHandler
     implements
-        CommandHandler<NotifyChannelCommand, NotifyChannelCommandOutput> {
+        CommandHandler<NotifyChannelRequest, NotifyChannelCommandOutput> {
   /// Returns an instance of [NotifyChannelHandler].
   ///
   /// **Parameters:**
@@ -56,7 +56,7 @@ class NotifyChannelHandler
   /// operation.
   @override
   Future<NotifyChannelCommandOutput> handle(
-    NotifyChannelCommand command,
+    NotifyChannelRequest command,
   ) async {
     final methodName = 'handle';
     _logger.info('Started notifying channel', name: methodName);

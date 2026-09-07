@@ -16,7 +16,7 @@ import 'get_oob_exception.dart';
 /// receiving responses, and validating the returned data for Get Out-Of-Band
 ///  operation.
 class GetOobHandler
-    implements CommandHandler<GetOobCommand, GetOobCommandOutput> {
+    implements CommandHandler<GetOobRequest, GetOobCommandOutput> {
   /// Returns an instance of [GetOobHandler].
   ///
   /// **Parameters:**
@@ -56,7 +56,7 @@ class GetOobHandler
   /// - [GetOobCommandOutput]: The get Out-Of-Band command
   /// output object.
   @override
-  Future<GetOobCommandOutput> handle(GetOobCommand command) async {
+  Future<GetOobCommandOutput> handle(GetOobRequest command) async {
     final methodName = 'handle';
     _logger.info('Started getting OOB', name: methodName);
 

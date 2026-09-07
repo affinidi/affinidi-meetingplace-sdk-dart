@@ -1,12 +1,12 @@
 import '../../core/command/command.dart';
 import 'group_notify_channel_output.dart';
 
-/// Model that represents the request sent for the [GroupNotifyChannelCommand]
+/// Model that represents the request sent for the [GroupNotifyChannelRequest]
 /// operation.
-class GroupNotifyChannelCommand
+class GroupNotifyChannelRequest
     extends DiscoveryCommand<GroupNotifyChannelCommandOutput> {
-  /// Creates a new instance of [GroupNotifyChannelCommand].
-  GroupNotifyChannelCommand({
+  /// Creates a new instance of [GroupNotifyChannelRequest].
+  GroupNotifyChannelRequest({
     required this.groupId,
     required this.type,
     this.memberDid,

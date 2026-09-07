@@ -2,12 +2,12 @@ import '../../core/command/command.dart';
 import '../../core/device/device.dart';
 import 'register_notification_output.dart';
 
-/// Model that represents the request sent for the [RegisterNotificationCommand]
+/// Model that represents the request sent for the [RegisterNotificationRequest]
 /// operation.
-class RegisterNotificationCommand
+class RegisterNotificationRequest
     extends DiscoveryCommand<RegisterNotificationOutput> {
-  /// Creates a new instance of [RegisterNotificationCommand].
-  RegisterNotificationCommand({
+  /// Creates a new instance of [RegisterNotificationRequest].
+  RegisterNotificationRequest({
     required this.myDid,
     required this.theirDid,
     required this.device,

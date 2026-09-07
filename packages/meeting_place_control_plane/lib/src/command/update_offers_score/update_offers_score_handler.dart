@@ -16,7 +16,7 @@ import 'update_offers_score_output.dart';
 class UpdateOffersScoreHandler
     implements
         CommandHandler<
-          UpdateOffersScoreCommand,
+          UpdateOffersScoreRequest,
           UpdateOffersScoreCommandOutput
         > {
   UpdateOffersScoreHandler({
@@ -37,7 +37,7 @@ class UpdateOffersScoreHandler
 
   @override
   Future<UpdateOffersScoreCommandOutput> handle(
-    UpdateOffersScoreCommand command,
+    UpdateOffersScoreRequest command,
   ) async {
     final methodName = 'handle';
     _logger.info(

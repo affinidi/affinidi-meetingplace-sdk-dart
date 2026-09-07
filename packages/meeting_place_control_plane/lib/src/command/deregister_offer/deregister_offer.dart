@@ -1,12 +1,12 @@
 import '../../core/command/command.dart';
 import 'deregister_output.dart';
 
-/// Model that represents the request sent for the [DeregisterOfferCommand]
+/// Model that represents the request sent for the [DeregisterOfferRequest]
 /// operation.
-class DeregisterOfferCommand
+class DeregisterOfferRequest
     extends DiscoveryCommand<DeregisterOfferCommandOutput> {
-  /// Creates a new instance of [DeregisterOfferCommand].
-  DeregisterOfferCommand({required this.offerLink, required this.mnemonic});
+  /// Creates a new instance of [DeregisterOfferRequest].
+  DeregisterOfferRequest({required this.offerLink, required this.mnemonic});
 
   /// The link of the offer to deregister.
   final String offerLink;

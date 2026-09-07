@@ -3,11 +3,11 @@ import 'package:didcomm/didcomm.dart';
 import '../../core/command/command.dart';
 import 'create_oob_output.dart';
 
-/// Model that represents the request sent for the [CreateOobCommand]
+/// Model that represents the request sent for the [CreateOobRequest]
 /// operation.
-class CreateOobCommand extends DiscoveryCommand<CreateOobCommandOutput> {
-  /// Creates a new instance of [CreateOobCommand].
-  CreateOobCommand({
+class CreateOobRequest extends DiscoveryCommand<CreateOobCommandOutput> {
+  /// Creates a new instance of [CreateOobRequest].
+  CreateOobRequest({
     required this.oobInvitationMessage,
     required this.mediatorDid,
   });

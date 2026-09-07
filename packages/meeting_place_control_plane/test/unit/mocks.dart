@@ -48,7 +48,7 @@ class _CommandRecorder {
   }
 }
 
-class FakeAuthenticateCommand extends Fake implements AuthenticateCommand {}
+class FakeAuthenticateCommand extends Fake implements AuthenticateRequest {}
 
 class FakeDidResolver implements DidResolver {
   FakeDidResolver(this._documents);

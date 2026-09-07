@@ -14,6 +14,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
+import '../../fakes/control_plane_request_fakes.dart';
 import 'mocks/mocks.dart';
 
 class _FakeChannel extends Fake implements Channel {}
@@ -130,6 +131,8 @@ void main() {
     registerFallbackValue(_FakeConnectionOffer());
     registerFallbackValue(_FakeAclBody());
     registerFallbackValue(_FakePlainTextMessage());
+    registerFallbackValue(FakeNotifyChannelRequest());
+    registerFallbackValue(FakeRegisterNotificationRequest());
     registerFallbackValue(DidDocument.create(id: ''));
     registerFallbackValue(ChannelTransport.didcomm);
     registerFallbackValue(mockAcceptOfferDidManager);
@@ -167,9 +170,7 @@ void main() {
 
     when(
       () => mockControlPlaneSDK.registerNotification(
-        myDid: any(named: 'myDid'),
-        theirDid: any(named: 'theirDid'),
-        device: any(named: 'device'),
+        any<cp.RegisterNotificationRequest>(),
       ),
     ).thenAnswer(
       (_) async =>
@@ -216,11 +217,7 @@ void main() {
     ).thenAnswer((_) async {});
 
     when(
-      () => mockControlPlaneSDK.notifyChannel(
-        notificationToken: any(named: 'notificationToken'),
-        did: any(named: 'did'),
-        type: any(named: 'type'),
-      ),
+      () => mockControlPlaneSDK.notifyChannel(any<cp.NotifyChannelRequest>()),
     ).thenAnswer((_) async => cp.NotifyChannelCommandOutput(success: true));
   });
 

@@ -8,8 +8,10 @@ void main() async {
 
   test('authenticates before executing facade methods', () async {
     final result = await sdk.registerDevice(
-      deviceToken: 'authentication-test-device',
-      platformType: PlatformType.didcomm,
+      RegisterDeviceRequest(
+        deviceToken: 'authentication-test-device',
+        platformType: PlatformType.didcomm,
+      ),
     );
 
     expect(result.success, isTrue);

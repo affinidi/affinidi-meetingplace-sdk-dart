@@ -112,7 +112,9 @@ void main() {
       );
 
       await expectLater(
-        failingSdk.findOfferByMnemonic(mnemonic: 'test-offer'),
+        failingSdk.findOfferByMnemonic(
+          QueryOfferRequest(mnemonic: 'test-offer'),
+        ),
         throwsA(isA<MeetingPlaceControlPlaneSDKException>()),
       );
       expect(failingSdk.isInitialized, isFalse);

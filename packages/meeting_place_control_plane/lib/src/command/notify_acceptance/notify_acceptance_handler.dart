@@ -17,7 +17,7 @@ import 'notify_acceptance_output.dart';
 /// operation.
 class NotifyAcceptanceHandler
     implements
-        CommandHandler<NotifyAcceptanceCommand, NotifyAcceptanceCommandOutput> {
+        CommandHandler<NotifyAcceptanceRequest, NotifyAcceptanceCommandOutput> {
   /// Returns an instance of [NotifyAcceptanceHandler].
   ///
   /// **Parameters:**
@@ -55,7 +55,7 @@ class NotifyAcceptanceHandler
   /// operation.
   @override
   Future<NotifyAcceptanceCommandOutput> handle(
-    NotifyAcceptanceCommand command,
+    NotifyAcceptanceRequest command,
   ) async {
     final methodName = 'handle';
     _logger.info('Started handling notify acceptance', name: methodName);

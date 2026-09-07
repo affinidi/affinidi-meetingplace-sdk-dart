@@ -7,12 +7,12 @@ import '../../core/protocol/contact_card/contact_card.dart';
 import '../../core/protocol/transport.dart';
 import 'register_offer_output.dart';
 
-/// Model that represents the request sent for the [RegisterOfferCommand]
+/// Model that represents the request sent for the [RegisterOfferRequest]
 /// operation.
-class RegisterOfferCommand
+class RegisterOfferRequest
     extends DiscoveryCommand<RegisterOfferCommandOutput> {
-  /// Creates a new instance of [RegisterOfferCommand].
-  RegisterOfferCommand({
+  /// Creates a new instance of [RegisterOfferRequest].
+  RegisterOfferRequest({
     required this.offerName,
     required this.offerDescription,
     required this.contactCard,

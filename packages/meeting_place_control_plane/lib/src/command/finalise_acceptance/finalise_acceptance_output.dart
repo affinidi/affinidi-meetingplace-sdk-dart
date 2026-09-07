@@ -1,10 +1,10 @@
-import 'finalise_acceptance.dart' show FinaliseAcceptanceCommand;
+import 'finalise_acceptance.dart' show FinaliseAcceptanceRequest;
 
 /// The result returned when an offer acceptance is finalised.
 typedef FinaliseAcceptanceResult = FinaliseAcceptanceOutput;
 
 /// Model that represents the output data returned from a successful execution
-/// of [FinaliseAcceptanceCommand] operation.
+/// of [FinaliseAcceptanceRequest] operation.
 class FinaliseAcceptanceOutput {
   /// Creates a new instance of [FinaliseAcceptanceOutput].
   FinaliseAcceptanceOutput({

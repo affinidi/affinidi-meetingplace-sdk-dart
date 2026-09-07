@@ -45,7 +45,7 @@ void main() {
         );
         sdk.stubbedResult = output;
 
-        final result = await sdk.registerOfferGroup(
+        final request = RegisterOfferGroupRequest(
           offerName: 'SDK group',
           offerDescription: 'Discuss SDK design',
           contactCard: contactCard,
@@ -60,9 +60,11 @@ void main() {
           mediatorWSSEndpoint: 'wss://mediator.example',
           metadata: '{"topic":"sdk"}',
         );
+        final result = await sdk.registerOfferGroup(request);
 
         expect(result, same(output));
-        final command = sdk.lastCommand as RegisterOfferGroupCommand;
+        expect(sdk.lastCommand, same(request));
+        final command = sdk.lastCommand as RegisterOfferGroupRequest;
         expect(command.offerName, 'SDK group');
         expect(command.offerDescription, 'Discuss SDK design');
         expect(command.contactCard, same(contactCard));
@@ -89,16 +91,18 @@ void main() {
         );
         sdk.stubbedResult = output;
 
-        final result = await sdk.acceptOfferGroup(
+        final request = AcceptOfferGroupRequest(
           mnemonic: 'group-chat',
           device: device,
           offerLink: 'https://example.com/group-offers/1',
           contactCard: contactCard,
           acceptOfferDid: 'did:key:accepting',
         );
+        final result = await sdk.acceptOfferGroup(request);
 
         expect(result, same(output));
-        final command = sdk.lastCommand as AcceptOfferGroupCommand;
+        expect(sdk.lastCommand, same(request));
+        final command = sdk.lastCommand as AcceptOfferGroupRequest;
         expect(command.mnemonic, 'group-chat');
         expect(command.device, same(device));
         expect(command.offerLink, 'https://example.com/group-offers/1');
@@ -112,7 +116,7 @@ void main() {
         final output = AddGroupMemberResult(success: true);
         sdk.stubbedResult = output;
 
-        final result = await sdk.addGroupMember(
+        final request = GroupAddMemberRequest(
           mnemonic: 'group-chat',
           groupId: 'group-id',
           memberDid: 'did:key:member',
@@ -120,9 +124,11 @@ void main() {
           offerLink: 'https://example.com/group-offers/1',
           contactCard: contactCard,
         );
+        final result = await sdk.addGroupMember(request);
 
         expect(result, same(output));
-        final command = sdk.lastCommand as GroupAddMemberCommand;
+        expect(sdk.lastCommand, same(request));
+        final command = sdk.lastCommand as GroupAddMemberRequest;
         expect(command.mnemonic, 'group-chat');
         expect(command.groupId, 'group-id');
         expect(command.memberDid, 'did:key:member');
@@ -137,13 +143,15 @@ void main() {
         final output = DeregisterGroupMemberResult(success: true);
         sdk.stubbedResult = output;
 
-        final result = await sdk.deregisterGroupMember(
+        final request = GroupDeregisterMemberRequest(
           groupId: 'group-id',
           memberId: 'did:key:member',
         );
+        final result = await sdk.deregisterGroupMember(request);
 
         expect(result, same(output));
-        final command = sdk.lastCommand as GroupDeregisterMemberCommand;
+        expect(sdk.lastCommand, same(request));
+        final command = sdk.lastCommand as GroupDeregisterMemberRequest;
         expect(command.groupId, 'group-id');
         expect(command.memberId, 'did:key:member');
       });
@@ -154,10 +162,12 @@ void main() {
         final output = DeleteGroupResult(success: true);
         sdk.stubbedResult = output;
 
-        final result = await sdk.deleteGroup(groupId: 'group-id');
+        final request = GroupDeleteRequest(groupId: 'group-id');
+        final result = await sdk.deleteGroup(request);
 
         expect(result, same(output));
-        final command = sdk.lastCommand as GroupDeleteCommand;
+        expect(sdk.lastCommand, same(request));
+        final command = sdk.lastCommand as GroupDeleteRequest;
         expect(command.groupId, 'group-id');
       });
     });
@@ -167,15 +177,17 @@ void main() {
         final output = NotifyGroupChannelResult(success: true);
         sdk.stubbedResult = output;
 
-        final result = await sdk.notifyGroupChannel(
+        final request = GroupNotifyChannelRequest(
           offerLink: 'https://example.com/group-offers/1',
           groupDid: 'did:key:group',
           type: 'member-added',
           memberDid: 'did:key:member',
         );
+        final result = await sdk.notifyGroupChannel(request);
 
         expect(result, same(output));
-        final command = sdk.lastCommand as GroupNotifyChannelCommand;
+        expect(sdk.lastCommand, same(request));
+        final command = sdk.lastCommand as GroupNotifyChannelRequest;
         expect(command.offerLink, 'https://example.com/group-offers/1');
         expect(command.groupDid, 'did:key:group');
         expect(command.type, 'member-added');

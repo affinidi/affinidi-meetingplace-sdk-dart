@@ -19,7 +19,7 @@ import 'accept_offer_group_output.dart';
 /// operation.
 class AcceptOfferGroupHandler
     implements
-        CommandHandler<AcceptOfferGroupCommand, AcceptOfferGroupCommandOutput> {
+        CommandHandler<AcceptOfferGroupRequest, AcceptOfferGroupCommandOutput> {
   /// Returns an instance of [AcceptOfferGroupHandler].
   ///
   /// **Parameters:**
@@ -57,7 +57,7 @@ class AcceptOfferGroupHandler
   /// handler.
   @override
   Future<AcceptOfferGroupCommandOutput> handle(
-    AcceptOfferGroupCommand command,
+    AcceptOfferGroupRequest command,
   ) async {
     final methodName = 'handle';
     _logger.info('Started accepting offer group', name: methodName);

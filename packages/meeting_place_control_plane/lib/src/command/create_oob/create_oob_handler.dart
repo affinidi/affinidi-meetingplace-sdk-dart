@@ -21,7 +21,7 @@ import 'create_oob_output.dart';
 /// receiving responses, and validating the returned data for Create Out-Of-Band
 /// operation.
 class CreateOobHandler
-    implements CommandHandler<CreateOobCommand, CreateOobCommandOutput> {
+    implements CommandHandler<CreateOobRequest, CreateOobCommandOutput> {
   /// Returns an instance of [CreateOobHandler].
   ///
   /// **Parameters:**
@@ -62,7 +62,7 @@ class CreateOobHandler
   /// **Throws:**
   /// - [CreateOobException]: Exception thrown by the create oob handler.
   @override
-  Future<CreateOobCommandOutput> handle(CreateOobCommand command) async {
+  Future<CreateOobCommandOutput> handle(CreateOobRequest command) async {
     final methodName = 'handle';
     _logger.info('Started creating oob invitation', name: methodName);
 

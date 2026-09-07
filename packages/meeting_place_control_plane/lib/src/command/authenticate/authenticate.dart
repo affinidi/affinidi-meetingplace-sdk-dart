@@ -1,12 +1,12 @@
 import '../../core/command/command.dart';
 import 'authenticate_output.dart';
 
-/// Model that represents the request sent for the [AuthenticateCommand]
+/// Model that represents the request sent for the [AuthenticateRequest]
 /// operation.
-class AuthenticateCommand extends DiscoveryCommand<AuthenticateCommandOutput> {
-  /// Creates a new instance of [AuthenticateCommand] with the given
+class AuthenticateRequest extends DiscoveryCommand<AuthenticateCommandOutput> {
+  /// Creates a new instance of [AuthenticateRequest] with the given
   /// [controlPlaneDid], the control plane DID string.
-  AuthenticateCommand({required this.controlPlaneDid});
+  AuthenticateRequest({required this.controlPlaneDid});
 
   /// The DID used to authenticate with the control plane.
   final String controlPlaneDid;

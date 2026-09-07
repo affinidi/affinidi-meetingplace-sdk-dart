@@ -1,12 +1,12 @@
 import '../../core/command/command.dart';
 import 'notify_channel_output.dart';
 
-/// Model that represents the request sent for the [NotifyChannelCommand]
+/// Model that represents the request sent for the [NotifyChannelRequest]
 /// operation.
-class NotifyChannelCommand
+class NotifyChannelRequest
     extends DiscoveryCommand<NotifyChannelCommandOutput> {
-  /// Creates a new instance of [NotifyChannelCommand].
-  NotifyChannelCommand({
+  /// Creates a new instance of [NotifyChannelRequest].
+  NotifyChannelRequest({
     required this.notificationToken,
     required this.did,
     required this.type,

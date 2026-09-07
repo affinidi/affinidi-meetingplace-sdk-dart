@@ -17,7 +17,7 @@ import 'matrix_token_output.dart';
 /// challenge-response authentication payload, sending the request, and
 /// validating the returned data for the Matrix token operation.
 class MatrixTokenHandler
-    implements CommandHandler<MatrixTokenCommand, MatrixTokenCommandOutput> {
+    implements CommandHandler<MatrixTokenRequest, MatrixTokenCommandOutput> {
   /// Returns an instance of [MatrixTokenHandler].
   ///
   /// **Parameters:**
@@ -78,7 +78,7 @@ class MatrixTokenHandler
   /// - [MatrixTokenException]: Exception thrown by the matrix token
   /// operation.
   @override
-  Future<MatrixTokenCommandOutput> handle(MatrixTokenCommand command) async {
+  Future<MatrixTokenCommandOutput> handle(MatrixTokenRequest command) async {
     try {
       final challengeResponse = await DidCommChallengeResponse.buildForMatrix(
         apiClient: apiClient,

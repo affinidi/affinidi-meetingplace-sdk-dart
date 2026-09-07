@@ -21,15 +21,17 @@ void main() {
         final output = NotifyAcceptanceResult(success: true);
         sdk.stubbedResult = output;
 
-        final result = await sdk.notifyAcceptance(
+        final request = NotifyAcceptanceRequest(
           mnemonic: 'coffee-chat',
           acceptOfferDid: 'did:key:accepting',
           offerLink: 'https://example.com/offers/1',
           senderInfo: 'Alice',
         );
+        final result = await sdk.notifyAcceptance(request);
 
         expect(result, same(output));
-        final command = sdk.lastCommand as NotifyAcceptanceCommand;
+        expect(sdk.lastCommand, same(request));
+        final command = sdk.lastCommand as NotifyAcceptanceRequest;
         expect(command.mnemonic, 'coffee-chat');
         expect(command.acceptOfferDid, 'did:key:accepting');
         expect(command.offerLink, 'https://example.com/offers/1');
@@ -42,15 +44,17 @@ void main() {
         final output = NotifyGroupAcceptanceResult(success: true);
         sdk.stubbedResult = output;
 
-        final result = await sdk.notifyGroupAcceptance(
+        final request = NotifyAcceptanceGroupRequest(
           mnemonic: 'group-chat',
           acceptOfferDid: 'did:key:accepting',
           offerLink: 'https://example.com/group-offers/1',
           senderInfo: 'Alice',
         );
+        final result = await sdk.notifyGroupAcceptance(request);
 
         expect(result, same(output));
-        final command = sdk.lastCommand as NotifyAcceptanceGroupCommand;
+        expect(sdk.lastCommand, same(request));
+        final command = sdk.lastCommand as NotifyAcceptanceGroupRequest;
         expect(command.mnemonic, 'group-chat');
         expect(command.acceptOfferDid, 'did:key:accepting');
         expect(command.offerLink, 'https://example.com/group-offers/1');
@@ -63,14 +67,16 @@ void main() {
         final output = NotifyChannelResult(success: true);
         sdk.stubbedResult = output;
 
-        final result = await sdk.notifyChannel(
+        final request = NotifyChannelRequest(
           notificationToken: 'notification-token',
           did: 'did:key:channel',
           type: 'channel-updated',
         );
+        final result = await sdk.notifyChannel(request);
 
         expect(result, same(output));
-        final command = sdk.lastCommand as NotifyChannelCommand;
+        expect(sdk.lastCommand, same(request));
+        final command = sdk.lastCommand as NotifyChannelRequest;
         expect(command.notificationToken, 'notification-token');
         expect(command.did, 'did:key:channel');
         expect(command.type, 'channel-updated');
@@ -82,13 +88,15 @@ void main() {
         final output = NotifyOutreachResult(success: true);
         sdk.stubbedResult = output;
 
-        final result = await sdk.notifyOutreach(
+        final request = NotifyOutreachRequest(
           mnemonic: 'outreach-offer',
           senderInfo: 'Alice',
         );
+        final result = await sdk.notifyOutreach(request);
 
         expect(result, same(output));
-        final command = sdk.lastCommand as NotifyOutreachCommand;
+        expect(sdk.lastCommand, same(request));
+        final command = sdk.lastCommand as NotifyOutreachRequest;
         expect(command.mnemonic, 'outreach-offer');
         expect(command.senderInfo, 'Alice');
       });
@@ -101,14 +109,16 @@ void main() {
         );
         sdk.stubbedResult = output;
 
-        final result = await sdk.registerNotification(
+        final request = RegisterNotificationRequest(
           myDid: 'did:key:alice',
           theirDid: 'did:key:bob',
           device: device,
         );
+        final result = await sdk.registerNotification(request);
 
         expect(result, same(output));
-        final command = sdk.lastCommand as RegisterNotificationCommand;
+        expect(sdk.lastCommand, same(request));
+        final command = sdk.lastCommand as RegisterNotificationRequest;
         expect(command.myDid, 'did:key:alice');
         expect(command.theirDid, 'did:key:bob');
         expect(command.device, same(device));
@@ -120,12 +130,14 @@ void main() {
         final output = DeregisterNotificationResult(success: true);
         sdk.stubbedResult = output;
 
-        final result = await sdk.deregisterNotification(
+        final request = DeregisterNotificationRequest(
           notificationToken: 'notification-token',
         );
+        final result = await sdk.deregisterNotification(request);
 
         expect(result, same(output));
-        final command = sdk.lastCommand as DeregisterNotificationCommand;
+        expect(sdk.lastCommand, same(request));
+        final command = sdk.lastCommand as DeregisterNotificationRequest;
         expect(command.notificationToken, 'notification-token');
       });
     });
@@ -135,10 +147,12 @@ void main() {
         final output = GetPendingNotificationsResult(events: const []);
         sdk.stubbedResult = output;
 
-        final result = await sdk.getPendingNotifications(device: device);
+        final request = GetPendingNotificationsRequest(device: device);
+        final result = await sdk.getPendingNotifications(request);
 
         expect(result, same(output));
-        final command = sdk.lastCommand as GetPendingNotificationsCommand;
+        expect(sdk.lastCommand, same(request));
+        final command = sdk.lastCommand as GetPendingNotificationsRequest;
         expect(command.device, same(device));
       });
     });
@@ -151,13 +165,15 @@ void main() {
         );
         sdk.stubbedResult = output;
 
-        final result = await sdk.deletePendingNotifications(
+        final request = DeletePendingNotificationsRequest(
           device: device,
           notificationIds: notificationIds,
         );
+        final result = await sdk.deletePendingNotifications(request);
 
         expect(result, same(output));
-        final command = sdk.lastCommand as DeletePendingNotificationsCommand;
+        expect(sdk.lastCommand, same(request));
+        final command = sdk.lastCommand as DeletePendingNotificationsRequest;
         expect(command.device, same(device));
         expect(command.notificationIds, same(notificationIds));
       });

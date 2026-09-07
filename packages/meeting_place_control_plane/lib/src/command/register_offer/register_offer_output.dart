@@ -1,12 +1,12 @@
 import 'package:didcomm/didcomm.dart';
 
-import 'register_offer.dart' show RegisterOfferCommand;
+import 'register_offer.dart' show RegisterOfferRequest;
 
 /// The result returned when an offer is registered successfully.
 typedef RegisterOfferResult = RegisterOfferCommandOutput;
 
 /// Model that represents the output data returned from a successful execution
-/// of [RegisterOfferCommand] operation.
+/// of [RegisterOfferRequest] operation.
 class RegisterOfferCommandOutput {
   /// Creates a new instance of [RegisterOfferCommandOutput].
   RegisterOfferCommandOutput({

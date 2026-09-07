@@ -1,3 +1,8 @@
+/// @docImport 'package:meeting_place_credentials/meeting_place_credentials.dart';
+///
+/// @docImport 'r_card_repository_drift.dart';
+library;
+
 import 'dart:io';
 
 import 'package:drift/drift.dart';
@@ -11,8 +16,8 @@ part 'r_card_database.g.dart';
 /// R-Cards received from contacts.
 ///
 /// Uses the same encrypted [openConnection] setup as every other SDK
-/// database.  Pass this instance to `RCardRepositoryDrift` and
-/// inject the repository into `MeetingPlaceCredentialsSDK`.
+/// database.  Pass this instance to [RCardRepositoryDrift] and
+/// inject the repository into [MeetingPlaceCredentialsSDK].
 @DriftDatabase(tables: [ReceivedRCards])
 class RCardDatabase extends _$RCardDatabase {
   /// Constructs a [RCardDatabase] instance.

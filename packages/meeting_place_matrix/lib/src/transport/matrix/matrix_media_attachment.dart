@@ -41,6 +41,11 @@ class MatrixEventField {
   /// events so peers can converge on the same call outcome and duration.
   static const callOutcome = 'mp_call_outcome';
 
+  /// Carries the call session ID in `mpx.call.started` room events so
+  /// receivers can associate the event's homeserver timestamp with the
+  /// correct call.
+  static const callId = 'mp_call_id';
+
   /// Marks an `m.room.message` media event as a per-member contact-card sync
   /// (emitted once per group member by group- and contact-detail broadcasts)
   /// rather than a user chat message. Receivers skip these both when

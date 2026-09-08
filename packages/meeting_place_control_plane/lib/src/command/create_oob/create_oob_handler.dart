@@ -11,9 +11,9 @@ import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
 import '../../utils/base64.dart';
 import '../../utils/mediator/mediator_utils.dart';
 import '../../utils/string.dart';
-import 'create_oob.dart';
+import 'create_direct_connection_invitation_result.dart';
 import 'create_oob_exception.dart';
-import 'create_oob_output.dart';
+import 'create_oob_request.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.
 ///
@@ -21,7 +21,11 @@ import 'create_oob_output.dart';
 /// receiving responses, and validating the returned data for Create Out-Of-Band
 /// operation.
 class CreateOobHandler
-    implements CommandHandler<CreateOobCommand, CreateOobCommandOutput> {
+    implements
+        CommandHandler<
+          CreateOobRequest,
+          CreateDirectConnectionInvitationResult
+        > {
   /// Returns an instance of [CreateOobHandler].
   ///
   /// **Parameters:**
@@ -57,12 +61,15 @@ class CreateOobHandler
   /// - [command]: Create OOB command object.
   ///
   /// **Returns:**
-  /// - [CreateOobCommandOutput]: The create oob command output object.
+  /// - [CreateDirectConnectionInvitationResult]: The create oob command output
+  ///   object.
   ///
   /// **Throws:**
   /// - [CreateOobException]: Exception thrown by the create oob handler.
   @override
-  Future<CreateOobCommandOutput> handle(CreateOobCommand command) async {
+  Future<CreateDirectConnectionInvitationResult> handle(
+    CreateOobRequest command,
+  ) async {
     final methodName = 'handle';
     _logger.info('Started creating oob invitation', name: methodName);
 
@@ -91,7 +98,7 @@ class CreateOobHandler
         'Completed creating oob invitation with id: ${response.data!.oobId}',
         name: methodName,
       );
-      return CreateOobCommandOutput(
+      return CreateDirectConnectionInvitationResult(
         oobId: response.data!.oobId,
         oobUrl: response.data!.oobUrl,
         mediatorDid: mediatorConfig.mediatorDid,

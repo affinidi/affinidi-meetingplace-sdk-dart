@@ -14,6 +14,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
+import '../../fakes/control_plane_request_fakes.dart';
 import 'mocks/mocks.dart';
 
 class _FakeChannel extends Fake implements Channel {}
@@ -130,21 +131,16 @@ void main() {
     registerFallbackValue(_FakeConnectionOffer());
     registerFallbackValue(_FakeAclBody());
     registerFallbackValue(_FakePlainTextMessage());
+    registerFallbackValue(FakeNotifyChannelRequest());
+    registerFallbackValue(FakeRegisterNotificationRequest());
     registerFallbackValue(DidDocument.create(id: ''));
     registerFallbackValue(ChannelTransport.didcomm);
     registerFallbackValue(mockAcceptOfferDidManager);
     registerFallbackValue(
-      cp.RegisterNotificationCommand(
-        myDid: '',
-        theirDid: '',
-        device: cp.Device(
-          deviceToken: '',
-          platformType: cp.PlatformType.pushNotification,
-        ),
+      cp.Device(
+        deviceToken: '',
+        platformType: cp.PlatformType.pushNotification,
       ),
-    );
-    registerFallbackValue(
-      cp.NotifyChannelCommand(notificationToken: '', did: '', type: ''),
     );
 
     when(
@@ -173,12 +169,12 @@ void main() {
     );
 
     when(
-      () => mockControlPlaneSDK.execute<cp.RegisterNotificationOutput>(
-        any(that: isA<cp.RegisterNotificationCommand>()),
+      () => mockControlPlaneSDK.registerNotification(
+        any<cp.RegisterNotificationRequest>(),
       ),
     ).thenAnswer(
       (_) async =>
-          cp.RegisterNotificationOutput(notificationToken: notificationToken),
+          cp.RegisterNotificationResult(notificationToken: notificationToken),
     );
 
     when(
@@ -221,10 +217,8 @@ void main() {
     ).thenAnswer((_) async {});
 
     when(
-      () => mockControlPlaneSDK.execute<cp.NotifyChannelCommandOutput>(
-        any(that: isA<cp.NotifyChannelCommand>()),
-      ),
-    ).thenAnswer((_) async => cp.NotifyChannelCommandOutput(success: true));
+      () => mockControlPlaneSDK.notifyChannel(any<cp.NotifyChannelRequest>()),
+    ).thenAnswer((_) async => cp.NotifyChannelResult(success: true));
   });
 
   group('processMessage joinChannelRoom transport guard', () {

@@ -1,6 +1,5 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     hide ContactCard;
-import 'package:meeting_place_control_plane/src/core/command/command.dart';
 import 'package:meeting_place_core/src/entity/channel.dart';
 import 'package:meeting_place_core/src/event_handler/control_plane_event_stream_manager.dart';
 import 'package:meeting_place_core/src/loggers/meeting_place_core_sdk_logger.dart';
@@ -20,6 +19,8 @@ import 'package:meeting_place_core/src/service/mediator/mediator_service.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
+
+import '../fakes/control_plane_request_fakes.dart';
 
 class MockMeetingPlaceControlPlaneSDK extends Mock
     implements MeetingPlaceControlPlaneSDK {}
@@ -44,8 +45,6 @@ class MockControlPlaneEventStreamManager extends Mock
     implements ControlPlaneEventStreamManager {}
 
 class MockLogger extends Mock implements MeetingPlaceCoreSDKLogger {}
-
-class FakeDiscoveryCommand<T> extends Fake implements DiscoveryCommand<T> {}
 
 class FakeWallet extends Fake implements Wallet {}
 
@@ -104,9 +103,7 @@ class _DirectConnectionServiceMocks {
 
   void stubGetOobThrows(MeetingPlaceControlPlaneSDKException exception) {
     when(
-      () => controlPlaneSDK.execute<GetOobCommandOutput>(
-        any(that: isA<GetOobCommand>()),
-      ),
+      () => controlPlaneSDK.getDirectConnectionInvitation(any<GetOobRequest>()),
     ).thenThrow(exception);
   }
 
@@ -137,9 +134,8 @@ class _DirectConnectionServiceMocks {
 
 void main() {
   setUpAll(() {
-    registerFallbackValue(FakeDiscoveryCommand<Object?>());
-    registerFallbackValue(FakeDiscoveryCommand<GetOobCommandOutput>());
     registerFallbackValue(FakeWallet());
+    registerFallbackValue(FakeGetOobRequest());
     registerFallbackValue(ChannelTransport.matrix);
   });
 

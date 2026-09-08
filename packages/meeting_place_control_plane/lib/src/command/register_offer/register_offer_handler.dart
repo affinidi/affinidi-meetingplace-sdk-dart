@@ -14,9 +14,9 @@ import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
 import '../../meeting_place_control_plane_sdk_options.dart';
 import '../../utils/base64.dart';
 import '../../utils/mediator/mediator_utils.dart';
-import 'register_offer.dart';
 import 'register_offer_exception.dart';
-import 'register_offer_output.dart';
+import 'register_offer_request.dart';
+import 'register_offer_result.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.
 ///
@@ -24,8 +24,7 @@ import 'register_offer_output.dart';
 /// receiving responses, and validating the returned data for Register Offer
 /// operation.
 class RegisterOfferHandler
-    implements
-        CommandHandler<RegisterOfferCommand, RegisterOfferCommandOutput> {
+    implements CommandHandler<RegisterOfferRequest, RegisterOfferResult> {
   /// Returns an instance of [RegisterOfferHandler].
   ///
   /// **Parameters:**
@@ -63,16 +62,14 @@ class RegisterOfferHandler
   /// - [command]: Register Offer command object.
   ///
   /// **Returns:**
-  /// - [RegisterOfferCommandOutput]: The register offer command output
+  /// - [RegisterOfferResult]: The register offer command output
   /// object.
   ///
   /// **Throws:**
   /// - [RegisterOfferException]: Exception thrown by the register offer
   /// operation.
   @override
-  Future<RegisterOfferCommandOutput> handle(
-    RegisterOfferCommand command,
-  ) async {
+  Future<RegisterOfferResult> handle(RegisterOfferRequest command) async {
     final methodName = 'handle';
     _logger.info(
       'Started registering offer: ${command.offerName}',
@@ -129,7 +126,7 @@ class RegisterOfferHandler
         'maximum Usage: ${response.data!.maximumUsage}',
         name: methodName,
       );
-      return RegisterOfferCommandOutput(
+      return RegisterOfferResult(
         offerName: command.offerName,
         offerDescription: command.offerDescription,
         offerLink: response.data!.offerLink,

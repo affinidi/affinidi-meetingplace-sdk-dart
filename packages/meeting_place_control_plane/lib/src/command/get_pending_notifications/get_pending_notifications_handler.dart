@@ -18,9 +18,9 @@ import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
 import '../finalise_acceptance/finalise_acceptance_handler.dart'
     show FinaliseAcceptanceHandler;
-import 'get_pending_notifications.dart';
 import 'get_pending_notifications_exception.dart';
-import 'get_pending_notifications_output.dart';
+import 'get_pending_notifications_request.dart';
+import 'get_pending_notifications_result.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.
 ///
@@ -30,8 +30,8 @@ import 'get_pending_notifications_output.dart';
 class GetPendingNotificationsHandler
     implements
         CommandHandler<
-          GetPendingNotificationsCommand,
-          GetPendingNotificationsCommandOutput
+          GetPendingNotificationsRequest,
+          GetPendingNotificationsResult
         > {
   /// Returns an instance of [FinaliseAcceptanceHandler].
   ///
@@ -62,15 +62,15 @@ class GetPendingNotificationsHandler
   /// - [command]: Get Pending Notification command object.
   ///
   /// **Returns:**
-  /// - [GetPendingNotificationsCommandOutput]: The get pending notification
+  /// - [GetPendingNotificationsResult]: The get pending notification
   ///  command output object.
   ///
   /// **Throws:**
   /// - [GetPendingNotificationsException]: Exception thrown by the get pending
   /// notification operation.
   @override
-  Future<GetPendingNotificationsCommandOutput> handle(
-    GetPendingNotificationsCommand command,
+  Future<GetPendingNotificationsResult> handle(
+    GetPendingNotificationsRequest command,
   ) async {
     final methodName = 'handle';
     _logger.info('Started getting pending notifications', name: methodName);
@@ -99,7 +99,7 @@ class GetPendingNotificationsHandler
         '${events.length}, Processable events: ${processableEvents.length}',
         name: methodName,
       );
-      return GetPendingNotificationsCommandOutput(events: processableEvents);
+      return GetPendingNotificationsResult(events: processableEvents);
     } on GetPendingNotificationsException {
       _logger.warning('Get pending notifications exception');
       rethrow;

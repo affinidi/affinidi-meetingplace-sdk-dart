@@ -6,9 +6,9 @@ import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
 import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
-import 'group_notify_channel.dart';
 import 'group_notify_channel_exception.dart';
-import 'group_notify_channel_output.dart';
+import 'group_notify_channel_request.dart';
+import 'notify_group_channel_result.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.
 ///
@@ -17,10 +17,7 @@ import 'group_notify_channel_output.dart';
 /// Channel operation.
 class GroupNotifyChannelHandler
     implements
-        CommandHandler<
-          GroupNotifyChannelCommand,
-          GroupNotifyChannelCommandOutput
-        > {
+        CommandHandler<GroupNotifyChannelRequest, NotifyGroupChannelResult> {
   /// Returns an instance of [GroupNotifyChannelHandler].
   ///
   /// **Parameters:**
@@ -50,15 +47,15 @@ class GroupNotifyChannelHandler
   /// - [command]: Group Notify Channel command object.
   ///
   /// **Returns:**
-  /// - [GroupNotifyChannelCommandOutput]: The group notify channel command
+  /// - [NotifyGroupChannelResult]: The group notify channel command
   /// output object.
   ///
   /// **Throws:**
   /// - [GroupNotifyChannelException]: Exception thrown by the group notify
   /// channel operation.
   @override
-  Future<GroupNotifyChannelCommandOutput> handle(
-    GroupNotifyChannelCommand command,
+  Future<NotifyGroupChannelResult> handle(
+    GroupNotifyChannelRequest command,
   ) async {
     final methodName = 'handle';
     _logger.info('Started notifying group channel', name: methodName);
@@ -78,7 +75,7 @@ class GroupNotifyChannelHandler
       );
 
       _logger.info('Completed notifying group channel', name: methodName);
-      return GroupNotifyChannelCommandOutput(success: true);
+      return NotifyGroupChannelResult(success: true);
     } catch (e, stackTrace) {
       _logger.error(
         'Failed notifying group channel',

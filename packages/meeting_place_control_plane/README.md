@@ -83,15 +83,9 @@ void main() async {
    sdk.device = Device(deviceToken: 'FCM_DEVICE_TOKEN', platformType: 'android');
 
    try {
-       // Example: execute a control-plane command.
-      // Replace `SomeControlPlaneCommand` with a real command from the SDK,
-      // e.g. RegisterOfferCommand, QueryOfferCommand, AcceptOfferCommand, CreateOobCommand, etc.
-      final result = await sdk.execute(SomeControlPlaneCommand(/* params */));
-
-      // Handle result
-      print('Command result: $result');
-   } on ControlPlaneSDKException catch (e) {
-       // SDK-specific errors are wrapped in ControlPlaneSDKException
+      final result = await sdk.findOfferByMnemonic(QueryOfferRequest(mnemonic: 'coffee-chat'));
+      print('Offer result: $result');
+   } on MeetingPlaceControlPlaneSDKException catch (e) {
       print('Control plane SDK error: ${e.message} (code: ${e.code})');
    } catch (e) {
       print('Unexpected error: $e');

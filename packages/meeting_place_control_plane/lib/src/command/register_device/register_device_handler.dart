@@ -4,9 +4,9 @@ import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
 import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
-import 'register_device.dart';
 import 'register_device_exception.dart';
-import 'register_device_output.dart';
+import 'register_device_request.dart';
+import 'register_device_result.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.
 ///
@@ -14,8 +14,7 @@ import 'register_device_output.dart';
 /// receiving responses, and validating the returned data for Register Device
 /// operation.
 class RegisterDeviceHandler
-    implements
-        CommandHandler<RegisterDeviceCommand, RegisterDeviceCommandOutput> {
+    implements CommandHandler<RegisterDeviceRequest, RegisterDeviceResult> {
   /// Returns an instance of [RegisterDeviceHandler].
   ///
   /// **Parameters:**
@@ -49,16 +48,14 @@ class RegisterDeviceHandler
   /// - [command]: Register Device command object.
   ///
   /// **Returns:**
-  /// - [RegisterDeviceCommandOutput]: The register device command output
+  /// - [RegisterDeviceResult]: The register device command output
   /// object.
   ///
   /// **Throws:**
   /// - [RegisterDeviceException]: Exception thrown by the register device
   /// operation.
   @override
-  Future<RegisterDeviceCommandOutput> handle(
-    RegisterDeviceCommand command,
-  ) async {
+  Future<RegisterDeviceResult> handle(RegisterDeviceRequest command) async {
     final methodName = 'handle';
     _logger.info('Started registering device', name: methodName);
 
@@ -78,7 +75,7 @@ class RegisterDeviceHandler
       );
 
       _logger.info('Completed registering device', name: methodName);
-      return RegisterDeviceCommandOutput(success: true);
+      return RegisterDeviceResult(success: true);
     } catch (e, stackTrace) {
       _logger.error(
         'Failed to register device',

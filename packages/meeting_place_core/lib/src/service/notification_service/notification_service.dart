@@ -117,8 +117,8 @@ class NotificationService {
     String deviceToken,
     PlatformType platformType,
   ) {
-    return _controlPlaneSDK.execute(
-      RegisterDeviceCommand(
+    return _controlPlaneSDK.registerDevice(
+      RegisterDeviceRequest(
         deviceToken: deviceToken,
         platformType: platformType,
       ),

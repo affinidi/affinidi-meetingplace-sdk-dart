@@ -55,8 +55,7 @@ class FakeFetchMessagesOptions extends Fake implements FetchMessagesOptions {}
 
 class FakePlainTextMessage extends Fake implements PlainTextMessage {}
 
-class FakeGroupAddMemberCommandOutput extends Fake
-    implements GroupAddMemberCommandOutput {}
+class FakeAddGroupMemberResult extends Fake implements AddGroupMemberResult {}
 
 class FakeDidDocument extends Fake implements DidDocument {
   @override

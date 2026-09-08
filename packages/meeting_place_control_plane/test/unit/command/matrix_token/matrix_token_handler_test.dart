@@ -108,8 +108,8 @@ void main() {
     logger: logger,
   );
 
-  MatrixTokenCommand newCommand() =>
-      MatrixTokenCommand(didManager: senderDidManager, homeserver: homeserver);
+  MatrixTokenRequest newCommand() =>
+      MatrixTokenRequest(didManager: senderDidManager, homeserver: homeserver);
 
   group('MatrixTokenHandler.handle', () {
     test(

@@ -7,9 +7,9 @@ import '../../core/command/command_handler.dart';
 import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
 import '../../utils/string.dart';
-import 'notify_channel.dart';
 import 'notify_channel_exception.dart';
-import 'notify_channel_output.dart';
+import 'notify_channel_request.dart';
+import 'notify_channel_result.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.
 ///
@@ -17,8 +17,7 @@ import 'notify_channel_output.dart';
 /// receiving responses, and validating the returned data for Notify Channel
 /// operation.
 class NotifyChannelHandler
-    implements
-        CommandHandler<NotifyChannelCommand, NotifyChannelCommandOutput> {
+    implements CommandHandler<NotifyChannelRequest, NotifyChannelResult> {
   /// Returns an instance of [NotifyChannelHandler].
   ///
   /// **Parameters:**
@@ -48,16 +47,14 @@ class NotifyChannelHandler
   /// - [command]: Notify Channel command object.
   ///
   /// **Returns:**
-  /// - [NotifyChannelCommandOutput]: The notify channel command output
+  /// - [NotifyChannelResult]: The notify channel command output
   /// object.
   ///
   /// **Throws:**
   /// - [NotifyChannelException]: Exception thrown by the notify channel
   /// operation.
   @override
-  Future<NotifyChannelCommandOutput> handle(
-    NotifyChannelCommand command,
-  ) async {
+  Future<NotifyChannelResult> handle(NotifyChannelRequest command) async {
     final methodName = 'handle';
     _logger.info('Started notifying channel', name: methodName);
 
@@ -76,7 +73,7 @@ class NotifyChannelHandler
       );
 
       _logger.info('Completed notifying channel', name: methodName);
-      return NotifyChannelCommandOutput(success: true);
+      return NotifyChannelResult(success: true);
     } catch (e, stackTrace) {
       _logger.error(
         'Failed notifying channel',

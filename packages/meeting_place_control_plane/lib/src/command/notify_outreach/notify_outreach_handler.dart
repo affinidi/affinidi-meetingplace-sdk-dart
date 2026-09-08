@@ -8,8 +8,7 @@ import '../../core/command/command_handler.dart';
 import 'notify_outreach_exception.dart';
 
 class NotifyOutreachHandler
-    implements
-        CommandHandler<NotifyOutreachCommand, NotifyOutreachCommandOutput> {
+    implements CommandHandler<NotifyOutreachRequest, NotifyOutreachResult> {
   NotifyOutreachHandler({
     required ControlPlaneApiClient apiClient,
     MeetingPlaceControlPlaneSDKLogger? logger,
@@ -27,9 +26,7 @@ class NotifyOutreachHandler
   final MeetingPlaceControlPlaneSDKLogger _logger;
 
   @override
-  Future<NotifyOutreachCommandOutput> handle(
-    NotifyOutreachCommand command,
-  ) async {
+  Future<NotifyOutreachResult> handle(NotifyOutreachRequest command) async {
     final builder = NotifyOutreachInputBuilder()
       ..mnemonic = command.mnemonic
       ..senderInfo = command.senderInfo;
@@ -39,7 +36,7 @@ class NotifyOutreachHandler
       await _apiClient.client.notifyOutreach(
         notifyOutreachInput: builder.build(),
       );
-      return NotifyOutreachCommandOutput(success: true);
+      return NotifyOutreachResult(success: true);
     } catch (e, stackTrace) {
       _logger.warning('Notify outreach failed -> ${e.toString()}');
       Error.throwWithStackTrace(

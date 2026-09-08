@@ -16,9 +16,9 @@ import '../../utils/base64.dart';
 import '../../utils/mediator/mediator_utils.dart';
 import '../register_offer/register_offer_handler.dart'
     show RegisterOfferHandler;
-import 'register_offer_group.dart';
 import 'register_offer_group_exception.dart';
-import 'register_offer_group_output.dart';
+import 'register_offer_group_request.dart';
+import 'register_offer_group_result.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.
 ///
@@ -27,10 +27,7 @@ import 'register_offer_group_output.dart';
 /// Group operation.
 class RegisterOfferGroupHandler
     implements
-        CommandHandler<
-          RegisterOfferGroupCommand,
-          RegisterOfferGroupCommandOutput
-        > {
+        CommandHandler<RegisterOfferGroupRequest, RegisterOfferGroupResult> {
   /// Returns an instance of [RegisterOfferHandler].
   ///
   /// **Parameters:**
@@ -68,15 +65,15 @@ class RegisterOfferGroupHandler
   /// - [command]: Register Offer Group command object.
   ///
   /// **Returns:**
-  /// - [RegisterOfferGroupCommandOutput]: The register offer group command
+  /// - [RegisterOfferGroupResult]: The register offer group command
   /// output object.
   ///
   /// **Throws:**
   /// - [RegisterOfferGroupException]: Exception thrown by the register offer
   /// group operation.
   @override
-  Future<RegisterOfferGroupCommandOutput> handle(
-    RegisterOfferGroupCommand command,
+  Future<RegisterOfferGroupResult> handle(
+    RegisterOfferGroupRequest command,
   ) async {
     final methodName = 'handle';
     _logger.info(
@@ -131,7 +128,7 @@ class RegisterOfferGroupHandler
         'maximum Usage: ${response.data!.maximumUsage}',
         name: methodName,
       );
-      return RegisterOfferGroupCommandOutput(
+      return RegisterOfferGroupResult(
         groupId: response.data!.groupId,
         offerLink: response.data!.offerLink,
         mnemonic: response.data!.mnemonic,

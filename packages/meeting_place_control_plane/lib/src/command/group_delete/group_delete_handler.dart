@@ -9,9 +9,9 @@ import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
 import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
-import 'group_delete.dart';
+import 'delete_group_result.dart';
 import 'group_delete_exception.dart';
-import 'group_delete_output.dart';
+import 'group_delete_request.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.
 ///
@@ -19,7 +19,7 @@ import 'group_delete_output.dart';
 /// receiving responses, and validating the returned data for Group Delete
 /// operation.
 class GroupDeleteHandler
-    implements CommandHandler<GroupDeleteCommand, GroupDeleteCommandOutput> {
+    implements CommandHandler<GroupDeleteRequest, DeleteGroupResult> {
   /// Returns an instance of [GroupDeleteHandler].
   ///
   /// **Parameters:**
@@ -49,12 +49,12 @@ class GroupDeleteHandler
   /// - [command]: Group Delete command object.
   ///
   /// **Returns:**
-  /// - [GroupDeleteCommandOutput]: The group delete command output object.
+  /// - [DeleteGroupResult]: The group delete command output object.
   ///
   /// **Throws:**
   /// - [GroupDeleteException]: Exception thrown by the group delete operation.
   @override
-  Future<GroupDeleteCommandOutput> handle(GroupDeleteCommand command) async {
+  Future<DeleteGroupResult> handle(GroupDeleteRequest command) async {
     final methodName = 'handle';
     _logger.info('Started handling group delete', name: methodName);
 
@@ -68,7 +68,7 @@ class GroupDeleteHandler
       await _apiClient.client.groupDelete(groupDeleteInput: builder.build());
 
       _logger.info('Completed handling group delete', name: methodName);
-      return GroupDeleteCommandOutput(success: true);
+      return DeleteGroupResult(success: true);
     } on DioException catch (e, stackTrace) {
       if (e.response?.statusCode == HttpStatus.gone) {
         _logger.warning(
@@ -76,7 +76,7 @@ class GroupDeleteHandler
           'assume everything is okay as group was already deleted',
           name: methodName,
         );
-        return GroupDeleteCommandOutput(success: true);
+        return DeleteGroupResult(success: true);
       }
 
       _logger.error('[MPX API] Failed to delete group', name: methodName);

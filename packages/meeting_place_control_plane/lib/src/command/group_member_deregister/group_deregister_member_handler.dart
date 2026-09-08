@@ -9,9 +9,9 @@ import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
 import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
-import 'group_deregister_member.dart';
+import 'deregister_group_member_result.dart';
 import 'group_deregister_member_exception.dart';
-import 'group_deregister_member_output.dart';
+import 'group_deregister_member_request.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.
 ///
@@ -21,8 +21,8 @@ import 'group_deregister_member_output.dart';
 class GroupDeregisterMemberHandler
     implements
         CommandHandler<
-          GroupDeregisterMemberCommand,
-          GroupDeregisterMemberCommandOutput
+          GroupDeregisterMemberRequest,
+          DeregisterGroupMemberResult
         > {
   /// Returns an instance of [GroupDeregisterMemberHandler].
   ///
@@ -53,15 +53,15 @@ class GroupDeregisterMemberHandler
   /// - [command]: Group Deregister Member command object.
   ///
   /// **Returns:**
-  /// - [GroupDeregisterMemberCommandOutput]: The group deregister member
+  /// - [DeregisterGroupMemberResult]: The group deregister member
   /// command output object.
   ///
   /// **Throws:**
   /// - [GroupDeregisterException]: Exception thrown by the group deregister
   /// member operation.
   @override
-  Future<GroupDeregisterMemberCommandOutput> handle(
-    GroupDeregisterMemberCommand command,
+  Future<DeregisterGroupMemberResult> handle(
+    GroupDeregisterMemberRequest command,
   ) async {
     final methodName = 'handle';
     _logger.info('Started deregistering member', name: methodName);
@@ -80,7 +80,7 @@ class GroupDeregisterMemberHandler
       );
 
       _logger.info('Completed deregistering member', name: methodName);
-      return GroupDeregisterMemberCommandOutput(success: true);
+      return DeregisterGroupMemberResult(success: true);
     } on DioException catch (e) {
       final data = e.response?.data as Map<String, dynamic>?;
 
@@ -93,7 +93,7 @@ class GroupDeregisterMemberHandler
         );
         // Return success as group has been deleted already.
         // No further action required.
-        return GroupDeregisterMemberCommandOutput(success: true);
+        return DeregisterGroupMemberResult(success: true);
       }
 
       if (e.response?.statusCode == HttpStatus.notFound &&
@@ -108,14 +108,14 @@ class GroupDeregisterMemberHandler
         // continue cleanup without surfacing an error. A 404 with any other
         // (or missing) errorCode — e.g. an unknown groupId — falls through
         // to the rethrow so callers see the real failure.
-        return GroupDeregisterMemberCommandOutput(success: true);
+        return DeregisterGroupMemberResult(success: true);
       }
 
       if (e.response?.statusCode == HttpStatus.forbidden &&
           data?['errorCode'] == 'group_member_not_in_group') {
         // Member has already left group / was kicked by owner, so treat as
         // success.
-        return GroupDeregisterMemberCommandOutput(success: true);
+        return DeregisterGroupMemberResult(success: true);
       }
 
       rethrow;

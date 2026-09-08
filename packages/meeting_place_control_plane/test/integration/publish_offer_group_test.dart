@@ -14,37 +14,40 @@ void main() async {
       platformType: PlatformType.didcomm,
     );
 
-    await sdk.execute(
-      RegisterDeviceCommand(
+    await sdk.registerDevice(
+      RegisterDeviceRequest(
         deviceToken: device.deviceToken,
         platformType: device.platformType,
       ),
     );
 
     final mnemonic = const Uuid().v4();
-    final command = RegisterOfferGroupCommand(
-      offerName: 'Offer name',
-      offerDescription: 'Offer description',
-      contactCard: ContactCardImpl(
-        did: 'did:key:offer-${const Uuid().v4()}',
-        type: 'offer',
-        contactInfo: {
-          'n': {'given': 'Alice'},
-        },
-      ),
-      device: device,
-      customMnemonic: mnemonic,
-      adminDid: 'did:key:1234',
-      oobInvitationMessage: OobInvitationMessage(
-        id: const Uuid().v4(),
-        from: 'did:key:1234',
-      ),
-    );
+    Future<RegisterOfferGroupResult> registerOfferGroup() =>
+        sdk.registerOfferGroup(
+          RegisterOfferGroupRequest(
+            offerName: 'Offer name',
+            offerDescription: 'Offer description',
+            contactCard: ContactCardImpl(
+              did: 'did:key:offer-${const Uuid().v4()}',
+              type: 'offer',
+              contactInfo: {
+                'n': {'given': 'Alice'},
+              },
+            ),
+            device: device,
+            customMnemonic: mnemonic,
+            adminDid: 'did:key:1234',
+            oobInvitationMessage: OobInvitationMessage(
+              id: const Uuid().v4(),
+              from: 'did:key:1234',
+            ),
+          ),
+        );
 
-    await sdk.execute(command);
+    await registerOfferGroup();
 
     expect(
-      () => sdk.execute(command),
+      registerOfferGroup,
       throwsA(
         isA<MeetingPlaceControlPlaneSDKException>().having(
           (e) => e.code,

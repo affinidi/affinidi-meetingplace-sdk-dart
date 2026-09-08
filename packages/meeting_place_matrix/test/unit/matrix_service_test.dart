@@ -43,11 +43,11 @@ class MockUser extends Mock implements matrix.User {
   String get id => _id;
 }
 
-class FakeMatrixTokenCommand extends Fake implements MatrixTokenCommand {}
-
 class FakeStateEvent extends Fake implements matrix.StateEvent {}
 
 class FakeSyncUpdate extends Fake implements matrix.SyncUpdate {}
+
+class FakeMatrixTokenRequest extends Fake implements MatrixTokenRequest {}
 
 /// A [MatrixClientCache] that accepts pre-seeded [matrix.Client] entries
 /// without going through `MatrixClient.init`.
@@ -138,7 +138,8 @@ void _stubInjectedVoip(
 
 void main() {
   setUpAll(() {
-    registerFallbackValue(FakeMatrixTokenCommand());
+    registerFallbackValue(Uri());
+    registerFallbackValue(FakeMatrixTokenRequest());
     registerFallbackValue(<matrix.StateEvent>[FakeStateEvent()]);
     registerFallbackValue(matrix.Direction.b);
   });
@@ -1991,17 +1992,22 @@ void main() {
 // Helpers
 // ---------------------------------------------------------------------------
 
-/// Stubs [MeetingPlaceControlPlaneSDK.execute] for [MatrixTokenCommand] and
-/// returns the mocked [MatrixTokenCommandOutput].
-MatrixTokenCommandOutput _stubMatrixToken(
+/// Stubs [MeetingPlaceControlPlaneSDK.getMatrixToken] and returns its output.
+GetMatrixTokenResult _stubMatrixToken(
   MockMeetingPlaceControlPlaneSDK controlPlane,
   MockDidManager didManager,
 ) {
   final token = _FakeMatrixLoginToken();
-  final output = _FakeMatrixTokenOutput(token);
+  final output = _FakeGetMatrixTokenResult(token);
   when(
-    () => controlPlane.execute<MatrixTokenCommandOutput>(
-      any(that: isA<MatrixTokenCommand>()),
+    () => controlPlane.getMatrixToken(
+      any(
+        that: isA<MatrixTokenRequest>().having(
+          (request) => request.didManager,
+          'didManager',
+          same(didManager),
+        ),
+      ),
     ),
   ).thenAnswer((_) async => output);
   return output;
@@ -2028,8 +2034,8 @@ class _FakeMatrixLoginToken extends Fake implements MatrixLoginToken {
   String toJwt() => _testJwt;
 }
 
-class _FakeMatrixTokenOutput extends Fake implements MatrixTokenCommandOutput {
-  _FakeMatrixTokenOutput(this.token);
+class _FakeGetMatrixTokenResult extends Fake implements GetMatrixTokenResult {
+  _FakeGetMatrixTokenResult(this.token);
 
   @override
   final MatrixLoginToken token;

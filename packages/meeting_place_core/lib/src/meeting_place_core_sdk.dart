@@ -2,7 +2,14 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
-    hide ContactCard;
+    hide
+        AcceptOfferResult,
+        ContactCard,
+        UpdateOffersScoreRequest,
+        UpdateOffersScoreResult;
+import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
+    as cp
+    show UpdateOffersScoreRequest;
 import 'package:meeting_place_mediator/meeting_place_mediator.dart'
     show
         DefaultMeetingPlaceMediatorSDKLogger,
@@ -670,8 +677,8 @@ class MeetingPlaceCoreSDK {
     String mnemonic,
   ) async {
     return _withSdkExceptionHandling(() async {
-      final result = await _controlPlaneSDK.execute(
-        ValidateOfferPhraseCommand(mnemonic: mnemonic.trim()),
+      final result = await _controlPlaneSDK.validateOfferMnemonic(
+        ValidateOfferPhraseRequest(mnemonic: mnemonic.trim()),
       );
 
       return sdk.ValidateOfferPhraseResult(isAvailable: result.isAvailable);
@@ -1140,8 +1147,8 @@ class MeetingPlaceCoreSDK {
     final offers = request.offers;
     return _withSdkExceptionHandling(() async {
       final mnemonics = offers.map((o) => o.mnemonic).toList();
-      final output = await _controlPlaneSDK.execute(
-        UpdateOffersScoreCommand(score: score, mnemonics: mnemonics),
+      final output = await _controlPlaneSDK.updateOffersScore(
+        cp.UpdateOffersScoreRequest(score: score, mnemonics: mnemonics),
       );
 
       final updatedMnemonics = output.updatedOffers.toSet();

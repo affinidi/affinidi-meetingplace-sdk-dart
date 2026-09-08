@@ -107,8 +107,8 @@ class MatrixService {
       return userID;
     }
 
-    final matrixTokenOutput = await _controlPlaneSDK.execute(
-      MatrixTokenCommand(didManager: didManager, homeserver: homeserver),
+    final matrixTokenOutput = await _controlPlaneSDK.getMatrixToken(
+      MatrixTokenRequest(didManager: didManager, homeserver: homeserver),
     );
 
     _logger.info('Obtained Matrix JWT for ${didDocument.id}', name: _logKey);

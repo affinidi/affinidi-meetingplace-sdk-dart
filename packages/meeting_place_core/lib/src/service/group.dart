@@ -120,8 +120,8 @@ class GroupService {
       acl: AccessListSet.toPublic(ownerDid: oobDidDoc.id),
     );
 
-    final result = await _controlPlaneSDK.execute(
-      cp.RegisterOfferGroupCommand(
+    final result = await _controlPlaneSDK.registerOfferGroup(
+      cp.RegisterOfferGroupRequest(
         offerName: offerName,
         offerDescription: offerDescription,
         contactCard: cp.ContactCardImpl(
@@ -214,8 +214,8 @@ class GroupService {
         stackTrace: stackTrace,
         name: methodName,
       );
-      await _controlPlaneSDK.execute(
-        cp.DeregisterOfferCommand(
+      await _controlPlaneSDK.deregisterOffer(
+        cp.DeregisterOfferRequest(
           offerLink: result.offerLink,
           mnemonic: result.mnemonic,
         ),
@@ -263,8 +263,8 @@ class GroupService {
       name: methodName,
     );
 
-    final result = await _controlPlaneSDK.execute(
-      cp.AcceptOfferGroupCommand(
+    final result = await _controlPlaneSDK.acceptOfferGroup(
+      cp.AcceptOfferGroupRequest(
         mnemonic: connectionOffer.mnemonic,
         device: _controlPlaneSDK.device,
         offerLink: connectionOffer.offerLink,
@@ -511,8 +511,8 @@ class GroupService {
       throw ConnectionOfferException.notAcceptedError();
     }
 
-    await _controlPlaneSDK.execute(
-      cp.NotifyAcceptanceGroupCommand(
+    await _controlPlaneSDK.notifyGroupAcceptance(
+      cp.NotifyAcceptanceGroupRequest(
         mnemonic: connectionOffer.mnemonic,
         acceptOfferDid: connectionOffer.acceptOfferDid!,
         offerLink: connectionOffer.offerLink,
@@ -648,8 +648,8 @@ class GroupService {
     );
 
     final otherPartyContactCard = channel.otherPartyContactCard;
-    await _controlPlaneSDK.execute(
-      cp.GroupAddMemberCommand(
+    await _controlPlaneSDK.addGroupMember(
+      cp.GroupAddMemberRequest(
         mnemonic: connectionOffer.mnemonic,
         groupId: group.id,
         memberDid: member.did,
@@ -893,8 +893,8 @@ class GroupService {
         '${channel.offerLink}',
         name: methodName,
       );
-      await _controlPlaneSDK.execute(
-        cp.DeregisterNotificationCommand(
+      await _controlPlaneSDK.deregisterNotification(
+        cp.DeregisterNotificationRequest(
           notificationToken: channel.notificationToken!,
         ),
       );
@@ -953,7 +953,9 @@ class GroupService {
       didManager: memberDidManager,
     );
 
-    await _controlPlaneSDK.execute(cp.GroupDeleteCommand(groupId: group.id));
+    await _controlPlaneSDK.deleteGroup(
+      cp.GroupDeleteRequest(groupId: group.id),
+    );
   }
 
   Future<void> _leaveGroupAsMember({
@@ -979,8 +981,8 @@ class GroupService {
     required Group group,
     required String memberDid,
   }) async {
-    await _controlPlaneSDK.execute(
-      cp.GroupDeregisterMemberCommand(groupId: group.id, memberId: memberDid),
+    await _controlPlaneSDK.deregisterGroupMember(
+      cp.GroupDeregisterMemberRequest(groupId: group.id, memberId: memberDid),
     );
   }
 }

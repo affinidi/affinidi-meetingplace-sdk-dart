@@ -1,6 +1,6 @@
 import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
-    hide ContactCard;
+    hide AcceptOfferResult, ContactCard;
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
 import 'package:ssi/ssi.dart';
 
@@ -86,21 +86,21 @@ class ConnectionService {
     final methodName = 'findOffer';
     _logger.info('Finding offer with mnemonic: $mnemonic', name: methodName);
 
-    final response = await _controlPlaneSDK.execute(
-      QueryOfferCommand(mnemonic: mnemonic),
+    final response = await _controlPlaneSDK.findOfferByMnemonic(
+      QueryOfferRequest(mnemonic: mnemonic),
     );
 
-    if (response is NullQueryOfferCommandOutput) {
+    if (response is NullFindOfferByMnemonicResult) {
       _logger.error('Connection offer not found', name: methodName);
       throw ConnectionOfferException.offerNotFoundError();
     }
 
-    if (response is LimitExceededQueryOfferCommandOutput) {
+    if (response is LimitExceededFindOfferByMnemonicResult) {
       _logger.error('Offer query limit exceeded', name: methodName);
       throw ConnectionOfferException.limitExceeded();
     }
 
-    if (response is ExpiredQueryOfferCommandOutput) {
+    if (response is ExpiredFindOfferByMnemonicResult) {
       _logger.error('Connection offer has expired', name: methodName);
       throw ConnectionOfferException.expired();
     }
@@ -108,7 +108,7 @@ class ConnectionService {
     FindOfferErrorCodes? errorCode;
     var ownedByMe = false;
 
-    final queryOfferResult = response as SuccessQueryOfferCommandOutput;
+    final queryOfferResult = response as SuccessFindOfferByMnemonicResult;
 
     try {
       await _connectionOfferService.ensureConnectionOfferIsClaimable(
@@ -223,8 +223,8 @@ class ConnectionService {
       mediatorDid: mediatorDid,
     );
 
-    final registerOfferOutput = await _controlPlaneSDK.execute(
-      RegisterOfferCommand(
+    final registerOfferOutput = await _controlPlaneSDK.registerOffer(
+      RegisterOfferRequest(
         offerName: offerName,
         offerDescription: offerDescription,
         type: type == ConnectionOfferType.meetingPlaceOutreachInvitation
@@ -279,8 +279,8 @@ class ConnectionService {
         stackTrace: stackTrace,
         name: methodName,
       );
-      await _controlPlaneSDK.execute(
-        DeregisterOfferCommand(
+      await _controlPlaneSDK.deregisterOffer(
+        DeregisterOfferRequest(
           offerLink: registerOfferOutput.offerLink,
           mnemonic: registerOfferOutput.mnemonic,
         ),
@@ -317,8 +317,8 @@ class ConnectionService {
       wallet,
     );
 
-    final result = await _controlPlaneSDK.execute(
-      AcceptOfferCommand(
+    final result = await _controlPlaneSDK.acceptOffer(
+      AcceptOfferRequest(
         mnemonic: connectionOffer.mnemonic,
         device: _controlPlaneSDK.device,
         offerLink: connectionOffer.offerLink,
@@ -485,8 +485,8 @@ class ConnectionService {
       throw ConnectionOfferException.notAcceptedError();
     }
 
-    await _controlPlaneSDK.execute(
-      NotifyAcceptanceCommand(
+    await _controlPlaneSDK.notifyAcceptance(
+      NotifyAcceptanceRequest(
         mnemonic: connectionOffer.mnemonic,
         offerLink: connectionOffer.offerLink,
         acceptOfferDid: acceptOfferDid,
@@ -584,8 +584,8 @@ class ConnectionService {
     );
 
     final contactCard = channel.contactCard;
-    final finaliseAcceptanceOutput = await _controlPlaneSDK.execute(
-      FinaliseAcceptanceCommand(
+    final finaliseAcceptanceOutput = await _controlPlaneSDK.finaliseAcceptance(
+      FinaliseAcceptanceRequest(
         mnemonic: connectionOffer.mnemonic,
         device: _controlPlaneSDK.device,
         offerLink: channel.offerLink,
@@ -690,8 +690,8 @@ class ConnectionService {
     final networkRequests = <Future<dynamic>>[];
     if (channel.notificationToken != null) {
       networkRequests.add(
-        _controlPlaneSDK.execute(
-          DeregisterNotificationCommand(
+        _controlPlaneSDK.deregisterNotification(
+          DeregisterNotificationRequest(
             notificationToken: channel.notificationToken!,
           ),
         ),
@@ -802,8 +802,8 @@ class ConnectionService {
       return;
     }
 
-    await _controlPlaneSDK.execute(
-      DeregisterOfferCommand(
+    await _controlPlaneSDK.deregisterOffer(
+      DeregisterOfferRequest(
         offerLink: connectionOffer.offerLink,
         mnemonic: connectionOffer.mnemonic,
       ),

@@ -9,9 +9,9 @@ import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
 import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
-import 'accept_offer.dart';
 import 'accept_offer_exception.dart';
-import 'accept_offer_output.dart';
+import 'accept_offer_request.dart';
+import 'accept_offer_result.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.
 ///
@@ -19,7 +19,7 @@ import 'accept_offer_output.dart';
 /// receiving responses, and validating the returned data for Accept Offer
 /// operation.
 class AcceptOfferHandler
-    implements CommandHandler<AcceptOfferCommand, AcceptOfferCommandOutput> {
+    implements CommandHandler<AcceptOfferRequest, AcceptOfferResult> {
   /// Returns an instance of [AcceptOfferHandler].
   ///
   /// **Parameters:**
@@ -48,12 +48,12 @@ class AcceptOfferHandler
   /// - [command]: Accept offer command object.
   ///
   /// **Returns:**
-  /// - [AcceptOfferCommandOutput]: The accept offer command output object.
+  /// - [AcceptOfferResult]: The accept offer command output object.
   ///
   /// **Throws:**
   /// - [AcceptOfferException]: Exception thrown by the accept offer handler.
   @override
-  Future<AcceptOfferCommandOutput> handle(AcceptOfferCommand command) async {
+  Future<AcceptOfferResult> handle(AcceptOfferRequest command) async {
     final methodName = 'handle';
     _logger.info('Started accepting offer', name: methodName);
 
@@ -78,7 +78,7 @@ class AcceptOfferHandler
       );
 
       _logger.info('Completed accepting offer', name: methodName);
-      return AcceptOfferCommandOutput(
+      return AcceptOfferResult(
         offerName: response.data!.name,
         offerLink: response.data!.offerLink,
         offerDescription: response.data!.description,

@@ -12,6 +12,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
+import '../fakes/control_plane_request_fakes.dart';
 import '../fixtures/contact_card_fixture.dart';
 
 class _MockConnectionManager extends Mock implements ConnectionManager {}
@@ -93,25 +94,19 @@ void main() {
     registerFallbackValue(_FakePlainTextMessage());
     registerFallbackValue(_FakeChannel());
     registerFallbackValue(_MockWallet());
+    registerFallbackValue(FakeFinaliseAcceptanceRequest());
+    registerFallbackValue(
+      cp.Device(
+        deviceToken: '',
+        platformType: cp.PlatformType.pushNotification,
+      ),
+    );
     registerFallbackValue(ChannelTransport.didcomm);
     registerFallbackValue(
       MediatorMessageRequest(
         message: _FakePlainTextMessage(),
         senderDidManager: _MockDidManager(),
         recipientDidDocument: _MockDidDocument(),
-      ),
-    );
-    registerFallbackValue(
-      cp.FinaliseAcceptanceCommand(
-        mnemonic: '',
-        offerLink: '',
-        offerPublishedDid: '',
-        otherPartyAcceptOfferDid: '',
-        otherPartyPermanentChannelDid: '',
-        device: cp.Device(
-          deviceToken: '',
-          platformType: cp.PlatformType.pushNotification,
-        ),
       ),
     );
     registerFallbackValue(
@@ -232,11 +227,11 @@ void main() {
       );
 
       when(
-        () => mockControlPlaneSDK.execute<cp.FinaliseAcceptanceOutput>(
-          any(that: isA<cp.FinaliseAcceptanceCommand>()),
+        () => mockControlPlaneSDK.finaliseAcceptance(
+          any<cp.FinaliseAcceptanceRequest>(),
         ),
       ).thenAnswer(
-        (_) async => cp.FinaliseAcceptanceOutput(
+        (_) async => cp.FinaliseAcceptanceResult(
           success: true,
           notificationToken: 'notification-token',
         ),

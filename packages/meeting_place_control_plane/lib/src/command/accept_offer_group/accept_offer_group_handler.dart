@@ -8,9 +8,9 @@ import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
 import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
-import 'accept_offer_group.dart';
 import 'accept_offer_group_exception.dart';
-import 'accept_offer_group_output.dart';
+import 'accept_offer_group_request.dart';
+import 'accept_offer_group_result.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.
 ///
@@ -18,8 +18,7 @@ import 'accept_offer_group_output.dart';
 /// receiving responses, and validating the returned data for Accept Offer Group
 /// operation.
 class AcceptOfferGroupHandler
-    implements
-        CommandHandler<AcceptOfferGroupCommand, AcceptOfferGroupCommandOutput> {
+    implements CommandHandler<AcceptOfferGroupRequest, AcceptOfferGroupResult> {
   /// Returns an instance of [AcceptOfferGroupHandler].
   ///
   /// **Parameters:**
@@ -49,16 +48,14 @@ class AcceptOfferGroupHandler
   /// - [command]: Accept offer group command object.
   ///
   /// **Returns:**
-  /// - [AcceptOfferGroupCommandOutput]: The accept offer group command
+  /// - [AcceptOfferGroupResult]: The accept offer group command
   /// output object.
   ///
   /// **Throws:**
   /// - [AcceptOfferGroupException]: Exception thrown by the accept offer
   /// handler.
   @override
-  Future<AcceptOfferGroupCommandOutput> handle(
-    AcceptOfferGroupCommand command,
-  ) async {
+  Future<AcceptOfferGroupResult> handle(AcceptOfferGroupRequest command) async {
     final methodName = 'handle';
     _logger.info('Started accepting offer group', name: methodName);
 
@@ -83,7 +80,7 @@ class AcceptOfferGroupHandler
       );
 
       _logger.info('Completed accepting offer group', name: methodName);
-      return AcceptOfferGroupCommandOutput(
+      return AcceptOfferGroupResult(
         offerLink: response.data!.offerLink,
         didcommMessage: response.data!.didcommMessage,
         validUntil: response.data?.validUntil != null

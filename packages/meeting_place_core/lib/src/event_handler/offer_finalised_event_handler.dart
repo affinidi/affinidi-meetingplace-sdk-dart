@@ -260,8 +260,8 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
       name: methodName,
     );
 
-    final result = await _controlPlaneSDK.execute(
-      RegisterNotificationCommand(
+    final result = await _controlPlaneSDK.registerNotification(
+      RegisterNotificationRequest(
         myDid: myDid,
         theirDid: theirDid,
         device: _controlPlaneSDK.device,
@@ -291,8 +291,8 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
     required String did,
   }) async {
     try {
-      await _controlPlaneSDK.execute(
-        NotifyChannelCommand(
+      await _controlPlaneSDK.notifyChannel(
+        NotifyChannelRequest(
           notificationToken: notificationToken,
           did: did,
           type: ChannelActivityType.channelInauguration,

@@ -7,9 +7,8 @@ import 'api/control_plane_api_client_options.dart';
 import 'api/did_web_document_api.dart';
 import 'command/accept_offer/accept_offer_handler.dart';
 import 'command/accept_offer_group/accept_offer_group_handler.dart';
-import 'command/authenticate/authenticate.dart';
 import 'command/authenticate/authenticate_handler.dart';
-import 'command/authenticate/authenticate_output.dart';
+import 'command/command.dart';
 import 'command/create_oob/create_oob_handler.dart';
 import 'command/delete_pending_notifications/'
     'delete_pending_notifications_handler.dart';
@@ -50,6 +49,9 @@ import 'meeting_place_control_plane_sdk_options.dart';
 /// before a [Device] has been set on the SDK instance.
 class MissingDeviceException implements Exception {}
 
+/// Executes a control-plane command on behalf of the SDK.
+typedef CommandExecutor = Future<T> Function<T>(DiscoveryCommand<T> command);
+
 /// The **MeetingPlaceControlPlaneSDK** provides the libraries to enable the
 /// discovery of other participants to establish a connection and
 /// communicate securely.
@@ -72,12 +74,14 @@ class MeetingPlaceControlPlaneSDK {
     required this.didResolver,
     this.controlPlaneSDKConfig = const MeetingPlaceControlPlaneSDKOptions(),
     MeetingPlaceControlPlaneSDKLogger? logger,
+    CommandExecutor? commandExecutor,
   }) : _logger =
            logger ??
            DefaultMeetingPlaceControlPlaneSDKLogger(
              className: className,
              sdkName: sdkName,
-           ) {
+           ),
+       _commandExecutor = commandExecutor {
     _sdkErrorHandler = SDKErrorHandler(
       logger: _logger,
       controlPlaneDid: controlPlaneDid,
@@ -103,6 +107,7 @@ class MeetingPlaceControlPlaneSDK {
   /// The DID resolver used to resolve DIDs encountered by the SDK.
   final DidResolver didResolver;
   final MeetingPlaceControlPlaneSDKLogger _logger;
+  final CommandExecutor? _commandExecutor;
 
   late final SDKErrorHandler _sdkErrorHandler;
   ControlPlaneApiClient? _controlPlaneApiClient;
@@ -136,6 +141,270 @@ class MeetingPlaceControlPlaneSDK {
     return _device!;
   }
 
+  /// Registers an offer with the control plane.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.registerOfferMediatorNotSet] when
+  /// no mediator DID is configured, or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.registerOfferMnemonicInUse] when
+  /// the request's custom mnemonic is already registered. Other registration
+  /// and network
+  /// failures use [MeetingPlaceControlPlaneSDKErrorCode.registerOfferGeneric]
+  /// and [MeetingPlaceControlPlaneSDKErrorCode.networkError], respectively.
+  Future<RegisterOfferResult> registerOffer(RegisterOfferRequest request) =>
+      _execute(request);
+
+  /// Deregisters an offer from the control plane.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.deregisterOfferFailedError],
+  /// [MeetingPlaceControlPlaneSDKErrorCode.deregisterOfferGeneric], or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when deregistration
+  /// fails.
+  Future<DeregisterOfferResult> deregisterOffer(
+    DeregisterOfferRequest request,
+  ) => _execute(request);
+
+  /// Finds an offer by its mnemonic phrase.
+  ///
+  /// The returned [FindOfferByMnemonicResult] represents success, not found,
+  /// expiration, or a query-limit result.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.queryOfferOfferGeneric] or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when the query fails.
+  Future<FindOfferByMnemonicResult> findOfferByMnemonic(
+    QueryOfferRequest request,
+  ) => _execute(request);
+
+  /// Checks whether an offer mnemonic phrase is available.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with a validation-specific
+  /// [MeetingPlaceControlPlaneSDKErrorCode], or with
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when a network failure
+  /// occurs.
+  Future<ValidateOfferMnemonicResult> validateOfferMnemonic(
+    ValidateOfferPhraseRequest request,
+  ) => _execute(request);
+
+  /// Updates the score assigned to the offers identified by [request].
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.generic] or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when the update fails.
+  Future<UpdateOffersScoreResult> updateOffersScore(
+    UpdateOffersScoreRequest request,
+  ) => _execute(request);
+
+  /// Accepts a registered offer.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.acceptOfferAlreadyAccepted],
+  /// [MeetingPlaceControlPlaneSDKErrorCode.acceptOfferLimitExceeded],
+  /// [MeetingPlaceControlPlaneSDKErrorCode.acceptOfferGeneric], or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when acceptance fails.
+  Future<AcceptOfferResult> acceptOffer(AcceptOfferRequest request) =>
+      _execute(request);
+
+  /// Finalises an accepted offer.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.finaliseAcceptanceError],
+  /// [MeetingPlaceControlPlaneSDKErrorCode.finaliseAcceptanceGeneric], or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when finalisation
+  /// fails.
+  Future<FinaliseAcceptanceResult> finaliseAcceptance(
+    FinaliseAcceptanceRequest request,
+  ) => _execute(request);
+
+  /// Registers a group offer with the control plane.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.registerOfferGroupMediatorNotSet]
+  /// when no mediator DID is configured, or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.registerOfferGroupMnemonicInUse]
+  /// when the request's custom mnemonic is already registered. Other
+  /// registration and
+  /// network failures use
+  /// [MeetingPlaceControlPlaneSDKErrorCode.registerOfferGroupGeneric] and
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError], respectively.
+  Future<RegisterOfferGroupResult> registerOfferGroup(
+    RegisterOfferGroupRequest request,
+  ) => _execute(request);
+
+  /// Accepts a registered group offer.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.acceptOfferGroupGeneric] or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when acceptance fails.
+  Future<AcceptOfferGroupResult> acceptOfferGroup(
+    AcceptOfferGroupRequest request,
+  ) => _execute(request);
+
+  /// Adds a member to a group.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.groupAddMemberGeneric] or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when adding the member
+  /// fails.
+  Future<AddGroupMemberResult> addGroupMember(GroupAddMemberRequest request) =>
+      _execute(request);
+
+  /// Deregisters a member from a group.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.groupDeregisterMemberGeneric] or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when deregistration
+  /// fails.
+  Future<DeregisterGroupMemberResult> deregisterGroupMember(
+    GroupDeregisterMemberRequest request,
+  ) => _execute(request);
+
+  /// Deletes a group.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.groupDeleteGeneric] or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when deletion fails.
+  Future<DeleteGroupResult> deleteGroup(GroupDeleteRequest request) =>
+      _execute(request);
+
+  /// Notifies members of a group channel event.
+  ///
+  /// When the request specifies a member DID, only that member is notified.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.groupNotifyChannelGeneric] or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when notification
+  /// fails.
+  Future<NotifyGroupChannelResult> notifyGroupChannel(
+    GroupNotifyChannelRequest request,
+  ) => _execute(request);
+
+  /// Notifies an offer publisher that their offer was accepted.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.notifyAcceptanceGeneric] or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when notification
+  /// fails.
+  Future<NotifyAcceptanceResult> notifyAcceptance(
+    NotifyAcceptanceRequest request,
+  ) => _execute(request);
+
+  /// Notifies a group offer publisher that their offer was accepted.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.notifyAcceptanceGeneric] or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when notification
+  /// fails.
+  Future<NotifyGroupAcceptanceResult> notifyGroupAcceptance(
+    NotifyAcceptanceGroupRequest request,
+  ) => _execute(request);
+
+  /// Notifies a channel of an event.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.notifyChannelGeneric] or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when notification
+  /// fails.
+  Future<NotifyChannelResult> notifyChannel(NotifyChannelRequest request) =>
+      _execute(request);
+
+  /// Sends an outreach notification for an offer.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.notifyOutreachGeneric] or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when notification
+  /// fails.
+  Future<NotifyOutreachResult> notifyOutreach(NotifyOutreachRequest request) =>
+      _execute(request);
+
+  /// Registers a device to receive notifications between two parties.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.registerNotificationGeneric] or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when registration
+  /// fails.
+  Future<RegisterNotificationResult> registerNotification(
+    RegisterNotificationRequest request,
+  ) => _execute(request);
+
+  /// Deregisters a notification channel.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.deregisterNotificationGeneric] or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when deregistration
+  /// fails.
+  Future<DeregisterNotificationResult> deregisterNotification(
+    DeregisterNotificationRequest request,
+  ) => _execute(request);
+
+  /// Fetches pending notifications for the device in [request].
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with a
+  /// [MeetingPlaceControlPlaneSDKErrorCode] of
+  /// `getPendingNotificationsNotificationPayloadError`,
+  /// `getPendingNotificationsGeneric`, or `networkError` when fetching fails.
+  Future<GetPendingNotificationsResult> getPendingNotifications(
+    GetPendingNotificationsRequest request,
+  ) => _execute(request);
+
+  /// Deletes pending notifications for the device in [request].
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with a
+  /// [MeetingPlaceControlPlaneSDKErrorCode] of
+  /// `deletePendingNotificationsDeletionFailedError`,
+  /// `deletePendingNotificationsGeneric`, or `networkError` when deletion
+  /// fails.
+  Future<DeletePendingNotificationsResult> deletePendingNotifications(
+    DeletePendingNotificationsRequest request,
+  ) => _execute(request);
+
+  /// Creates a direct connection invitation through a mediator.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.createOobGeneric] or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when creation fails.
+  Future<CreateDirectConnectionInvitationResult>
+  createDirectConnectionInvitation(CreateOobRequest request) =>
+      _execute(request);
+
+  /// Retrieves the direct connection invitation identified by [request].
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.oobNotFound] or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when retrieval fails.
+  Future<GetDirectConnectionInvitationResult> getDirectConnectionInvitation(
+    GetOobRequest request,
+  ) => _execute(request);
+
+  /// Registers a device to receive push notifications.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.registerDeviceGeneric] or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when registration
+  /// fails.
+  Future<RegisterDeviceResult> registerDevice(RegisterDeviceRequest request) =>
+      _execute(request);
+
+  /// Gets a Matrix login token using [request].
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with code
+  /// [MeetingPlaceControlPlaneSDKErrorCode.matrixTokenInvalidResponse],
+  /// [MeetingPlaceControlPlaneSDKErrorCode.matrixTokenGeneric], or
+  /// [MeetingPlaceControlPlaneSDKErrorCode.networkError] when retrieval fails.
+  Future<GetMatrixTokenResult> getMatrixToken(MatrixTokenRequest request) =>
+      _execute(request);
+
+  /// Uploads a did:web DID Document and its proofs.
+  ///
+  /// Throws a [MeetingPlaceControlPlaneSDKException] with a
+  /// [MeetingPlaceControlPlaneSDKErrorCode] of
+  /// `uploadDidWebDocumentAlreadyRegistered`, `uploadDidWebDocumentGeneric`,
+  /// or `networkError` when upload fails.
+  Future<UploadDidWebDocumentResult> uploadDidWebDocument(
+    UploadDidWebDocumentRequest request,
+  ) => _execute(request);
+
   /// Private method that initialises the ControlPlaneApiClient.
   ///
   /// This is invoked by a public method within the
@@ -143,7 +412,7 @@ class MeetingPlaceControlPlaneSDK {
   Future<void> _init() async {
     _dispatcher = CommandDispatcher();
     final apiClient = await ControlPlaneApiClient.init(
-      controlPlaneSDK: this,
+      authenticate: _authenticate,
       options: ControlPlaneApiClientOptions(
         controlPlaneDid: controlPlaneDid,
         maxRetries: controlPlaneSDKConfig.maxRetries,
@@ -303,22 +572,21 @@ class MeetingPlaceControlPlaneSDK {
       UpdateOffersScoreHandler(apiClient: apiClient, logger: _logger),
     );
 
-    await _dispatcher.dispatch<AuthenticateCommand, AuthenticateCommandOutput>(
-      AuthenticateCommand(controlPlaneDid: controlPlaneDid),
+    await _dispatcher.dispatch<AuthenticateRequest, AuthenticateResult>(
+      AuthenticateRequest(controlPlaneDid: controlPlaneDid),
     );
 
     isInitialized = true;
   }
 
-  /// Executes the provided [command].
-  ///
-  /// This method checks first if the [MeetingPlaceControlPlaneSDK] instance
-  /// has been initialised before executing the provided command using the
-  /// [CommandDispatcher]. The [command] is a [DiscoveryCommand] with an
-  /// overloaded generic class that extends the [DiscoveryCommand] parent
-  /// class, and the result depends on the provided [DiscoveryCommand].
-  Future<T> execute<T>(DiscoveryCommand<T> command) {
-    final methodName = 'execute';
+  Future<AuthenticateResult> _authenticate() =>
+      _execute(AuthenticateRequest(controlPlaneDid: controlPlaneDid));
+
+  Future<T> _execute<T>(DiscoveryCommand<T> command) {
+    final commandExecutor = _commandExecutor;
+    if (commandExecutor != null) return commandExecutor(command);
+
+    final methodName = '_execute';
     _logger.info('Executing command: ${command.runtimeType}', name: methodName);
 
     return _withSdkExceptionHandling(() async {

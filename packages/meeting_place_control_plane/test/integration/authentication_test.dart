@@ -1,5 +1,4 @@
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart';
-import 'package:meeting_place_control_plane/src/api/auth_credentials.dart';
 import 'package:test/test.dart';
 
 import '../utils/sdk.dart';
@@ -7,12 +6,14 @@ import '../utils/sdk.dart';
 void main() async {
   final sdk = await initSDKInstance();
 
-  test('multiple authentication calls possible', () async {
-    final command = AuthenticateCommand(controlPlaneDid: getControlPlaneDid());
+  test('authenticates before executing facade methods', () async {
+    final result = await sdk.registerDevice(
+      RegisterDeviceRequest(
+        deviceToken: 'authentication-test-device',
+        platformType: PlatformType.didcomm,
+      ),
+    );
 
-    await sdk.execute(command);
-    final result = await sdk.execute(command);
-
-    expect(result.credentials, isA<AuthCredentials>());
+    expect(result.success, isTrue);
   });
 }

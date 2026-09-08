@@ -35,7 +35,6 @@ void main() {
         final validUntil = DateTime.utc(2030);
         final output = RegisterOfferGroupResult(
           groupId: 'group-id',
-          groupDid: 'did:key:group',
           mediatorDid: 'did:web:mediator.example',
           offerLink: 'https://example.com/group-offers/1',
           mnemonic: 'group-chat',
@@ -178,8 +177,7 @@ void main() {
         sdk.stubbedResult = output;
 
         final request = GroupNotifyChannelRequest(
-          offerLink: 'https://example.com/group-offers/1',
-          groupDid: 'did:key:group',
+          groupId: 'group-1',
           type: 'member-added',
           memberDid: 'did:key:member',
         );
@@ -188,8 +186,7 @@ void main() {
         expect(result, same(output));
         expect(sdk.lastCommand, same(request));
         final command = sdk.lastCommand as GroupNotifyChannelRequest;
-        expect(command.offerLink, 'https://example.com/group-offers/1');
-        expect(command.groupDid, 'did:key:group');
+        expect(command.groupId, 'group-1');
         expect(command.type, 'member-added');
         expect(command.memberDid, 'did:key:member');
       });

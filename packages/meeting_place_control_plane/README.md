@@ -83,7 +83,7 @@ void main() async {
    sdk.device = Device(deviceToken: 'FCM_DEVICE_TOKEN', platformType: 'android');
 
    try {
-      final result = await sdk.findOfferByMnemonic(mnemonic: 'coffee-chat');
+      final result = await sdk.findOfferByMnemonic(QueryOfferRequest(mnemonic: 'coffee-chat'));
       print('Offer result: $result');
    } on MeetingPlaceControlPlaneSDKException catch (e) {
       print('Control plane SDK error: ${e.message} (code: ${e.code})');

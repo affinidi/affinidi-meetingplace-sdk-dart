@@ -6,8 +6,8 @@ import '../../constants/sdk_constants.dart';
 import '../../core/command/command_handler.dart';
 import '../../loggers/default_meeting_place_control_plane_sdk_logger.dart';
 import '../../loggers/meeting_place_control_plane_sdk_logger.dart';
-import 'group_notify_channel.dart';
 import 'group_notify_channel_exception.dart';
+import 'group_notify_channel_request.dart';
 import 'notify_group_channel_result.dart';
 
 /// A concreate implementation of the [CommandHandler] interface.

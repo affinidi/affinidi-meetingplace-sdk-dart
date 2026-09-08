@@ -172,9 +172,7 @@ If you have a technical issue with the project's codebase, you can also create a
    [Issues](https://github.com/affinidi/affinidi-meetingplace-sdk-dart/issues).
 
 2. If you're unable to find an open issue addressing the problem,
-   [open a new one](https://github.com/affinidi/affinidi-meetingplace-sdk-dart/issues/new).
-   Be sure to include a **title and clear description**, as much relevant information as possible,
-   and a **code sample** or an **executable test case** demonstrating the expected behaviour that is not occurring.
+   [open a new one](https://github.com/affinidi/affinidi-meetingplace-sdk-dart/issues/new). Be sure to include a **title and clear description**, as much relevant information as possible, and a **code sample** or an **executable test case** demonstrating the expected behaviour that is not occurring.
 
 ## Contributing
 

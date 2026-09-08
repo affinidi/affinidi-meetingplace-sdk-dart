@@ -11,6 +11,57 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 Packages with breaking changes:
 
+ - [`meeting_place_chat` - `v0.0.1-dev.67`](#meeting_place_chat---v001-dev67)
+ - [`meeting_place_control_plane` - `v0.0.1-dev.28`](#meeting_place_control_plane---v001-dev28)
+ - [`meeting_place_core` - `v0.0.1-dev.55`](#meeting_place_core---v001-dev55)
+ - [`meeting_place_credentials` - `v0.0.1-dev.21`](#meeting_place_credentials---v001-dev21)
+ - [`meeting_place_drift_repository` - `v0.0.1-dev.67`](#meeting_place_drift_repository---v001-dev67)
+ - [`meeting_place_matrix` - `v0.0.1-dev.28`](#meeting_place_matrix---v001-dev28)
+ - [`meeting_place_mediator` - `v0.0.1-dev.18`](#meeting_place_mediator---v001-dev18)
+
+Packages with other changes:
+
+ - There are no other changes in this release.
+
+---
+
+#### `meeting_place_chat` - `v0.0.1-dev.67`
+
+ - **BREAKING** **FEAT**: v1 release (#342).
+
+#### `meeting_place_control_plane` - `v0.0.1-dev.28`
+
+ - **BREAKING** **FEAT**: v1 release (#342).
+
+#### `meeting_place_core` - `v0.0.1-dev.55`
+
+ - **BREAKING** **FEAT**: v1 release (#342).
+
+#### `meeting_place_credentials` - `v0.0.1-dev.21`
+
+ - **BREAKING** **FEAT**: v1 release (#342).
+
+#### `meeting_place_drift_repository` - `v0.0.1-dev.67`
+
+ - **BREAKING** **FEAT**: v1 release (#342).
+
+#### `meeting_place_matrix` - `v0.0.1-dev.28`
+
+ - **BREAKING** **FEAT**: v1 release (#342).
+
+#### `meeting_place_mediator` - `v0.0.1-dev.18`
+
+ - **BREAKING** **FEAT**: v1 release (#342).
+
+
+## 2026-09-08
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
  - There are no breaking changes in this release.
 
 Packages with other changes:

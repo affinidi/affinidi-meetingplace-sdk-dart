@@ -1,3 +1,9 @@
+## 0.0.1-dev.67
+
+> Note: This release has breaking changes.
+
+ - **BREAKING** **FEAT**: v1 release (#342).
+
 ## 0.0.1-dev.66
 
  - **FEAT**: add control plane facade methods (#340).

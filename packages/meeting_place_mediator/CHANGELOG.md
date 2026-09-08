@@ -1,3 +1,9 @@
+## 0.0.1-dev.18
+
+> Note: This release has breaking changes.
+
+ - **BREAKING** **FEAT**: v1 release (#342).
+
 ## 0.0.1-dev.17
 
  - **DOCS**: update documentation (#336).

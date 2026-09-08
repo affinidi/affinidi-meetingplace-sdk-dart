@@ -1,6 +1,6 @@
 name: meeting_place_credentials_example
 description: Meeting Place Credentials SDK examples.
-version: 0.0.1-dev.0
+version: 0.0.1
 publish_to: "none"
 resolution: workspace
 
@@ -9,9 +9,8 @@ environment:
 
 dependencies:
   dotenv: ^4.2.0
-  meeting_place_core: ^0.0.1-dev.55
-  meeting_place_credentials:
-    path: ../
+  meeting_place_core: ^0.0.1
+  meeting_place_credentials: ^0.0.1
   pretty_json: ^2.0.0
   ssi: ^3.9.4
   uuid: ^4.5.1

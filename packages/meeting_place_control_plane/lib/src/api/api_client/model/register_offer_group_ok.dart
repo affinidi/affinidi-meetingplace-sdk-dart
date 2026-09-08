@@ -17,7 +17,6 @@ part 'register_offer_group_ok.g.dart';
 /// * [maximumUsage]
 /// * [offerLink]
 /// * [groupId]
-/// * [groupDid]
 @BuiltValue()
 abstract class RegisterOfferGroupOK
     implements Built<RegisterOfferGroupOK, RegisterOfferGroupOKBuilder> {
@@ -38,9 +37,6 @@ abstract class RegisterOfferGroupOK
 
   @BuiltValueField(wireName: r'groupId')
   String get groupId;
-
-  @BuiltValueField(wireName: r'groupDid')
-  String get groupDid;
 
   RegisterOfferGroupOK._();
 
@@ -105,11 +101,6 @@ class _$RegisterOfferGroupOKSerializer
     yield r'groupId';
     yield serializers.serialize(
       object.groupId,
-      specifiedType: const FullType(String),
-    );
-    yield r'groupDid';
-    yield serializers.serialize(
-      object.groupDid,
       specifiedType: const FullType(String),
     );
   }
@@ -189,15 +180,6 @@ class _$RegisterOfferGroupOKSerializer
                   )
                   as String;
           result.groupId = valueDes;
-          break;
-        case r'groupDid':
-          final valueDes =
-              serializers.deserialize(
-                    value,
-                    specifiedType: const FullType(String),
-                  )
-                  as String;
-          result.groupDid = valueDes;
           break;
         default:
           unhandled.add(key);

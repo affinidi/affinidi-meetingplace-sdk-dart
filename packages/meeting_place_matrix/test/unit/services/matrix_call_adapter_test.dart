@@ -97,8 +97,7 @@ void main() {
     );
     registerFallbackValue(
       const GroupChannelNotification(
-        offerLink: 'offer://fallback',
-        groupDid: 'did:key:fallback-group',
+        groupId: 'group-fallback',
         type: CallChannelActivityType.callDecline,
       ),
     );
@@ -363,8 +362,7 @@ void main() {
           () => coreSDK.notifyChannel(
             any(
               that: isA<GroupChannelNotification>()
-                  .having((n) => n.offerLink, 'offerLink', channel.offerLink)
-                  .having((n) => n.groupDid, 'groupDid', _otherPartyDid)
+                  .having((n) => n.groupId, 'groupId', _stubGroup().id)
                   .having(
                     (n) => n.type,
                     'type',
@@ -1060,6 +1058,9 @@ void main() {
       when(
         () => coreSDK.findChannelByOtherPartyPermanentDid(_otherPartyDid),
       ).thenAnswer((_) async => channel);
+      when(
+        () => coreSDK.findGroupByOfferLink(channel.offerLink),
+      ).thenAnswer((_) async => _stubGroup());
       when(() => coreSDK.notifyChannel(any())).thenAnswer((_) async {});
 
       await adapter.resolveChannel();
@@ -1070,14 +1071,9 @@ void main() {
           any(
             that: isA<GroupChannelNotification>()
                 .having(
-                  (notification) => notification.offerLink,
-                  'offerLink',
-                  'offer://test',
-                )
-                .having(
-                  (notification) => notification.groupDid,
-                  'groupDid',
-                  _otherPartyDid,
+                  (notification) => notification.groupId,
+                  'groupId',
+                  _stubGroup().id,
                 )
                 .having(
                   (notification) => notification.type,
@@ -1096,6 +1092,9 @@ void main() {
       when(
         () => coreSDK.findChannelByOtherPartyPermanentDid(_otherPartyDid),
       ).thenAnswer((_) async => channel);
+      when(
+        () => coreSDK.findGroupByOfferLink(channel.offerLink),
+      ).thenAnswer((_) async => _stubGroup());
       when(
         () => coreSDK.getDidManager(_ownDid),
       ).thenAnswer((_) async => didManager);
@@ -1173,6 +1172,9 @@ void main() {
         when(
           () => coreSDK.findChannelByOtherPartyPermanentDid(_otherPartyDid),
         ).thenAnswer((_) async => channel);
+        when(
+          () => coreSDK.findGroupByOfferLink(channel.offerLink),
+        ).thenAnswer((_) async => _stubGroup());
         when(() => coreSDK.notifyChannel(any())).thenAnswer((_) async {});
 
         await adapter.resolveChannel();

@@ -48,8 +48,7 @@ void main() {
 
       expect(notification, isA<GroupChannelNotification>());
       final groupNotif = notification as GroupChannelNotification;
-      expect(groupNotif.offerLink, group.offerLink);
-      expect(groupNotif.groupDid, group.did);
+      expect(groupNotif.groupId, group.id);
       expect(groupNotif.type, 'chat-activity');
     });
   });

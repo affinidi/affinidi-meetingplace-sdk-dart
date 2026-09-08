@@ -41,7 +41,7 @@ void main() {
     registerFallbackValue(FakeChannel());
     registerFallbackValue(const MatrixSubscriptionOptions());
     registerFallbackValue(
-      const GroupChannelNotification(offerLink: '', groupDid: '', type: ''),
+      const GroupChannelNotification(groupId: '', type: ''),
     );
   });
 
@@ -116,6 +116,16 @@ void main() {
           otherPartyPermanentChannelDid: 'did:group',
         ),
       );
+      when(() => sdk.findGroupByOfferLink('offer://group')).thenAnswer(
+        (_) async => Group(
+          id: 'group-1',
+          did: 'did:group',
+          offerLink: 'offer://group',
+          created: DateTime.utc(2026, 1, 1),
+          ownerDid: 'did:key:contact',
+          members: const [],
+        ),
+      );
       when(() => sdk.notifyChannel(any())).thenAnswer((_) async {});
       plugin.initialize(sdk: sdk);
       addTearDown(plugin.dispose);
@@ -132,8 +142,7 @@ void main() {
       expect(captured, isA<GroupChannelNotification>());
       final notification = captured as GroupChannelNotification;
       expect(notification.memberDid, 'did:bob');
-      expect(notification.groupDid, 'did:group');
-      expect(notification.offerLink, 'offer://group');
+      expect(notification.groupId, 'group-1');
       expect(notification.type, CallChannelActivityType.callInviteVideo);
     });
 

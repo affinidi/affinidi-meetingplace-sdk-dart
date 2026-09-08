@@ -294,10 +294,16 @@ class MeetingPlaceLiveKitCallPlugin implements AudioVideoCallPlugin {
         '${groupChannelDid.topAndTail()}.',
       );
     }
+    final group = await sdk.findGroupByOfferLink(channel.offerLink);
+    if (group == null) {
+      throw MeetingPlaceLiveKitCallMisconfiguredException(
+        'ringGroupMember could not resolve the group for offer link '
+        '${channel.offerLink}.',
+      );
+    }
     await sdk.notifyChannel(
       GroupChannelNotification(
-        offerLink: channel.offerLink,
-        groupDid: groupChannelDid,
+        groupId: group.id,
         type: mediaType == CallMediaType.audio
             ? CallChannelActivityType.callInviteAudio
             : CallChannelActivityType.callInviteVideo,

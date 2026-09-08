@@ -162,7 +162,9 @@ class ConnectionService {
     } else {
       final groupConnectionOffer = GroupConnectionOffer(
         groupId: queryOfferResult.groupId!,
-        groupDid: queryOfferResult.groupDid!,
+        // groupDid isn't known yet — the control plane no longer issues it;
+        // it arrives later via the admin's GroupMemberInauguration message
+        // and is recorded through groupFinalise.
         offerName: queryOfferResult.offerName,
         offerLink: queryOfferResult.offerLink,
         offerDescription: queryOfferResult.offerDescription,
@@ -184,7 +186,6 @@ class ConnectionService {
       _logger.info('''
         Group connection offer found:
           groupId=${queryOfferResult.groupId},
-          groupDid=${queryOfferResult.groupDid},
           name=${queryOfferResult.offerName},
           link=${queryOfferResult.offerLink},
           mnemonic=${queryOfferResult.mnemonic},

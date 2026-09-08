@@ -1,3 +1,7 @@
+## 0.0.1-dev.66
+
+ - **FEAT**: add control plane facade methods (#340).
+
 ## 0.0.1-dev.65
 
  - **DOCS**: update documentation (#336).

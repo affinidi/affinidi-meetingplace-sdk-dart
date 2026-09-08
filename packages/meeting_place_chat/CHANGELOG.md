@@ -1,3 +1,7 @@
+## 0.0.1-dev.66
+
+ - Update a dependency to the latest release.
+
 ## 0.0.1-dev.65
 
  - **DOCS**: update documentation (#336).

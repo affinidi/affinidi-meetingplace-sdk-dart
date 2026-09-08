@@ -1,3 +1,7 @@
+## 0.0.1-dev.27
+
+ - **FEAT**: add control plane facade methods (#340).
+
 ## 0.0.1-dev.26
 
  - **FIX**: propose profile updates on group chat session start (#337).

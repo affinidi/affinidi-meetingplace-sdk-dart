@@ -63,7 +63,7 @@ Visit the pub.dev [install page](https://pub.dev/packages/meeting_place_control_
 
 ```dart
 import 'package:meeting_place_core/meeting_place_core.dart';
-import 'package:ssi/ssi.dart'
+import 'package:ssi/ssi.dart';
 import 'lib/discovery_sdk.dart';
 
 void main() async {

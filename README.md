@@ -108,7 +108,6 @@ for details on new-database encryption and SQLCipher migration.
 ## Installation
 
 Run:
-
 ```bash
 dart pub add meeting_place_core
 ```

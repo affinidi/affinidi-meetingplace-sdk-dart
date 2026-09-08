@@ -117,8 +117,7 @@ in `test/chat_items_migration_test.dart` for the new version.
 
 `test/chat_items_migration_test.dart` contains a canary test that verifies
 `GeneratedHelper.versions` includes the current `schemaVersion`. If the two
-commands above are not run after bumping the version, CI will fail immediately
-with a message like:
+commands above are not run after bumping the version, CI will fail immediately with a message like:
 
 ```
 Expected: contains <3>

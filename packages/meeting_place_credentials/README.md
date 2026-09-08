@@ -52,7 +52,6 @@ and then run the command below to install the package:
 ```bash
 dart pub get
 ```
-
 Visit the pub.dev [install page](https://pub.dev/packages/meeting_place_credentials) of the Dart package for more information.
 
 ## Usage

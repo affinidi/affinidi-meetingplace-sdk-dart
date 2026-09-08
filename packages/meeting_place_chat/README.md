@@ -110,7 +110,7 @@ Use `capabilities` before showing optional actions.
 
 ```dart
 await chatSDK.sendTextMessage('Hello');
-await chatSDK.sendChatActivity(); // typing/activity signal
+await chatSDK.sendChatActivity(); // typing / activity signal
 
 if (chatSDK.capabilities.supports(ChatFeature.reactions)) {
   await chatSDK.reactOnMessage(message, reaction: '+1');

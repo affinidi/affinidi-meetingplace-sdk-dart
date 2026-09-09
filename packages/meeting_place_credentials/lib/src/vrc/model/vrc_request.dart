@@ -9,9 +9,7 @@ const _maxIdentityDidLength = 512;
 /// the W3C DID Core ABNF. Deliberately permissive on the method-specific-id
 /// charset: this rejects obviously spoofed/malformed input, not a full
 /// per-method conformance check.
-final RegExp _identityDidPattern = RegExp(
-  r'^did:[a-z0-9]+:[A-Za-z0-9._:%-]+$',
-);
+final RegExp _identityDidPattern = RegExp(r'^did:[a-z0-9]+:[A-Za-z0-9._:%-]+$');
 
 /// Upper bound on the length of a peer-supplied identity display name
 /// accepted from VDIP proposal metadata.
@@ -113,8 +111,7 @@ class VrcRequest {
   /// is capped, so a malicious peer cannot use it to spoof how the name
   /// renders in UI or to exhaust memory.
   String? get identityName => _sanitizeIdentityName(
-    credentialMetaData[VrcConstants.requestMetadataKeyIdentityName]
-        as String?,
+    credentialMetaData[VrcConstants.requestMetadataKeyIdentityName] as String?,
   );
 
   @override

@@ -98,9 +98,7 @@ void main() {
       final name = 'Bob\u202Eevil\u202C\x07';
       final request = VrcRequest(
         senderDid: 'did:key:sender',
-        credentialMetaData: {
-          VrcConstants.requestMetadataKeyIdentityName: name,
-        },
+        credentialMetaData: {VrcConstants.requestMetadataKeyIdentityName: name},
       );
 
       expect(request.identityName, 'Bobevil');

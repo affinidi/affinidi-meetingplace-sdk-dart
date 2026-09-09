@@ -13,6 +13,7 @@ import '../utils/mocks.dart';
 void main() {
   late MockMeetingPlaceCoreSDK mockCoreSDK;
   late MockVdipClient mockVdipClient;
+  late MockDidResolver mockDidResolver;
   late VrcExchangeClient client;
 
   Channel makeChannel({
@@ -31,13 +32,18 @@ void main() {
   setUp(() {
     mockVdipClient = MockVdipClient();
     mockCoreSDK = MockMeetingPlaceCoreSDK();
+    mockDidResolver = MockDidResolver();
     when(() => mockCoreSDK.vdip).thenReturn(mockVdipClient);
+    when(
+      () => mockDidResolver.resolveDid(any()),
+    ).thenAnswer((_) async => MockDidDocument());
 
     client = VrcExchangeClient(
       coreSDK: mockCoreSDK,
       logger: DefaultMeetingPlaceCoreSDKLogger(
         className: 'VrcExchangeClientTest',
       ),
+      didResolver: mockDidResolver,
     );
   });
 
@@ -156,6 +162,7 @@ void main() {
       expect(vcBlob, isNotEmpty);
       final decoded = jsonDecode(vcBlob) as Map<String, dynamic>;
       expect(decoded['type'], contains('RelationshipCredential'));
+      verify(() => mockDidResolver.resolveDid('did:key:peer')).called(1);
       verify(
         () => mockVdipClient.sendIssuedCredential(
           senderDid: any(named: 'senderDid'),
@@ -184,5 +191,40 @@ void main() {
         );
       },
     );
+
+    test('throws and does not issue a VC when the peer identity DID cannot be '
+        'resolved', () async {
+      final channel = makeChannel(permanentChannelDid: issuerDid);
+      when(
+        () => mockCoreSDK.findChannelByOtherPartyPermanentDid('did:key:peer'),
+      ).thenAnswer((_) async => channel);
+      when(
+        () => mockDidResolver.resolveDid('did:key:peer'),
+      ).thenThrow(Exception('unresolvable DID'));
+
+      await expectLater(
+        () => client.sendVrc(
+          channelDid: 'did:key:peer',
+          issuerDid: issuerDid,
+          issuerName: 'Alice',
+          peerDid: 'did:key:peer',
+          peerName: 'Bob',
+        ),
+        throwsA(
+          isA<MeetingPlaceCredentialsSDKException>().having(
+            (e) => e.code,
+            'code',
+            MeetingPlaceCredentialsSDKErrorCode.sendVrcUnresolvableIdentity,
+          ),
+        ),
+      );
+      verifyNever(
+        () => mockVdipClient.sendIssuedCredential(
+          senderDid: any(named: 'senderDid'),
+          recipientDid: any(named: 'recipientDid'),
+          body: any(named: 'body'),
+        ),
+      );
+    });
   });
 }

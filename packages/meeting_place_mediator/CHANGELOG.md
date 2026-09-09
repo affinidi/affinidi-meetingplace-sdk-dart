@@ -1,3 +1,7 @@
+## 1.0.0
+
+ - Package graduated to v1.0.0
+
 ## 0.0.1-dev.18
 
 > Note: This release has breaking changes.

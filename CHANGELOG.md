@@ -3,6 +3,57 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-09-09
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_chat` - `v1.0.0`](#meeting_place_chat---v100)
+ - [`meeting_place_control_plane` - `v1.0.0`](#meeting_place_control_plane---v100)
+ - [`meeting_place_core` - `v1.0.0`](#meeting_place_core---v100)
+ - [`meeting_place_credentials` - `v1.0.0`](#meeting_place_credentials---v100)
+ - [`meeting_place_drift_repository` - `v1.0.0`](#meeting_place_drift_repository---v100)
+ - [`meeting_place_matrix` - `v1.0.0`](#meeting_place_matrix---v100)
+ - [`meeting_place_mediator` - `v1.0.0`](#meeting_place_mediator---v100)
+
+---
+
+#### `meeting_place_chat` - `v1.0.0`
+
+ - Package graduated to v1.0.0
+
+#### `meeting_place_control_plane` - `v1.0.0`
+
+ - Package graduated to v1.0.0
+
+#### `meeting_place_core` - `v1.0.0`
+
+ - Package graduated to v1.0.0
+
+#### `meeting_place_credentials` - `v1.0.0`
+
+ - Package graduated to v1.0.0
+
+#### `meeting_place_drift_repository` - `v1.0.0`
+
+ - Package graduated to v1.0.0
+
+#### `meeting_place_matrix` - `v1.0.0`
+
+ - Package graduated to v1.0.0
+
+#### `meeting_place_mediator` - `v1.0.0`
+
+ - Package graduated to v1.0.0
+
+
 ## 2026-09-08
 
 ### Changes

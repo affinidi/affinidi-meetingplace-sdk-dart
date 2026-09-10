@@ -13,15 +13,18 @@ class TrustedCallStartTimeStore {
 
   final Map<String, DateTime> _startedAtByCallId = {};
 
-  /// Records [startedAt] for [callId] if none is recorded yet.
+  /// Records [startedAt] for [callId], keeping the earliest timestamp seen.
   ///
-  /// The first `mpx.call.started` event observed for a call is authoritative:
+  /// The earliest `mpx.call.started` timestamp for a call is authoritative:
   /// later duplicates only reflect other devices noticing the same connect
-  /// slightly later, so they must not override the earlier, more accurate
-  /// timestamp.
+  /// slightly later, so they must not override an earlier, more accurate
+  /// timestamp, regardless of the order in which events are delivered.
   void recordIfAbsent(String callId, DateTime startedAt) {
-    if (_startedAtByCallId.containsKey(callId)) return;
-    _startedAtByCallId[callId] = startedAt;
+    final existing = _startedAtByCallId.remove(callId);
+    final earliest = existing == null || startedAt.isBefore(existing)
+        ? startedAt
+        : existing;
+    _startedAtByCallId[callId] = earliest;
     if (_startedAtByCallId.length > _maxRememberedCalls) {
       _startedAtByCallId.remove(_startedAtByCallId.keys.first);
     }
@@ -29,6 +32,12 @@ class TrustedCallStartTimeStore {
 
   /// Returns the trustworthy start time for [callId], or `null` if no
   /// `mpx.call.started` event has been seen for it (e.g. the sender predates
-  /// this feature).
-  DateTime? operator [](String callId) => _startedAtByCallId[callId];
+  /// this feature). Marks [callId] as recently used, protecting it from
+  /// eviction ahead of calls no longer being looked up.
+  DateTime? operator [](String callId) {
+    final startedAt = _startedAtByCallId.remove(callId);
+    if (startedAt == null) return null;
+    _startedAtByCallId[callId] = startedAt;
+    return startedAt;
+  }
 }

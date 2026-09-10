@@ -81,14 +81,15 @@ void main() {
       },
     );
 
-    test('ignores an out-of-order duplicate posted before the first', () async {
+    test('keeps the earliest timestamp when an earlier duplicate arrives '
+        'out of order', () async {
       final first = DateTime.utc(2026, 1, 1, 12);
       final earlier = DateTime.utc(2026, 1, 1, 11);
 
       await handler.handle(_startedEvent(callId: _callId, timestamp: first));
       await handler.handle(_startedEvent(callId: _callId, timestamp: earlier));
 
-      expect(startTimeStore[_callId], first);
+      expect(startTimeStore[_callId], earlier);
     });
 
     test('skips an event with no callId', () async {

@@ -795,6 +795,29 @@ void main() {
       },
     );
 
+    test('handleReceivedVrcRequest returns unresolvable identity when '
+        'auto-issuing and the peer identity DID cannot be resolved', () async {
+      final request = VrcRequest(
+        senderDid: 'did:key:sender',
+        credentialMetaData: const {
+          VrcConstants.requestMetadataKeyIdentityDid: 'did:key:peer',
+        },
+      );
+
+      final outcome = await sdk.handleReceivedVrcRequest(
+        ReceivedVrcRequestParams(
+          permanentChannelDid: 'channel-1',
+          request: request,
+          hasVrcExchangeInitiated: true,
+          isConnectionInitiator: true,
+          issuerDid: issuerDid,
+          issuerName: 'Alice',
+        ),
+      );
+
+      expect(outcome, isA<VrcRequestProcessingResultUnresolvableIdentity>());
+    });
+
     test(
       'handleReceivedVrcRequest returns waiting for non-initiator',
       () async {

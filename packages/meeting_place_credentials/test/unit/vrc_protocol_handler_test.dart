@@ -13,6 +13,9 @@ import '../utils/mocks.dart';
 void main() {
   late String signedVrcBlob;
   late String signedVrcIssuerDid;
+  late String impersonatedVrcBlob;
+  late String impersonatedSubjectDid;
+  late MockDidResolver mockDidResolver;
 
   setUpAll(() async {
     registerFallbackValue(MockParsedVC());
@@ -33,11 +36,41 @@ void main() {
       issuerDidManager: manager,
     );
     signedVrcBlob = jsonEncode(vc.toJson());
+
+    // A second, real, resolvable DID standing in for a victim identity: a
+    // VC validly signed by `signedVrcIssuerDid` that falsely names this DID
+    // as the subject's `from` party, to prove the signer/subject mismatch
+    // is rejected rather than trusted.
+    final victimManager = DidKeyManager(
+      wallet: wallet,
+      store: InMemoryDidStore(),
+    );
+    final victimKeyPair = await wallet.generateKey();
+    await victimManager.addVerificationMethod(victimKeyPair.id);
+    impersonatedSubjectDid = (await victimManager.getDidDocument()).id;
+
+    final impersonatedVc = await CredentialBuilder.buildVrc(
+      issuerDid: signedVrcIssuerDid,
+      subject: VrcCredentialSubject(
+        from: VrcParty(did: impersonatedSubjectDid, name: 'Victim'),
+        to: const VrcParty(did: 'did:key:peer', name: 'Bob'),
+      ),
+      issuerDidManager: manager,
+    );
+    impersonatedVrcBlob = jsonEncode(impersonatedVc.toJson());
+  });
+
+  setUp(() {
+    mockDidResolver = MockDidResolver();
+    when(
+      () => mockDidResolver.resolveDid(any()),
+    ).thenAnswer((_) async => MockDidDocument());
   });
 
   VrcProtocolHandler makeHandler({
     VrcExchangeClient? client,
     VrcParser? parser,
+    DidResolver? didResolver,
   }) {
     return VrcProtocolHandler(
       client: client ?? MockVrcExchangeClient(),
@@ -45,6 +78,7 @@ void main() {
       logger: DefaultMeetingPlaceCoreSDKLogger(
         className: 'VrcProtocolHandlerTest',
       ),
+      didResolver: didResolver ?? mockDidResolver,
     );
   }
 
@@ -133,6 +167,69 @@ void main() {
         expect(outcome, isA<VrcRequestProcessingResultPromptRequired>());
       },
     );
+
+    test('returns unresolvable identity when peer identity DID cannot be '
+        'resolved, without prompting or sending a VRC', () async {
+      when(
+        () => mockDidResolver.resolveDid('did:key:peer'),
+      ).thenThrow(Exception('unresolvable DID'));
+      final handler = makeHandler(client: mockClient);
+
+      final outcome = await handler.handleReceivedVrcRequest(
+        permanentChannelDid: 'did:key:channel',
+        request: VrcRequest(
+          senderDid: 'did:key:sender',
+          credentialMetaData: {
+            VrcConstants.requestMetadataKeyIdentityDid: 'did:key:peer',
+          },
+        ),
+        hasVrcExchangeInitiated: true,
+        isConnectionInitiator: true,
+        issuerDid: 'did:key:local',
+      );
+
+      expect(
+        outcome,
+        isA<VrcRequestProcessingResultUnresolvableIdentity>().having(
+          (r) => r.peerDid,
+          'peerDid',
+          'did:key:peer',
+        ),
+      );
+      verifyNever(
+        () => mockClient.sendVrc(
+          channelDid: any(named: 'channelDid'),
+          issuerDid: any(named: 'issuerDid'),
+          issuerName: any(named: 'issuerName'),
+          peerDid: any(named: 'peerDid'),
+          peerName: any(named: 'peerName'),
+        ),
+      );
+    });
+
+    test('returns prompt (not unresolvable identity) when exchange has not '
+        'been initiated, even if the peer identity DID cannot be resolved: '
+        'this path never uses peerDid, so resolution failures must not block '
+        'prompting the user', () async {
+      when(
+        () => mockDidResolver.resolveDid('did:key:peer'),
+      ).thenThrow(Exception('unresolvable DID'));
+      final handler = makeHandler(client: mockClient);
+
+      final outcome = await handler.handleReceivedVrcRequest(
+        permanentChannelDid: 'did:key:channel',
+        request: VrcRequest(
+          senderDid: 'did:key:sender',
+          credentialMetaData: {
+            VrcConstants.requestMetadataKeyIdentityDid: 'did:key:peer',
+          },
+        ),
+        hasVrcExchangeInitiated: false,
+        isConnectionInitiator: true,
+      );
+
+      expect(outcome, isA<VrcRequestProcessingResultPromptRequired>());
+    });
 
     test(
       'returns issued and sends VRC for simultaneous request when initiator',
@@ -330,6 +427,39 @@ void main() {
     });
 
     test(
+      'returns ignored, and never reciprocates, when the VC is validly '
+      'signed but the claimed subject "from" DID does not match the '
+      'signer: a peer could sign as itself while naming a different, '
+      'resolvable DID as the subject to impersonate that other party',
+      () async {
+        final handler = makeHandler(client: mockClient, parser: VrcParser());
+
+        final outcome = await handler.handleReceivedVrc(
+          permanentChannelDid: 'did:key:peer',
+          vcBlob: impersonatedVrcBlob,
+          exchangeState: const VrcExchangeState(
+            hasVrcExchangeInitiated: true,
+            hasVrcRequestReceived: false,
+            isConnectionInitiator: true,
+          ),
+          issuerDid: 'did:key:local',
+          issuerName: 'Carol',
+        );
+
+        expect(outcome, isA<VrcProcessingResultIgnored>());
+        verifyNever(
+          () => mockClient.sendVrc(
+            channelDid: any(named: 'channelDid'),
+            issuerDid: any(named: 'issuerDid'),
+            issuerName: any(named: 'issuerName'),
+            peerDid: any(named: 'peerDid'),
+            peerName: any(named: 'peerName'),
+          ),
+        );
+      },
+    );
+
+    test(
       'returns reciprocated and sends VRC when initiator receives peer VRC',
       () async {
         when(
@@ -430,6 +560,38 @@ void main() {
       );
 
       expect(outcome, isA<VrcProcessingResultReciprocated>());
+    });
+
+    test('returns ignored when the peer identity DID in the received VRC '
+        'cannot be resolved, without reciprocating', () async {
+      when(
+        () => mockDidResolver.resolveDid(signedVrcIssuerDid),
+      ).thenThrow(Exception('unresolvable DID'));
+
+      final handler = makeHandler(client: mockClient, parser: VrcParser());
+
+      final outcome = await handler.handleReceivedVrc(
+        permanentChannelDid: 'did:key:peer',
+        vcBlob: signedVrcBlob,
+        exchangeState: const VrcExchangeState(
+          hasVrcExchangeInitiated: true,
+          hasVrcRequestReceived: false,
+          isConnectionInitiator: true,
+        ),
+        issuerDid: 'did:key:local',
+        issuerName: 'Carol',
+      );
+
+      expect(outcome, isA<VrcProcessingResultIgnored>());
+      verifyNever(
+        () => mockClient.sendVrc(
+          channelDid: any(named: 'channelDid'),
+          issuerDid: any(named: 'issuerDid'),
+          issuerName: any(named: 'issuerName'),
+          peerDid: any(named: 'peerDid'),
+          peerName: any(named: 'peerName'),
+        ),
+      );
     });
 
     test('returns ignored when exchange is already completed', () async {

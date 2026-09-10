@@ -1,3 +1,7 @@
+## 1.0.1
+
+ - **FIX**: build shared proof payload once in DidWebDocumentService.register() (#347).
+
 ## 1.0.0
 
  - Package graduated to v1.0.0

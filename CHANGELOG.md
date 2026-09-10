@@ -3,6 +3,40 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-09-10
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_core` - `v1.0.1`](#meeting_place_core---v101)
+ - [`meeting_place_chat` - `v1.0.1`](#meeting_place_chat---v101)
+ - [`meeting_place_credentials` - `v1.0.1`](#meeting_place_credentials---v101)
+ - [`meeting_place_drift_repository` - `v1.0.1`](#meeting_place_drift_repository---v101)
+ - [`meeting_place_matrix` - `v1.0.1`](#meeting_place_matrix---v101)
+
+Packages with dependency updates only:
+
+> Packages listed below depend on other packages in this workspace that have had changes. Their versions have been incremented to bump the minimum dependency versions of the packages they depend upon in this project.
+
+ - `meeting_place_chat` - `v1.0.1`
+ - `meeting_place_credentials` - `v1.0.1`
+ - `meeting_place_drift_repository` - `v1.0.1`
+ - `meeting_place_matrix` - `v1.0.1`
+
+---
+
+#### `meeting_place_core` - `v1.0.1`
+
+ - **FIX**: build shared proof payload once in DidWebDocumentService.register() (#347).
+
+
 ## 2026-09-09
 
 ### Changes

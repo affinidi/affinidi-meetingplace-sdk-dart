@@ -167,7 +167,9 @@ class MeetingPlaceCoreSDK {
     required StreamController<ChannelAttachmentEvent>
     channelAttachmentsController,
     required VdipClient vdipClient,
+    required DidResolver didResolver,
   }) : _repositoryConfig = repositoryConfig,
+       _didResolver = didResolver,
        _mediatorSDK = mediatorSDK,
        _controlPlaneSDK = controlPlaneSDK,
        _connectionManager = connectionManager,
@@ -198,6 +200,7 @@ class MeetingPlaceCoreSDK {
   /// The wallet used to manage the cryptographic keys backing this SDK
   /// instance's DIDs.
   final Wallet wallet;
+  final DidResolver _didResolver;
   final RepositoryConfig _repositoryConfig;
   final MeetingPlaceMediatorSDK _mediatorSDK;
   final MeetingPlaceControlPlaneSDK _controlPlaneSDK;
@@ -519,6 +522,7 @@ class MeetingPlaceCoreSDK {
       getDidManager: channelTransportGetDidManager,
       channelAttachmentsController: channelAttachmentsController,
       vdipClient: vdipClient,
+      didResolver: didResolver,
     );
 
     return init;
@@ -526,6 +530,11 @@ class MeetingPlaceCoreSDK {
 
   /// Returns instance of used low level [MeetingPlaceControlPlaneSDK].
   MeetingPlaceControlPlaneSDK get controlPlaneSDK => _controlPlaneSDK;
+
+  /// Resolves a DID to its [DidDocument], for verifying signatures made by
+  /// a peer's DID key (e.g. a DID-signed payload received over a transport
+  /// this SDK does not itself authenticate, such as a Matrix room event).
+  DidResolver get didResolver => _didResolver;
 
   /// Returns instance of used low level [MeetingPlaceMediatorSDK].
   ///

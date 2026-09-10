@@ -92,10 +92,12 @@ class IncomingRoomEventRouter {
       MpxCallEventType.callStarted: CallStartedHandler(
         startTimeStore: startTimeStore,
         logger: chatSDK.logger,
+        didResolver: chatSDK.coreSDK.didResolver,
       ).handle,
       MpxCallEventType.callOutcome: CallOutcomeHandler(
         chatStream: chatSDK.chatStream,
         logger: chatSDK.logger,
+        didResolver: chatSDK.coreSDK.didResolver,
         startTimeStore: startTimeStore,
       ).handle,
       matrix.EventTypes.Message: TextMessageHandler(

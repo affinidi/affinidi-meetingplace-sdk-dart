@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../meeting_place_matrix.dart';
 import '../call/call_channel_activity_type.dart';
+import '../call/call_event_signer.dart';
 import '../call/mpx_call_event_type.dart';
 import '../logger/top_and_tail_extension.dart';
 import '../matrix_room_alias.dart';
@@ -14,6 +15,7 @@ import '../matrix_user_id_binding.dart';
 import '../models/call_credentials.dart';
 import '../models/call_session_preparation.dart';
 import '../models/participant_directory.dart';
+import '../transport/matrix/matrix_media_attachment.dart';
 import '../transport/matrix/outgoing/call_outcome_room_event.dart';
 import '../transport/matrix/outgoing/call_started_room_event.dart';
 import 'sfu_token_service.dart';
@@ -47,6 +49,7 @@ class MatrixCallAdapter {
        _livekitTokenService = livekitTokenService,
        _rtcDelegate = rtcDelegate;
   static const _sfuUrlValidator = SfuUrlValidator();
+  static const _callEventSigner = CallEventSigner();
 
   final MatrixService _matrixService;
   final MeetingPlaceCoreSDK _coreSDK;
@@ -392,14 +395,20 @@ class MatrixCallAdapter {
       final ownChannelDid = await _resolveOwnChannelDidForCancel();
       if (ownChannelDid == null) return;
       final didManager = await _coreSDK.getDidManager(ownChannelDid);
+      final outcome = CallOutcomeRecord(
+        callId: callId,
+        outcome: CallOutcome.ended,
+        answered: true,
+        startedAt: startedAt,
+      ).toMap();
+      final signature = await _callEventSigner.sign(
+        callFields: outcome,
+        senderDidManager: didManager,
+      );
       final event = CallOutcomeRoomEvent(
         senderDid: ownChannelDid,
-        outcome: CallOutcomeRecord(
-          callId: callId,
-          outcome: CallOutcome.ended,
-          answered: true,
-          startedAt: startedAt,
-        ).toMap(),
+        outcome: outcome,
+        signature: signature,
       );
       await _matrixService.sendRoomEvent(
         roomId,
@@ -432,9 +441,15 @@ class MatrixCallAdapter {
       final ownChannelDid = await _resolveOwnChannelDidForCancel();
       if (ownChannelDid == null) return;
       final didManager = await _coreSDK.getDidManager(ownChannelDid);
+      final callFields = {MatrixEventField.callId: callId};
+      final signature = await _callEventSigner.sign(
+        callFields: callFields,
+        senderDidManager: didManager,
+      );
       final event = CallStartedRoomEvent(
         senderDid: ownChannelDid,
         callId: callId,
+        signature: signature,
       );
       await _matrixService.sendRoomEvent(
         roomId,

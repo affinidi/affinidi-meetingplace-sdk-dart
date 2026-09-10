@@ -29,7 +29,7 @@ export 'package:meeting_place_mediator/meeting_place_mediator.dart'
         MeetingPlaceMediatorSDK,
         MeetingPlaceMediatorSDKErrorCode,
         MeetingPlaceMediatorSDKException;
-export 'package:ssi/ssi.dart' show DidManager;
+export 'package:ssi/ssi.dart' show DidDocument, DidManager, DidResolver;
 
 export 'src/channel_attachment_event.dart';
 export 'src/entity/entity.dart';
@@ -57,4 +57,5 @@ export 'src/service/mediator/mediator_message.dart';
 export 'src/service/meeting_place_core_config.dart';
 export 'src/transport/transport.dart';
 export 'src/utils/contact_card_utils.dart';
+export 'src/utils/did_payload_signer.dart';
 export 'src/vdip/vdip_client.dart';

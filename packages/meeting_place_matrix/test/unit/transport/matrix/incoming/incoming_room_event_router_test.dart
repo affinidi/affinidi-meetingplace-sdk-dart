@@ -1,15 +1,27 @@
 import 'package:matrix/matrix.dart' as matrix;
 import 'package:meeting_place_chat/meeting_place_chat.dart';
+import 'package:meeting_place_matrix/src/call/call_event_signer.dart';
 import 'package:meeting_place_matrix/src/call/mpx_call_event_type.dart';
 import 'package:meeting_place_matrix/src/chat/meeting_place_matrix_chat_sdk.dart';
 import 'package:meeting_place_matrix/src/entity/call_outcome_record.dart';
 import 'package:meeting_place_matrix/src/transport/matrix/incoming/incoming_room_event_router.dart';
 import 'package:meeting_place_matrix/src/transport/matrix/matrix_media_attachment.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
 import '../../../../meeting_place_matrix.dart';
 import '../../../mocks/mocks.dart';
+
+class _MockDidResolver extends Mock implements DidResolver {}
+
+Future<DidManager> _newDidManager() async {
+  final wallet = PersistentWallet(InMemoryKeyStore());
+  final didManager = DidKeyManager(wallet: wallet, store: InMemoryDidStore());
+  final key = await wallet.generateKey(keyType: KeyType.ed25519);
+  await didManager.addVerificationMethod(key.id);
+  return didManager;
+}
 
 class _MockChatEventHandler extends Mock implements ChatEventHandler {}
 
@@ -267,6 +279,11 @@ void main() {
       final chatSdk = _MockMeetingPlaceMatrixChatSDK();
       final repo = MockChatRepository();
       final logger = MockMeetingPlaceChatSDKLogger();
+      final coreSDK = MockMeetingPlaceCoreSDK();
+      final didResolver = _MockDidResolver();
+      final senderDidManager = await _newDidManager();
+      final senderDidDocument = await senderDidManager.getDidDocument();
+      final senderDid = senderDidDocument.id;
 
       when(() => chatSdk.chatRepository).thenReturn(repo);
       when(() => chatSdk.chatStream).thenReturn(stream);
@@ -276,28 +293,40 @@ void main() {
         () => chatSdk.serverEventIdToMessageId,
       ).thenReturn(<String, String>{});
       when(() => chatSdk.logger).thenReturn(logger);
+      when(() => chatSdk.coreSDK).thenReturn(coreSDK);
+      when(() => coreSDK.didResolver).thenReturn(didResolver);
+      when(
+        () => didResolver.resolveDid(senderDid),
+      ).thenAnswer((_) async => senderDidDocument);
 
       final router = IncomingRoomEventRouter(chatSDK: chatSdk);
       final startedAt = DateTime.utc(2026, 1, 1, 12);
       final endedAt = DateTime.utc(2026, 1, 1, 12, 5);
+      final outcomeRecord = CallOutcomeRecord(
+        callId: 'room123@1',
+        outcome: CallOutcome.ended,
+        answered: true,
+        startedAt: startedAt,
+      ).toMap();
+      final signature = await const CallEventSigner().sign(
+        callFields: outcomeRecord,
+        senderDidManager: senderDidManager,
+      );
 
       await router.route(
         MatrixRoomEvent(
           id: 'evt-outcome-1',
           type: MpxCallEventType.callOutcome,
-          senderDid: 'did:test:alice',
+          senderDid: senderDid,
           roomId: '!room:server',
           content: {
-            MatrixEventField.callOutcome: CallOutcomeRecord(
-              callId: 'room123@1',
-              outcome: CallOutcome.ended,
-              answered: true,
-              startedAt: startedAt,
-            ).toMap(),
+            MatrixEventField.callOutcome: outcomeRecord,
+            MatrixEventField.callSignature: signature,
           },
           timestamp: endedAt,
         ),
       );
+      await Future<void>.delayed(Duration.zero);
 
       expect(emitted, hasLength(1));
       expect(emitted.single.event, isA<CallOutcomeChatEvent>());

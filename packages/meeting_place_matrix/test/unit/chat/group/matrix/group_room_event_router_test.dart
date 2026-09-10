@@ -14,6 +14,14 @@ class _MockCoreSDK extends Mock implements MeetingPlaceCoreSDK {}
 
 class _MockChatRepository extends Mock implements ChatRepository {}
 
+class _MockDidResolver extends Mock implements DidResolver {}
+
+_MockCoreSDK _mockCoreSDK() {
+  final coreSDK = _MockCoreSDK();
+  when(() => coreSDK.didResolver).thenReturn(_MockDidResolver());
+  return coreSDK;
+}
+
 ContactCard _card(String did) =>
     ContactCard(did: did, type: 'human', contactInfo: {'n': did});
 
@@ -59,7 +67,7 @@ void main() {
       'resolves kicked member DID from Matrix membership state key',
       () async {
         const serverName = 'server';
-        final coreSDK = _MockCoreSDK();
+        final coreSDK = _mockCoreSDK();
         final router = GroupRoomEventRouter(
           chatSDK: _buildSdk(_group(), coreSDK: coreSDK),
         );
@@ -83,7 +91,7 @@ void main() {
         'persisted', () async {
       const serverName = 'server';
       final group = _group();
-      final coreSDK = _MockCoreSDK();
+      final coreSDK = _mockCoreSDK();
       when(() => coreSDK.findGroupById(any())).thenAnswer((_) async => group);
       final router = GroupRoomEventRouter(
         chatSDK: _buildSdk(group, coreSDK: coreSDK),
@@ -104,7 +112,7 @@ void main() {
     test('does not query the persisted store for a non-join event that '
         'misses in-memory', () async {
       const serverName = 'server';
-      final coreSDK = _MockCoreSDK();
+      final coreSDK = _mockCoreSDK();
       final router = GroupRoomEventRouter(
         chatSDK: _buildSdk(_group(), coreSDK: coreSDK),
       );
@@ -143,7 +151,7 @@ void main() {
           ),
         ],
       );
-      final coreSDK = _MockCoreSDK();
+      final coreSDK = _mockCoreSDK();
       when(
         () => coreSDK.findGroupById(staleGroup.id),
       ).thenAnswer((_) async => persistedGroup);
@@ -168,7 +176,7 @@ void main() {
         'fails for a join event', () async {
       const serverName = 'server';
       final group = _group();
-      final coreSDK = _MockCoreSDK();
+      final coreSDK = _mockCoreSDK();
       when(
         () => coreSDK.findGroupById(any()),
       ).thenThrow(Exception('store unavailable'));

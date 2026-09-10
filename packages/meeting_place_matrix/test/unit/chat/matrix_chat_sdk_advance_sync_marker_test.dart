@@ -11,6 +11,8 @@ import 'package:test/test.dart';
 
 class _MockCoreSDK extends Mock implements MeetingPlaceCoreSDK {}
 
+class _MockDidResolver extends Mock implements DidResolver {}
+
 class _MockVdipClient extends Mock implements VdipClient {}
 
 class _MockVdipSubscription extends Mock
@@ -116,6 +118,7 @@ void main() {
 
     setUp(() {
       core = _MockCoreSDK();
+      when(() => core.didResolver).thenReturn(_MockDidResolver());
       vdip = _MockVdipClient();
       vdipSub = _MockVdipSubscription();
       repo = _MockChatRepository();
@@ -231,6 +234,7 @@ void main() {
 
     setUp(() {
       core = _MockCoreSDK();
+      when(() => core.didResolver).thenReturn(_MockDidResolver());
       vdip = _MockVdipClient();
       vdipSub = _MockVdipSubscription();
       repo = _MockChatRepository();
@@ -333,6 +337,7 @@ void main() {
 
     setUp(() {
       core = _MockCoreSDK();
+      when(() => core.didResolver).thenReturn(_MockDidResolver());
       vdip = _MockVdipClient();
       vdipSub = _MockVdipSubscription();
       repo = _MockChatRepository();

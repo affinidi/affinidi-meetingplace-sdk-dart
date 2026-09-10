@@ -20,6 +20,8 @@ class _MockCoreSDK extends Mock implements MeetingPlaceCoreSDK {}
 
 class _MockChatRepository extends Mock implements ChatRepository {}
 
+class _MockDidResolver extends Mock implements DidResolver {}
+
 /// Minimal IncomingMessageHandle whose stream never emits — keeps the
 /// background bootstrap suspended so it does not make additional SDK calls
 /// during the test.
@@ -184,6 +186,8 @@ void main() {
           () => coreSDK.controlPlaneEventsStream,
         ).thenAnswer((_) => controlPlaneController.stream);
 
+        when(() => coreSDK.didResolver).thenReturn(_MockDidResolver());
+
         // findGroupById returns a group with one pending member so the listener
         // has something to create a concierge for.
         when(
@@ -264,6 +268,8 @@ void main() {
         when(
           () => coreSDK.controlPlaneEventsStream,
         ).thenAnswer((_) => controlPlaneController.stream);
+
+        when(() => coreSDK.didResolver).thenReturn(_MockDidResolver());
 
         when(
           () => chatRepository.listMessages(any()),

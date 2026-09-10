@@ -51,6 +51,12 @@ class MatrixEventField {
   /// rather than a user chat message. Receivers skip these both when
   /// rendering the chat and when counting unread messages.
   static const memberDid = 'mp_member_did';
+
+  /// Compact JWS proving the sender's DID authored this event's call data.
+  /// Present on `mpx.call.started` and `mpx.call.outcome` events so a
+  /// receiver can verify the claimed [callId]/outcome was not forged by
+  /// another room member. See `CallSignedEventPayload`.
+  static const callSignature = 'mp_call_sig';
 }
 
 /// Matrix-specific helpers for parsing and inspecting media attachments

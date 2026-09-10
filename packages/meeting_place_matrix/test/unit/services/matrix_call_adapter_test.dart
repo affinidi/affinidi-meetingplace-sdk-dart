@@ -11,6 +11,7 @@ import 'package:meeting_place_matrix/src/models/sfu_token_response.dart';
 import 'package:meeting_place_matrix/src/services/matrix_call_adapter.dart';
 import 'package:meeting_place_matrix/src/transport/matrix/matrix_media_attachment.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
 import '../fakes/fake_fallbacks.dart';
@@ -54,6 +55,14 @@ Channel _stubChannel({bool isGroup = false, String? permanentChannelDid}) =>
         contactInfo: {'name': 'Other User'},
       ),
     );
+
+Future<DidManager> _newDidManager() async {
+  final wallet = PersistentWallet(InMemoryKeyStore());
+  final didManager = DidKeyManager(wallet: wallet, store: InMemoryDidStore());
+  final key = await wallet.generateKey(keyType: KeyType.ed25519);
+  await didManager.addVerificationMethod(key.id);
+  return didManager;
+}
 
 OpenIdCredentials _stubOpenIdCredentials() => OpenIdCredentials(
   accessToken: 'matrix-openid-token',
@@ -438,7 +447,7 @@ void main() {
     test('posts an ended outcome room event carrying the callId', () async {
       await primeRoom();
       final channel = _stubChannel();
-      final didManager = MockDidManager();
+      final didManager = await _newDidManager();
       final startedAt = DateTime.utc(2026, 1, 1, 12);
 
       when(

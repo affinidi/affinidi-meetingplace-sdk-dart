@@ -8,6 +8,7 @@ import 'package:meeting_place_core/meeting_place_core.dart'
         ChannelTransport,
         ChannelType,
         ContactCard,
+        DidManager,
         IndividualChannelNotification;
 import 'package:meeting_place_matrix/meeting_place_matrix.dart';
 import 'package:meeting_place_matrix/src/call/call_channel_activity_type.dart';
@@ -16,6 +17,7 @@ import 'package:meeting_place_matrix/src/matrix_service_exception.dart';
 import 'package:meeting_place_matrix/src/models/sfu_token_response.dart';
 import 'package:meeting_place_matrix/src/services/audio_video_call_service.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
 import '../fakes/fake_fallbacks.dart';
@@ -27,6 +29,14 @@ const _ownDid = 'did:key:own';
 const _matrixRoomId = '!room:matrix.test';
 const _sfuToken = 'livekit-jwt';
 const _sfuUrl = 'wss://livekit.test';
+
+Future<DidManager> _newDidManager() async {
+  final wallet = PersistentWallet(InMemoryKeyStore());
+  final didManager = DidKeyManager(wallet: wallet, store: InMemoryDidStore());
+  final key = await wallet.generateKey(keyType: KeyType.ed25519);
+  await didManager.addVerificationMethod(key.id);
+  return didManager;
+}
 
 Channel _stubChannel() => Channel(
   offerLink: 'offer://test',
@@ -496,7 +506,7 @@ void main() {
 
     void stubJoinableCall({
       required MockSfuTokenService tokenService,
-      required MockDidManager didManager,
+      required DidManager didManager,
       required MockGroupCallSession groupCallSession,
       required FakeLiveKitRoom room,
       required String? activeCallId,
@@ -805,7 +815,7 @@ void main() {
         addTearDown(svc.dispose);
         stubJoinableCall(
           tokenService: tokenService,
-          didManager: MockDidManager(),
+          didManager: await _newDidManager(),
           groupCallSession: MockGroupCallSession(),
           room: room,
           activeCallId: 'in-progress-call',

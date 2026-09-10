@@ -344,6 +344,9 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   MeetingPlaceControlPlaneSDK get controlPlaneSDK => _coreSDK.controlPlaneSDK;
 
   @override
+  DidResolver get didResolver => _coreSDK.didResolver;
+
+  @override
   MeetingPlaceMediatorSDK get mediator => _coreSDK.mediator;
 
   @override

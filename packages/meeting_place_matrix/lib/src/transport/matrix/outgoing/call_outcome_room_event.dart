@@ -8,16 +8,22 @@ import '../matrix_media_attachment.dart';
 /// A [MatrixOutgoingMessage] carrying the canonical [CallOutcomeRecord].
 ///
 /// Sends a `mpx.call.outcome` room event with the record embedded under
-/// `mp_call_outcome`. The event carries no visible chat body; peers reconcile
-/// the call chat item by `callId` and read the authoritative end time from the
-/// event's homeserver `originServerTs`.
+/// `mp_call_outcome`, alongside a signature over that record so a receiver
+/// can verify the sender genuinely holds the DID it claims. The event
+/// carries no visible chat body; peers reconcile the call chat item by
+/// `callId` and read the authoritative end time from the event's
+/// homeserver `originServerTs`.
 class CallOutcomeRoomEvent extends MatrixOutgoingMessage {
   CallOutcomeRoomEvent({
     required super.senderDid,
     required Map<String, dynamic> outcome,
+    required String signature,
     super.notification,
   }) : super(
          type: MpxCallEventType.callOutcome,
-         content: {MatrixEventField.callOutcome: outcome},
+         content: {
+           MatrixEventField.callOutcome: outcome,
+           MatrixEventField.callSignature: signature,
+         },
        );
 }

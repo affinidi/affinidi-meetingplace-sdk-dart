@@ -9,6 +9,8 @@ import 'package:test/test.dart';
 
 class _MockCoreSDK extends Mock implements MeetingPlaceCoreSDK {}
 
+class _MockDidResolver extends Mock implements DidResolver {}
+
 class _MockVdipClient extends Mock implements VdipClient {}
 
 class _MockCoreSDKStreamSubscription extends Mock
@@ -113,6 +115,7 @@ void main() {
       ).thenAnswer((_) => subscribeCompleter.future);
 
       when(() => core.vdip).thenReturn(vdip);
+      when(() => core.didResolver).thenReturn(_MockDidResolver());
       when(
         () => core.findChannelByOtherPartyPermanentDid(_bobDid),
       ).thenAnswer((_) async => channel);

@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:retry/retry.dart';
 import 'package:ssi/ssi.dart';
 
 import 'model/vrc_credential_subject.dart';
@@ -193,19 +196,43 @@ class VrcProtocolHandler {
     return VrcProcessingResultReciprocated(sentVcBlob);
   }
 
+  static const _didResolveRetryOptions = RetryOptions(
+    maxAttempts: 3,
+    delayFactor: Duration(milliseconds: 500),
+    maxDelay: Duration(seconds: 4),
+  );
+
+  /// Attempts to resolve [did], retrying a bounded number of times on a
+  /// timeout so a transient network blip is not treated the same as a
+  /// definitively nonexistent DID. A resolution error that is not a timeout
+  /// (e.g. the DID document was fetched and is simply invalid) fails fast
+  /// without retrying, since retrying it would not change the outcome.
   Future<bool> _tryResolveDid(String did) async {
     try {
-      await _didResolver.resolveDid(did);
+      await _didResolveRetryOptions.retry(
+        () => _didResolver.resolveDid(did),
+        retryIf: _isTimeout,
+        onRetry: (error) => _logger.warning(
+          'Timed out resolving peer identity DID, retrying...',
+        ),
+      );
       return true;
     } catch (error, stackTrace) {
       _logger.error(
-        'Failed to resolve peer identity DID',
+        _isTimeout(error)
+            ? 'Gave up resolving peer identity DID after repeated timeouts'
+            : 'Peer identity DID could not be resolved',
         error: error,
         stackTrace: stackTrace,
       );
       return false;
     }
   }
+
+  bool _isTimeout(Object error) =>
+      error is TimeoutException ||
+      error.toString().toLowerCase().contains('timed out') ||
+      error.toString().toLowerCase().contains('timeout');
 
   /// Parses [vcBlob] and returns the party it claims sent it (`from` on the
   /// credential subject), or `null` if the VC is invalid or unparseable.

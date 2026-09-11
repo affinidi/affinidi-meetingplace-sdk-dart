@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:meeting_place_core/meeting_place_core.dart';
@@ -205,6 +206,71 @@ void main() {
           peerName: any(named: 'peerName'),
         ),
       );
+    });
+
+    test('retries and succeeds when the peer identity DID resolution times '
+        'out once but then resolves, so a transient network blip is not '
+        'treated as a definitively nonexistent DID', () async {
+      when(
+        () => mockClient.sendVrc(
+          channelDid: any(named: 'channelDid'),
+          issuerDid: any(named: 'issuerDid'),
+          issuerName: any(named: 'issuerName'),
+          peerDid: any(named: 'peerDid'),
+          peerName: any(named: 'peerName'),
+        ),
+      ).thenAnswer((_) async => 'sent-vc-blob');
+
+      var attempt = 0;
+      when(() => mockDidResolver.resolveDid('did:key:peer')).thenAnswer((
+        _,
+      ) async {
+        attempt++;
+        if (attempt == 1) {
+          throw TimeoutException('Request to resolver timed out');
+        }
+        return MockDidDocument();
+      });
+      final handler = makeHandler(client: mockClient);
+
+      final outcome = await handler.handleReceivedVrcRequest(
+        permanentChannelDid: 'did:key:channel',
+        request: VrcRequest(
+          senderDid: 'did:key:sender',
+          credentialMetaData: {
+            VrcConstants.requestMetadataKeyIdentityDid: 'did:key:peer',
+          },
+        ),
+        hasVrcExchangeInitiated: true,
+        isConnectionInitiator: true,
+        issuerDid: 'did:key:local',
+      );
+
+      expect(outcome, isA<VrcRequestProcessingResultIssued>());
+      expect(attempt, greaterThan(1));
+    });
+
+    test('returns unresolvable identity after repeated timeouts exhaust '
+        'retries, rather than retrying forever', () async {
+      when(
+        () => mockDidResolver.resolveDid('did:key:peer'),
+      ).thenThrow(TimeoutException('Request to resolver timed out'));
+      final handler = makeHandler(client: mockClient);
+
+      final outcome = await handler.handleReceivedVrcRequest(
+        permanentChannelDid: 'did:key:channel',
+        request: VrcRequest(
+          senderDid: 'did:key:sender',
+          credentialMetaData: {
+            VrcConstants.requestMetadataKeyIdentityDid: 'did:key:peer',
+          },
+        ),
+        hasVrcExchangeInitiated: true,
+        isConnectionInitiator: true,
+        issuerDid: 'did:key:local',
+      );
+
+      expect(outcome, isA<VrcRequestProcessingResultUnresolvableIdentity>());
     });
 
     test('returns prompt (not unresolvable identity) when exchange has not '

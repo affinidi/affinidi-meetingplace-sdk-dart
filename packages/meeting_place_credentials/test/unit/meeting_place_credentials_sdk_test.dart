@@ -708,6 +708,7 @@ void main() {
     late String signedVrcBlob;
     late DidKeyManager issuerManager;
     late String issuerDid;
+    late String peerDid;
 
     setUpAll(() async {
       final wallet = PersistentWallet(InMemoryKeyStore());
@@ -717,11 +718,22 @@ void main() {
       final didDoc = await issuerManager.getDidDocument();
       issuerDid = didDoc.id;
 
+      // A second, independently-resolvable did:key, standing in for the
+      // peer's identity DID: sendVrc now resolves this before issuing, so
+      // it must be a real did:key rather than a placeholder string.
+      final peerManager = DidKeyManager(
+        wallet: wallet,
+        store: InMemoryDidStore(),
+      );
+      final peerKeyPair = await wallet.generateKey();
+      await peerManager.addVerificationMethod(peerKeyPair.id);
+      peerDid = (await peerManager.getDidDocument()).id;
+
       final signed = await CredentialBuilder.buildVrc(
         issuerDid: issuerDid,
         subject: VrcCredentialSubject(
           from: VrcParty(did: issuerDid, name: 'Alice'),
-          to: const VrcParty(did: 'did:key:peer', name: 'Bob'),
+          to: VrcParty(did: peerDid, name: 'Bob'),
         ),
         issuerDidManager: issuerManager,
       );
@@ -782,6 +794,29 @@ void main() {
         expect(outcome, isA<VrcRequestProcessingResultPromptRequired>());
       },
     );
+
+    test('handleReceivedVrcRequest returns unresolvable identity when '
+        'auto-issuing and the peer identity DID cannot be resolved', () async {
+      final request = VrcRequest(
+        senderDid: 'did:key:sender',
+        credentialMetaData: const {
+          VrcConstants.requestMetadataKeyIdentityDid: 'did:key:peer',
+        },
+      );
+
+      final outcome = await sdk.handleReceivedVrcRequest(
+        ReceivedVrcRequestParams(
+          permanentChannelDid: 'channel-1',
+          request: request,
+          hasVrcExchangeInitiated: true,
+          isConnectionInitiator: true,
+          issuerDid: issuerDid,
+          issuerName: 'Alice',
+        ),
+      );
+
+      expect(outcome, isA<VrcRequestProcessingResultUnresolvableIdentity>());
+    });
 
     test(
       'handleReceivedVrcRequest returns waiting for non-initiator',
@@ -858,13 +893,13 @@ void main() {
       final request = VrcRequest(
         senderDid: 'did:key:sender',
         credentialMetaData: {
-          VrcConstants.requestMetadataKeyIdentityDid: 'did:key:peer',
+          VrcConstants.requestMetadataKeyIdentityDid: peerDid,
           VrcConstants.requestMetadataKeyIdentityName: 'Bob',
         },
       );
       final outcome = await sdk.handleReceivedVrcRequest(
         ReceivedVrcRequestParams(
-          permanentChannelDid: 'did:key:peer',
+          permanentChannelDid: peerDid,
           request: request,
           hasVrcExchangeInitiated: true,
           isConnectionInitiator: true,
@@ -936,11 +971,11 @@ void main() {
 
         final outcome = await sdk.handleReceivedVrcRequest(
           ReceivedVrcRequestParams(
-            permanentChannelDid: 'did:key:peer',
+            permanentChannelDid: peerDid,
             request: VrcRequest(
               senderDid: 'did:key:sender',
               credentialMetaData: {
-                VrcConstants.requestMetadataKeyIdentityDid: 'did:key:peer',
+                VrcConstants.requestMetadataKeyIdentityDid: peerDid,
                 VrcConstants.requestMetadataKeyIdentityName: 'Bob',
               },
             ),

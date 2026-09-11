@@ -45,6 +45,21 @@ class MeetingPlaceCredentialsSDKException implements Exception {
     );
   }
 
+  /// Factory constructor for when a peer-supplied identity DID could not be
+  /// resolved when sending a VRC.
+  factory MeetingPlaceCredentialsSDKException.sendVrcUnresolvableIdentity({
+    required String peerDid,
+    Object? innerException,
+  }) {
+    return MeetingPlaceCredentialsSDKException(
+      message:
+          'Cannot send VRC: peer identity DID could not be resolved: '
+          '$peerDid',
+      code: MeetingPlaceCredentialsSDKErrorCode.sendVrcUnresolvableIdentity,
+      innerException: innerException,
+    );
+  }
+
   /// Factory constructor for when the channel is missing a permanentChannelDid
   /// when sending an R-Card.
   factory MeetingPlaceCredentialsSDKException.sendRCardMissingChannelDid({

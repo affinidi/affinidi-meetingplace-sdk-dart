@@ -1,46 +1,65 @@
-import 'package:json_annotation/json_annotation.dart';
+import 'package:didcomm/didcomm.dart';
 
 import '../acl_body.dart';
-import '../acl_hashing_utils.dart';
-
-part 'access_list_remove.g.dart';
+import '../trust_task_acl_body.dart';
+import 'access_list_change.dart';
 
 /// [AccessListRemove] is an action type of [AclBody] which revokes existing
 /// permissions from specified entities.
-@JsonSerializable(includeIfNull: false, explicitToJson: true)
-class AccessListRemove implements AclBody {
+class AccessListRemove implements TrustTaskAclBody {
   /// Deserializes an [AccessListRemove] from its JSON representation.
+  @Deprecated(
+    'Only hashes are serialized, so the DIDs needed by the didcomm Trust '
+    'Task classes are lost. Create an AccessListRemove from the DIDs instead.',
+  )
   factory AccessListRemove.fromJson(Map<String, dynamic> json) {
-    return _$AccessListRemoveFromJson(json);
+    return AccessListRemove._(AccessListChange.fromJson(json));
   }
 
-  /// Creates an [AccessListRemove], hashing [ownerDid] and [granteeDids]
-  /// before storing them.
+  /// Creates an [AccessListRemove], hashing [ownerDid] and [granteeDids] before
+  /// storing them.
   AccessListRemove({
     required String ownerDid,
     required List<String> granteeDids,
-  }) {
-    this.ownerDid = hashDid(ownerDid);
-    this.granteeDids = hashDids(granteeDids);
-  }
+  }) : this._(
+         AccessListChange.fromDids(
+           ownerDid: ownerDid,
+           granteeDids: granteeDids,
+         ),
+       );
+
+  AccessListRemove._(this._change);
 
   /// The ACL method identifier used when serializing this action.
   static final method = 'access_list_remove';
 
+  final AccessListChange _change;
+
   /// The hash of the owner's DID.
-  @JsonKey(name: 'did_hash')
-  late final String ownerDid;
+  String get ownerDid => _change.ownerDidHash;
 
   /// The hashes of the grantee DIDs being revoked access.
-  @JsonKey(name: 'hashes')
-  late final List<String> granteeDids;
+  List<String> get granteeDids => _change.granteeDidHashes;
 
   /// Serializes the [AccessListRemove] into a JSON object.
-  ///
-  /// **Returns:**
-  /// - A `Map<String, dynamic>` representation of revoked permissions.
   @override
   Map<String, dynamic> toJson() {
-    return {method: _$AccessListRemoveToJson(this)};
+    return {method: _change.toJson()};
+  }
+
+  /// Builds a `messaging/access-list/update` Trust Task that revokes the
+  /// grantees' access to the owner's inbox.
+  ///
+  /// Returns `null` if there are no grantees.
+  @override
+  TrustTaskDocument? toTrustTask({
+    required String issuer,
+    required String mediatorDid,
+  }) {
+    return _change.toTrustTask(
+      issuer: issuer,
+      mediatorDid: mediatorDid,
+      operation: AccessListOperation.remove,
+    );
   }
 }

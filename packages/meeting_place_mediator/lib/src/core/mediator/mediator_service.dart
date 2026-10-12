@@ -19,6 +19,7 @@ import '../../utils/string.dart';
 import '../acl/acl_body.dart';
 import '../acl/acl_update_sender.dart';
 import '../message/send_message_queue.dart';
+import '../message/trust_task_response_filter.dart';
 import 'fetch_message_result.dart';
 import 'forward_message_builder.dart';
 import 'mediator_exception.dart';
@@ -491,8 +492,14 @@ class MediatorService {
       maxResults: maxResults,
     );
 
+    final filteredMessages = await TrustTaskResponseFilter(
+      client: client,
+      didManager: didManager,
+      logger: _logger,
+    ).removeResponses(mediatorMessages, deletedOnMediator: deleteOnRetrieve);
+
     final decryptedMessages = await Future.wait(
-      mediatorMessages.map((mediatorMessage) async {
+      filteredMessages.appMessages.map((mediatorMessage) async {
         try {
           final result = await FetchMessageResult.fromMessage(
             mediatorMessage,
@@ -556,18 +563,23 @@ class MediatorService {
       deleteOnRetrieve: deleteOnRetrieve,
       fetchMessagesBatchSize: fetchMessagesBatchSize,
       maxResults: maxResults,
-      startFrom: _findLatestTimestamp(decryptedMessages, startFrom),
+      // Skipped responses count too, or a batch of only responses would be
+      // fetched again when deleting them failed.
+      startFrom: _findLatestTimestamp([
+        ...decryptedMessages.map((result) => result.message),
+        ...filteredMessages.responses,
+      ], startFrom),
     );
   }
 
   DateTime? _findLatestTimestamp(
-    List<FetchMessageResult> messages,
+    List<PlainTextMessage?> messages,
     DateTime? startFrom,
   ) {
     var nextStartFrom = startFrom;
 
-    for (final result in messages) {
-      final messageCreatedTime = result.message?.createdTime;
+    for (final message in messages) {
+      final messageCreatedTime = message?.createdTime;
 
       if (messageCreatedTime != null) {
         final utcTime = messageCreatedTime.toUtc();

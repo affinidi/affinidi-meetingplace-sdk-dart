@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
 
-import 'package:crypto/crypto.dart';
 import 'package:didcomm/didcomm.dart';
 import 'package:mutex/mutex.dart';
 import 'package:ssi/ssi.dart';
@@ -9,10 +7,12 @@ import 'package:ssi/ssi.dart';
 import '../../../../meeting_place_mediator.dart';
 import '../../../constants/sdk_constants.dart';
 import '../../exception/sdk_exception_mapper.dart';
+import '../../message/mediator_protocol_message_detector.dart';
 import '../../message/message_queue.dart';
 import '../../message/message_unpacker.dart';
 import '../../message/plaintext_message_extension.dart';
 import '../mediator_exception.dart';
+import '../message_hash.dart';
 import 'mediator_stream_data.dart';
 
 /// A live subscription to a mediator's WebSocket stream of incoming
@@ -230,6 +230,22 @@ class MediatorStreamSubscription {
     final methodName = '_onIncomingMessage';
 
     try {
+      final trustTaskResponse =
+          await MediatorProtocolMessageDetector.unpackProtocolMessage(
+            message,
+            recipientDidManager: _didManager,
+            mediatorDid: _client.mediatorDidDocument.id,
+            logger: _logger,
+          );
+      if (trustTaskResponse != null) {
+        _logger.info('Skipped mediator Trust Task response', name: methodName);
+        _messageQueue.scheduleDeletion(
+          hashMessage(message),
+          delay: _deleteMessageDelay,
+        );
+        return;
+      }
+
       final decryptedMessage = await MessageUnpacker.unpackWithRetry(
         message: message,
         recipientDidManager: _didManager,
@@ -243,7 +259,7 @@ class MediatorStreamSubscription {
       _pushMessage(
         MediatorStreamData(
           message: decryptedMessage,
-          messageHash: _hashMessage(message),
+          messageHash: hashMessage(message),
         ),
       );
 
@@ -382,9 +398,5 @@ class MediatorStreamSubscription {
       default:
         return 'Unknown ($code)';
     }
-  }
-
-  String _hashMessage(Map<String, dynamic> message) {
-    return sha256.convert(utf8.encode(jsonEncode(message))).toString();
   }
 }

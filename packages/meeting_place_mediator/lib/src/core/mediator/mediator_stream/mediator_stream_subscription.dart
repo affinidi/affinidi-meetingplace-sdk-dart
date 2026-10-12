@@ -230,15 +230,18 @@ class MediatorStreamSubscription {
     final methodName = '_onIncomingMessage';
 
     try {
-      final trustTaskResponse =
+      final protocolMessage =
           await MediatorProtocolMessageDetector.unpackProtocolMessage(
             message,
             recipientDidManager: _didManager,
             mediatorDid: _client.mediatorDidDocument.id,
             logger: _logger,
           );
-      if (trustTaskResponse != null) {
-        _logger.info('Skipped mediator Trust Task response', name: methodName);
+      if (protocolMessage != null) {
+        _logger.info(
+          'Skipped mediator protocol message ${protocolMessage.type}',
+          name: methodName,
+        );
         _messageQueue.scheduleDeletion(
           hashMessage(message),
           delay: _deleteMessageDelay,

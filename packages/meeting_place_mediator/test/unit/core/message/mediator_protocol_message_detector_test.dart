@@ -38,6 +38,19 @@ void main() {
     );
   }
 
+  Future<Map<String, dynamic>> messageFromMediator({required String type}) {
+    return mediator.authcrypt(
+      PlainTextMessage(
+        id: const Uuid().v4(),
+        type: Uri.parse(type),
+        from: mediator.didDocument.id,
+        to: [recipient.didDocument.id],
+        body: const {},
+      ),
+      to: recipient,
+    );
+  }
+
   Future<PlainTextMessage?> unpackProtocolMessage(
     Map<String, dynamic> message,
   ) {
@@ -58,6 +71,29 @@ void main() {
         isTrue,
       ),
     );
+  });
+
+  test('identifies a message pickup status from the mediator', () async {
+    final message = await messageFromMediator(
+      type: 'https://didcomm.org/messagepickup/3.0/status',
+    );
+
+    expect(
+      await unpackProtocolMessage(message),
+      isA<PlainTextMessage>().having(
+        (m) => m.type.toString(),
+        'type',
+        'https://didcomm.org/messagepickup/3.0/status',
+      ),
+    );
+  });
+
+  test('does not identify other messages from the mediator', () async {
+    final message = await messageFromMediator(
+      type: 'https://affinidi.com/test/1.0/message',
+    );
+
+    expect(await unpackProtocolMessage(message), isNull);
   });
 
   test('logs a mediator message it cannot unpack and treats it as an app '

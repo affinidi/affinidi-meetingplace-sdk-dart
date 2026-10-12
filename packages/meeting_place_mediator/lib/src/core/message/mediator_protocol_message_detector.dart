@@ -3,12 +3,19 @@ import 'package:ssi/ssi.dart';
 
 import '../../loggers/meeting_place_mediator_sdk_logger.dart';
 
-/// Detects the Trust Task responses a mediator stores in the inbox after
-/// processing a Trust Task, e.g. an ACL update.
+/// Detects the protocol messages a mediator sends on its own behalf:
+/// - Trust Task responses it stores in the inbox after processing a Trust
+///   Task, e.g. an ACL update.
+/// - Message pickup status replies it streams after a status request, e.g.
+///   when a subscription connects.
 ///
 /// They are mediator protocol traffic, not messages for the app, so they are
 /// removed before messages reach the app.
 class MediatorProtocolMessageDetector {
+  static final _pickupStatusType = Uri.parse(
+    'https://didcomm.org/messagepickup/3.0/status',
+  );
+
   // Wrapping types the mediator uses for its own messages, independent of the
   // types the app expects from its peers.
   static const _mediatorWrappingTypes = [
@@ -16,7 +23,7 @@ class MediatorProtocolMessageDetector {
     MessageWrappingType.authcryptSignPlaintext,
   ];
 
-  /// Returns the unpacked [message] if it is a Trust Task response sent by the
+  /// Returns the unpacked [message] if it is a protocol message sent by the
   /// mediator identified by [mediatorDid].
   ///
   /// Returns `null` for anything it cannot positively identify, so such
@@ -35,9 +42,7 @@ class MediatorProtocolMessageDetector {
         recipientDidManager: recipientDidManager,
         expectedMessageWrappingTypes: _mediatorWrappingTypes,
       );
-      return TrustTaskMessage.isTrustTask(plainTextMessage)
-          ? plainTextMessage
-          : null;
+      return _isProtocolMessage(plainTextMessage) ? plainTextMessage : null;
     } catch (e) {
       logger.warning(
         'Could not unpack message from the mediator, treating it as an app '
@@ -47,6 +52,10 @@ class MediatorProtocolMessageDetector {
       return null;
     }
   }
+
+  static bool _isProtocolMessage(PlainTextMessage message) =>
+      TrustTaskMessage.isTrustTask(message) ||
+      message.type == _pickupStatusType;
 
   // Checks the authcrypt sender key without decrypting, so only messages from
   // the mediator pay for the extra unpack.

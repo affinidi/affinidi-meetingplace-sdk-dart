@@ -187,8 +187,15 @@ class DirectConnectionService {
     );
 
     final permanentIdentity = did != null
-        ? await _identityService.getPermanentIdentity(_wallet, did)
-        : await _identityService.createPermanentIdentity(_wallet);
+        ? await _identityService.getPermanentIdentity(
+            _wallet,
+            did,
+            transport: ChannelTransport.didcomm,
+          )
+        : await _identityService.createPermanentIdentity(
+            _wallet,
+            transport: ChannelTransport.didcomm,
+          );
 
     final (invitationMessage, mediatorDid) = await _fetchInvitation(
       directConnectionUri: directConnectionUri,
@@ -292,7 +299,10 @@ class DirectConnectionService {
             _wallet,
             existingPermanentChannelDid,
           )
-        : (await _identityService.createPermanentIdentity(_wallet)).didManager;
+        : (await _identityService.createPermanentIdentity(
+            _wallet,
+            transport: ChannelTransport.didcomm,
+          )).didManager;
 
     final permanentChannelDidDoc = await permanentChannelDidManager
         .getDidDocument();

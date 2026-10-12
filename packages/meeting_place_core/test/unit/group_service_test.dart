@@ -256,7 +256,11 @@ void main() {
       ).thenAnswer((_) async => grp);
 
       when(
-        () => identityService.getPermanentIdentity(any(), 'did:test:bob'),
+        () => identityService.getPermanentIdentity(
+          any(),
+          'did:test:bob',
+          transport: ChannelTransport.matrix,
+        ),
       ).thenAnswer(
         (_) async => PermanentIdentity(
           didManager: memberDidManager,
@@ -464,7 +468,11 @@ void main() {
       ).thenAnswer((_) async {});
 
       when(
-        () => identityService.getPermanentIdentity(any(), approveOwnerDid),
+        () => identityService.getPermanentIdentity(
+          any(),
+          approveOwnerDid,
+          transport: ChannelTransport.matrix,
+        ),
       ).thenAnswer(
         (_) async => PermanentIdentity(
           didManager: ownerDidManager,

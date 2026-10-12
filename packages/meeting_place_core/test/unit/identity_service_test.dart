@@ -73,17 +73,76 @@ void main() {
   });
 
   group('createPermanentIdentity', () {
-    test('calls authenticate on channel transport', () async {
+    test('authenticates with channel transport for matrix', () async {
       when(
         () => mockMeetingPlaceTransport.authenticate(any()),
       ).thenAnswer((_) async {});
 
-      final result = await service.createPermanentIdentity(mockWallet);
+      final result = await service.createPermanentIdentity(
+        mockWallet,
+        transport: ChannelTransport.matrix,
+      );
 
       verify(
         () => mockMeetingPlaceTransport.authenticate(mockDidManager),
       ).called(1);
       expect(result.matrixUserId, isNull);
+      expect(result.didManager, equals(mockDidManager));
+      expect(result.didDocument, equals(mockDidDocument));
+    });
+
+    test('skips channel transport authentication for didcomm', () async {
+      final result = await service.createPermanentIdentity(
+        mockWallet,
+        transport: ChannelTransport.didcomm,
+      );
+
+      verifyNever(() => mockMeetingPlaceTransport.authenticate(any()));
+      verify(
+        () => mockDidDocumentService.register(
+          didManager: mockDidManager,
+          didDocument: mockDidDocument,
+        ),
+      ).called(1);
+      expect(result.didManager, equals(mockDidManager));
+      expect(result.didDocument, equals(mockDidDocument));
+    });
+  });
+
+  group('getPermanentIdentity', () {
+    const did = 'did:test:permanent';
+
+    setUp(() {
+      when(
+        () => mockConnectionManager.getDidManagerForDid(mockWallet, did),
+      ).thenAnswer((_) async => mockDidManager);
+    });
+
+    test('authenticates with channel transport for matrix', () async {
+      when(
+        () => mockMeetingPlaceTransport.authenticate(any()),
+      ).thenAnswer((_) async {});
+
+      final result = await service.getPermanentIdentity(
+        mockWallet,
+        did,
+        transport: ChannelTransport.matrix,
+      );
+
+      verify(
+        () => mockMeetingPlaceTransport.authenticate(mockDidManager),
+      ).called(1);
+      expect(result.didManager, equals(mockDidManager));
+    });
+
+    test('skips channel transport authentication for didcomm', () async {
+      final result = await service.getPermanentIdentity(
+        mockWallet,
+        did,
+        transport: ChannelTransport.didcomm,
+      );
+
+      verifyNever(() => mockMeetingPlaceTransport.authenticate(any()));
       expect(result.didManager, equals(mockDidManager));
       expect(result.didDocument, equals(mockDidDocument));
     });

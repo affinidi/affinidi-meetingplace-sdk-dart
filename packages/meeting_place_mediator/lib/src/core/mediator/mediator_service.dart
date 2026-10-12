@@ -17,7 +17,7 @@ import '../../utils/didcomm.dart';
 import '../../utils/error_handler_utils.dart';
 import '../../utils/string.dart';
 import '../acl/acl_body.dart';
-import '../acl/acl_management.dart';
+import '../acl/acl_update_sender.dart';
 import '../message/send_message_queue.dart';
 import 'fetch_message_result.dart';
 import 'forward_message_builder.dart';
@@ -47,6 +47,9 @@ class MediatorService {
 
   final Map<String, AuthorizationProvider> _authorizationProviders = {};
   final MeetingPlaceMediatorSDKLogger _logger;
+  late final AclUpdateSender _aclUpdateSender = AclUpdateSender(
+    logger: _logger,
+  );
 
   MediatorStreamSubscription? stream;
 
@@ -428,16 +431,13 @@ class MediatorService {
 
       final ownerDidDocument = await ownerDidManager.getDidDocument();
 
-      await _retry(() async {
-        await client.sendAclManagementMessage(
-          AclManagement(
-            from: ownerDidDocument.id,
-            to: [client.mediatorDidDocument.id],
-            body: acl,
-            expiresInSeconds: expiresInSeconds,
-          ),
-        );
-      });
+      await _aclUpdateSender.send(
+        client: client,
+        issuerDid: ownerDidDocument.id,
+        acl: acl,
+        expiresInSeconds: expiresInSeconds,
+        retry: _retry<void>,
+      );
 
       _logger.info(
         'Updated ACL for owner ${ownerDidDocument.id.topAndTail()} on '

@@ -13,6 +13,9 @@ enum MeetingPlaceCredentialsSDKErrorCode {
   /// The channel or sender DID is missing when sending a VRC.
   sendVrcMissingChannel('credentials_send_vrc_missing_channel'),
 
+  /// The peer-supplied identity DID could not be resolved when sending a VRC.
+  sendVrcUnresolvableIdentity('credentials_send_vrc_unresolvable_identity'),
+
   // rcard codes
   /// The R-Card VC is missing a `credentialSubject` entry.
   rCardMissingCredentialSubject('credentials_rcard_missing_credential_subject'),

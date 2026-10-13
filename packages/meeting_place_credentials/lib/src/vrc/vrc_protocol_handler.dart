@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:meeting_place_core/meeting_place_core.dart';
+import 'package:retry/retry.dart';
+import 'package:ssi/ssi.dart';
 
 import 'model/vrc_credential_subject.dart';
 import 'model/vrc_exchange_state.dart';
@@ -18,17 +22,28 @@ import 'vrc_exchange_client.dart';
 class VrcProtocolHandler {
   /// Creates a [VrcProtocolHandler] with the given [client], [parser], and
   /// [logger].
+  ///
+  /// [didResolver] resolves a peer-supplied identity DID before this party
+  /// issues a VC back to it (auto-issue in [handleReceivedVrcRequest], or
+  /// reciprocation in [handleReceivedVrc]), so a syntactically-valid-but-
+  /// nonexistent DID is rejected before being bound into a signed
+  /// credential. Does not gate the plain prompt/wait outcomes, which do not
+  /// use the peer DID. Defaults to [UniversalDIDResolver], which resolves
+  /// `did:key`/`did:peer`/`did:web` without any extra configuration.
   VrcProtocolHandler({
     required VrcExchangeClient client,
     required VrcParser parser,
     required MeetingPlaceCoreSDKLogger logger,
+    DidResolver? didResolver,
   }) : _client = client,
        _parser = parser,
-       _logger = logger;
+       _logger = logger,
+       _didResolver = didResolver ?? UniversalDIDResolver();
 
   final VrcExchangeClient _client;
   final VrcParser _parser;
   final MeetingPlaceCoreSDKLogger _logger;
+  final DidResolver _didResolver;
 
   /// Determines the outcome for an incoming VRC issuance request.
   ///
@@ -66,6 +81,14 @@ class VrcProtocolHandler {
         'peer identity DID is missing',
       );
       return const VrcRequestProcessingResultPromptRequired();
+    }
+
+    if (!await _tryResolveDid(peerDid)) {
+      _logger.warning(
+        'Cannot auto-issue VRC for simultaneous request: '
+        'peer identity DID could not be resolved',
+      );
+      return VrcRequestProcessingResultUnresolvableIdentity(peerDid);
     }
 
     final sentVcBlob = await _client.sendVrc(
@@ -149,7 +172,16 @@ class VrcProtocolHandler {
     final peerParty = await _extractIssuerParty(vcBlob: vcBlob);
     if (peerParty == null) {
       _logger.warning(
-        'Cannot reciprocate VRC$suffix: failed to extract peer party',
+        'Cannot reciprocate VRC$suffix: failed to extract peer party, or '
+        'the claimed subject party does not match the VC\'s signer',
+      );
+      return const VrcProcessingResultIgnored();
+    }
+
+    if (!await _tryResolveDid(peerParty.did)) {
+      _logger.warning(
+        'Cannot reciprocate VRC$suffix: '
+        'peer identity DID could not be resolved',
       );
       return const VrcProcessingResultIgnored();
     }
@@ -164,12 +196,66 @@ class VrcProtocolHandler {
     return VrcProcessingResultReciprocated(sentVcBlob);
   }
 
+  static const _didResolveRetryOptions = RetryOptions(
+    maxAttempts: 3,
+    delayFactor: Duration(milliseconds: 500),
+    maxDelay: Duration(seconds: 4),
+  );
+
+  /// Attempts to resolve [did], retrying a bounded number of times on a
+  /// timeout so a transient network blip is not treated the same as a
+  /// definitively nonexistent DID. A resolution error that is not a timeout
+  /// (e.g. the DID document was fetched and is simply invalid) fails fast
+  /// without retrying, since retrying it would not change the outcome.
+  Future<bool> _tryResolveDid(String did) async {
+    try {
+      await _didResolveRetryOptions.retry(
+        () => _didResolver.resolveDid(did),
+        retryIf: _isTimeout,
+        onRetry: (error) => _logger.warning(
+          'Timed out resolving peer identity DID, retrying...',
+        ),
+      );
+      return true;
+    } catch (error, stackTrace) {
+      _logger.error(
+        _isTimeout(error)
+            ? 'Gave up resolving peer identity DID after repeated timeouts'
+            : 'Peer identity DID could not be resolved',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      return false;
+    }
+  }
+
+  bool _isTimeout(Object error) =>
+      error is TimeoutException ||
+      error.toString().toLowerCase().contains('timed out') ||
+      error.toString().toLowerCase().contains('timeout');
+
+  /// Parses [vcBlob] and returns the party it claims sent it (`from` on the
+  /// credential subject), or `null` if the VC is invalid or unparseable.
+  ///
+  /// The parser's signature verification only proves the VC was signed by
+  /// its `issuer`; it does not prove that `issuer` is the same DID as the
+  /// claimed `credentialSubject.from`. A peer could sign a valid VC as
+  /// itself while naming a different, unrelated (but resolvable) DID as the
+  /// subject's `from`, impersonating that other party. So this also checks
+  /// `issuer` against `from.did` and returns `null` on a mismatch, rather
+  /// than trusting the claimed party.
   Future<VrcParty?> _extractIssuerParty({required String vcBlob}) async {
     final parsed = await _parser.parse(vcBlob: vcBlob);
     if (parsed == null) return null;
     final raw = parsed.credentialSubject.firstOrNull as Map<String, dynamic>?;
     if (raw == null) return null;
     final subject = VrcCredentialSubject.fromJson(raw);
+    if (subject.from.did != parsed.issuer.id.toString()) {
+      _logger.warning(
+        'Rejecting VRC: claimed subject party does not match the VC signer',
+      );
+      return null;
+    }
     return subject.from;
   }
 }

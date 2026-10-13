@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:affinidi_tdk_vdip/affinidi_tdk_vdip.dart';
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:retry/retry.dart';
+import 'package:ssi/ssi.dart';
 
 import '../meeting_place_credentials_sdk_exception.dart';
 import '../shared/credential_builder.dart';
@@ -16,11 +17,19 @@ import 'model/vrc_party.dart';
 class VrcExchangeClient {
   /// Creates a [VrcExchangeClient] backed by [coreSDK] for outbound VDIP
   /// operations.
+  ///
+  /// [didResolver] resolves a peer-supplied identity DID before it is bound
+  /// into an issued VC (see [sendVrc]), so a syntactically-valid-but-bogus
+  /// DID cannot be signed into a credential. Defaults to
+  /// [UniversalDIDResolver], which resolves `did:key`/`did:peer`/`did:web`
+  /// without any extra configuration.
   VrcExchangeClient({
     required MeetingPlaceCoreSDK coreSDK,
     required MeetingPlaceCoreSDKLogger logger,
+    DidResolver? didResolver,
   }) : _coreSDK = coreSDK,
-       _logger = logger;
+       _logger = logger,
+       _didResolver = didResolver ?? UniversalDIDResolver();
 
   static const _retryOptions = RetryOptions(
     maxAttempts: 6,
@@ -30,6 +39,7 @@ class VrcExchangeClient {
 
   final MeetingPlaceCoreSDK _coreSDK;
   final MeetingPlaceCoreSDKLogger _logger;
+  final DidResolver _didResolver;
 
   /// Sends a VDIP VRC-exchange request for [channelDid].
   ///
@@ -94,6 +104,20 @@ class VrcExchangeClient {
     if (channel == null || senderDid == null || senderDid.isEmpty) {
       throw MeetingPlaceCredentialsSDKException.sendVrcMissingChannel(
         channelDid: channelDid,
+      );
+    }
+
+    try {
+      await _didResolver.resolveDid(peerDid);
+    } catch (error, stackTrace) {
+      _logger.error(
+        'Cannot send VRC: peer identity DID could not be resolved',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      throw MeetingPlaceCredentialsSDKException.sendVrcUnresolvableIdentity(
+        peerDid: peerDid,
+        innerException: error,
       );
     }
 

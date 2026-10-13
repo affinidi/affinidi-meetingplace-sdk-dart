@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:didcomm/didcomm.dart';
 import 'package:meeting_place_mediator/src/core/message/mediator_protocol_message_detector.dart';
 import 'package:meeting_place_mediator/src/loggers/meeting_place_mediator_sdk_logger.dart';
@@ -99,6 +101,46 @@ void main() {
   test('logs a mediator message it cannot unpack and treats it as an app '
       'message', () async {
     final message = await responseFromMediator(to: otherRecipient);
+
+    expect(await unpackProtocolMessage(message), isNull);
+    verify(
+      () => logger.warning(any(), name: 'unpackProtocolMessage'),
+    ).called(1);
+  });
+
+  test('treats a message from a peer claiming to be the mediator as an app '
+      'message', () async {
+    final peer = await TestParty.create();
+    final message = await peer.authcrypt(
+      TrustTaskMessage(
+        id: const Uuid().v4(),
+        document: TrustTaskDocument(
+          type: AccessListUpdateTask.taskType,
+          issuer: mediator.didDocument.id,
+          recipient: recipient.didDocument.id,
+          payload: const {},
+        ),
+      ),
+      to: recipient,
+    );
+
+    final mediatorKeyId = mediator.didDocument.keyAgreement.first.id;
+    final header =
+        jsonDecode(
+              utf8.decode(
+                base64Url.decode(
+                  base64Url.normalize(message['protected'] as String),
+                ),
+              ),
+            )
+            as Map<String, dynamic>;
+    header['skid'] = mediatorKeyId;
+    header['apu'] = base64Url
+        .encode(utf8.encode(mediatorKeyId))
+        .replaceAll('=', '');
+    message['protected'] = base64Url
+        .encode(utf8.encode(jsonEncode(header)))
+        .replaceAll('=', '');
 
     expect(await unpackProtocolMessage(message), isNull);
     verify(

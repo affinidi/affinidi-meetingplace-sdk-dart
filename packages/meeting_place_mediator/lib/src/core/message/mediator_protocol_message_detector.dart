@@ -58,7 +58,9 @@ class MediatorProtocolMessageDetector {
       message.type == _pickupStatusType;
 
   // Checks the authcrypt sender key without decrypting, so only messages from
-  // the mediator pay for the extra unpack.
+  // the mediator pay for the extra unpack. The header is unverified and any
+  // peer can claim the mediator's key; only the authcrypt unpack proves the
+  // sender, so never rely on this check alone.
   static bool _isSentBy(
     Map<String, dynamic> message,
     String mediatorDid,

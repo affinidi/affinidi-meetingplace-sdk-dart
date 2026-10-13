@@ -1,3 +1,7 @@
+## 1.0.2
+
+ - **FIX**: skip channel transport login for DIDComm channels (#349).
+
 ## 1.0.1
 
  - **FIX**: build shared proof payload once in DidWebDocumentService.register() (#347).

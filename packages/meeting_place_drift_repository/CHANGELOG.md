@@ -1,3 +1,7 @@
+## 1.0.2
+
+ - **FIX**: skip channel transport login for DIDComm channels (#349).
+
 ## 1.0.1
 
  - Update a dependency to the latest release.

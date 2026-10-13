@@ -116,7 +116,11 @@ class OfferFinalisedEventHandler extends BaseEventHandler<OfferFinalised> {
     );
 
     final permanentChannelIdentity = await _identityService
-        .getPermanentIdentity(wallet, permanentChannelDid);
+        .getPermanentIdentity(
+          wallet,
+          permanentChannelDid,
+          transport: channel.transport,
+        );
 
     final connectionRequestApprovalMessage =
         protocol.ConnectionRequestApproval.fromPlainTextMessage(message);

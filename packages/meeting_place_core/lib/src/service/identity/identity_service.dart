@@ -44,7 +44,15 @@ class IdentityService {
     );
   }
 
-  Future<PermanentIdentity> createPermanentIdentity(Wallet wallet) async {
+  /// Creates a permanent channel identity.
+  ///
+  /// The identity is only authenticated with the channel transport when
+  /// [transport] is not [ChannelTransport.didcomm], since DIDComm channels
+  /// exchange messages via the mediator and never use the channel transport.
+  Future<PermanentIdentity> createPermanentIdentity(
+    Wallet wallet, {
+    required ChannelTransport transport,
+  }) async {
     final permanentChannelDidManager = await _connectionManager.generateDidWeb(
       wallet,
       baseHost: _didWebBaseHost,
@@ -57,7 +65,7 @@ class IdentityService {
       didDocument: didDocument,
     );
 
-    await _channelTransport.authenticate(permanentChannelDidManager);
+    await _authenticate(permanentChannelDidManager, transport);
 
     _logger.info(
       'Created permanent identity with DID ${didDocument.id}',
@@ -70,14 +78,19 @@ class IdentityService {
     );
   }
 
+  /// Restores the permanent channel identity for [did].
+  ///
+  /// See [createPermanentIdentity] for when [transport] triggers
+  /// authentication.
   Future<PermanentIdentity> getPermanentIdentity(
     Wallet wallet,
-    String did,
-  ) async {
+    String did, {
+    required ChannelTransport transport,
+  }) async {
     final permanentChannelDidManager = await _connectionManager
         .getDidManagerForDid(wallet, did);
 
-    await _channelTransport.authenticate(permanentChannelDidManager);
+    await _authenticate(permanentChannelDidManager, transport);
 
     _logger.info('Restored permanent identity with DID $did', name: _logkey);
 
@@ -87,5 +100,13 @@ class IdentityService {
       didManager: permanentChannelDidManager,
       didDocument: didDocument,
     );
+  }
+
+  Future<void> _authenticate(
+    DidManager didManager,
+    ChannelTransport transport,
+  ) async {
+    if (transport == ChannelTransport.didcomm) return;
+    await _channelTransport.authenticate(didManager);
   }
 }

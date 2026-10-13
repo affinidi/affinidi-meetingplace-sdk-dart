@@ -189,6 +189,7 @@ void main() {
     registerFallbackValue(_FakeFetchMessagesOptions());
     registerFallbackValue(DidDocument.create(id: 'did:fallback'));
     registerFallbackValue(GroupMemberStatus.pendingApproval);
+    registerFallbackValue(ChannelTransport.matrix);
     registerFallbackValue(
       GroupMember.pendingMember(
         did: 'did:fallback',
@@ -318,7 +319,11 @@ void main() {
 
       // identityService.getPermanentIdentity for owner.
       when(
-        () => identityService.getPermanentIdentity(any(), ownerDid),
+        () => identityService.getPermanentIdentity(
+          any(),
+          ownerDid,
+          transport: any(named: 'transport'),
+        ),
       ).thenAnswer(
         (_) async => PermanentIdentity(
           didManager: ownerDidMgr,

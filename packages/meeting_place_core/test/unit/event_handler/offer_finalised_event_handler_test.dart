@@ -135,6 +135,7 @@ void main() {
     registerFallbackValue(FakeRegisterNotificationRequest());
     registerFallbackValue(DidDocument.create(id: ''));
     registerFallbackValue(ChannelTransport.didcomm);
+    registerFallbackValue(ChannelTransport.didcomm);
     registerFallbackValue(mockAcceptOfferDidManager);
     registerFallbackValue(
       cp.Device(
@@ -152,6 +153,7 @@ void main() {
       () => mockIdentityService.getPermanentIdentity(
         mockWallet,
         permanentChannelDid,
+        transport: any(named: 'transport'),
       ),
     ).thenAnswer(
       (_) async => PermanentIdentity(
@@ -245,6 +247,13 @@ void main() {
           didManager: mockPermanentDidManager,
         ),
       ).called(1);
+      verify(
+        () => mockIdentityService.getPermanentIdentity(
+          mockWallet,
+          permanentChannelDid,
+          transport: ChannelTransport.matrix,
+        ),
+      ).called(1);
     });
 
     test('does not call joinChannelRoom when transport is didcomm', () async {
@@ -263,6 +272,13 @@ void main() {
           didManager: any(named: 'didManager'),
         ),
       );
+      verify(
+        () => mockIdentityService.getPermanentIdentity(
+          mockWallet,
+          permanentChannelDid,
+          transport: ChannelTransport.didcomm,
+        ),
+      ).called(1);
     });
   });
 

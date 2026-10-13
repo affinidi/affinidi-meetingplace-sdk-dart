@@ -75,7 +75,12 @@ class _DirectConnectionServiceMocks {
       ),
     );
 
-    when(() => identityService.createPermanentIdentity(any())).thenAnswer(
+    when(
+      () => identityService.createPermanentIdentity(
+        any(),
+        transport: ChannelTransport.didcomm,
+      ),
+    ).thenAnswer(
       (_) async => PermanentIdentity(
         didManager: permanentChannelDidManager,
         didDocument: permanentChannelDidDoc,

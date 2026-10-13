@@ -99,6 +99,7 @@ class GroupService {
 
     final ownerIdentity = await _identityService.createPermanentIdentity(
       _wallet,
+      transport: ChannelTransport.matrix,
     );
     final ownerDid = ownerIdentity.didManager;
     final ownerDidDocument = ownerIdentity.didDocument;
@@ -254,6 +255,7 @@ class GroupService {
 
     final permanentIdentity = await _identityService.createPermanentIdentity(
       wallet,
+      transport: ChannelTransport.matrix,
     );
     final permanentChannelDidManager = permanentIdentity.didManager;
     final permanentChannelDidDocument = permanentIdentity.didDocument;
@@ -588,6 +590,7 @@ class GroupService {
     final ownerIdentity = await _identityService.getPermanentIdentity(
       _wallet,
       group.ownerDid!,
+      transport: ChannelTransport.matrix,
     );
 
     final groupChannel = await _channelService
@@ -788,6 +791,7 @@ class GroupService {
       return await _identityService.getPermanentIdentity(
         _wallet,
         group.ownerDid!,
+        transport: ChannelTransport.matrix,
       );
     } catch (error, stackTrace) {
       Error.throwWithStackTrace(
@@ -870,6 +874,7 @@ class GroupService {
     final memberIdentity = await _identityService.getPermanentIdentity(
       _wallet,
       memberDid,
+      transport: ChannelTransport.matrix,
     );
 
     if (group.isMemberOfTypeAdmin(memberDid)) {

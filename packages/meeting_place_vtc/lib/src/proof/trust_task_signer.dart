@@ -42,6 +42,13 @@ class Ed25519DidKeySigner implements TrustTaskSigner {
 
   final Ed25519KeyPair _keyPair;
 
+  /// The key pair, for DIDComm key agreement as this DID.
+  Ed25519KeyPair get keyPair => _keyPair;
+
+  /// The 32-byte seed, to store the key and rebuild it with
+  /// [Ed25519DidKeySigner.fromSeed]. Keep it in secure storage only.
+  Uint8List get seed => _keyPair.getSeed();
+
   @override
   final String did;
 

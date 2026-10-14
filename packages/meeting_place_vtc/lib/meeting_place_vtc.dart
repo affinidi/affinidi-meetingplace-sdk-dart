@@ -17,5 +17,7 @@ export 'src/trigger_link/trigger_link_config.dart';
 export 'src/trigger_link/trigger_link_result.dart';
 export 'src/trust_task/trust_task_document.dart';
 export 'src/trust_task/trust_task_time.dart';
+export 'src/vta/vta_client.dart';
+export 'src/vta/vta_models.dart';
 export 'src/vtc/service_endpoints.dart';
 export 'src/vtc/vtc_resolver.dart';

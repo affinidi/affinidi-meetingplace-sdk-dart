@@ -11,6 +11,8 @@ class MeetingPlaceVtcSDKException implements Exception {
     required this.code,
     this.innerException,
     this.refusalCode,
+    this.errorPayload,
+    this.httpStatus,
   });
 
   /// A Trust Task document is missing a required field or has a wrong type.
@@ -56,21 +58,27 @@ class MeetingPlaceVtcSDKException implements Exception {
   factory MeetingPlaceVtcSDKException.transportFailed(
     String reason, {
     Object? innerException,
+    int? httpStatus,
   }) {
     return MeetingPlaceVtcSDKException(
       message: 'Trust Task request failed: $reason',
       code: MeetingPlaceVtcSDKErrorCode.transportFailed,
       innerException: innerException,
+      httpStatus: httpStatus,
     );
   }
 
   /// The service refused the task with [refusalCode], e.g.
   /// `auth/oob/claim:alreadyClaimed`.
-  factory MeetingPlaceVtcSDKException.refused(String refusalCode) {
+  factory MeetingPlaceVtcSDKException.refused(
+    String refusalCode, {
+    Map<String, dynamic>? errorPayload,
+  }) {
     return MeetingPlaceVtcSDKException(
       message: 'Trust Task refused: $refusalCode',
       code: MeetingPlaceVtcSDKErrorCode.refused,
       refusalCode: refusalCode,
+      errorPayload: errorPayload,
     );
   }
 
@@ -86,6 +94,13 @@ class MeetingPlaceVtcSDKException implements Exception {
   /// Full refusal code of a Trust Task error, when [code] is
   /// [MeetingPlaceVtcSDKErrorCode.refused].
   final String? refusalCode;
+
+  /// Payload of the Trust Task error document, when refused. Not part of
+  /// [toString], so it is never logged by accident.
+  final Map<String, dynamic>? errorPayload;
+
+  /// HTTP status of a failed request without a Trust Task answer.
+  final int? httpStatus;
 
   @override
   String toString() => 'MeetingPlaceVtcSDKException(${code.value}): $message';

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 
 import '../meeting_place_vtc_sdk_error_code.dart';
@@ -36,14 +38,14 @@ class TrustTaskHttpTransport {
     TrustTaskDocument document, {
     String? bearerToken,
   }) async {
-    final Response<Object?> response;
+    final Response<String> response;
     try {
-      response = await _dio.postUri<Object?>(
+      response = await _dio.postUri<String>(
         _trustTasksUri(base),
         data: document.toJson(),
         options: Options(
           contentType: Headers.jsonContentType,
-          responseType: ResponseType.json,
+          responseType: ResponseType.plain,
           sendTimeout: timeout,
           receiveTimeout: timeout,
           validateStatus: (_) => true,
@@ -57,22 +59,34 @@ class TrustTaskHttpTransport {
       );
     }
 
-    final body = response.data;
+    final body = _decode(response.data);
     if (body is! Map<String, dynamic>) {
       throw MeetingPlaceVtcSDKException.transportFailed(
         'HTTP ${response.statusCode} without a document',
+        httpStatus: response.statusCode,
       );
     }
 
     final type = body['type'];
     if (type is String && type.contains(_trustTaskErrorMarker)) {
       final payload = body['payload'];
-      final code = payload is Map<String, dynamic> ? payload['code'] : null;
+      final errorPayload = payload is Map<String, dynamic> ? payload : null;
+      final code = errorPayload?['code'];
       throw MeetingPlaceVtcSDKException.refused(
         code is String ? code : 'unknown',
+        errorPayload: errorPayload,
       );
     }
     return TrustTaskDocument.fromJson(body);
+  }
+
+  static Object? _decode(String? text) {
+    if (text == null) return null;
+    try {
+      return jsonDecode(text);
+    } on FormatException {
+      return null;
+    }
   }
 
   static Uri _trustTasksUri(Uri base) {

@@ -4,3 +4,4 @@
  - Add the VTI trigger-link reader for one-scan sign-in codes.
  - Add VTC endpoint resolution and the Trust Task HTTPS transport.
  - Add the Key Grant sign-in client (`auth/oob/*`).
+ - Add a minimal VTA client over the REST binding.

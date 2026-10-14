@@ -1,6 +1,7 @@
 /// Verifiable Trust Community (VTC) support for the Meeting Place SDK.
 library;
 
+export 'src/community/community_import.dart';
 export 'src/meeting_place_vtc_sdk_error_code.dart';
 export 'src/meeting_place_vtc_sdk_exception.dart';
 export 'src/proof/digest_multibase.dart';
@@ -18,6 +19,7 @@ export 'src/trigger_link/trigger_link_result.dart';
 export 'src/trust_task/trust_task_document.dart';
 export 'src/trust_task/trust_task_time.dart';
 export 'src/vta/vta_client.dart';
+export 'src/vta/vta_link.dart';
 export 'src/vta/vta_models.dart';
 export 'src/vtc/service_endpoints.dart';
 export 'src/vtc/vtc_resolver.dart';

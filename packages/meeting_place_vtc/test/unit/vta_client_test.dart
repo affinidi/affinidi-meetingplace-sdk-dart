@@ -2,85 +2,21 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:meeting_place_vtc/meeting_place_vtc.dart';
-import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
+import '../utils/fake_vta.dart';
 import '../utils/fakes.dart';
 
 const _vtcDid = 'did:web:community.example';
-const _token = 'access-token';
-
-/// A VTA answering the REST binding, keyed by task type.
-class _FakeVta {
-  _FakeVta() {
-    final json = DidKey.resolve(key.did).toJson()
-      ..['service'] = [
-        {
-          'id': '${key.did}#vta-rest',
-          'type': 'VTARest',
-          'serviceEndpoint': 'https://vta.example/api',
-        },
-      ];
-    document = DidDocument.fromJson(json);
-  }
-
-  final key = Ed25519DidKeySigner.generate();
-  late final DidDocument document;
-  final Map<String, Map<String, dynamic>> answers = {};
-  final Map<String, Map<String, dynamic>> refusals = {};
-  final List<Map<String, dynamic>> received = [];
-  int rejectTokenTimes = 0;
-
-  String get did => key.did;
-
-  Future<(int, Object?)> handle(Map<String, dynamic> request) async {
-    received.add(request);
-    final type = request['type'] as String;
-    if (type == VtaTask.challenge) {
-      return _answer({'sessionId': 'session-1', 'challenge': 'nonce-1'});
-    }
-    if (type == VtaTask.authenticate) {
-      return _answer({
-        'tokens': {'accessToken': _token},
-      });
-    }
-    if (rejectTokenTimes > 0) {
-      rejectTokenTimes--;
-      return (401, 'Unauthorized');
-    }
-    if (refusals[type] case final payload?) {
-      return (
-        400,
-        {
-          'id': 'urn:uuid:error',
-          'type': 'https://trusttasks.org/spec/trust-task-error/0.1',
-          'issuer': did,
-          'payload': payload,
-        },
-      );
-    }
-    return _answer(answers[type] ?? const {});
-  }
-
-  (int, Object?) _answer(Map<String, dynamic> payload) => (
-    200,
-    {
-      'id': 'urn:uuid:answer',
-      'type': 'answer',
-      'issuer': did,
-      'payload': payload,
-    },
-  );
-}
 
 void main() {
-  late _FakeVta vta;
+  late FakeVta vta;
   late FakeHttpAdapter adapter;
   late Ed25519DidKeySigner manager;
   late VtaClient client;
 
   setUp(() {
-    vta = _FakeVta();
+    vta = FakeVta();
     adapter = FakeHttpAdapter()..handler = vta.handle;
     manager = Ed25519DidKeySigner.generate();
     client = VtaClient(
@@ -117,7 +53,7 @@ void main() {
         (authenticate.body['proof'] as Map)['proofPurpose'],
         'authentication',
       );
-      expect(task.options.headers['Authorization'], 'Bearer $_token');
+      expect(task.options.headers['Authorization'], 'Bearer $fakeVtaToken');
       expect(task.body['issuer'], manager.did);
     });
 

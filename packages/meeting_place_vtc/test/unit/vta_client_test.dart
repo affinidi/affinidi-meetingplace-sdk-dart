@@ -228,6 +228,31 @@ void main() {
       expect(vta.received.last['type'], VtaTask.deviceHeartbeat);
     });
 
+    test('reports why the VTA DID did not resolve', () async {
+      final unresolvable = VtaClient(
+        vtaDid: 'did:webvh:QmMissing:vta.example',
+        manager: manager,
+        didResolver: FakeDidResolver(),
+      );
+
+      await expectLater(
+        unresolvable.whoAmI(),
+        throwsA(
+          isA<MeetingPlaceVtcSDKException>()
+              .having(
+                (e) => e.code,
+                'code',
+                MeetingPlaceVtcSDKErrorCode.didResolutionFailed,
+              )
+              .having(
+                (e) => e.toString(),
+                'toString',
+                contains('Caused by: Bad state: unknown DID'),
+              ),
+        ),
+      );
+    });
+
     test('lists personas and fetches stored credentials', () async {
       vta.answers[VtaTask.didsList] = {
         'dids': [

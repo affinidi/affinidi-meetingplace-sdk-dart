@@ -35,12 +35,12 @@ class MeetingPlaceVtcSDKException implements Exception {
     );
   }
 
-  /// The community's DID could not be resolved or verified.
+  /// A DID, of a community or a VTA, could not be resolved or verified.
   factory MeetingPlaceVtcSDKException.didResolutionFailed({
     Object? innerException,
   }) {
     return MeetingPlaceVtcSDKException(
-      message: 'The community DID could not be resolved.',
+      message: 'The DID could not be resolved.',
       code: MeetingPlaceVtcSDKErrorCode.didResolutionFailed,
       innerException: innerException,
     );
@@ -102,6 +102,11 @@ class MeetingPlaceVtcSDKException implements Exception {
   /// HTTP status of a failed request without a Trust Task answer.
   final int? httpStatus;
 
+  /// Includes the underlying error, such as why a DID did not resolve.
+  /// Neither carries keys or signatures.
   @override
-  String toString() => 'MeetingPlaceVtcSDKException(${code.value}): $message';
+  String toString() {
+    final cause = innerException == null ? '' : ' Caused by: $innerException';
+    return 'MeetingPlaceVtcSDKException(${code.value}): $message$cause';
+  }
 }

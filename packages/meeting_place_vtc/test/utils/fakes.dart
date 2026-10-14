@@ -16,6 +16,9 @@ class RecordedRequest {
 /// records what was sent.
 class FakeHttpAdapter implements HttpClientAdapter {
   final List<(int, Object?)> answers = [];
+
+  /// Answers from the request body instead of [answers], when set.
+  Future<(int, Object?)> Function(Map<String, dynamic> body)? handler;
   final List<RecordedRequest> requests = [];
   DioExceptionType? failWith;
 
@@ -41,7 +44,9 @@ class FakeHttpAdapter implements HttpClientAdapter {
     if (failWith case final type?) {
       throw DioException(requestOptions: options, type: type);
     }
-    final (status, body) = answers.removeAt(0);
+    final (status, body) = handler != null
+        ? await handler!(requests.last.body)
+        : answers.removeAt(0);
     return ResponseBody.fromString(
       body is String ? body : jsonEncode(body),
       status,

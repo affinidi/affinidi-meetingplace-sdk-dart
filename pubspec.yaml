@@ -14,6 +14,7 @@ workspace:
   - packages/meeting_place_matrix
   - packages/meeting_place_matrix/example
   - packages/meeting_place_mediator
+  - packages/meeting_place_vtc
 
 environment:
   sdk: ">=3.11.0 <4.0.0"

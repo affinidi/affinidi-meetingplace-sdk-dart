@@ -426,20 +426,6 @@ class OobSignInClient {
     };
   }
 
-  static SignInFailure _agentRefusal(String? code) {
-    return switch (code) {
-      'oobUvRequired' => SignInFailure.uvRequired,
-      'oobNotEnrolledDevice' => SignInFailure.notEnrolledDevice,
-      'oobNoUvKey' => SignInFailure.noUvKey,
-      'oobGrantReplayed' => SignInFailure.grantReplayed,
-      'oobAssertionMethodMissing' => SignInFailure.assertionMethodMissing,
-      'notFound' => SignInFailure.noVaultEntry,
-      'unsupportedVersion' ||
-      'unsupportedType' => SignInFailure.agentNeedsUpdate,
-      _ => SignInFailure.agentRefused,
-    };
-  }
-
   /// Verifies a community answer against the already-resolved document, so
   /// that no second resolution can answer differently.
   Future<void> _verifyCommunity(
@@ -481,12 +467,7 @@ class OobSignInClient {
         ext: ext,
       );
     } on MeetingPlaceVtcSDKException catch (error) {
-      throw SignInException(
-        error.code == MeetingPlaceVtcSDKErrorCode.refused
-            ? _agentRefusal(error.refusalCode)
-            : SignInFailure.agentUnreachable,
-        detail: error.refusalCode ?? error.code.value,
-      );
+      throw SignInException.fromAgent(error);
     }
 
     final signedWithoutProof = Map<String, dynamic>.of(signed)..remove('proof');

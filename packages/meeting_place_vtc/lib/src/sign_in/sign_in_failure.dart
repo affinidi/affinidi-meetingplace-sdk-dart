@@ -1,3 +1,6 @@
+import '../meeting_place_vtc_sdk_error_code.dart';
+import '../meeting_place_vtc_sdk_exception.dart';
+
 /// Why a sign-in could not go ahead, for a screen to word.
 enum SignInFailure {
   /// The code or the request has expired.
@@ -80,6 +83,27 @@ enum SignInFailure {
 class SignInException implements Exception {
   /// Creates a [SignInException].
   const SignInException(this.failure, {this.detail, this.responded = false});
+
+  /// A failed call to the member's VTA, in the sign-in's words.
+  factory SignInException.fromAgent(MeetingPlaceVtcSDKException error) {
+    final failure = error.code == MeetingPlaceVtcSDKErrorCode.refused
+        ? switch (error.refusalCode) {
+            'oobUvRequired' => SignInFailure.uvRequired,
+            'oobNotEnrolledDevice' => SignInFailure.notEnrolledDevice,
+            'oobNoUvKey' => SignInFailure.noUvKey,
+            'oobGrantReplayed' => SignInFailure.grantReplayed,
+            'oobAssertionMethodMissing' => SignInFailure.assertionMethodMissing,
+            'notFound' => SignInFailure.noVaultEntry,
+            'unsupportedVersion' ||
+            'unsupportedType' => SignInFailure.agentNeedsUpdate,
+            _ => SignInFailure.agentRefused,
+          }
+        : SignInFailure.agentUnreachable;
+    return SignInException(
+      failure,
+      detail: error.refusalCode ?? error.code.value,
+    );
+  }
 
   /// Why the step failed.
   final SignInFailure failure;

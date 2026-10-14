@@ -6,3 +6,4 @@
  - Add the Key Grant sign-in client (`auth/oob/*`).
  - Add a minimal VTA client over the REST binding.
  - Add the manual VTA link and community import from backed-up membership cards.
+ - Add the `MeetingPlaceVtcSDK` entry point.

@@ -2,6 +2,7 @@
 library;
 
 export 'src/community/community_import.dart';
+export 'src/meeting_place_vtc_sdk.dart';
 export 'src/meeting_place_vtc_sdk_error_code.dart';
 export 'src/meeting_place_vtc_sdk_exception.dart';
 export 'src/proof/digest_multibase.dart';

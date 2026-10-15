@@ -12,6 +12,9 @@ enum MeetingPlaceVtcSDKErrorCode {
   /// The community's DID document does not publish wallet sign-in.
   signInNotOffered('vtc_sign_in_not_offered'),
 
+  /// The member's VTA has no DID hosting server to publish a persona on.
+  didHostingMissing('vtc_did_hosting_missing'),
+
   /// The service could not be reached or answered with something that is not
   /// a Trust Task document.
   transportFailed('vtc_transport_failed'),

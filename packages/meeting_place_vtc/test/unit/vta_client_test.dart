@@ -278,5 +278,83 @@ void main() {
         {'id': 'urn:card-1'},
       ]);
     });
+
+    group('createPersona', () {
+      setUp(() {
+        vta.answers[VtaTask.contextsList] = {
+          'contexts': [
+            {'id': 'keyring'},
+            {'id': 'vta'},
+          ],
+        };
+        vta.answers[VtaTask.serversList] = {
+          'servers': [
+            {'id': 'webvh-1'},
+            {'id': 'webvh-2'},
+          ],
+        };
+        vta.answers[VtaTask.didsCreate] = {
+          'did': 'did:webvh:QmP:host.example',
+          'contextId': 'vta',
+          'signingKeyId': 'did:webvh:QmP:host.example#key-0',
+        };
+      });
+
+      test('publishes a persona in the default context', () async {
+        final persona = await client.createPersona(label: 'Football club');
+
+        expect(persona.did, 'did:webvh:QmP:host.example');
+        expect(persona.contextId, 'vta');
+        expect(persona.signingKeyId, 'did:webvh:QmP:host.example#key-0');
+        expect(vta.received.last['payload'], {
+          'contextId': 'vta',
+          'serverId': 'webvh-1',
+          'label': 'Football club',
+          'addMediatorService': false,
+          'setPrimary': false,
+        });
+      });
+
+      test('uses the first context when there is no default', () async {
+        vta.answers[VtaTask.contextsList] = {
+          'contexts': [
+            {'id': 'keyring'},
+          ],
+        };
+
+        await client.createPersona(label: 'Football club');
+
+        expect((vta.received.last['payload'] as Map)['contextId'], 'keyring');
+      });
+
+      test('says when the VTA has no DID hosting server', () async {
+        vta.answers[VtaTask.serversList] = {'servers': <Object>[]};
+
+        await expectLater(
+          client.createPersona(label: 'Football club'),
+          throwsA(
+            isA<MeetingPlaceVtcSDKException>().having(
+              (error) => error.code,
+              'code',
+              MeetingPlaceVtcSDKErrorCode.didHostingMissing,
+            ),
+          ),
+        );
+        expect(
+          vta.received.map((request) => request['type']),
+          isNot(contains(VtaTask.didsCreate)),
+        );
+      });
+    });
+
+    test('keeps a credential in the persona context', () async {
+      await client.keepCredential({'id': 'urn:card-1'}, contextId: 'vta');
+
+      expect(vta.received.last['type'], VtaTask.credentialsReceive);
+      expect(vta.received.last['payload'], {
+        'credential': {'id': 'urn:card-1'},
+        'contextId': 'vta',
+      });
+    });
   });
 }

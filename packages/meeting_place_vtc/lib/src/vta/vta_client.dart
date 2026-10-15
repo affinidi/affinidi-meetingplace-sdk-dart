@@ -41,6 +41,18 @@ abstract final class VtaTask {
   /// Fetches one stored credential.
   static const credentialsGet = '$_base/vault/credentials/get/0.1';
 
+  /// Stores a credential the member received.
+  static const credentialsReceive = '$_base/vault/credentials/receive/0.1';
+
+  /// Lists the VTA contexts this client may act in.
+  static const contextsList = '$_base/vta/contexts/list/1.0';
+
+  /// Lists the servers the VTA publishes `did:webvh` DIDs on.
+  static const serversList = '$_base/vta/webvh/servers/list/1.0';
+
+  /// Creates a `did:webvh` DID whose keys the VTA holds.
+  static const didsCreate = '$_base/vta/webvh/dids/create/1.0';
+
   /// Lists the `did:webvh` DIDs the VTA hosts keys for.
   static const didsList = '$_base/vta/webvh/dids/list/1.0';
 
@@ -56,6 +68,9 @@ const vtaRestServiceType = 'VTARest';
 
 /// Device extension that enrols the phone's biometric approval key.
 const uvKeyExtension = 'org.openvtc.uv-key';
+
+/// The context a VTA creates by default; personas go there when it exists.
+const _defaultContextId = 'vta';
 
 /// Vault secret kind of a persona's sign-in entry.
 const didSelfIssuedSecretKind = 'did-self-issued';
@@ -219,18 +234,73 @@ class VtaClient implements SignInAgent {
     ];
   }
 
+  /// Creates a new persona, a `did:webvh` DID published on the VTA's first
+  /// DID hosting server, so the community can resolve it.
+  ///
+  /// The persona lives in the VTA's default context when this client may act
+  /// there, else in the first context it may. It advertises no messaging
+  /// service: this phone reaches the community over HTTPS only.
+  ///
+  /// Throws [MeetingPlaceVtcSDKException] with
+  /// [MeetingPlaceVtcSDKErrorCode.didHostingMissing] when the VTA has no
+  /// hosting server.
+  Future<VtaPersona> createPersona({required String label}) async {
+    final contextIds = _ids(
+      (await _task(VtaTask.contextsList, const {}))['contexts'],
+    );
+    if (contextIds.isEmpty) {
+      throw MeetingPlaceVtcSDKException.invalidDocument('no VTA context');
+    }
+    final serverIds = _ids(
+      (await _task(VtaTask.serversList, const {}))['servers'],
+    );
+    if (serverIds.isEmpty) {
+      throw MeetingPlaceVtcSDKException.didHostingMissing();
+    }
+
+    final created = await _task(VtaTask.didsCreate, {
+      'contextId': contextIds.contains(_defaultContextId)
+          ? _defaultContextId
+          : contextIds.first,
+      'serverId': serverIds.first,
+      'label': label,
+      'addMediatorService': false,
+      'setPrimary': false,
+    });
+    final did = created['did'];
+    final contextId = created['contextId'];
+    final signingKeyId = created['signingKeyId'];
+    if (did is! String || contextId is! String || signingKeyId is! String) {
+      throw MeetingPlaceVtcSDKException.invalidDocument('no created persona');
+    }
+    return VtaPersona(
+      did: did,
+      contextId: contextId,
+      signingKeyId: signingKeyId,
+    );
+  }
+
+  /// Stores [credential] in the vault, in the context [contextId] of the
+  /// persona it was issued to.
+  ///
+  /// The VTA verifies the credential's proofs against its issuer before it
+  /// stores it, and files a membership credential under purpose
+  /// `membership`.
+  Future<void> keepCredential(
+    Map<String, dynamic> credential, {
+    required String contextId,
+  }) async {
+    await _task(VtaTask.credentialsReceive, {
+      'credential': credential,
+      'contextId': contextId,
+    });
+  }
+
   /// Returns the credentials stored in the vault for [purpose], e.g.
   /// `membership`.
   Future<List<Map<String, dynamic>>> credentials(String purpose) async {
     final answer = await _task(VtaTask.credentialsQuery, {'purpose': purpose});
-    final ids = switch (answer['credentials']) {
-      final List<dynamic> list =>
-        list
-            .whereType<Map<String, dynamic>>()
-            .map((credential) => credential['id'])
-            .whereType<String>(),
-      _ => const <String>[],
-    };
+    final ids = _ids(answer['credentials']);
 
     final credentials = <Map<String, dynamic>>[];
     for (final id in ids) {
@@ -381,6 +451,17 @@ class VtaClient implements SignInAgent {
     }
     return error.refusalCode ?? 'unknown';
   }
+
+  /// The `id` of each entry of a list answer.
+  static List<String> _ids(Object? entries) => switch (entries) {
+    final List<dynamic> list =>
+      list
+          .whereType<Map<String, dynamic>>()
+          .map((entry) => entry['id'])
+          .whereType<String>()
+          .toList(),
+    _ => const [],
+  };
 
   static bool _isSignInEntry(
     Map<String, dynamic> entry,

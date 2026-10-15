@@ -54,6 +54,15 @@ class MeetingPlaceVtcSDKException implements Exception {
     );
   }
 
+  /// The member's VTA has no DID hosting server, so it cannot publish a
+  /// persona that a community can resolve.
+  factory MeetingPlaceVtcSDKException.didHostingMissing() {
+    return MeetingPlaceVtcSDKException(
+      message: 'The VTA has no DID hosting server.',
+      code: MeetingPlaceVtcSDKErrorCode.didHostingMissing,
+    );
+  }
+
   /// The service could not be reached or did not answer with a document.
   factory MeetingPlaceVtcSDKException.transportFailed(
     String reason, {

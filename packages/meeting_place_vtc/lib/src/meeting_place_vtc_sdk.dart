@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:ssi/ssi.dart';
 
 import 'community/community_import.dart';
+import 'join/vtc_join_client.dart';
 import 'meeting_place_vtc_sdk_exception.dart';
 import 'proof/trust_task_signer.dart';
 import 'sign_in/oob_sign_in_client.dart';
@@ -13,6 +14,7 @@ import 'trigger_link/trigger_link_config.dart';
 import 'trigger_link/trigger_link_result.dart';
 import 'vta/vta_client.dart';
 import 'vta/vta_link.dart';
+import 'vta/vta_models.dart';
 
 /// Entry point to Verifiable Trust Community (VTC) support.
 ///
@@ -25,6 +27,10 @@ import 'vta/vta_link.dart';
 /// 3. [prepareSignIn] for the persona, then [OobSignInClient.prove];
 /// 4. show the requester, then [OobSignInClient.approve] or
 ///    [OobSignInClient.cancel].
+///
+/// Joining a community: [VtcJoinClient.readManifest] on the scanned
+/// community DID, [VtaClient.createPersona] and [personaSigner], then
+/// [VtcJoinClient.apply].
 class MeetingPlaceVtcSDK {
   /// Creates a [MeetingPlaceVtcSDK].
   ///
@@ -68,6 +74,24 @@ class MeetingPlaceVtcSDK {
     );
   }
 
+  /// A client to join communities.
+  VtcJoinClient joinClient() =>
+      VtcJoinClient(didResolver: _didResolver, transport: _transport);
+
+  /// Readies [vta] to sign as [persona] in the community [communityDid]:
+  /// ensures the persona's vault entry for that community.
+  Future<SignInPersona> personaSigner({
+    required VtaClient vta,
+    required String communityDid,
+    required VtaPersona persona,
+  }) async {
+    final entryId = await vta.ensureSignInVaultEntry(
+      vtcDid: communityDid,
+      persona: persona,
+    );
+    return SignInPersona(did: persona.did, entryId: entryId);
+  }
+
   /// Finds memberships backed up to [vta].
   CommunityImport communityImport(VtaClient vta) => CommunityImport(vta);
 
@@ -91,11 +115,11 @@ class MeetingPlaceVtcSDK {
         displayName: deviceName,
         platform: platform,
       );
-      final entryId = await vta.ensureSignInVaultEntry(
-        vtcDid: membership.communityDid,
+      return await personaSigner(
+        vta: vta,
+        communityDid: membership.communityDid,
         persona: membership.persona,
       );
-      return SignInPersona(did: membership.persona.did, entryId: entryId);
     } on MeetingPlaceVtcSDKException catch (error) {
       throw SignInException.fromAgent(error);
     }

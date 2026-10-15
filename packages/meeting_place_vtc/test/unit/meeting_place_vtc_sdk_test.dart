@@ -66,6 +66,26 @@ void main() {
       );
     });
 
+    test('readies the VTA to sign as a persona in a community', () async {
+      vta.answers[VtaTask.vaultUpsert] = {
+        'entry': {'id': 'entry-join'},
+      };
+
+      final signer = await sdk.personaSigner(
+        vta: client,
+        communityDid: _vtcDid,
+        persona: _membership.persona,
+      );
+
+      expect(signer.did, _membership.persona.did);
+      expect(signer.entryId, 'entry-join');
+      final upsert = vta.received.last;
+      expect(upsert['type'], VtaTask.vaultUpsert);
+      expect((upsert['payload'] as Map)['targets'], [
+        {'kind': 'did', 'did': _vtcDid},
+      ]);
+    });
+
     test('words a refusal of the VTA as a sign-in failure', () {
       vta.refusals[VtaTask.deviceRegister] = {
         'code': 'taskFailed',

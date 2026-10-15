@@ -4,9 +4,12 @@ Verifiable Trust Community (VTC) support for the Meeting Place SDK.
 
 This package implements the wallet side of [OpenVTC](https://openvtc.net)
 Trust Tasks in Dart. It is interoperable with other OpenVTC wallets, such as
-[Keyring](https://github.com/berkmancenter/keyring-wallet). It covers the Key
-Grant sign-in: a member scans the sign-in code of a community's member portal
-or operator console, and approves the sign-in on their phone.
+[Keyring](https://github.com/berkmancenter/keyring-wallet). It covers:
+
+- **joining a community**: a member scans the community's QR code, and
+  applies as a new persona their VTA holds;
+- **the Key Grant sign-in**: a member scans the sign-in code of a community's
+  member portal or operator console, and approves the sign-in on their phone.
 
 ## What it does
 
@@ -19,6 +22,10 @@ or operator console, and approves the sign-in on their phone.
 - **VTA client** over the REST binding: persona signing, the sign-in vault
   entry, device enrolment of the biometric approval key, and personas and
   stored membership cards.
+- **Join** (`vtc/join-requests/*`): reads the join manifest, submits the
+  request as the persona, and asks where an open request stands. The VTA
+  creates the persona (`vta/webvh/dids/create`) and keeps the issued cards
+  (`vault/credentials/receive`).
 - **Manual VTA link and community import** from membership cards that another
   app backed up to the VTA.
 
@@ -77,6 +84,36 @@ final proved = await signIn.prove(
 await signIn.approve(proved, agent: vta, userVerification: approvalKey);
 // or, to decline: await signIn.cancel(claimed);
 ```
+
+Joining, once the VTA is linked:
+
+```dart
+final join = sdk.joinClient();
+final manifest = await join.readManifest(scannedCommunityDid);
+if (!manifest.canApply) return; // needs an invitation, credentials or vetting
+
+final persona = await vta.createPersona(label: manifest.name ?? 'Community');
+final signer = await sdk.personaSigner(
+  vta: vta,
+  communityDid: manifest.communityDid,
+  persona: persona,
+);
+switch (await join.apply(manifest, agent: vta, persona: signer)) {
+  case JoinAdmitted(:final credentials):
+    for (final card in credentials) {
+      await vta.keepCredential(card, contextId: persona.contextId);
+    }
+  case JoinPending(:final requestId):
+    // Ask later with join.status(manifest.communityDid, requestId: ...).
+    rememberPending(requestId);
+  case JoinDenied() || JoinNeedsMore():
+    showOutcome();
+}
+```
+
+A community that admits a request later pushes the cards to the persona's
+messaging service. Personas created here advertise none, so the app only
+learns the decision through `status`.
 
 Failures are thrown as `SignInException`. Its `SignInFailure` value names the
 outcome to word for the person. Never cancel a sign-in whose

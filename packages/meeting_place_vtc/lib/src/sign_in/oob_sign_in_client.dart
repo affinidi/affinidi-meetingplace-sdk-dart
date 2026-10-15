@@ -1,4 +1,3 @@
-import 'package:collection/collection.dart';
 import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
 
@@ -12,6 +11,7 @@ import '../trigger_link/trigger_link_config.dart';
 import '../trigger_link/trigger_link_result.dart';
 import '../trust_task/trust_task_document.dart';
 import '../trust_task/trust_task_time.dart';
+import '../vtc/resolved_document.dart';
 import '../vtc/vtc_resolver.dart';
 import 'sign_in_agent.dart';
 import 'sign_in_failure.dart';
@@ -438,7 +438,7 @@ class OobSignInClient {
       await EddsaJcs2022.verify(
         answer.toJson(),
         purpose: purpose,
-        resolver: _ResolvedDocument(vtc.didDocument),
+        resolver: ResolvedDocument(vtc.didDocument),
         expectedSigner: vtc.did,
       );
     } on MeetingPlaceVtcSDKException {
@@ -461,31 +461,15 @@ class OobSignInClient {
   }) async {
     final Map<String, dynamic> signed;
     try {
-      signed = await agent.signTrustTask(
-        entryId: persona.entryId,
-        unsignedEnvelope: unsigned,
-        ext: ext,
-      );
+      signed = await signAsPersona(agent, persona, unsigned, ext: ext);
     } on MeetingPlaceVtcSDKException catch (error) {
+      if (error.code == MeetingPlaceVtcSDKErrorCode.invalidDocument) {
+        throw SignInException(SignInFailure.badAnswer, detail: error.message);
+      }
       throw SignInException.fromAgent(error);
     }
 
-    final signedWithoutProof = Map<String, dynamic>.of(signed)..remove('proof');
-    if (!const DeepCollectionEquality().equals(signedWithoutProof, unsigned)) {
-      throw const SignInException(
-        SignInFailure.badAnswer,
-        detail: 'the agent changed the document it signed',
-      );
-    }
-
-    try {
-      await EddsaJcs2022.verify(
-        signed,
-        purpose: purpose,
-        resolver: _didResolver,
-        expectedSigner: persona.did,
-      );
-    } on MeetingPlaceVtcSDKException {
+    if (!await _verifies(signed, purpose, persona.did)) {
       // Agents before sign-in signing (VTI #1997) sign every document for
       // authentication: that agent needs an update, not a bad answer.
       final signedForAuthentication =
@@ -600,16 +584,3 @@ class OobSignInClient {
 }
 
 /// Serves one already-resolved DID document.
-class _ResolvedDocument implements DidResolver {
-  _ResolvedDocument(this._document);
-
-  final DidDocument _document;
-
-  @override
-  Future<DidDocument> resolveDid(String did) async {
-    if (did != _document.id) {
-      throw MeetingPlaceVtcSDKException.didResolutionFailed();
-    }
-    return _document;
-  }
-}

@@ -1,3 +1,7 @@
+import 'package:collection/collection.dart';
+
+import '../meeting_place_vtc_sdk_exception.dart';
+
 /// The member's VTA, as a sign-in uses it: it signs the `identify` and
 /// `grant` documents as the persona, whose key never leaves the VTA.
 abstract interface class SignInAgent {
@@ -28,4 +32,30 @@ class SignInPersona {
 
   /// Id of the persona's `did-self-issued` vault entry.
   final String entryId;
+}
+
+/// Has [agent] sign [unsigned] as [persona] and checks that it signed
+/// exactly that document. The caller verifies the proof.
+///
+/// Throws [MeetingPlaceVtcSDKException]: as [SignInAgent.signTrustTask]
+/// does, and `invalidDocument` when the agent changed the document.
+Future<Map<String, dynamic>> signAsPersona(
+  SignInAgent agent,
+  SignInPersona persona,
+  Map<String, dynamic> unsigned, {
+  Map<String, dynamic>? ext,
+}) async {
+  final signed = await agent.signTrustTask(
+    entryId: persona.entryId,
+    unsignedEnvelope: unsigned,
+    ext: ext,
+  );
+
+  final signedWithoutProof = Map<String, dynamic>.of(signed)..remove('proof');
+  if (!const DeepCollectionEquality().equals(signedWithoutProof, unsigned)) {
+    throw MeetingPlaceVtcSDKException.invalidDocument(
+      'the agent changed the document it signed',
+    );
+  }
+  return signed;
 }

@@ -27,45 +27,54 @@ class NamedSigner implements TrustTaskSigner {
   Future<Uint8List> sign(Uint8List data) => _key.sign(data);
 }
 
-/// A community that answers `auth/oob` tasks like a VTC.
-class FakeVtc {
-  FakeVtc({this.audience}) {
-    final signer = _signer;
-    didDocument = DidDocument.fromJson({
-      '@context': ['https://www.w3.org/ns/did/v1'],
-      'id': vtcDid,
-      'verificationMethod': [
-        {
-          'id': '$vtcDid#key-0',
-          'type': 'Multikey',
-          'controller': vtcDid,
-          'publicKeyMultibase': toMultiBase(
-            toMultikey(signer.publicKey, KeyType.ed25519),
-          ),
-        },
-      ],
-      'authentication': ['$vtcDid#key-0'],
-      'assertionMethod': ['$vtcDid#key-0'],
-      'service': [
-        {
-          'id': '$vtcDid#trust-tasks',
-          'type': 'TrustTaskHTTPS',
-          'serviceEndpoint': '$vtcOrigin/v1',
-        },
+/// The community's own key, at `#key-0`.
+NamedSigner communitySigner() => NamedSigner(
+  vtcDid,
+  '$vtcDid#key-0',
+  Uint8List.fromList(List.filled(32, 3)),
+);
+
+/// The community's DID document for [signer]'s key, with a Trust Task
+/// endpoint and, when [signInPortal], a sign-in page.
+DidDocument communityDocument(NamedSigner signer, {bool signInPortal = true}) {
+  return DidDocument.fromJson({
+    '@context': ['https://www.w3.org/ns/did/v1'],
+    'id': vtcDid,
+    'verificationMethod': [
+      {
+        'id': '$vtcDid#key-0',
+        'type': 'Multikey',
+        'controller': vtcDid,
+        'publicKeyMultibase': toMultiBase(
+          toMultikey(signer.publicKey, KeyType.ed25519),
+        ),
+      },
+    ],
+    'authentication': ['$vtcDid#key-0'],
+    'assertionMethod': ['$vtcDid#key-0'],
+    'service': [
+      {
+        'id': '$vtcDid#trust-tasks',
+        'type': 'TrustTaskHTTPS',
+        'serviceEndpoint': '$vtcOrigin/v1',
+      },
+      if (signInPortal)
         {
           'id': '$vtcDid#sign-in-portal',
           'type': 'SignInPortal',
           'serviceEndpoint': '$vtcOrigin/members/',
         },
-      ],
-    });
+    ],
+  });
+}
+
+/// A community that answers `auth/oob` tasks like a VTC.
+class FakeVtc {
+  FakeVtc({this.audience}) {
+    didDocument = communityDocument(_signer);
   }
 
-  final _signer = NamedSigner(
-    vtcDid,
-    '$vtcDid#key-0',
-    Uint8List.fromList(List.filled(32, 3)),
-  );
+  final _signer = communitySigner();
 
   /// The audience echoed in the answers, `admin` for the console.
   final String? audience;

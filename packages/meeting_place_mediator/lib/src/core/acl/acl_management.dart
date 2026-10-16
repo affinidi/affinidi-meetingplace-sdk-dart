@@ -6,6 +6,9 @@ import 'acl_time_utils.dart';
 
 /// [AclManagement] is used for managing ACLs by controlling permissions and
 /// access rights.
+///
+/// Only sent to mediators that do not serve the ACL Trust Tasks.
+// ignore: deprecated_member_use
 class AclManagement extends AclManagementMessage {
   AclManagement({
     required super.from,

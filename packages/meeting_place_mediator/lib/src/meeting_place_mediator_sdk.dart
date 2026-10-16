@@ -137,19 +137,25 @@ class MeetingPlaceMediatorSDK {
   /// mediator instance.
   ///
   /// This method modifies the ACL permissions for the specified owner's DID
-  /// by sending the provided ACL payload to the mediator. The ACL determines
-  /// which entities have access to the owner's resources and what operations
-  /// they can perform.
+  /// by sending the provided ACL payload to the mediator as a Trust Task, or
+  /// with the legacy acl-management protocol to mediators that do not serve
+  /// the ACL Trust Tasks (before 0.17.13). The ACL determines which entities
+  /// have access to the owner's resources and what operations they can
+  /// perform. An action that changes nothing, such as an [AccessListAdd]
+  /// without grantees, is skipped without contacting the mediator.
   ///
   /// - [ownerDidManager]: The DidManager instance representing the owner whose
   ///   ACL should be updated.
   ///
   /// - [acl]: The ACL payload containing the permission changes to apply.
-  ///   Supported action types include:
+  ///   Supported action types include the following; any other [AclBody]
+  ///   is sent with acl-management, which mediators 0.31 and later refuse:
   ///   - [AccessListAdd]: Grants new permissions to specified entities
   ///   - [AccessListRemove]: Revokes existing permissions from specified
   ///       entities
-  ///   - [AccessListSet]: Replaces the entire ACL with the provided permissions
+  ///   - [AccessListSet]: Sets the owner's access-list mode, leaving all
+  ///       other ACL flags unchanged; with acl-management it replaces the
+  ///       entire ACL with the bitmask
   /// - [mediatorDid]: Optional mediator DID to authenticate against. If not
   ///   provided, the SDK instance's default mediator DID will be used.
   /// - [expiresInSeconds]: How long the ACL update grant is valid for, in

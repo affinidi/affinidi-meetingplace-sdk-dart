@@ -17,8 +17,9 @@ import '../../utils/didcomm.dart';
 import '../../utils/error_handler_utils.dart';
 import '../../utils/string.dart';
 import '../acl/acl_body.dart';
-import '../acl/acl_management.dart';
+import '../acl/acl_update_sender.dart';
 import '../message/send_message_queue.dart';
+import '../message/trust_task_response_filter.dart';
 import 'fetch_message_result.dart';
 import 'forward_message_builder.dart';
 import 'mediator_exception.dart';
@@ -47,6 +48,9 @@ class MediatorService {
 
   final Map<String, AuthorizationProvider> _authorizationProviders = {};
   final MeetingPlaceMediatorSDKLogger _logger;
+  late final AclUpdateSender _aclUpdateSender = AclUpdateSender(
+    logger: _logger,
+  );
 
   MediatorStreamSubscription? stream;
 
@@ -428,16 +432,13 @@ class MediatorService {
 
       final ownerDidDocument = await ownerDidManager.getDidDocument();
 
-      await _retry(() async {
-        await client.sendAclManagementMessage(
-          AclManagement(
-            from: ownerDidDocument.id,
-            to: [client.mediatorDidDocument.id],
-            body: acl,
-            expiresInSeconds: expiresInSeconds,
-          ),
-        );
-      });
+      await _aclUpdateSender.send(
+        client: client,
+        issuerDid: ownerDidDocument.id,
+        acl: acl,
+        expiresInSeconds: expiresInSeconds,
+        retry: _retry<void>,
+      );
 
       _logger.info(
         'Updated ACL for owner ${ownerDidDocument.id.topAndTail()} on '
@@ -491,8 +492,14 @@ class MediatorService {
       maxResults: maxResults,
     );
 
+    final filteredMessages = await TrustTaskResponseFilter(
+      client: client,
+      didManager: didManager,
+      logger: _logger,
+    ).removeResponses(mediatorMessages, deletedOnMediator: deleteOnRetrieve);
+
     final decryptedMessages = await Future.wait(
-      mediatorMessages.map((mediatorMessage) async {
+      filteredMessages.appMessages.map((mediatorMessage) async {
         try {
           final result = await FetchMessageResult.fromMessage(
             mediatorMessage,
@@ -556,18 +563,23 @@ class MediatorService {
       deleteOnRetrieve: deleteOnRetrieve,
       fetchMessagesBatchSize: fetchMessagesBatchSize,
       maxResults: maxResults,
-      startFrom: _findLatestTimestamp(decryptedMessages, startFrom),
+      // Skipped responses count too, or a batch of only responses would be
+      // fetched again when deleting them failed.
+      startFrom: _findLatestTimestamp([
+        ...decryptedMessages.map((result) => result.message),
+        ...filteredMessages.responses,
+      ], startFrom),
     );
   }
 
   DateTime? _findLatestTimestamp(
-    List<FetchMessageResult> messages,
+    List<PlainTextMessage?> messages,
     DateTime? startFrom,
   ) {
     var nextStartFrom = startFrom;
 
-    for (final result in messages) {
-      final messageCreatedTime = result.message?.createdTime;
+    for (final message in messages) {
+      final messageCreatedTime = message?.createdTime;
 
       if (messageCreatedTime != null) {
         final utcTime = messageCreatedTime.toUtc();

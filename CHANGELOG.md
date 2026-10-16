@@ -3,6 +3,42 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-10-16
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`meeting_place_mediator` - `v1.1.0`](#meeting_place_mediator---v110)
+ - [`meeting_place_core` - `v1.0.3`](#meeting_place_core---v103)
+ - [`meeting_place_chat` - `v1.0.3`](#meeting_place_chat---v103)
+ - [`meeting_place_credentials` - `v1.0.3`](#meeting_place_credentials---v103)
+ - [`meeting_place_drift_repository` - `v1.0.3`](#meeting_place_drift_repository---v103)
+ - [`meeting_place_matrix` - `v1.0.3`](#meeting_place_matrix---v103)
+
+Packages with dependency updates only:
+
+> Packages listed below depend on other packages in this workspace that have had changes. Their versions have been incremented to bump the minimum dependency versions of the packages they depend upon in this project.
+
+ - `meeting_place_core` - `v1.0.3`
+ - `meeting_place_chat` - `v1.0.3`
+ - `meeting_place_credentials` - `v1.0.3`
+ - `meeting_place_drift_repository` - `v1.0.3`
+ - `meeting_place_matrix` - `v1.0.3`
+
+---
+
+#### `meeting_place_mediator` - `v1.1.0`
+
+ - **FEAT**: send mediator ACL updates as Trust Tasks (#348).
+
+
 ## 2026-10-13
 
 ### Changes

@@ -1,3 +1,7 @@
+## 1.1.0
+
+ - **FEAT**: send mediator ACL updates as Trust Tasks (#348).
+
 ## 1.0.0
 
  - Package graduated to v1.0.0

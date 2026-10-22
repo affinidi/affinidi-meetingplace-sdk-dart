@@ -2,6 +2,7 @@ import 'package:meeting_place_chat/meeting_place_chat.dart';
 import 'package:meeting_place_matrix/src/call/mpx_call_event_type.dart';
 import 'package:meeting_place_matrix/src/entity/call_outcome_record.dart';
 import 'package:meeting_place_matrix/src/transport/matrix/incoming/call_outcome_handler.dart';
+import 'package:meeting_place_matrix/src/transport/matrix/incoming/trusted_call_start_time_store.dart';
 import 'package:meeting_place_matrix/src/transport/matrix/matrix_media_attachment.dart';
 import 'package:test/test.dart';
 
@@ -156,5 +157,54 @@ void main() {
       );
       expect(emitted, isEmpty);
     });
+  });
+
+  group('CallOutcomeHandler with a TrustedCallStartTimeStore', () {
+    late TrustedCallStartTimeStore startTimeStore;
+
+    setUp(() {
+      startTimeStore = TrustedCallStartTimeStore();
+      handler = CallOutcomeHandler(
+        chatStream: stream,
+        logger: _SilentLogger(),
+        startTimeStore: startTimeStore,
+      );
+    });
+
+    test(
+      'prefers the trustworthy stored start time over the payload value',
+      () async {
+        final trustedStartedAt = DateTime.utc(2026, 1, 1, 12);
+        final forgedStartedAt = DateTime.utc(2000);
+        startTimeStore.recordIfAbsent(_callId, trustedStartedAt);
+
+        await handler.handle(
+          _outcomeEvent(
+            outcome: _record(startedAt: forgedStartedAt),
+            timestamp: DateTime.utc(2026, 1, 1, 12, 5),
+          ),
+        );
+
+        final event = emitted.single.event as CallOutcomeChatEvent;
+        expect(event.startedAt!.isAtSameMomentAs(trustedStartedAt), isTrue);
+      },
+    );
+
+    test(
+      'falls back to the payload startedAt when no started event was seen',
+      () async {
+        final payloadStartedAt = DateTime.utc(2026, 1, 1, 12);
+
+        await handler.handle(
+          _outcomeEvent(
+            outcome: _record(startedAt: payloadStartedAt),
+            timestamp: DateTime.utc(2026, 1, 1, 12, 5),
+          ),
+        );
+
+        final event = emitted.single.event as CallOutcomeChatEvent;
+        expect(event.startedAt!.isAtSameMomentAs(payloadStartedAt), isTrue);
+      },
+    );
   });
 }

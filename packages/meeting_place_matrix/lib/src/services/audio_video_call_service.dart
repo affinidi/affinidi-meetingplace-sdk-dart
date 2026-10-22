@@ -75,6 +75,7 @@ class AudioVideoCallService {
 
   bool _isDisposed = false;
   bool _isTearingDown = false;
+  bool _hasSentCallStarted = false;
   Timer? _e2eeReadyTimer;
   Timer? _outgoingCallTimer;
 
@@ -550,6 +551,7 @@ class AudioVideoCallService {
           callStartedAt: DateTime.now(),
         ),
       );
+      _sendCallStartedOnce();
     } else {
       _setState(
         _state.copyWith(
@@ -584,11 +586,23 @@ class AudioVideoCallService {
           ),
         ),
       );
+      _sendCallStartedOnce();
       return;
     }
     unawaited(
       _dispatch(CallParticipantsUpdated(participants: _room.participants)),
     );
+  }
+
+  /// Sends the `mpx.call.started` signal the first time this device observes
+  /// the call connect. Guarded per-instance; cross-device duplicates are
+  /// deduped by receivers using earliest-wins on the homeserver timestamp.
+  void _sendCallStartedOnce() {
+    if (_hasSentCallStarted) return;
+    final callId = _state.callId;
+    if (callId == null) return;
+    _hasSentCallStarted = true;
+    unawaited(_coordinator.sendCallStarted(callId: callId));
   }
 
   void _onParticipantDisconnected(String participantId) {

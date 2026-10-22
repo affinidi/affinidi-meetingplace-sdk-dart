@@ -26,6 +26,10 @@ class MockVrcParser extends Mock implements VrcParser {}
 
 class MockParsedVC extends Mock implements ParsedVerifiableCredential {}
 
+class MockDidResolver extends Mock implements DidResolver {}
+
+class MockDidDocument extends Mock implements DidDocument {}
+
 class FakeVdipIssuedCredentialBody extends Fake
     implements VdipIssuedCredentialBody {}
 

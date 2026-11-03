@@ -32,6 +32,10 @@ abstract final class MemberTask {
   /// Hands the community the member's own membership credential.
   static const vmc = 'https://trusttasks.org/spec/vtc/members/vmc/0.1';
 
+  /// Ends the member's own membership.
+  static const selfRemove =
+      'https://trusttasks.org/spec/vtc/members/self-remove/0.1';
+
   /// Changes the member's own card in the member directory.
   static const directoryCardUpdate =
       'https://trusttasks.org/spec/vtc/directory/card/update/0.1';
@@ -240,6 +244,42 @@ class VtcJoinClient {
       },
     );
     await _ask(community, request);
+  }
+
+  /// Leaves the community [communityDid] as [persona]
+  /// (`vtc/members/self-remove/0.1`). The community keeps what its policy
+  /// or the member's stored preference says, and revokes the membership.
+  ///
+  /// Throws [MeetingPlaceVtcSDKException] when the VTA or the community
+  /// refuses or cannot be reached: refused with a code ending in
+  /// `:notMember` when [persona] is no member, and with HTTP status 409 when
+  /// [persona] is the community's last administrator.
+  Future<LeaveReceipt> leave(
+    String communityDid, {
+    required SignInAgent agent,
+    required SignInPersona persona,
+  }) async {
+    final community = await _vtcResolver.resolveCommunity(communityDid);
+    final request = await _signedByPersona(
+      agent,
+      persona,
+      community,
+      type: MemberTask.selfRemove,
+      payload: const {},
+    );
+    final payload = await _ask(community, request);
+    final disposition = payload['disposition'];
+    final removed = payload['removed'];
+    if (payload['did'] != persona.did ||
+        disposition is! String ||
+        removed is! bool) {
+      throw MeetingPlaceVtcSDKException.invalidDocument('no leave receipt');
+    }
+    return LeaveReceipt(
+      did: persona.did,
+      disposition: disposition,
+      removed: removed,
+    );
   }
 
   /// Confirms [persona]'s membership back to the community [communityDid]:

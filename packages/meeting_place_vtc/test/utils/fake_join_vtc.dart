@@ -66,6 +66,12 @@ class FakeJoinVtc {
   /// Refusal codes for the next membership confirmations, one per call.
   final List<String> vmcRefusals = [];
 
+  /// The HTTP status and code to refuse the next leave with, if any.
+  (int, String)? leaveRefusal;
+
+  /// Answers a leave for a DID other than the one that left.
+  bool leaveReceiptForOther = false;
+
   Future<(int, Object?)> handle(Map<String, dynamic> request) async {
     received.add(request);
     if (refusal case final payload?) {
@@ -81,6 +87,18 @@ class FakeJoinVtc {
     }
 
     final type = request['type'] as String;
+    if (type == MemberTask.selfRemove && leaveRefusal != null) {
+      final (status, code) = leaveRefusal!;
+      return (
+        status,
+        {
+          'id': 'urn:uuid:error',
+          'type': 'https://trusttasks.org/spec/trust-task-error/0.1',
+          'issuer': vtcDid,
+          'payload': {'code': code},
+        },
+      );
+    }
     if (type == MemberTask.vmc && vmcRefusals.isNotEmpty) {
       return (
         422,
@@ -105,6 +123,11 @@ class FakeJoinVtc {
         if (status == 'approved') 'credentialsDelivered': false,
       },
       MemberTask.directoryCardUpdate => {'revision': 1},
+      MemberTask.selfRemove => {
+        'did': leaveReceiptForOther ? 'did:key:other' : request['issuer'],
+        'disposition': 'tombstone',
+        'removed': true,
+      },
       MemberTask.vmc => {
         'memberDid': request['issuer'],
         'vmcId': 'urn:uuid:member-vmc',

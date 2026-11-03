@@ -432,6 +432,61 @@ void main() {
     });
   });
 
+  group('VtcJoinClient.leave', () {
+    Future<LeaveReceipt> leave() =>
+        client().leave(vtcDid, agent: agent, persona: agent.signInPersona);
+
+    test('leaves as the persona and reads the receipt', () async {
+      final receipt = await leave();
+
+      final request = vtc.received.single;
+      expect(request['type'], MemberTask.selfRemove);
+      expect(request['issuer'], agent.persona.did);
+      expect(request['payload'], isEmpty);
+      expect(receipt.did, agent.persona.did);
+      expect(receipt.disposition, 'tombstone');
+      expect(receipt.removed, isTrue);
+    });
+
+    test('refuses a receipt for another DID', () {
+      vtc.leaveReceiptForOther = true;
+
+      expect(leave(), _throwsCode(MeetingPlaceVtcSDKErrorCode.invalidDocument));
+    });
+
+    test('passes on the refusal of a last administrator', () {
+      vtc.leaveRefusal = (409, 'conflict');
+
+      expect(
+        leave(),
+        throwsA(
+          isA<MeetingPlaceVtcSDKException>()
+              .having(
+                (e) => e.code,
+                'code',
+                MeetingPlaceVtcSDKErrorCode.refused,
+              )
+              .having((e) => e.httpStatus, 'httpStatus', 409),
+        ),
+      );
+    });
+
+    test('passes on the refusal of a non-member', () {
+      vtc.leaveRefusal = (404, 'vtc/members/self-remove:notMember');
+
+      expect(
+        leave(),
+        throwsA(
+          isA<MeetingPlaceVtcSDKException>().having(
+            (e) => e.refusalCode,
+            'refusalCode',
+            'vtc/members/self-remove:notMember',
+          ),
+        ),
+      );
+    });
+  });
+
   group('VtcJoinClient.status', () {
     test('asks as the persona where the request stands', () async {
       vtc.status = 'approved';

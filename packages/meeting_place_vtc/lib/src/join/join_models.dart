@@ -222,3 +222,24 @@ class JoinStatus {
   /// membership credential, i.e. whether the membership was confirmed.
   final bool? credentialsDelivered;
 }
+
+/// The community's receipt for a member leaving it
+/// (`vtc/members/self-remove/0.1`).
+class LeaveReceipt {
+  /// Creates a [LeaveReceipt].
+  const LeaveReceipt({
+    required this.did,
+    required this.disposition,
+    required this.removed,
+  });
+
+  /// The DID that left: the member's persona in the community.
+  final String did;
+
+  /// What the community keeps of the member: `purge`, `tombstone` or
+  /// `historical`.
+  final String disposition;
+
+  /// Whether the community removed the member.
+  final bool removed;
+}

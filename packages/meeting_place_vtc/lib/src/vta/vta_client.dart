@@ -21,7 +21,7 @@ abstract final class VtaTask {
   static const challenge = '$_base/auth/challenge/0.1';
 
   /// Answers the challenge, signed; returns the bearer token.
-  static const authenticate = '$_base/auth/authenticate/0.2';
+  static const authenticate = '$_base/auth/authenticate/0.3';
 
   /// Who the VTA takes this client for.
   static const whoAmI = '$_base/auth/whoami/0.1';

@@ -60,3 +60,33 @@ class VtaAccess {
     _ => const {},
   };
 }
+
+/// A claim the VTA would disclose about a persona, as a disclosure preview
+/// shows it.
+class DisclosedClaim {
+  /// Creates a [DisclosedClaim].
+  const DisclosedClaim({required this.type, this.value, this.stale = false});
+
+  /// The claim type, e.g. `name`.
+  final String type;
+
+  /// The value that would be disclosed, or null when the VTA holds none or
+  /// discloses only a predicate.
+  final Object? value;
+
+  /// Whether the VTA flags the value as out of date.
+  final bool stale;
+}
+
+/// What the VTA would disclose about a persona to a verifier
+/// (`persona/disclosure/preview/1.0`), awaiting the member's approval.
+class DisclosurePreview {
+  /// Creates a [DisclosurePreview].
+  const DisclosurePreview({required this.previewId, required this.claims});
+
+  /// The preview's id, to present it once approved.
+  final String previewId;
+
+  /// The claims the preview covers.
+  final List<DisclosedClaim> claims;
+}

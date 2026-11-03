@@ -59,6 +59,12 @@ abstract final class VtaTask {
   /// Lists the `did:webvh` DIDs the VTA hosts keys for.
   static const didsList = '$_base/vta/webvh/dids/list/1.0';
 
+  /// Shows what the VTA would disclose about a persona to a verifier.
+  static const disclosurePreview = '$_base/persona/disclosure/preview/1.0';
+
+  /// Discloses an approved preview, and records that it was disclosed.
+  static const disclosurePresent = '$_base/persona/disclosure/present/1.0';
+
   /// Registers this phone as a device.
   static const deviceRegister = '$_base/device/register/0.2';
 
@@ -352,6 +358,61 @@ class VtaClient implements SignInAgent {
     return !const {'revoked', 'expired'}.contains(answer['status']);
   }
 
+  /// Previews what the VTA would disclose about [persona] to [verifierDid]
+  /// for [requestedClaims], the claim types a verifier asks for.
+  ///
+  /// Nothing is disclosed until [presentDisclosure]. Throws
+  /// [MeetingPlaceVtcSDKException] refused with `notBound` when the persona
+  /// has no profile bound on the VTA.
+  Future<DisclosurePreview> previewDisclosure({
+    required VtaPersona persona,
+    required String verifierDid,
+    required List<String> requestedClaims,
+    String? purpose,
+  }) async {
+    final answer = await _task(VtaTask.disclosurePreview, {
+      'contextId': persona.contextId,
+      'personaDid': persona.did,
+      'verifierDid': verifierDid,
+      'requestedClaims': requestedClaims,
+      'purpose': ?purpose,
+    });
+    final previewId = answer['previewId'];
+    if (previewId is! String) {
+      throw MeetingPlaceVtcSDKException.invalidDocument(
+        'no disclosure preview',
+      );
+    }
+    return DisclosurePreview(
+      previewId: previewId,
+      claims: [
+        for (final claim in _maps(answer['claims']))
+          if (claim['type'] case final String type)
+            DisclosedClaim(
+              type: type,
+              value: claim['value'],
+              stale: claim['stale'] == true,
+            ),
+      ],
+    );
+  }
+
+  /// Discloses the preview [previewId] the member approved, so the VTA
+  /// records the disclosure to its verifier.
+  ///
+  /// Throws [MeetingPlaceVtcSDKException] refused with `stepUpRequired` when
+  /// the VTA asks for a step-up first, or `staleClaim` or `previewNotFound`
+  /// when the preview no longer holds.
+  Future<void> presentDisclosure({
+    required VtaPersona persona,
+    required String previewId,
+  }) async {
+    await _task(VtaTask.disclosurePresent, {
+      'contextId': persona.contextId,
+      'previewId': previewId,
+    });
+  }
+
   /// Returns the credentials stored in the vault for [purpose], e.g.
   /// `membership`.
   Future<List<Map<String, dynamic>>> credentials(String purpose) async {
@@ -532,13 +593,14 @@ class VtaClient implements SignInAgent {
   }
 
   /// The `id` of each entry of a list answer.
-  static List<String> _ids(Object? entries) => switch (entries) {
-    final List<dynamic> list =>
-      list
-          .whereType<Map<String, dynamic>>()
-          .map((entry) => entry['id'])
-          .whereType<String>()
-          .toList(),
+  static List<String> _ids(Object? entries) => [
+    for (final entry in _maps(entries))
+      if (entry['id'] case final String id) id,
+  ];
+
+  /// The object entries of a list answer.
+  static Iterable<Map<String, dynamic>> _maps(Object? list) => switch (list) {
+    final List<dynamic> entries => entries.whereType<Map<String, dynamic>>(),
     _ => const [],
   };
 

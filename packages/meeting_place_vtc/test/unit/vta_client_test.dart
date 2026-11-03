@@ -496,5 +496,75 @@ void main() {
 
       expect(kept, isFalse);
     });
+
+    group('disclosure', () {
+      const persona = VtaPersona(
+        did: 'did:webvh:QmP:host.example',
+        contextId: 'vta',
+      );
+
+      test('previews what the VTA would disclose', () async {
+        vta.answers[VtaTask.disclosurePreview] = {
+          'previewId': 'preview-1',
+          'claims': [
+            {'type': 'name', 'value': 'Sam', 'provenance': 'selfAsserted'},
+            {'type': 'email', 'stale': true},
+          ],
+        };
+
+        final preview = await client.previewDisclosure(
+          persona: persona,
+          verifierDid: _vtcDid,
+          requestedClaims: ['name', 'email'],
+        );
+
+        expect(vta.received.last['payload'], {
+          'contextId': 'vta',
+          'personaDid': persona.did,
+          'verifierDid': _vtcDid,
+          'requestedClaims': ['name', 'email'],
+        });
+        expect(preview.previewId, 'preview-1');
+        final [name, email] = preview.claims;
+        expect((name.type, name.value, name.stale), ('name', 'Sam', false));
+        expect((email.type, email.value, email.stale), ('email', null, true));
+      });
+
+      test('says when the persona has no profile bound', () {
+        vta.refusals[VtaTask.disclosurePreview] = {
+          'code': 'persona/disclosure/preview:notBound',
+        };
+
+        expect(
+          client.previewDisclosure(
+            persona: persona,
+            verifierDid: _vtcDid,
+            requestedClaims: ['name'],
+          ),
+          throwsA(
+            isA<MeetingPlaceVtcSDKException>().having(
+              (e) => e.refusalCode,
+              'refusalCode',
+              'notBound',
+            ),
+          ),
+        );
+      });
+
+      test('presents an approved preview', () async {
+        vta.answers[VtaTask.disclosurePresent] = {'disclosureId': 'd-1'};
+
+        await client.presentDisclosure(
+          persona: persona,
+          previewId: 'preview-1',
+        );
+
+        expect(vta.received.last['type'], VtaTask.disclosurePresent);
+        expect(vta.received.last['payload'], {
+          'contextId': 'vta',
+          'previewId': 'preview-1',
+        });
+      });
+    });
   });
 }

@@ -39,7 +39,7 @@ class FakeVta {
     }
     if (rejectTokenTimes > 0) {
       rejectTokenTimes--;
-      return (401, 'Unauthorized');
+      return (401, {'error': 'unauthorized'});
     }
     if (refusals[type] case final payload?) {
       return (

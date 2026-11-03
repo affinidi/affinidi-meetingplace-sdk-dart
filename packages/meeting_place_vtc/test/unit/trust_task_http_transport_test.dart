@@ -73,6 +73,23 @@ void main() {
       );
     });
 
+    test('keeps the status of a JSON error that is no Trust Task', () {
+      adapter.answers.add((401, {'error': 'unauthorized'}));
+
+      expect(
+        transport.send(Uri.parse('https://vta.example'), request),
+        throwsA(
+          isA<MeetingPlaceVtcSDKException>()
+              .having(
+                (e) => e.code,
+                'code',
+                MeetingPlaceVtcSDKErrorCode.transportFailed,
+              )
+              .having((e) => e.httpStatus, 'httpStatus', 401),
+        ),
+      );
+    });
+
     test('reads a Trust Task error as a refusal, whatever the status', () {
       adapter.answers.add((
         409,

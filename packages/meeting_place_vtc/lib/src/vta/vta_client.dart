@@ -54,7 +54,7 @@ abstract final class VtaTask {
   static const serversList = '$_base/vta/webvh/servers/list/1.0';
 
   /// Creates a `did:webvh` DID whose keys the VTA holds.
-  static const didsCreate = '$_base/vta/webvh/dids/create/1.0';
+  static const didsCreate = '$_base/vta/webvh/dids/create/1.2';
 
   /// Lists the `did:webvh` DIDs the VTA hosts keys for.
   static const didsList = '$_base/vta/webvh/dids/list/1.0';
@@ -287,8 +287,9 @@ class VtaClient implements SignInAgent {
   /// DID hosting server, so the community can resolve it.
   ///
   /// The persona lives in the VTA's default context when this client may act
-  /// there, else in the first context it may. It advertises no messaging
-  /// service: this phone reaches the community over HTTPS only.
+  /// there, else in the first context it may. It advertises the VTA's
+  /// mediator, so a community can deliver what it issues later, e.g. the
+  /// membership card once an administrator admits the persona.
   ///
   /// Throws [MeetingPlaceVtcSDKException] with
   /// [MeetingPlaceVtcSDKErrorCode.didHostingMissing] when the VTA has no
@@ -313,7 +314,7 @@ class VtaClient implements SignInAgent {
           : contextIds.first,
       'serverId': serverIds.first,
       'label': label,
-      'addMediatorService': false,
+      'addMediatorService': true,
       'setPrimary': false,
     });
     final did = created['did'];

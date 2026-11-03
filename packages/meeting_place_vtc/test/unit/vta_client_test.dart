@@ -426,11 +426,15 @@ void main() {
         expect(persona.did, 'did:webvh:QmP:host.example');
         expect(persona.contextId, 'vta');
         expect(persona.signingKeyId, 'did:webvh:QmP:host.example#key-0');
+        expect(
+          vta.received.last['type'],
+          'https://trusttasks.org/spec/vta/webvh/dids/create/1.2',
+        );
         expect(vta.received.last['payload'], {
           'contextId': 'vta',
           'serverId': 'webvh-1',
           'label': 'Football club',
-          'addMediatorService': false,
+          'addMediatorService': true,
           'setPrimary': false,
         });
       });

@@ -50,6 +50,9 @@ class FakeJoinVtc {
   /// Stands for the applicant's DID in [verdict].
   static const applicant = '<applicant>';
   String status = 'pending';
+
+  /// The reason a rejected request's status gives.
+  String? rejectionReason;
   Map<String, dynamic>? refusal;
 
   /// Answers signed by another key than the community's.
@@ -98,7 +101,10 @@ class FakeJoinVtc {
       JoinTask.status => {
         'requestId': (request['payload'] as Map)['requestId'],
         'status': status,
+        'reason': ?rejectionReason,
+        if (status == 'approved') 'credentialsDelivered': false,
       },
+      MemberTask.directoryCardUpdate => {'revision': 1},
       MemberTask.vmc => {
         'memberDid': request['issuer'],
         'vmcId': 'urn:uuid:member-vmc',

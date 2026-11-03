@@ -411,6 +411,27 @@ void main() {
     });
   });
 
+  group('VtcJoinClient.hideDirectoryCard', () {
+    test('withdraws the card from the directory as the persona', () async {
+      await client().hideDirectoryCard(
+        vtcDid,
+        agent: agent,
+        persona: agent.signInPersona,
+      );
+
+      final request = vtc.received.single;
+      expect(request['type'], MemberTask.directoryCardUpdate);
+      expect(request['issuer'], agent.persona.did);
+      expect(request['payload'], {
+        'discoverability': {
+          'listing': 'hidden',
+          'search': 'off',
+          'external': false,
+        },
+      });
+    });
+  });
+
   group('VtcJoinClient.status', () {
     test('asks as the persona where the request stands', () async {
       vtc.status = 'approved';
@@ -422,11 +443,45 @@ void main() {
         persona: agent.signInPersona,
       );
 
-      expect(status, JoinRequestStatus.approved);
-      expect(status.isOpen, isFalse);
+      expect(status.status, JoinRequestStatus.approved);
+      expect(status.status.isOpen, isFalse);
+      expect(status.credentialsDelivered, isFalse);
       final request = vtc.received.single;
       expect(request['issuer'], agent.persona.did);
       expect(request['payload'], {'requestId': 'request-1'});
+    });
+
+    test("gives the community's reason for a rejection", () async {
+      vtc
+        ..status = 'rejected'
+        ..rejectionReason = 'Members only';
+
+      final status = await client().status(
+        vtcDid,
+        requestId: 'request-1',
+        agent: agent,
+        persona: agent.signInPersona,
+      );
+
+      expect(status.status, JoinRequestStatus.rejected);
+      expect(status.reason, 'Members only');
+    });
+
+    test('asks for the cards again', () async {
+      vtc.status = 'approved';
+
+      await client().status(
+        vtcDid,
+        requestId: 'request-1',
+        agent: agent,
+        persona: agent.signInPersona,
+        resendCredentials: true,
+      );
+
+      expect(vtc.received.single['payload'], {
+        'requestId': 'request-1',
+        'resendCredentials': true,
+      });
     });
 
     test('refuses an unknown status', () async {

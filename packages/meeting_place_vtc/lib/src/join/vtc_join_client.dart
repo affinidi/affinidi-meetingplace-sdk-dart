@@ -31,6 +31,10 @@ abstract final class JoinTask {
 abstract final class MemberTask {
   /// Hands the community the member's own membership credential.
   static const vmc = 'https://trusttasks.org/spec/vtc/members/vmc/0.1';
+
+  /// Changes the member's own card in the member directory.
+  static const directoryCardUpdate =
+      'https://trusttasks.org/spec/vtc/directory/card/update/0.1';
 }
 
 /// Refusals of a confirmation naming a request the community no longer
@@ -172,13 +176,52 @@ class VtcJoinClient {
   }
 
   /// Asks the community [communityDid] where [persona]'s request
-  /// [requestId] stands.
+  /// [requestId] stands. With [resendCredentials], asks it to deliver an
+  /// approved request's cards again.
   ///
   /// Throws [MeetingPlaceVtcSDKException] when the VTA or the community
   /// refuses, cannot be reached, or answers with something else.
-  Future<JoinRequestStatus> status(
+  Future<JoinStatus> status(
     String communityDid, {
     required String requestId,
+    required SignInAgent agent,
+    required SignInPersona persona,
+    bool resendCredentials = false,
+  }) async {
+    final community = await _vtcResolver.resolveCommunity(communityDid);
+    final request = await _signedByPersona(
+      agent,
+      persona,
+      community,
+      type: JoinTask.status,
+      payload: {
+        'requestId': requestId,
+        if (resendCredentials) 'resendCredentials': true,
+      },
+    );
+    final payload = await _ask(community, request);
+    final status = JoinRequestStatus.values.asNameMap()[payload['status']];
+    if (payload['requestId'] != requestId || status == null) {
+      throw MeetingPlaceVtcSDKException.invalidDocument('no request status');
+    }
+    return JoinStatus(
+      status: status,
+      reason: payload['reason'] is String ? payload['reason'] as String : null,
+      credentialsDelivered: payload['credentialsDelivered'] is bool
+          ? payload['credentialsDelivered'] as bool
+          : null,
+    );
+  }
+
+  /// Takes [persona]'s card in the community [communityDid] out of the
+  /// member directory: not listed, not searchable, not published outside
+  /// the community (`vtc/directory/card/update/0.1`).
+  ///
+  /// A community lists new members by its own default; this is how a member
+  /// who did not opt in is withdrawn. Throws [MeetingPlaceVtcSDKException]
+  /// when the VTA or the community refuses or cannot be reached.
+  Future<void> hideDirectoryCard(
+    String communityDid, {
     required SignInAgent agent,
     required SignInPersona persona,
   }) async {
@@ -187,15 +230,16 @@ class VtcJoinClient {
       agent,
       persona,
       community,
-      type: JoinTask.status,
-      payload: {'requestId': requestId},
+      type: MemberTask.directoryCardUpdate,
+      payload: const {
+        'discoverability': {
+          'listing': 'hidden',
+          'search': 'off',
+          'external': false,
+        },
+      },
     );
-    final payload = await _ask(community, request);
-    final status = JoinRequestStatus.values.asNameMap()[payload['status']];
-    if (payload['requestId'] != requestId || status == null) {
-      throw MeetingPlaceVtcSDKException.invalidDocument('no request status');
-    }
-    return status;
+    await _ask(community, request);
   }
 
   /// Confirms [persona]'s membership back to the community [communityDid]:

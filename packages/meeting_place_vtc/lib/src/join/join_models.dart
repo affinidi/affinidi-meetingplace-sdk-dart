@@ -201,3 +201,24 @@ enum JoinRequestStatus {
   /// Whether the community may still decide.
   bool get isOpen => this == pending || this == deferred;
 }
+
+/// What the community says about a join request
+/// (`vtc/join-requests/status/0.1`).
+class JoinStatus {
+  /// Creates a [JoinStatus].
+  const JoinStatus({
+    required this.status,
+    this.reason,
+    this.credentialsDelivered,
+  });
+
+  /// Where the request stands.
+  final JoinRequestStatus status;
+
+  /// The community's reason for turning it down, in its own words, if any.
+  final String? reason;
+
+  /// For an approved request: whether the community holds the member's own
+  /// membership credential, i.e. whether the membership was confirmed.
+  final bool? credentialsDelivered;
+}

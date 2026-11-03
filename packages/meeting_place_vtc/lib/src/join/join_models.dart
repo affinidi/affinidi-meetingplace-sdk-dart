@@ -15,13 +15,18 @@ class JoinCriterion {
   const JoinCriterion({
     required this.id,
     required this.admission,
+    required this.requirementsDigest,
     this.description,
     this.invitationRequired = false,
     this.asksForCredentials = false,
+    this.asksForVetting = false,
   });
 
   /// The criterion's id within the community.
   final String id;
+
+  /// The digest a submission names to apply under this criterion.
+  final String requirementsDigest;
 
   /// Whether meeting it admits at once or goes to review.
   final JoinAdmission admission;
@@ -32,21 +37,61 @@ class JoinCriterion {
   /// Whether only invited applicants meet it.
   final bool invitationRequired;
 
-  /// Whether it asks the applicant to present credentials or be vetted.
+  /// Whether it asks the applicant to present credentials.
   final bool asksForCredentials;
 
-  /// Whether an applicant with no invitation and no credentials can meet it.
-  bool get isOpen => !invitationRequired && !asksForCredentials;
+  /// Whether it asks the applicant to be vetted in person.
+  final bool asksForVetting;
+
+  /// Whether an applicant with no invitation, credentials or vetting can
+  /// meet it: the only criteria this wallet applies under.
+  bool get isOpen =>
+      !invitationRequired && !asksForCredentials && !asksForVetting;
 }
 
-/// What a community asks of applicants (`vtc/join-requests/manifest/0.3`).
+/// A profile detail a community asks for with an application.
+class JoinAttributeRequest {
+  /// Creates a [JoinAttributeRequest].
+  const JoinAttributeRequest({
+    required this.type,
+    this.required = true,
+    this.purpose,
+  });
+
+  /// The claim type, e.g. `name` or `email`.
+  final String type;
+
+  /// Whether an application without it is refused.
+  final bool required;
+
+  /// Why the community asks, in its own words, if it says.
+  final String? purpose;
+}
+
+/// A profile detail sent with an application.
+class JoinAttribute {
+  /// Creates a [JoinAttribute].
+  const JoinAttribute({required this.type, required this.value});
+
+  /// The claim type, as the community asked for it.
+  final String type;
+
+  /// The claim's value.
+  final Object value;
+
+  /// The attribute as `vtc/join-requests/submit/0.3` carries it.
+  Map<String, dynamic> toJson() => {'type': type, 'value': value};
+}
+
+/// What a community asks of applicants (`vtc/join-requests/manifest/0.4`).
 class JoinManifest {
   /// Creates a [JoinManifest].
   const JoinManifest({
     required this.community,
     required this.criteria,
     this.name,
-    this.requiredAttributes = const [],
+    this.requestedAttributes = const [],
+    this.listsNewMembers,
   });
 
   /// The community and where it takes Trust Tasks.
@@ -59,25 +104,28 @@ class JoinManifest {
   /// The community's display name, if its manifest gives one.
   final String? name;
 
-  /// Attribute types the community requires with an application, e.g. a
-  /// name. This wallet supplies none, so such a community refuses it.
-  final List<String> requiredAttributes;
+  /// The profile details the community asks for with an application.
+  final List<JoinAttributeRequest> requestedAttributes;
+
+  /// Whether the community lists a new member in its member directory
+  /// (`directoryDisclosure.newCard.listing`), or null when it does not say.
+  final bool? listsNewMembers;
 
   /// The community's DID.
   String get communityDid => community.did;
 
-  /// Whether this wallet can apply: the community accepts applications, one
-  /// way in needs neither an invitation nor credentials, and no attribute is
-  /// required.
-  bool get canApply =>
-      criteria.any((criterion) => criterion.isOpen) &&
-      requiredAttributes.isEmpty;
+  /// The way in this wallet applies under: the first open criterion, in the
+  /// community's order, or null when there is none.
+  JoinCriterion? get openCriterion =>
+      criteria.where((criterion) => criterion.isOpen).firstOrNull;
 
-  /// Whether an application meeting only open criteria is admitted at once.
-  bool get admitsAtOnce => criteria.any(
-    (criterion) =>
-        criterion.isOpen && criterion.admission == JoinAdmission.automatic,
-  );
+  /// Whether this wallet can apply: one way in needs no invitation,
+  /// credentials or vetting. Requested profile details are the caller's to
+  /// gather.
+  bool get canApply => openCriterion != null;
+
+  /// Whether an application under [openCriterion] is admitted at once.
+  bool get admitsAtOnce => openCriterion?.admission == JoinAdmission.automatic;
 }
 
 /// The community's answer to a join request.

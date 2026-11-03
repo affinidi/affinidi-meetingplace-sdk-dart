@@ -69,11 +69,14 @@ void main() {
           {
             'id': 'members',
             'admission': 'automatic',
+            'requirementsDigest': 'z3',
             'presentationDefinition': {'credentials': <Object>[]},
+            'credentialIssuers': 'any',
           },
           {
             'id': 'vetted',
             'admission': 'review',
+            'requirementsDigest': 'z4',
             'vetting': <String, dynamic>{},
           },
         ],
@@ -81,22 +84,57 @@ void main() {
 
       final manifest = await client().readManifest(vtcDid);
 
+      final [members, vetted] = manifest.criteria;
+      expect(members.asksForCredentials, isTrue);
+      expect(vetted.asksForVetting, isTrue);
+      expect(manifest.openCriterion, isNull);
       expect(manifest.canApply, isFalse);
     });
 
-    test('says when the community requires attributes', () async {
+    test('skips a criterion it cannot name by digest', () async {
+      vtc.manifest = {
+        ...vtc.manifest,
+        'criteria': [
+          {'id': 'undigested', 'admission': 'automatic'},
+        ],
+      };
+
+      final manifest = await client().readManifest(vtcDid);
+
+      expect(manifest.criteria, isEmpty);
+      expect(manifest.canApply, isFalse);
+    });
+
+    test('reads the profile details the community asks for', () async {
       vtc.manifest = {
         ...vtc.manifest,
         'requestedAttributes': [
-          {'type': 'name', 'required': true},
+          {'type': 'name', 'purpose': 'To greet you'},
           {'type': 'email', 'required': false},
         ],
       };
 
       final manifest = await client().readManifest(vtcDid);
 
-      expect(manifest.requiredAttributes, ['name']);
-      expect(manifest.canApply, isFalse);
+      final [name, email] = manifest.requestedAttributes;
+      expect(name.type, 'name');
+      expect(name.required, isTrue, reason: 'absent means required');
+      expect(name.purpose, 'To greet you');
+      expect(email.required, isFalse);
+      expect(manifest.canApply, isTrue);
+    });
+
+    test('reads whether new members are listed in the directory', () async {
+      vtc.manifest = {
+        ...vtc.manifest,
+        'directoryDisclosure': {
+          'newCard': {'listing': 'hidden', 'search': 'off'},
+        },
+      };
+
+      final manifest = await client().readManifest(vtcDid);
+
+      expect(manifest.listsNewMembers, isFalse);
     });
 
     test('refuses the manifest of another community', () async {
@@ -146,8 +184,28 @@ void main() {
       expect(submit['recipient'], vtcDid);
       expect(submit.containsKey('proof'), isTrue);
       final payload = submit['payload'] as Map;
+      expect(payload['criterion'], 'z1');
+      expect(payload.containsKey('attributes'), isFalse);
       expect(payload['registryConsent'], isFalse);
       expect((payload['vp'] as Map)['holder'], agent.persona.did);
+    });
+
+    test('sends the profile details and registry consent given', () async {
+      final manifest = await client().readManifest(vtcDid);
+
+      await client().apply(
+        manifest,
+        agent: agent,
+        persona: agent.signInPersona,
+        attributes: const [JoinAttribute(type: 'name', value: 'Sam')],
+        registryConsent: true,
+      );
+
+      final payload = vtc.received.last['payload'] as Map;
+      expect(payload['attributes'], [
+        {'type': 'name', 'value': 'Sam'},
+      ]);
+      expect(payload['registryConsent'], isTrue);
     });
 
     test('reads a role credential under its former name', () async {

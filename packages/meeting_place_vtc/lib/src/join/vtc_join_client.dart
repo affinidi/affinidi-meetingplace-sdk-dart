@@ -15,7 +15,7 @@ abstract final class JoinTask {
   static const _base = 'https://trusttasks.org/spec/vtc/join-requests';
 
   /// Reads what the community asks of applicants.
-  static const manifest = '$_base/manifest/0.3';
+  static const manifest = '$_base/manifest/0.4';
 
   /// Applies to join, signed by the applicant's persona.
   static const submit = '$_base/submit/0.3';
@@ -74,29 +74,45 @@ class VtcJoinClient {
           ?_criterion(criterion),
       ],
       name: name is String && name.trim().isNotEmpty ? name.trim() : null,
-      requiredAttributes: [
+      requestedAttributes: [
         for (final attribute in _maps(payload['requestedAttributes']))
-          if (attribute['required'] == true && attribute['type'] is String)
-            attribute['type'] as String,
+          if (attribute['type'] case final String type)
+            JoinAttributeRequest(
+              type: type,
+              // Absent means required.
+              required: attribute['required'] != false,
+              purpose: attribute['purpose'] is String
+                  ? attribute['purpose'] as String
+                  : null,
+            ),
       ],
+      listsNewMembers: _listsNewMembers(payload['directoryDisclosure']),
     );
   }
 
   /// Applies to join [manifest]'s community as [persona], whose document
   /// [agent] (the member's VTA) signs.
   ///
-  /// Sends an empty presentation: this wallet applies under the community's
-  /// open criteria only, and does not consent to being listed in its
+  /// Applies under [JoinManifest.openCriterion], naming it by its digest,
+  /// with an empty presentation and the profile details in [attributes].
+  /// [registryConsent] is consent to publication in the community's trust
   /// registry. When the persona already has a request open, returns that
   /// request as [JoinPending].
   ///
-  /// Throws [MeetingPlaceVtcSDKException] when the VTA or the community
-  /// refuses, cannot be reached, or answers with something else.
+  /// Throws [StateError] when the manifest has no criterion this wallet can
+  /// apply under, and [MeetingPlaceVtcSDKException] when the VTA or the
+  /// community refuses, cannot be reached, or answers with something else.
   Future<JoinVerdict> apply(
     JoinManifest manifest, {
     required SignInAgent agent,
     required SignInPersona persona,
+    List<JoinAttribute> attributes = const [],
+    bool registryConsent = false,
   }) async {
+    final criterion = manifest.openCriterion;
+    if (criterion == null) {
+      throw StateError('the community has no criterion this wallet meets');
+    }
     final community = manifest.community;
     final request = await _signedByPersona(
       agent,
@@ -110,7 +126,12 @@ class VtcJoinClient {
           'holder': persona.did,
           'verifiableCredential': <Object>[],
         },
-        'registryConsent': false,
+        'criterion': criterion.requirementsDigest,
+        if (attributes.isNotEmpty)
+          'attributes': [
+            for (final attribute in attributes) attribute.toJson(),
+          ],
+        'registryConsent': registryConsent,
       },
     );
 
@@ -233,20 +254,35 @@ class VtcJoinClient {
     };
   }
 
+  /// A criterion, or null for one this wallet cannot read: no id, an
+  /// admission it does not know, or no digest to name it by.
   static JoinCriterion? _criterion(Map<String, dynamic> criterion) {
     final id = criterion['id'];
     final admission = JoinAdmission.values.asNameMap()[criterion['admission']];
-    if (id is! String || admission == null) return null;
+    final digest = criterion['requirementsDigest'];
+    if (id is! String || admission == null || digest is! String) return null;
     final description = criterion['description'];
     return JoinCriterion(
       id: id,
       admission: admission,
+      requirementsDigest: digest,
       description: description is String ? description : null,
       invitationRequired: criterion['invitationRequired'] == true,
-      asksForCredentials:
-          criterion['presentationDefinition'] != null ||
-          criterion['vetting'] != null,
+      asksForCredentials: criterion['presentationDefinition'] != null,
+      asksForVetting: criterion['vetting'] != null,
     );
+  }
+
+  /// Whether `directoryDisclosure.newCard.listing` lists new members: a
+  /// `hidden` card is not, a `listed` or `findable` one is.
+  static bool? _listsNewMembers(Object? disclosure) {
+    final newCard = disclosure is Map ? disclosure['newCard'] : null;
+    final listing = newCard is Map ? newCard['listing'] : null;
+    return switch (listing) {
+      'hidden' => false,
+      'listed' || 'findable' => true,
+      _ => null,
+    };
   }
 
   static Iterable<Map<String, dynamic>> _maps(Object? list) => switch (list) {

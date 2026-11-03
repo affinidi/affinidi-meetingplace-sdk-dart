@@ -60,15 +60,17 @@ class TrustTaskHttpTransport {
     }
 
     final body = _decode(response.data);
-    if (body is! Map<String, dynamic>) {
+    final type = body is Map<String, dynamic> ? body['type'] : null;
+    // A server error page or a framework's own JSON error, e.g. a 401 for a
+    // lapsed token, is no Trust Task: keep its status so callers can act.
+    if (body is! Map<String, dynamic> || type is! String) {
       throw MeetingPlaceVtcSDKException.transportFailed(
         'HTTP ${response.statusCode} without a document',
         httpStatus: response.statusCode,
       );
     }
 
-    final type = body['type'];
-    if (type is String && type.contains(_trustTaskErrorMarker)) {
+    if (type.contains(_trustTaskErrorMarker)) {
       final payload = body['payload'];
       final errorPayload = payload is Map<String, dynamic> ? payload : null;
       final code = errorPayload?['code'];

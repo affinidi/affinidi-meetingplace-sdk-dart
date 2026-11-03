@@ -45,6 +45,11 @@ void main() {
       );
       expect(challenge.body.containsKey('proof'), isFalse);
       expect(challenge.body['payload'], {'subject': manager.did});
+      // The only authenticate version a VTA serves before a session.
+      expect(
+        authenticate.body['type'],
+        'https://trusttasks.org/spec/auth/authenticate/0.3',
+      );
       expect(authenticate.body['payload'], {
         'sessionId': 'session-1',
         'challenge': 'nonce-1',

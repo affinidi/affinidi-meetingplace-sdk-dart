@@ -2,6 +2,7 @@
 library;
 
 export 'src/community/community_import.dart';
+export 'src/community/community_profile.dart';
 export 'src/join/join_models.dart';
 export 'src/join/vtc_join_client.dart';
 export 'src/meeting_place_vtc_sdk.dart';

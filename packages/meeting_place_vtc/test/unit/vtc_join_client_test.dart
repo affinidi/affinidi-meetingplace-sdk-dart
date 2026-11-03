@@ -23,7 +23,9 @@ void main() {
 
   void useCommunity(FakeJoinVtc community) {
     vtc = community;
-    adapter.handler = community.handle;
+    adapter
+      ..handler = community.handle
+      ..getHandler = community.handleGet;
   }
 
   Future<JoinVerdict> apply() async {
@@ -510,6 +512,58 @@ void main() {
           'external': false,
         },
       });
+    });
+  });
+
+  group('VtcJoinClient.readProfile', () {
+    test('reads the public profile at the Trust Task base', () async {
+      final profile = await client().readProfile(vtcDid);
+
+      expect(
+        adapter.requests.single.options.uri.toString(),
+        '$vtcOrigin/v1/community/public-profile',
+      );
+      expect(profile.name, 'Football club');
+      expect(profile.description, 'Five-a-side on Sundays.');
+      expect(profile.logoUrl, Uri.parse('https://club.example/logo.png'));
+      expect(profile.website, Uri.parse('https://club.example/'));
+      expect(profile.contactEmail, 'hello@club.example');
+      expect(profile.personhood.realHuman, isTrue);
+      expect(profile.personhood.singleMembership, isFalse);
+    });
+
+    test('drops links that are not https', () async {
+      vtc.publicProfile = {
+        ...vtc.publicProfile,
+        'logoUrl': 'http://club.example/logo.png',
+        'publicUrl': 'javascript:alert(1)',
+      };
+
+      final profile = await client().readProfile(vtcDid);
+
+      expect(profile.logoUrl, isNull);
+      expect(profile.website, isNull);
+    });
+
+    test("refuses another community's profile", () {
+      vtc.publicProfile = {
+        ...vtc.publicProfile,
+        'communityDid': 'did:web:other.example',
+      };
+
+      expect(
+        client().readProfile(vtcDid),
+        _throwsCode(MeetingPlaceVtcSDKErrorCode.invalidDocument),
+      );
+    });
+
+    test('says when the community publishes no profile', () {
+      adapter.getHandler = (_) async => (404, {'error': 'not found'});
+
+      expect(
+        client().readProfile(vtcDid),
+        _throwsCode(MeetingPlaceVtcSDKErrorCode.transportFailed),
+      );
     });
   });
 

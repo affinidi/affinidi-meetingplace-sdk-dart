@@ -83,6 +83,39 @@ class TrustTaskHttpTransport {
     return TrustTaskDocument.fromJson(body);
   }
 
+  /// Fetches the JSON object at [uri], such as a community's public
+  /// profile. Unlike an answer to [send], it is not signed.
+  ///
+  /// Throws [MeetingPlaceVtcSDKException] with
+  /// [MeetingPlaceVtcSDKErrorCode.transportFailed] when there is no JSON
+  /// object to read, with the HTTP status when there was an answer.
+  Future<Map<String, dynamic>> fetchJson(Uri uri) async {
+    final Response<String> response;
+    try {
+      response = await _dio.getUri<String>(
+        uri,
+        options: Options(
+          responseType: ResponseType.plain,
+          receiveTimeout: timeout,
+          validateStatus: (_) => true,
+        ),
+      );
+    } on DioException catch (error) {
+      throw MeetingPlaceVtcSDKException.transportFailed(
+        error.type.name,
+        innerException: error,
+      );
+    }
+    final body = _decode(response.data);
+    if (response.statusCode != 200 || body is! Map<String, dynamic>) {
+      throw MeetingPlaceVtcSDKException.transportFailed(
+        'HTTP ${response.statusCode} without a JSON object',
+        httpStatus: response.statusCode,
+      );
+    }
+    return body;
+  }
+
   static Object? _decode(String? text) {
     if (text == null) return null;
     try {

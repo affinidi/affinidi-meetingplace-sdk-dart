@@ -19,6 +19,9 @@ class FakeHttpAdapter implements HttpClientAdapter {
 
   /// Answers from the request body instead of [answers], when set.
   Future<(int, Object?)> Function(Map<String, dynamic> body)? handler;
+
+  /// Answers a `GET`, which has no body, from its URL, when set.
+  Future<(int, Object?)> Function(Uri uri)? getHandler;
   final List<RecordedRequest> requests = [];
   DioExceptionType? failWith;
 
@@ -37,16 +40,20 @@ class FakeHttpAdapter implements HttpClientAdapter {
     requests.add(
       RecordedRequest(
         options,
-        jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>,
+        bytes.isEmpty
+            ? const <String, dynamic>{}
+            : jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>,
       ),
     );
 
     if (failWith case final type?) {
       throw DioException(requestOptions: options, type: type);
     }
-    final (status, body) = handler != null
-        ? await handler!(requests.last.body)
-        : answers.removeAt(0);
+    final (status, body) = switch ((options.method, getHandler, handler)) {
+      ('GET', final getHandler?, _) => await getHandler(options.uri),
+      (_, _, final handler?) => await handler(requests.last.body),
+      _ => answers.removeAt(0),
+    };
     return ResponseBody.fromString(
       body is String ? body : jsonEncode(body),
       status,

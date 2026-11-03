@@ -1,5 +1,6 @@
 import 'package:ssi/ssi.dart';
 
+import '../community/community_profile.dart';
 import '../credentials/credential_fields.dart';
 import '../meeting_place_vtc_sdk_exception.dart';
 import '../proof/eddsa_jcs_2022.dart';
@@ -116,6 +117,48 @@ class VtcJoinClient {
       ],
       listsNewMembers: _listsNewMembers(payload['directoryDisclosure']),
       directoryDisclosure: _directoryDisclosure(payload['directoryDisclosure']),
+    );
+  }
+
+  /// Reads what the community [communityDid] publishes about itself to
+  /// anyone (`GET <base>/community/public-profile`), at the Trust Task base
+  /// of its resolved DID document.
+  ///
+  /// The profile is not signed, so it describes the community and decides
+  /// nothing; links in it are kept only when `https`. Throws
+  /// [MeetingPlaceVtcSDKException] when the community cannot be resolved or
+  /// reached, or answers with another community's profile.
+  Future<CommunityProfile> readProfile(String communityDid) async {
+    final community = await _vtcResolver.resolveCommunity(communityDid);
+    final base = community.trustTaskBase;
+    final path = base.path.replaceAll(RegExp(r'/+$'), '');
+    final profile = await _transport.fetchJson(
+      base.replace(path: '$path/community/public-profile'),
+    );
+    if (profile['communityDid'] != community.did) {
+      throw MeetingPlaceVtcSDKException.invalidDocument(
+        'profile of another community',
+      );
+    }
+    String? text(Object? value) =>
+        value is String && value.trim().isNotEmpty ? value.trim() : null;
+    final personhood = profile['personhood'];
+    return CommunityProfile(
+      communityDid: community.did,
+      name: text(profile['name']),
+      description: text(profile['description']),
+      logoUrl: httpsUrl(profile['logoUrl']),
+      website: httpsUrl(profile['publicUrl']),
+      contactEmail: text(profile['contactEmail']),
+      personhood: personhood is Map
+          ? CommunityPersonhood(
+              realHuman: personhood['realHuman'] == true,
+              singleMembership: personhood['singleMembership'] == true,
+              governanceFrameworkUrl: httpsUrl(
+                personhood['governanceFrameworkUrl'],
+              ),
+            )
+          : const CommunityPersonhood(),
     );
   }
 

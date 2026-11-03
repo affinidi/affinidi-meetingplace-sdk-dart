@@ -13,6 +13,25 @@ class FakeJoinVtc {
   final _signer = communitySigner();
   late final DidDocument didDocument;
 
+  /// The profile `GET <base>/community/public-profile` answers.
+  Map<String, dynamic> publicProfile = {
+    'communityDid': vtcDid,
+    'name': 'Football club',
+    'description': 'Five-a-side on Sundays.',
+    'logoUrl': 'https://club.example/logo.png',
+    'publicUrl': 'https://club.example/',
+    'contactEmail': 'hello@club.example',
+    'language': 'en',
+    'createdAt': '2026-11-03T10:19:24Z',
+    'personhood': {'realHuman': true, 'singleMembership': false},
+  };
+
+  /// Answers a `GET` for the public profile, and nothing else.
+  Future<(int, Object?)> handleGet(Uri uri) async =>
+      uri.path.endsWith('/community/public-profile')
+      ? (200, publicProfile)
+      : (404, {'error': 'not found'});
+
   Map<String, dynamic> manifest = {
     'communityDid': vtcDid,
     'branding': {'displayName': 'Football club'},

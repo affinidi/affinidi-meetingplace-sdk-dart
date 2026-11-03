@@ -33,16 +33,16 @@ abstract final class VtaTask {
   static const signTrustTask = '$_base/vault/sign-trust-task/0.2';
 
   /// Lists vault entry metadata.
-  static const vaultList = '$_base/vault/list/0.1';
+  static const vaultList = '$_base/vault/list/0.4';
 
   /// Creates or updates a vault entry.
-  static const vaultUpsert = '$_base/vault/upsert/0.1';
+  static const vaultUpsert = '$_base/vault/upsert/0.4';
 
   /// Finds stored credentials by purpose.
   static const credentialsQuery = '$_base/vault/credentials/query/0.1';
 
   /// Fetches one stored credential.
-  static const credentialsGet = '$_base/vault/credentials/get/0.1';
+  static const credentialsGet = '$_base/vault/credentials/get/0.2';
 
   /// Stores a credential the member received.
   static const credentialsReceive = '$_base/vault/credentials/receive/0.1';
@@ -75,8 +75,12 @@ const uvKeyExtension = 'org.openvtc.uv-key';
 /// The context a VTA creates by default; personas go there when it exists.
 const _defaultContextId = 'vta';
 
-/// Vault secret kind of a persona's sign-in entry.
-const didSelfIssuedSecretKind = 'did-self-issued';
+/// Vault secret kind of a persona's sign-in entry, as `vault/upsert/0.4`
+/// spells it.
+const didSelfIssuedSecretKind = 'didSelfIssued';
+
+/// The same kind as entries written with `vault/upsert/0.1` spell it.
+const _legacyDidSelfIssuedSecretKind = 'did-self-issued';
 
 /// Type of the DIDComm message a sealed vault secret travels in.
 const _vaultSecretMessageType =
@@ -215,7 +219,7 @@ class VtaClient implements SignInAgent {
       'label': 'Meeting Place sign-in',
       'secretKind': didSelfIssuedSecretKind,
       'sealedSecret': {
-        'envelope': 'didcomm-authcrypt',
+        'envelope': 'didcommAuthcrypt',
         'jwe': await _sealToVta({
           'kind': didSelfIssuedSecretKind,
           'did': persona.did,
@@ -541,7 +545,8 @@ class VtaClient implements SignInAgent {
     final targets = entry['targets'];
     return entry['id'] is String &&
         entry['principalDid'] == personaDid &&
-        (kind == didSelfIssuedSecretKind || kind == 'didSelfIssued') &&
+        (kind == didSelfIssuedSecretKind ||
+            kind == _legacyDidSelfIssuedSecretKind) &&
         (status == null || status == 'active') &&
         targets is List &&
         targets.any(

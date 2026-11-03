@@ -263,6 +263,31 @@ void main() {
         );
       });
 
+      test(
+        'finds an entry written with the 0.1 spelling of its kind',
+        () async {
+          vta.answers[VtaTask.vaultList] = {
+            'entries': [
+              {
+                'id': 'entry-0.1',
+                'principalDid': persona.did,
+                'secretKind': 'did-self-issued',
+                'targets': [
+                  {'kind': 'did', 'did': _vtcDid},
+                ],
+              },
+            ],
+          };
+
+          final entryId = await client.ensureSignInVaultEntry(
+            vtcDid: _vtcDid,
+            persona: persona,
+          );
+
+          expect(entryId, 'entry-0.1');
+        },
+      );
+
       test('creates the entry with a secret sealed to the VTA', () async {
         vta.answers[VtaTask.vaultUpsert] = {
           'entry': {'id': 'entry-new'},
@@ -275,12 +300,13 @@ void main() {
 
         expect(entryId, 'entry-new');
         final upsert = vta.received.last['payload'] as Map<String, dynamic>;
-        expect(upsert['secretKind'], 'did-self-issued');
+        expect(vta.received.last['type'], endsWith('/vault/upsert/0.4'));
+        expect(upsert['secretKind'], 'didSelfIssued');
         expect(upsert['targets'], [
           {'kind': 'did', 'did': _vtcDid},
         ]);
         final sealed = upsert['sealedSecret'] as Map<String, dynamic>;
-        expect(sealed['envelope'], 'didcomm-authcrypt');
+        expect(sealed['envelope'], 'didcommAuthcrypt');
         final jwe = jsonDecode(sealed['jwe'] as String) as Map<String, dynamic>;
         expect(
           jwe.keys,

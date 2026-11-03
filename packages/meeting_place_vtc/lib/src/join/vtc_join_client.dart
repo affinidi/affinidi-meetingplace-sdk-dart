@@ -9,6 +9,7 @@ import '../transport/trust_task_http_transport.dart';
 import '../trust_task/trust_task_document.dart';
 import '../vta/vta_models.dart';
 import '../vtc/resolved_document.dart';
+import '../vtc/service_endpoints.dart';
 import '../vtc/vtc_resolver.dart';
 import 'join_models.dart';
 import 'membership_confirmation.dart';
@@ -92,6 +93,7 @@ class VtcJoinClient {
     }
     final branding = payload['branding'];
     final name = branding is Map ? branding['displayName'] : null;
+    final logoUrl = branding is Map ? branding['logoUrl'] : null;
     return JoinManifest(
       community: community,
       criteria: [
@@ -99,6 +101,7 @@ class VtcJoinClient {
           ?_criterion(criterion),
       ],
       name: name is String && name.trim().isNotEmpty ? name.trim() : null,
+      logoUrl: httpsUrl(logoUrl),
       requestedAttributes: [
         for (final attribute in _maps(payload['requestedAttributes']))
           if (attribute['type'] case final String type)
@@ -112,6 +115,7 @@ class VtcJoinClient {
             ),
       ],
       listsNewMembers: _listsNewMembers(payload['directoryDisclosure']),
+      directoryDisclosure: _directoryDisclosure(payload['directoryDisclosure']),
     );
   }
 
@@ -471,6 +475,52 @@ class VtcJoinClient {
       'listed' || 'findable' => true,
       _ => null,
     };
+  }
+
+  /// The disclosure, or null when the community offers no directory or the
+  /// statement lacks a member it requires.
+  static DirectoryDisclosure? _directoryDisclosure(Object? disclosure) {
+    if (disclosure is! Map) return null;
+    final audiences = DirectoryAudience.values.asNameMap();
+    final sources = DirectoryFieldSource.values.asNameMap();
+    final membershipIdentifiers =
+        audiences[disclosure['membershipIdentifiers']];
+    final adminNotes = disclosure['adminNotes'];
+    final externalCards = disclosure['externalCards'];
+    if (membershipIdentifiers == null ||
+        adminNotes is! bool ||
+        externalCards is! bool) {
+      return null;
+    }
+    return DirectoryDisclosure(
+      fields: [
+        for (final field in _maps(disclosure['fields']))
+          if ((
+                field['label'],
+                sources[field['source']],
+                audiences[field['ceiling']],
+                audiences[field['defaultVisibility']],
+              )
+              case (
+                final String label,
+                final DirectoryFieldSource source,
+                final DirectoryAudience ceiling,
+                final DirectoryAudience defaultVisibility,
+              ))
+            DirectoryField(
+              label: label,
+              description: field['description'] is String
+                  ? field['description'] as String
+                  : null,
+              source: source,
+              ceiling: ceiling,
+              defaultVisibility: defaultVisibility,
+            ),
+      ],
+      membershipIdentifiers: membershipIdentifiers,
+      adminNotes: adminNotes,
+      externalCards: externalCards,
+    );
   }
 
   static Iterable<Map<String, dynamic>> _maps(Object? list) => switch (list) {

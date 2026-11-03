@@ -125,6 +125,87 @@ void main() {
       expect(manifest.canApply, isTrue);
     });
 
+    test("reads the community's https logo only", () async {
+      vtc.manifest = {
+        ...vtc.manifest,
+        'branding': {
+          'displayName': 'Football club',
+          'logoUrl': 'https://club.example/logo.png',
+        },
+      };
+      expect(
+        (await client().readManifest(vtcDid)).logoUrl,
+        Uri.parse('https://club.example/logo.png'),
+      );
+
+      vtc.manifest = {
+        ...vtc.manifest,
+        'branding': {'logoUrl': 'http://club.example/logo.png'},
+      };
+      expect((await client().readManifest(vtcDid)).logoUrl, isNull);
+    });
+
+    test('reads what the member directory would disclose', () async {
+      vtc.manifest = {
+        ...vtc.manifest,
+        'directoryDisclosure': {
+          'fields': [
+            {
+              'key': 'name',
+              'label': 'Name',
+              'type': 'text',
+              'source': 'member',
+              'ceiling': 'members',
+              'defaultVisibility': 'members',
+              'searchable': true,
+            },
+            {
+              'key': 'role',
+              'label': 'Role',
+              'description': 'What you do in the club',
+              'type': 'text',
+              'source': 'admin',
+              'ceiling': 'public',
+              'defaultVisibility': 'admins',
+              'searchable': false,
+            },
+            {'key': 'broken', 'label': 'Broken', 'source': 'nobody'},
+          ],
+          'newCard': {'listing': 'listed', 'search': 'byName'},
+          'membershipIdentifiers': 'admins',
+          'adminNotes': true,
+          'externalCards': false,
+          'statementDigest': 'zDigest',
+        },
+      };
+
+      final disclosure = (await client().readManifest(
+        vtcDid,
+      )).directoryDisclosure!;
+
+      final [name, role] = disclosure.fields;
+      expect(name.label, 'Name');
+      expect(name.source, DirectoryFieldSource.member);
+      expect(name.defaultVisibility, DirectoryAudience.members);
+      expect(role.description, 'What you do in the club');
+      expect(role.source, DirectoryFieldSource.admin);
+      expect(role.ceiling, DirectoryAudience.public);
+      expect(disclosure.membershipIdentifiers, DirectoryAudience.admins);
+      expect(disclosure.adminNotes, isTrue);
+      expect(disclosure.externalCards, isFalse);
+    });
+
+    test('reads no disclosure from an incomplete statement', () async {
+      vtc.manifest = {
+        ...vtc.manifest,
+        'directoryDisclosure': {
+          'newCard': {'listing': 'hidden', 'search': 'off'},
+        },
+      };
+
+      expect((await client().readManifest(vtcDid)).directoryDisclosure, isNull);
+    });
+
     test('reads whether new members are listed in the directory', () async {
       vtc.manifest = {
         ...vtc.manifest,

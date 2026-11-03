@@ -90,8 +90,10 @@ class JoinManifest {
     required this.community,
     required this.criteria,
     this.name,
+    this.logoUrl,
     this.requestedAttributes = const [],
     this.listsNewMembers,
+    this.directoryDisclosure,
   });
 
   /// The community and where it takes Trust Tasks.
@@ -104,12 +106,20 @@ class JoinManifest {
   /// The community's display name, if its manifest gives one.
   final String? name;
 
+  /// The community's logo, if its manifest gives an `https` one. Fetching it
+  /// tells its host the reader's address.
+  final Uri? logoUrl;
+
   /// The profile details the community asks for with an application.
   final List<JoinAttributeRequest> requestedAttributes;
 
   /// Whether the community lists a new member in its member directory
   /// (`directoryDisclosure.newCard.listing`), or null when it does not say.
   final bool? listsNewMembers;
+
+  /// What the community's member directory would disclose about a member,
+  /// or null when it offers no directory.
+  final DirectoryDisclosure? directoryDisclosure;
 
   /// The community's DID.
   String get communityDid => community.did;
@@ -200,6 +210,96 @@ enum JoinRequestStatus {
 
   /// Whether the community may still decide.
   bool get isOpen => this == pending || this == deferred;
+}
+
+/// Who a value in a community's member directory can reach, from the
+/// narrowest audience to the widest.
+enum DirectoryAudience {
+  /// The community's administrators.
+  admins,
+
+  /// Members of a group the member is in.
+  groups,
+
+  /// Members the member is connected to.
+  connections,
+
+  /// Every member of the community.
+  members,
+
+  /// Anyone, beyond the community.
+  public,
+}
+
+/// Who writes a member directory field's value.
+enum DirectoryFieldSource {
+  /// The member.
+  member,
+
+  /// The community's administrators: what the community asserts about the
+  /// member, who reads it and cannot change it.
+  admin,
+
+  /// A credential the member holds.
+  credential,
+
+  /// The community, from other values.
+  derived,
+}
+
+/// A field of a community's member directory, as the join manifest
+/// discloses it.
+class DirectoryField {
+  /// Creates a [DirectoryField].
+  const DirectoryField({
+    required this.label,
+    required this.source,
+    required this.ceiling,
+    required this.defaultVisibility,
+    this.description,
+  });
+
+  /// The field's name, as the community shows it.
+  final String label;
+
+  /// What the field holds, in the community's words, if given.
+  final String? description;
+
+  /// Who writes the value.
+  final DirectoryFieldSource source;
+
+  /// The widest audience the value may ever reach.
+  final DirectoryAudience ceiling;
+
+  /// The audience a new card gives the value until the member chooses.
+  final DirectoryAudience defaultVisibility;
+}
+
+/// What a community's member directory would disclose about a member
+/// (`directoryDisclosure` of the join manifest).
+class DirectoryDisclosure {
+  /// Creates a [DirectoryDisclosure].
+  const DirectoryDisclosure({
+    required this.fields,
+    required this.membershipIdentifiers,
+    required this.adminNotes,
+    required this.externalCards,
+  });
+
+  /// The directory's fields, in display order. A field the community does
+  /// not collect is absent.
+  final List<DirectoryField> fields;
+
+  /// The widest audience the member's membership DID can reach.
+  final DirectoryAudience membershipIdentifiers;
+
+  /// Whether administrators keep notes about members, which no other member
+  /// sees.
+  final bool adminNotes;
+
+  /// Whether a member may publish their card beyond the community; always
+  /// their own choice.
+  final bool externalCards;
 }
 
 /// What the community says about a join request

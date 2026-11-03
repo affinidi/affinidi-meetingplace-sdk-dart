@@ -21,6 +21,11 @@ bool isUsableHttpsEndpoint(String endpoint) {
   return uri != null && hostMeetsRules(uri.host.toLowerCase());
 }
 
+/// [value] as a URL when it is text [isUsableHttpsEndpoint] accepts, such
+/// as a link a community publishes about itself; null otherwise.
+Uri? httpsUrl(Object? value) =>
+    value is String && isUsableHttpsEndpoint(value) ? Uri.parse(value) : null;
+
 /// The first usable HTTPS endpoint of a service of [type] in [document], in
 /// document order.
 ///

@@ -37,7 +37,7 @@ void main() {
 
       final whoAmI = await client.whoAmI();
 
-      expect(whoAmI['roles'], ['admin']);
+      expect(whoAmI.roles, {'admin'});
       final [challenge, authenticate, task] = adapter.requests;
       expect(
         challenge.options.uri.toString(),
@@ -78,6 +78,95 @@ void main() {
         VtaTask.authenticate,
         VtaTask.whoAmI,
       ]);
+    });
+
+    test(
+      'authenticates again when the token is refused with a document',
+      () async {
+        await client.whoAmI();
+        vta
+          ..rejectTokenTimes = 1
+          ..rejectTokenWithDocument = true;
+
+        await client.whoAmI();
+
+        final types = vta.received.map((r) => r['type']).skip(3).toList();
+        expect(types, [
+          VtaTask.whoAmI,
+          VtaTask.challenge,
+          VtaTask.authenticate,
+          VtaTask.whoAmI,
+        ]);
+      },
+    );
+
+    test('refuses a whoami answer signed by another key', () async {
+      vta.answerSigner = Ed25519DidKeySigner.generate();
+
+      await expectLater(
+        client.whoAmI(),
+        throwsA(
+          isA<MeetingPlaceVtcSDKException>().having(
+            (e) => e.code,
+            'code',
+            MeetingPlaceVtcSDKErrorCode.invalidProof,
+          ),
+        ),
+      );
+    });
+
+    test('refuses a whoami answer to another request', () async {
+      vta.answerThreadId = 'urn:uuid:other-request';
+
+      await expectLater(
+        client.whoAmI(),
+        throwsA(
+          isA<MeetingPlaceVtcSDKException>().having(
+            (e) => e.code,
+            'code',
+            MeetingPlaceVtcSDKErrorCode.invalidProof,
+          ),
+        ),
+      );
+    });
+
+    test('checks the VTA answers before any grant', () async {
+      await client.checkReachable();
+
+      final [challenge] = adapter.requests;
+      expect(challenge.body['type'], VtaTask.challenge);
+      expect(challenge.body.containsKey('proof'), isFalse);
+    });
+
+    test('says when the VTA DID does not resolve', () async {
+      final unresolvable = VtaClient(
+        vtaDid: 'did:webvh:QmMissing:vta.example',
+        manager: manager,
+        didResolver: FakeDidResolver(),
+      );
+
+      await expectLater(
+        unresolvable.checkReachable(),
+        throwsA(
+          isA<MeetingPlaceVtcSDKException>().having(
+            (e) => e.code,
+            'code',
+            MeetingPlaceVtcSDKErrorCode.didResolutionFailed,
+          ),
+        ),
+      );
+    });
+
+    test('signs out of every session, once authenticated', () async {
+      await client.signOut();
+      expect(vta.received, isEmpty);
+
+      await client.whoAmI();
+      await client.signOut();
+
+      final revoke = vta.received.last;
+      expect(revoke['type'], VtaTask.revokeSession);
+      expect((revoke['payload'] as Map)['all'], isTrue);
     });
 
     test('returns the signed envelope and passes extensions on', () async {

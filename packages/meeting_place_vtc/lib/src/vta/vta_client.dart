@@ -26,6 +26,9 @@ abstract final class VtaTask {
   /// Who the VTA takes this client for.
   static const whoAmI = '$_base/auth/whoami/0.1';
 
+  /// Ends this client's sessions on the VTA.
+  static const revokeSession = '$_base/auth/revoke-session/0.2';
+
   /// Has the VTA sign a Trust Task document as a vault persona.
   static const signTrustTask = '$_base/vault/sign-trust-task/0.2';
 
@@ -112,12 +115,54 @@ class VtaClient implements SignInAgent {
   /// DID of the manager key this client acts as.
   String get managerDid => _manager.did;
 
-  /// Asks the VTA who it takes this client for.
+  /// Asks the VTA what it lets this client do.
+  ///
+  /// The answer decides whether the phone is linked, so it must be signed by
+  /// the VTA, addressed to the manager key and answer this very request.
   ///
   /// Throws [MeetingPlaceVtcSDKException] with
   /// [MeetingPlaceVtcSDKErrorCode.refused] when the manager key is not on
-  /// the VTA's access list.
-  Future<Map<String, dynamic>> whoAmI() => _task(VtaTask.whoAmI, const {});
+  /// the VTA's access list, and with
+  /// [MeetingPlaceVtcSDKErrorCode.invalidProof] when the answer does not
+  /// verify.
+  Future<VtaAccess> whoAmI() async => VtaAccess.fromWhoAmI(
+    await _task(VtaTask.whoAmI, const {}, verifyAnswer: true),
+  );
+
+  /// Checks that [vtaDid] resolves to a VTA that answers, before the manager
+  /// key is granted: resolves the DID, finds its REST endpoint, and asks for
+  /// a challenge, which a VTA answers for any key.
+  ///
+  /// Throws [MeetingPlaceVtcSDKException] with
+  /// [MeetingPlaceVtcSDKErrorCode.didResolutionFailed] when the DID does not
+  /// resolve, [MeetingPlaceVtcSDKErrorCode.signInNotOffered] when it names no
+  /// HTTPS VTA endpoint, and another code when the VTA cannot be reached.
+  Future<void> checkReachable() async {
+    await _transport.send(
+      await _resolveRestBase(),
+      TrustTaskDocument.create(
+        type: VtaTask.challenge,
+        issuer: _manager.did,
+        recipient: vtaDid,
+        payload: {'subject': _manager.did},
+      ),
+    );
+  }
+
+  /// Ends every session the VTA holds for the manager key, best effort.
+  ///
+  /// Does not remove the key from the VTA's access list: only its
+  /// administrator can.
+  Future<void> signOut() async {
+    if (_accessToken == null) return;
+    try {
+      await _send(VtaTask.revokeSession, {'all': true, 'reason': 'unlinked'});
+    } on MeetingPlaceVtcSDKException {
+      // The session expires on its own.
+    } finally {
+      _accessToken = null;
+    }
+  }
 
   @override
   Future<Map<String, dynamic>> signTrustTask({
@@ -315,43 +360,66 @@ class VtaClient implements SignInAgent {
   /// first when needed and once more when the token is rejected.
   Future<Map<String, dynamic>> _task(
     String type,
-    Map<String, dynamic> payload,
-  ) async {
+    Map<String, dynamic> payload, {
+    bool verifyAnswer = false,
+  }) async {
     await _authenticateIfNeeded();
     try {
-      return await _send(type, payload);
+      return await _send(type, payload, verifyAnswer: verifyAnswer);
     } on MeetingPlaceVtcSDKException catch (error) {
       if (error.httpStatus != _unauthorized) rethrow;
       _accessToken = null;
       await _authenticateIfNeeded();
-      return _send(type, payload);
+      return _send(type, payload, verifyAnswer: verifyAnswer);
     }
   }
 
   Future<Map<String, dynamic>> _send(
     String type,
-    Map<String, dynamic> payload,
-  ) async {
+    Map<String, dynamic> payload, {
+    bool verifyAnswer = false,
+  }) async {
     final request = await TrustTaskDocument.create(
       type: type,
       issuer: _manager.did,
       recipient: vtaDid,
       payload: payload,
     ).sign(_manager, purpose: ProofPurpose.authentication);
+    final TrustTaskDocument answer;
     try {
-      final answer = await _transport.send(
+      answer = await _transport.send(
         _restBase!,
         request,
         bearerToken: _accessToken,
       );
-      return answer.payload;
     } on MeetingPlaceVtcSDKException catch (error) {
       if (error.code != MeetingPlaceVtcSDKErrorCode.refused) rethrow;
       throw MeetingPlaceVtcSDKException.refused(
         _localRefusalCode(error),
         errorPayload: error.errorPayload,
+        httpStatus: error.httpStatus,
       );
     }
+    if (verifyAnswer) await _verifyAnswer(answer, request);
+    return answer.payload;
+  }
+
+  /// Checks that [answer] is the VTA's own, signed answer to [request].
+  Future<void> _verifyAnswer(
+    TrustTaskDocument answer,
+    TrustTaskDocument request,
+  ) async {
+    if (answer.issuer != vtaDid ||
+        answer.recipient != _manager.did ||
+        answer.threadId != request.id) {
+      throw MeetingPlaceVtcSDKException.invalidProof(
+        'not an answer from the VTA',
+      );
+    }
+    await answer.verify(
+      purpose: ProofPurpose.authentication,
+      resolver: _ResolvedVta(await _resolveVta()),
+    );
   }
 
   Future<void> _authenticateIfNeeded() async {
@@ -482,5 +550,21 @@ class VtaClient implements SignInAgent {
               target['kind'] == 'did' &&
               target['did'] == vtcDid,
         );
+  }
+}
+
+/// Resolves only the VTA, to the document this client already resolved, so
+/// an answer is verified against the keys its endpoint was found in.
+class _ResolvedVta implements DidResolver {
+  _ResolvedVta(this._document);
+
+  final DidDocument _document;
+
+  @override
+  Future<DidDocument> resolveDid(String did) async {
+    if (did != _document.id) {
+      throw MeetingPlaceVtcSDKException.invalidProof('not signed by the VTA');
+    }
+    return _document;
   }
 }

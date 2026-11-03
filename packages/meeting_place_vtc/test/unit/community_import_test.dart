@@ -79,14 +79,49 @@ void main() {
   });
 
   group('VtaLink.isGranted', () {
-    test('is true once the VTA answers whoami', () async {
+    test('is true for an admin holding personas', () async {
+      vta.answers[VtaTask.whoAmI] = {
+        'roles': ['admin'],
+        'capabilities': ['vault-read', 'persona-holder'],
+      };
+
       expect(await VtaLink.isGranted(client), isTrue);
+    });
+
+    test('is false for an admin not holding personas', () async {
+      vta.answers[VtaTask.whoAmI] = {
+        'roles': ['admin'],
+        'capabilities': ['vault-read'],
+      };
+
+      expect(await VtaLink.isGranted(client), isFalse);
+      expect((await VtaLink.access(client))?.isAdmin, isTrue);
+    });
+
+    test('is false for another role holding personas', () async {
+      vta.answers[VtaTask.whoAmI] = {
+        'roles': ['reader'],
+        'capabilities': ['persona-holder'],
+      };
+
+      expect(await VtaLink.isGranted(client), isFalse);
     });
 
     test('is false while the key is not on the access list', () async {
       vta.refusals[VtaTask.whoAmI] = {'code': 'auth/whoami:notAuthorized'};
 
       expect(await VtaLink.isGranted(client), isFalse);
+      expect(await VtaLink.access(client), isNull);
+    });
+  });
+
+  group('VtaLink.grantCommands', () {
+    test('grants the admin role, then persona-holder', () {
+      expect(VtaLink.grantCommands('did:key:z6MkManager'), [
+        'pnm acl create --did did:key:z6MkManager --role admin '
+            '--label "Meeting Place"',
+        'pnm acl update did:key:z6MkManager --capabilities persona-holder',
+      ]);
     });
   });
 }

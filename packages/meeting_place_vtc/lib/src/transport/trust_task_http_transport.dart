@@ -77,6 +77,7 @@ class TrustTaskHttpTransport {
       throw MeetingPlaceVtcSDKException.refused(
         code is String ? code : 'unknown',
         errorPayload: errorPayload,
+        httpStatus: response.statusCode,
       );
     }
     return TrustTaskDocument.fromJson(body);

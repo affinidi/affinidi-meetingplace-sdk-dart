@@ -78,16 +78,18 @@ class MeetingPlaceVtcSDKException implements Exception {
   }
 
   /// The service refused the task with [refusalCode], e.g.
-  /// `auth/oob/claim:alreadyClaimed`.
+  /// `auth/oob/claim:alreadyClaimed`, answering with [httpStatus].
   factory MeetingPlaceVtcSDKException.refused(
     String refusalCode, {
     Map<String, dynamic>? errorPayload,
+    int? httpStatus,
   }) {
     return MeetingPlaceVtcSDKException(
       message: 'Trust Task refused: $refusalCode',
       code: MeetingPlaceVtcSDKErrorCode.refused,
       refusalCode: refusalCode,
       errorPayload: errorPayload,
+      httpStatus: httpStatus,
     );
   }
 

@@ -21,6 +21,23 @@ abstract interface class SignInAgent {
   });
 }
 
+/// The member's VTA, as membership needs it: besides Trust Task documents,
+/// it signs JSON documents that name the persona, such as the credential
+/// confirming a membership, with the persona's key.
+abstract interface class PersonaSigningAgent implements SignInAgent {
+  /// Has the VTA sign [document], which names its signer as `issuer`, with
+  /// the key [keyId] for [purpose] (`keys/sign-document/0.1`), and returns
+  /// the document with its proof.
+  ///
+  /// Throws a `MeetingPlaceVtcSDKException` when the VTA refuses, e.g. when
+  /// this client may not sign documents, or cannot be reached.
+  Future<Map<String, dynamic>> signDocument({
+    required String keyId,
+    required Map<String, dynamic> document,
+    required String purpose,
+  });
+}
+
 /// The persona a member signs in as, and the VTA vault entry that lets the
 /// VTA sign as it.
 class SignInPersona {

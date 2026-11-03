@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:meeting_place_vtc/meeting_place_vtc.dart';
+import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
 import '../utils/fake_join_vtc.dart';
@@ -326,6 +327,87 @@ void main() {
         _throwsCode(MeetingPlaceVtcSDKErrorCode.invalidDocument),
       );
       expect(vtc.received.map((r) => r['type']), [JoinTask.manifest]);
+    });
+  });
+
+  group('VtcJoinClient.confirmMembership', () {
+    Map<String, dynamic> communityCard() => {
+      'id': 'urn:uuid:vmc',
+      'type': ['VerifiableCredential', 'MembershipCredential'],
+      'issuer': vtcDid,
+      'validUntil': '2027-10-08T12:00:00Z',
+      'credentialSubject': {'id': agent.persona.did},
+      'proof': {'type': 'DataIntegrityProof', 'proofValue': 'zSig'},
+    };
+
+    Future<void> confirm({String? requestId = 'request-1'}) =>
+        client().confirmMembership(
+          vtcDid,
+          agent: agent,
+          persona: agent.vtaPersona,
+          signer: agent.signInPersona,
+          communityCard: communityCard(),
+          requestId: requestId,
+        );
+
+    test('hands the community a credential bound to its card', () async {
+      await confirm();
+
+      final request = vtc.received.single;
+      expect(request['type'], MemberTask.vmc);
+      expect(request['issuer'], agent.persona.did);
+      final payload = request['payload'] as Map<String, dynamic>;
+      expect(payload['requestId'], 'request-1');
+
+      final vc = payload['vc'] as Map<String, dynamic>;
+      expect(vc['issuer'], agent.persona.did);
+      expect(vc['issuerScope'], 'directed');
+      expect(vc['type'], [
+        'VerifiableCredential',
+        'DTGCredential',
+        'MembershipCredential',
+      ]);
+      expect(vc['validUntil'], '2027-10-08T12:00:00Z');
+      final subject = vc['credentialSubject'] as Map;
+      expect(subject['id'], vtcDid);
+      // Digested without the card's proof, as the community digests it.
+      expect(
+        subject['digestMultibase'],
+        digestMultibase(communityCard()..remove('proof')),
+      );
+      await expectLater(
+        EddsaJcs2022.verify(
+          vc,
+          purpose: ProofPurpose.assertionMethod,
+          resolver: FakeDidResolver(),
+          expectedSigner: agent.persona.did,
+        ),
+        completes,
+      );
+    });
+
+    test(
+      'confirms without the request the community no longer matches',
+      () async {
+        vtc.vmcRefusals.add('vtc/members/vmc:requestNotApproved');
+
+        await confirm();
+
+        expect(vtc.received, hasLength(2));
+        final retried = vtc.received.last['payload'] as Map;
+        expect(retried.containsKey('requestId'), isFalse);
+        expect(
+          retried['vc'],
+          (vtc.received.first['payload'] as Map)['vc'],
+          reason: 'the same credential, not a second one',
+        );
+      },
+    );
+
+    test('passes on any other refusal', () {
+      vtc.vmcRefusals.add('vtc/members/vmc:notAMember');
+
+      expect(confirm(), _throwsCode(MeetingPlaceVtcSDKErrorCode.refused));
     });
   });
 

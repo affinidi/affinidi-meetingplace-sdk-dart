@@ -59,6 +59,9 @@ abstract final class VtaTask {
   /// Lists the `did:webvh` DIDs the VTA hosts keys for.
   static const didsList = '$_base/vta/webvh/dids/list/1.0';
 
+  /// Signs a JSON document as the DID it names, with a key the VTA holds.
+  static const signDocument = '$_base/keys/sign-document/0.1';
+
   /// Shows what the VTA would disclose about a persona to a verifier.
   static const disclosurePreview = '$_base/persona/disclosure/preview/1.0';
 
@@ -97,7 +100,7 @@ const _vaultSecretMessageType =
 /// Signs every request as the phone's manager key, which the VTA's access
 /// list must hold. Authenticates lazily and again once when the bearer token
 /// is rejected. Nothing is logged.
-class VtaClient implements SignInAgent {
+class VtaClient implements PersonaSigningAgent {
   /// Creates a [VtaClient] for the VTA [vtaDid], acting as [manager].
   VtaClient({
     required this.vtaDid,
@@ -356,6 +359,24 @@ class VtaClient implements SignInAgent {
       if (credential['id'] case final String id) 'id': id,
     });
     return !const {'revoked', 'expired'}.contains(answer['status']);
+  }
+
+  @override
+  Future<Map<String, dynamic>> signDocument({
+    required String keyId,
+    required Map<String, dynamic> document,
+    required String purpose,
+  }) async {
+    final answer = await _task(VtaTask.signDocument, {
+      'keyId': keyId,
+      'document': document,
+      'proofPurpose': purpose,
+    });
+    final signed = answer['document'];
+    if (signed is! Map<String, dynamic> || signed['proof'] == null) {
+      throw MeetingPlaceVtcSDKException.invalidDocument('no signed document');
+    }
+    return signed;
   }
 
   /// Previews what the VTA would disclose about [persona] to [verifierDid]

@@ -160,7 +160,7 @@ class FakeVtc {
 }
 
 /// A member's VTA that signs as one `did:key` persona.
-class FakeSignInAgent implements SignInAgent {
+class FakeSignInAgent implements PersonaSigningAgent {
   final persona = Ed25519DidKeySigner.generate();
   final List<Map<String, dynamic>?> receivedExt = [];
   String? refuseWith;
@@ -169,6 +169,26 @@ class FakeSignInAgent implements SignInAgent {
 
   SignInPersona get signInPersona =>
       SignInPersona(did: persona.did, entryId: 'entry-1');
+
+  /// The persona as the VTA lists it.
+  VtaPersona get vtaPersona => VtaPersona(
+    did: persona.did,
+    contextId: 'vta',
+    signingKeyId: persona.verificationMethod,
+  );
+
+  @override
+  Future<Map<String, dynamic>> signDocument({
+    required String keyId,
+    required Map<String, dynamic> document,
+    required String purpose,
+  }) {
+    return EddsaJcs2022.sign(
+      document,
+      signer: persona,
+      purpose: ProofPurpose.values.firstWhere((p) => p.value == purpose),
+    );
+  }
 
   @override
   String get vtaDid => 'did:web:vta.example';

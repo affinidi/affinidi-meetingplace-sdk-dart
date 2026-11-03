@@ -497,6 +497,44 @@ void main() {
       expect(kept, isFalse);
     });
 
+    test('has the VTA sign a document as a persona', () async {
+      final document = {'issuer': 'did:webvh:QmP:host.example', 'id': 'urn:x'};
+      vta.answers[VtaTask.signDocument] = {
+        'document': {
+          ...document,
+          'proof': {'proofPurpose': 'assertionMethod'},
+        },
+      };
+
+      final signed = await client.signDocument(
+        keyId: 'did:webvh:QmP:host.example#key-0',
+        document: document,
+        purpose: 'assertionMethod',
+      );
+
+      expect(vta.received.last['payload'], {
+        'keyId': 'did:webvh:QmP:host.example#key-0',
+        'document': document,
+        'proofPurpose': 'assertionMethod',
+      });
+      expect(signed['proof'], isNotNull);
+    });
+
+    test('refuses a signed document without a proof', () {
+      vta.answers[VtaTask.signDocument] = {
+        'document': {'issuer': 'did:webvh:QmP:host.example'},
+      };
+
+      expect(
+        client.signDocument(
+          keyId: 'k',
+          document: const {'issuer': 'did:webvh:QmP:host.example'},
+          purpose: 'assertionMethod',
+        ),
+        throwsA(isA<MeetingPlaceVtcSDKException>()),
+      );
+    });
+
     group('disclosure', () {
       const persona = VtaPersona(
         did: 'did:webvh:QmP:host.example',

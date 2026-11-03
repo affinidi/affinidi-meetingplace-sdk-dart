@@ -60,6 +60,9 @@ class FakeJoinVtc {
 
   final List<Map<String, dynamic>> received = [];
 
+  /// Refusal codes for the next membership confirmations, one per call.
+  final List<String> vmcRefusals = [];
+
   Future<(int, Object?)> handle(Map<String, dynamic> request) async {
     received.add(request);
     if (refusal case final payload?) {
@@ -75,6 +78,17 @@ class FakeJoinVtc {
     }
 
     final type = request['type'] as String;
+    if (type == MemberTask.vmc && vmcRefusals.isNotEmpty) {
+      return (
+        422,
+        {
+          'id': 'urn:uuid:error',
+          'type': 'https://trusttasks.org/spec/trust-task-error/0.1',
+          'issuer': vtcDid,
+          'payload': {'code': vmcRefusals.removeAt(0)},
+        },
+      );
+    }
     final payload = switch (type) {
       JoinTask.manifest => manifest,
       JoinTask.submit => {
@@ -84,6 +98,12 @@ class FakeJoinVtc {
       JoinTask.status => {
         'requestId': (request['payload'] as Map)['requestId'],
         'status': status,
+      },
+      MemberTask.vmc => {
+        'memberDid': request['issuer'],
+        'vmcId': 'urn:uuid:member-vmc',
+        'status': 'stored',
+        'requestId': ?(request['payload'] as Map)['requestId'],
       },
       _ => throw StateError('unexpected task'),
     };

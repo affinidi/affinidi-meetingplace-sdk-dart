@@ -7,9 +7,11 @@ import '../proof/trust_task_signer.dart';
 import '../sign_in/sign_in_agent.dart';
 import '../transport/trust_task_http_transport.dart';
 import '../trust_task/trust_task_document.dart';
+import '../vta/vta_models.dart';
 import '../vtc/resolved_document.dart';
 import '../vtc/vtc_resolver.dart';
 import 'join_models.dart';
+import 'membership_confirmation.dart';
 
 /// The `vtc/join-requests` Trust Task types this client sends.
 abstract final class JoinTask {
@@ -24,6 +26,20 @@ abstract final class JoinTask {
   /// Asks where the applicant's request stands.
   static const status = '$_base/status/0.1';
 }
+
+/// The `vtc/members` Trust Task types this client sends.
+abstract final class MemberTask {
+  /// Hands the community the member's own membership credential.
+  static const vmc = 'https://trusttasks.org/spec/vtc/members/vmc/0.1';
+}
+
+/// Refusals of a confirmation naming a request the community no longer
+/// matches to this member; the confirmation stands without it.
+const _requestMismatches = {
+  'vtc/members/vmc:requestNotFound',
+  'vtc/members/vmc:requestNotApproved',
+  'vtc/members/vmc:requestApplicantMismatch',
+};
 
 /// Refusal code of a submit while the applicant already has a request open.
 const _requestAlreadyOpen = 'vtc/join-requests/submit:requestAlreadyOpen';
@@ -180,6 +196,61 @@ class VtcJoinClient {
       throw MeetingPlaceVtcSDKException.invalidDocument('no request status');
     }
     return status;
+  }
+
+  /// Confirms [persona]'s membership back to the community [communityDid]:
+  /// the VTA signs, as the persona, a membership credential bound to
+  /// [communityCard], the card the community issued, and the community
+  /// stores it (`vtc/members/vmc/0.1`). [requestId] names the admitted
+  /// request, to mark it reciprocated.
+  ///
+  /// [signer] is the persona's vault entry for this community. Throws
+  /// [MeetingPlaceVtcSDKException] when the VTA or the community refuses,
+  /// cannot be reached, or does not confirm it stored the credential.
+  Future<void> confirmMembership(
+    String communityDid, {
+    required PersonaSigningAgent agent,
+    required VtaPersona persona,
+    required SignInPersona signer,
+    required Map<String, dynamic> communityCard,
+    String? requestId,
+  }) async {
+    final community = await _vtcResolver.resolveCommunity(communityDid);
+    final credential = await agent.signDocument(
+      keyId: persona.signingKeyId,
+      document: memberMembershipCredential(
+        personaDid: persona.did,
+        communityDid: community.did,
+        communityCard: communityCard,
+      ),
+      purpose: ProofPurpose.assertionMethod.value,
+    );
+
+    Future<void> send(String? requestId) async {
+      final request = await _signedByPersona(
+        agent,
+        signer,
+        community,
+        type: MemberTask.vmc,
+        payload: {'vc': credential, 'requestId': ?requestId},
+      );
+      final payload = await _ask(community, request);
+      if (payload['status'] != 'stored') {
+        throw MeetingPlaceVtcSDKException.invalidDocument(
+          'the community did not store the membership credential',
+        );
+      }
+    }
+
+    try {
+      await send(requestId);
+    } on MeetingPlaceVtcSDKException catch (error) {
+      if (requestId == null ||
+          !_requestMismatches.contains(error.refusalCode)) {
+        rethrow;
+      }
+      await send(null);
+    }
   }
 
   /// A document of [type] from [persona] to [community], signed by the VTA.

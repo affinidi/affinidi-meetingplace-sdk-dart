@@ -1,3 +1,4 @@
+import '../credentials/credential_fields.dart';
 import '../vta/vta_client.dart';
 import '../vta/vta_models.dart';
 
@@ -38,12 +39,14 @@ class CommunityImport {
   /// card issued by that community names one of the VTA's personas.
   Future<CommunityMembership?> find(String communityDid) async {
     final cards = await _vta.credentials(_membershipPurpose);
-    final issuedHere = cards.where((card) => _issuer(card) == communityDid);
+    final issuedHere = cards.where(
+      (card) => credentialIssuer(card) == communityDid,
+    );
     if (issuedHere.isEmpty) return null;
 
     final personas = await _vta.listPersonas();
     for (final card in issuedHere) {
-      final subjects = _subjects(card);
+      final subjects = credentialSubjects(card);
       for (final persona in personas) {
         if (subjects.contains(persona.did)) {
           return CommunityMembership(
@@ -55,22 +58,5 @@ class CommunityImport {
       }
     }
     return null;
-  }
-
-  static String? _issuer(Map<String, dynamic> card) {
-    return switch (card['issuer']) {
-      final String id => id,
-      {'id': final String id} => id,
-      _ => null,
-    };
-  }
-
-  static Set<String> _subjects(Map<String, dynamic> card) {
-    final subject = card['credentialSubject'];
-    final subjects = subject is List ? subject : [subject];
-    return {
-      for (final entry in subjects)
-        if (entry case {'id': final String id}) id,
-    };
   }
 }

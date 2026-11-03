@@ -472,13 +472,29 @@ void main() {
     });
 
     test('keeps a credential in the persona context', () async {
-      await client.keepCredential({'id': 'urn:card-1'}, contextId: 'vta');
+      vta.answers[VtaTask.credentialsReceive] = {'status': 'valid'};
 
+      final kept = await client.keepCredential({
+        'id': 'urn:card-1',
+      }, contextId: 'vta');
+
+      expect(kept, isTrue);
       expect(vta.received.last['type'], VtaTask.credentialsReceive);
       expect(vta.received.last['payload'], {
         'credential': {'id': 'urn:card-1'},
         'contextId': 'vta',
+        'id': 'urn:card-1',
       });
+    });
+
+    test('says when the VTA finds a card revoked', () async {
+      vta.answers[VtaTask.credentialsReceive] = {'status': 'revoked'};
+
+      final kept = await client.keepCredential({
+        'id': 'urn:card-1',
+      }, contextId: 'vta');
+
+      expect(kept, isFalse);
     });
   });
 }

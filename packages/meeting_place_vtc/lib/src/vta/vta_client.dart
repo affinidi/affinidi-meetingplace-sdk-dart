@@ -336,14 +336,20 @@ class VtaClient implements SignInAgent {
   /// The VTA verifies the credential's proofs against its issuer before it
   /// stores it, and files a membership credential under purpose
   /// `membership`.
-  Future<void> keepCredential(
+  ///
+  /// Returns whether the VTA keeps it as usable: false for a card it found
+  /// revoked or expired.
+  Future<bool> keepCredential(
     Map<String, dynamic> credential, {
     required String contextId,
   }) async {
-    await _task(VtaTask.credentialsReceive, {
+    final answer = await _task(VtaTask.credentialsReceive, {
       'credential': credential,
       'contextId': contextId,
+      // Its own id, so storing the same card again replaces it.
+      if (credential['id'] case final String id) 'id': id,
     });
+    return !const {'revoked', 'expired'}.contains(answer['status']);
   }
 
   /// Returns the credentials stored in the vault for [purpose], e.g.

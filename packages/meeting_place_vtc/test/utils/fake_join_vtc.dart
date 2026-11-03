@@ -26,14 +26,29 @@ class FakeJoinVtc {
       },
     ],
   };
+
+  /// The verdict on a submit. [applicant] anywhere in it stands for the DID
+  /// that applied.
   Map<String, dynamic> verdict = {
     'effect': 'allow',
     'with': {
       'role': 'member',
-      'vmc': {'id': 'urn:uuid:vmc', 'type': 'MembershipCredential'},
-      'roleVac': {'id': 'urn:uuid:vac', 'type': 'AuthorityCredential'},
+      'vmc': {
+        'id': 'urn:uuid:vmc',
+        'type': ['VerifiableCredential', 'MembershipCredential'],
+        'issuer': vtcDid,
+        'credentialSubject': {'id': applicant},
+      },
+      'roleVac': {
+        'id': 'urn:uuid:vac',
+        'type': ['VerifiableCredential', 'AuthorityCredential'],
+        'issuer': vtcDid,
+      },
     },
   };
+
+  /// Stands for the applicant's DID in [verdict].
+  static const applicant = '<applicant>';
   String status = 'pending';
   Map<String, dynamic>? refusal;
 
@@ -62,7 +77,10 @@ class FakeJoinVtc {
     final type = request['type'] as String;
     final payload = switch (type) {
       JoinTask.manifest => manifest,
-      JoinTask.submit => {'requestId': 'request-1', 'verdict': verdict},
+      JoinTask.submit => {
+        'requestId': 'request-1',
+        'verdict': _withApplicant(verdict, request['issuer'] as String),
+      },
       JoinTask.status => {
         'requestId': (request['payload'] as Map)['requestId'],
         'status': status,
@@ -86,4 +104,16 @@ class FakeJoinVtc {
     ).sign(signer, purpose: ProofPurpose.authentication);
     return (200, answer.toJson());
   }
+
+  static dynamic _withApplicant(Object? value, String did) => switch (value) {
+    applicant => did,
+    final Map<String, dynamic> map => {
+      for (final MapEntry(:key, :value) in map.entries)
+        key: _withApplicant(value, did),
+    },
+    final List<dynamic> list => [
+      for (final item in list) _withApplicant(item, did),
+    ],
+    _ => value,
+  };
 }

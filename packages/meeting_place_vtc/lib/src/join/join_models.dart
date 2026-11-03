@@ -141,13 +141,20 @@ class JoinAdmitted extends JoinVerdict {
   /// Creates a [JoinAdmitted].
   const JoinAdmitted({
     required super.requestId,
-    required this.credentials,
+    this.membershipCard,
+    this.roleCard,
     this.role,
   });
 
-  /// The membership card and role credential the community issued, as JSON
-  /// verifiable credentials. Empty when the community delivers them later.
-  final List<Map<String, dynamic>> credentials;
+  /// The membership card the community issued to the persona, as a JSON
+  /// verifiable credential, or null when it delivers it later.
+  final Map<String, dynamic>? membershipCard;
+
+  /// The role credential the community issued, or null.
+  final Map<String, dynamic>? roleCard;
+
+  /// The cards the community issued, membership card first.
+  List<Map<String, dynamic>> get credentials => [?membershipCard, ?roleCard];
 
   /// The member's role in the community, e.g. `member`.
   final String? role;

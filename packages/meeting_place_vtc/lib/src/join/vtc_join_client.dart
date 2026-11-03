@@ -1,5 +1,6 @@
 import 'package:ssi/ssi.dart';
 
+import '../credentials/credential_fields.dart';
 import '../meeting_place_vtc_sdk_exception.dart';
 import '../proof/eddsa_jcs_2022.dart';
 import '../proof/trust_task_signer.dart';
@@ -147,7 +148,11 @@ class VtcJoinClient {
       }
       rethrow;
     }
-    return _verdict(payload);
+    final verdict = _verdict(payload);
+    if (verdict is JoinAdmitted) {
+      _checkCards(verdict, community: community.did, persona: persona.did);
+    }
+    return verdict;
   }
 
   /// Asks the community [communityDid] where [persona]'s request
@@ -219,6 +224,34 @@ class VtcJoinClient {
     return answer.payload;
   }
 
+  /// Refuses cards the community did not issue to [persona]: a membership
+  /// card must be the community's `MembershipCredential` about the persona,
+  /// a role card the community's `AuthorityCredential`. Their proofs are the
+  /// VTA's to verify when it stores them.
+  static void _checkCards(
+    JoinAdmitted admitted, {
+    required String community,
+    required String persona,
+  }) {
+    final membership = admitted.membershipCard;
+    if (membership != null &&
+        (!credentialTypes(membership).contains('MembershipCredential') ||
+            credentialIssuer(membership) != community ||
+            !credentialSubjects(membership).contains(persona))) {
+      throw MeetingPlaceVtcSDKException.invalidDocument(
+        'a membership card not issued by the community to this persona',
+      );
+    }
+    final role = admitted.roleCard;
+    if (role != null &&
+        (!credentialTypes(role).contains('AuthorityCredential') ||
+            credentialIssuer(role) != community)) {
+      throw MeetingPlaceVtcSDKException.invalidDocument(
+        'a role card not issued by the community',
+      );
+    }
+  }
+
   static JoinVerdict _verdict(Map<String, dynamic> payload) {
     final requestId = payload['requestId'];
     final verdict = payload['verdict'];
@@ -232,14 +265,14 @@ class VtcJoinClient {
     return switch (verdict['effect']) {
       'allow' => JoinAdmitted(
         requestId: requestId,
+        membershipCard: details['vmc'] is Map<String, dynamic>
+            ? details['vmc'] as Map<String, dynamic>
+            : null,
         // `roleVec` is the name before role credentials became VACs.
-        credentials: [
-          for (final credential in [
-            details['vmc'],
-            details['roleVac'] ?? details['roleVec'],
-          ])
-            if (credential is Map<String, dynamic>) credential,
-        ],
+        roleCard: switch (details['roleVac'] ?? details['roleVec']) {
+          final Map<String, dynamic> card => card,
+          _ => null,
+        },
         role: details['role'] is String ? details['role'] as String : null,
       ),
       'refer' => JoinPending(requestId: requestId),

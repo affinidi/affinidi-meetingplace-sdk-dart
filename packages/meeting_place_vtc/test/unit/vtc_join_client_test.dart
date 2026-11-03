@@ -209,21 +209,61 @@ void main() {
     });
 
     test('reads a role credential under its former name', () async {
+      final card = (vtc.verdict['with'] as Map)['roleVac'];
       vtc.verdict = {
         'effect': 'allow',
-        'with': {
-          'vmc': {'id': 'urn:uuid:vmc'},
-          'roleVec': {'id': 'urn:uuid:vec'},
-        },
+        'with': {'roleVec': card},
       };
 
       final verdict = await apply() as JoinAdmitted;
 
-      expect(verdict.credentials.map((c) => c['id']), [
-        'urn:uuid:vmc',
-        'urn:uuid:vec',
-      ]);
+      expect(verdict.membershipCard, isNull);
+      expect(verdict.roleCard?['id'], 'urn:uuid:vac');
     });
+
+    Map<String, dynamic> withCard(String name, Map<String, dynamic> change) {
+      final details = Map<String, dynamic>.of(
+        vtc.verdict['with'] as Map<String, dynamic>,
+      );
+      details[name] = {...details[name] as Map<String, dynamic>, ...change};
+      return {'effect': 'allow', 'with': details};
+    }
+
+    for (final (what, card, change) in [
+      (
+        'a membership card for someone else',
+        'vmc',
+        {
+          'credentialSubject': {'id': 'did:key:z6MkSomeoneElse'},
+        },
+      ),
+      (
+        'a membership card from another issuer',
+        'vmc',
+        {'issuer': 'did:web:other.example'},
+      ),
+      (
+        'a membership card of another type',
+        'vmc',
+        {
+          'type': ['VerifiableCredential'],
+        },
+      ),
+      (
+        'a role card from another issuer',
+        'roleVac',
+        {'issuer': 'did:web:other.example'},
+      ),
+    ]) {
+      test('refuses $what', () {
+        vtc.verdict = withCard(card, change);
+
+        expect(
+          apply(),
+          _throwsCode(MeetingPlaceVtcSDKErrorCode.invalidDocument),
+        );
+      });
+    }
 
     test('reads a referral, a denial and a request for more', () async {
       vtc.verdict = {

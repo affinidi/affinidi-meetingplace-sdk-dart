@@ -44,6 +44,9 @@ abstract final class VtaTask {
   /// Fetches one stored credential.
   static const credentialsGet = '$_base/vault/credentials/get/0.2';
 
+  /// Archives a stored credential: hidden from queries, restorable.
+  static const credentialsArchive = '$_base/vault/credentials/archive/0.1';
+
   /// Stores a credential the member received.
   static const credentialsReceive = '$_base/vault/credentials/receive/0.1';
 
@@ -436,17 +439,31 @@ class VtaClient implements PersonaSigningAgent {
 
   /// Returns the credentials stored in the vault for [purpose], e.g.
   /// `membership`.
-  Future<List<Map<String, dynamic>>> credentials(String purpose) async {
+  Future<List<Map<String, dynamic>>> credentials(String purpose) async => [
+    ...(await heldCredentials(purpose)).values,
+  ];
+
+  /// Returns the credentials stored in the vault for [purpose], by the
+  /// vault's own id for each, which [archiveCredential] takes.
+  Future<Map<String, Map<String, dynamic>>> heldCredentials(
+    String purpose,
+  ) async {
     final answer = await _task(VtaTask.credentialsQuery, {'purpose': purpose});
     final ids = _ids(answer['credentials']);
 
-    final credentials = <Map<String, dynamic>>[];
+    final credentials = <String, Map<String, dynamic>>{};
     for (final id in ids) {
       final got = await _task(VtaTask.credentialsGet, {'id': id});
       final credential = got['credential'];
-      if (credential is Map<String, dynamic>) credentials.add(credential);
+      if (credential is Map<String, dynamic>) credentials[id] = credential;
     }
     return credentials;
+  }
+
+  /// Archives the stored credential [id], one of [heldCredentials]: the VTA
+  /// hides it from queries and refuses to present it, but can restore it.
+  Future<void> archiveCredential(String id) async {
+    await _task(VtaTask.credentialsArchive, {'id': id});
   }
 
   /// Sends a signed task and returns the answer's payload, authenticating

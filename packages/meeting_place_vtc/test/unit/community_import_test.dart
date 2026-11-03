@@ -73,6 +73,40 @@ void main() {
       expect(other, isNull);
     });
 
+    test("archives the persona's cards from the community", () async {
+      vta.answers[VtaTask.credentialsGet] = {
+        'credential': {
+          'issuer': _vtcDid,
+          'credentialSubject': {'id': _persona},
+        },
+      };
+
+      await CommunityImport(
+        client,
+      ).archiveMembershipCards(_vtcDid, personaDid: _persona);
+
+      expect(vta.received.last['type'], VtaTask.credentialsArchive);
+      expect(vta.received.last['payload'], {'id': 'card-1'});
+    });
+
+    test("keeps another persona's cards", () async {
+      vta.answers[VtaTask.credentialsGet] = {
+        'credential': {
+          'issuer': _vtcDid,
+          'credentialSubject': {'id': 'did:webvh:QmSomeoneElse:host.example'},
+        },
+      };
+
+      await CommunityImport(
+        client,
+      ).archiveMembershipCards(_vtcDid, personaDid: _persona);
+
+      expect(
+        vta.received.map((request) => request['type']),
+        isNot(contains(VtaTask.credentialsArchive)),
+      );
+    });
+
     test('finds nothing for another community', () async {
       vta.answers[VtaTask.credentialsGet] = {
         'credential': {

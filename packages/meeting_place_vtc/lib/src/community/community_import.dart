@@ -44,13 +44,32 @@ class CommunityImport {
   }) async {
     final cards = await _vta.credentials(_membershipPurpose);
     return cards
-        .where(
-          (card) =>
-              credentialIssuer(card) == communityDid &&
-              credentialSubjects(card).contains(personaDid),
-        )
+        .where((card) => _isCard(card, communityDid, personaDid))
         .firstOrNull;
   }
+
+  /// Archives the membership cards [communityDid] issued to [personaDid] on
+  /// the VTA, once the persona left: neither [find] nor another app of the
+  /// member then takes the persona for a member.
+  Future<void> archiveMembershipCards(
+    String communityDid, {
+    required String personaDid,
+  }) async {
+    final cards = await _vta.heldCredentials(_membershipPurpose);
+    for (final MapEntry(key: id, value: card) in cards.entries) {
+      if (_isCard(card, communityDid, personaDid)) {
+        await _vta.archiveCredential(id);
+      }
+    }
+  }
+
+  static bool _isCard(
+    Map<String, dynamic> card,
+    String communityDid,
+    String personaDid,
+  ) =>
+      credentialIssuer(card) == communityDid &&
+      credentialSubjects(card).contains(personaDid);
 
   /// Returns the membership in [communityDid], or null when no backed-up
   /// card issued by that community names one of the VTA's personas.

@@ -35,6 +35,23 @@ class CommunityImport {
 
   final VtaClient _vta;
 
+  /// Returns the membership card [communityDid] issued to [personaDid], as
+  /// the VTA keeps it, or null when it holds none, e.g. while the
+  /// community has yet to deliver it.
+  Future<Map<String, dynamic>?> membershipCard(
+    String communityDid, {
+    required String personaDid,
+  }) async {
+    final cards = await _vta.credentials(_membershipPurpose);
+    return cards
+        .where(
+          (card) =>
+              credentialIssuer(card) == communityDid &&
+              credentialSubjects(card).contains(personaDid),
+        )
+        .firstOrNull;
+  }
+
   /// Returns the membership in [communityDid], or null when no backed-up
   /// card issued by that community names one of the VTA's personas.
   Future<CommunityMembership?> find(String communityDid) async {

@@ -53,6 +53,26 @@ void main() {
       expect(membership?.name, 'Football Club');
     });
 
+    test("finds the persona's card from the community", () async {
+      vta.answers[VtaTask.credentialsGet] = {
+        'credential': {
+          'id': 'urn:uuid:vmc',
+          'issuer': _vtcDid,
+          'credentialSubject': {'id': _persona},
+        },
+      };
+
+      final card = await CommunityImport(
+        client,
+      ).membershipCard(_vtcDid, personaDid: _persona);
+      final other = await CommunityImport(
+        client,
+      ).membershipCard(_vtcDid, personaDid: 'did:key:z6MkSomeoneElse');
+
+      expect(card?['id'], 'urn:uuid:vmc');
+      expect(other, isNull);
+    });
+
     test('finds nothing for another community', () async {
       vta.answers[VtaTask.credentialsGet] = {
         'credential': {

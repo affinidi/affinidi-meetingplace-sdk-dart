@@ -9,9 +9,8 @@ import '../meeting_place_vtc_sdk_error_code.dart';
 import '../meeting_place_vtc_sdk_exception.dart';
 import '../proof/trust_task_signer.dart';
 import '../sign_in/sign_in_agent.dart';
-import '../transport/trust_task_http_transport.dart';
+import '../transport/didcomm_vta_transport.dart';
 import '../trust_task/trust_task_document.dart';
-import '../vtc/service_endpoints.dart';
 import 'vta_models.dart';
 
 /// The VTA Trust Task types this client sends.
@@ -84,6 +83,9 @@ abstract final class VtaTask {
   /// Lists the `did:webvh` DIDs the VTA hosts keys for.
   static const didsList = '$_base/vta/webvh/dids/list/1.0';
 
+  /// Checks that the VTA answers, and which transports it serves.
+  static const ping = '$_base/messaging/ping/0.2';
+
   /// Signs a JSON document as the DID it names, with a key the VTA holds.
   static const signDocument = '$_base/keys/sign-document/0.1';
 
@@ -124,23 +126,31 @@ const _legacyDidSelfIssuedSecretKind = 'did-self-issued';
 const _vaultSecretMessageType =
     'https://trusttasks.org/spec/vault/_shared/0.1/vault-secret';
 
-/// A Trust Task client for the member's VTA, over its REST binding.
+/// A Trust Task client for the member's VTA, over DIDComm through the
+/// VTA's mediator.
 ///
 /// Signs every request as the phone's manager key, which the VTA's access
-/// list must hold. Authenticates lazily and again once when the bearer token
-/// is rejected. Nothing is logged.
+/// list must hold; the authcrypt envelope authenticates the key, so there is
+/// no login. Nothing is logged.
 class VtaClient implements PersonaSigningAgent {
   /// Creates a [VtaClient] for the VTA [vtaDid], acting as [manager].
+  ///
+  /// [transport] defaults to DIDComm through the VTA's mediator.
   VtaClient({
     required this.vtaDid,
     required Ed25519DidKeySigner manager,
     DidResolver? didResolver,
-    TrustTaskHttpTransport? transport,
+    VtaTransport? transport,
   }) : _manager = manager,
        _didResolver = didResolver ?? UniversalDIDResolver.defaultResolver,
-       _transport = transport ?? TrustTaskHttpTransport();
+       _transport =
+           transport ??
+           DidcommVtaTransport(
+             vtaDid: vtaDid,
+             manager: manager,
+             didResolver: didResolver ?? UniversalDIDResolver.defaultResolver,
+           );
 
-  static const _unauthorized = 401;
   static final _innerCode = RegExp(r'\b[a-z][a-z/-]*:([A-Za-z_]+)');
 
   @override
@@ -148,11 +158,10 @@ class VtaClient implements PersonaSigningAgent {
 
   final Ed25519DidKeySigner _manager;
   final DidResolver _didResolver;
-  final TrustTaskHttpTransport _transport;
+  final VtaTransport _transport;
 
   DidDocument? _vtaDocument;
-  Uri? _restBase;
-  String? _accessToken;
+  bool _hasSession = false;
 
   /// DID of the manager key this client acts as.
   String get managerDid => _manager.did;
@@ -171,24 +180,26 @@ class VtaClient implements PersonaSigningAgent {
     await _task(VtaTask.whoAmI, const {}, verifyAnswer: true),
   );
 
-  /// Checks that [vtaDid] resolves to a VTA that answers, before the manager
-  /// key is granted: resolves the DID, finds its REST endpoint, and asks for
-  /// a challenge, which a VTA answers for any key.
+  /// Checks that [vtaDid] resolves to a VTA that answers over DIDComm,
+  /// before the manager key is granted: pings it through its mediator. A
+  /// refusal is an answer too, so a key not granted yet passes.
   ///
   /// Throws [MeetingPlaceVtcSDKException] with
   /// [MeetingPlaceVtcSDKErrorCode.didResolutionFailed] when the DID does not
   /// resolve, [MeetingPlaceVtcSDKErrorCode.signInNotOffered] when it names no
-  /// HTTPS VTA endpoint, and another code when the VTA cannot be reached.
+  /// DIDComm mediator, and another code when the VTA cannot be reached.
   Future<void> checkReachable() async {
-    await _transport.send(
-      await _resolveRestBase(),
-      TrustTaskDocument.create(
-        type: VtaTask.challenge,
-        issuer: _manager.did,
-        recipient: vtaDid,
-        payload: {'subject': _manager.did},
-      ),
-    );
+    final ping = await TrustTaskDocument.create(
+      type: VtaTask.ping,
+      issuer: _manager.did,
+      recipient: vtaDid,
+      payload: const {},
+    ).sign(_manager, purpose: ProofPurpose.authentication);
+    try {
+      await _transport.send(ping);
+    } on MeetingPlaceVtcSDKException catch (error) {
+      if (error.code != MeetingPlaceVtcSDKErrorCode.refused) rethrow;
+    }
   }
 
   /// Ends every session the VTA holds for the manager key, best effort.
@@ -196,13 +207,13 @@ class VtaClient implements PersonaSigningAgent {
   /// Does not remove the key from the VTA's access list: only its
   /// administrator can.
   Future<void> signOut() async {
-    if (_accessToken == null) return;
+    if (!_hasSession) return;
     try {
       await _send(VtaTask.revokeSession, {'all': true, 'reason': 'unlinked'});
     } on MeetingPlaceVtcSDKException {
       // The session expires on its own.
     } finally {
-      _accessToken = null;
+      _hasSession = false;
     }
   }
 
@@ -757,23 +768,12 @@ class VtaClient implements PersonaSigningAgent {
     await _task(VtaTask.credentialsArchive, {'id': id});
   }
 
-  /// Sends a signed task and returns the answer's payload, authenticating
-  /// first when needed and once more when the token is rejected.
+  /// Sends a signed task and returns the answer's payload.
   Future<Map<String, dynamic>> _task(
     String type,
     Map<String, dynamic> payload, {
     bool verifyAnswer = false,
-  }) async {
-    await _authenticateIfNeeded();
-    try {
-      return await _send(type, payload, verifyAnswer: verifyAnswer);
-    } on MeetingPlaceVtcSDKException catch (error) {
-      if (error.httpStatus != _unauthorized) rethrow;
-      _accessToken = null;
-      await _authenticateIfNeeded();
-      return _send(type, payload, verifyAnswer: verifyAnswer);
-    }
-  }
+  }) => _send(type, payload, verifyAnswer: verifyAnswer);
 
   Future<Map<String, dynamic>> _send(
     String type,
@@ -788,11 +788,8 @@ class VtaClient implements PersonaSigningAgent {
     ).sign(_manager, purpose: ProofPurpose.authentication);
     final TrustTaskDocument answer;
     try {
-      answer = await _transport.send(
-        _restBase!,
-        request,
-        bearerToken: _accessToken,
-      );
+      answer = await _transport.send(request);
+      _hasSession = true;
     } on MeetingPlaceVtcSDKException catch (error) {
       if (error.code != MeetingPlaceVtcSDKErrorCode.refused) rethrow;
       throw MeetingPlaceVtcSDKException.refused(
@@ -821,50 +818,6 @@ class VtaClient implements PersonaSigningAgent {
       purpose: ProofPurpose.authentication,
       resolver: _ResolvedVta(await _resolveVta()),
     );
-  }
-
-  Future<void> _authenticateIfNeeded() async {
-    if (_accessToken != null) return;
-    final restBase = await _resolveRestBase();
-
-    final challenge = await _transport.send(
-      restBase,
-      TrustTaskDocument.create(
-        type: VtaTask.challenge,
-        issuer: _manager.did,
-        recipient: vtaDid,
-        payload: {'subject': _manager.did},
-      ),
-    );
-    final authenticate = await TrustTaskDocument.create(
-      type: VtaTask.authenticate,
-      issuer: _manager.did,
-      recipient: vtaDid,
-      payload: {
-        'sessionId': challenge.payload['sessionId'],
-        'challenge': challenge.payload['challenge'],
-      },
-    ).sign(_manager, purpose: ProofPurpose.authentication);
-    final answer = await _transport.send(restBase, authenticate);
-
-    final tokens = answer.payload['tokens'];
-    final token = tokens is Map<String, dynamic>
-        ? tokens['accessToken'] ?? tokens['access_token']
-        : null;
-    if (token is! String) {
-      throw MeetingPlaceVtcSDKException.invalidDocument('no access token');
-    }
-    _accessToken = token;
-  }
-
-  Future<Uri> _resolveRestBase() async {
-    if (_restBase case final base?) return base;
-    final document = await _resolveVta();
-    final base = serviceEndpointOfType(document, vtaRestServiceType);
-    if (base == null) {
-      throw MeetingPlaceVtcSDKException.signInNotOffered(vtaRestServiceType);
-    }
-    return _restBase = base;
   }
 
   Future<DidDocument> _resolveVta() async {

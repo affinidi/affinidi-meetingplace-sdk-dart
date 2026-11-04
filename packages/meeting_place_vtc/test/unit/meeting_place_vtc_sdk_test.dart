@@ -1,9 +1,7 @@
-import 'package:dio/dio.dart';
 import 'package:meeting_place_vtc/meeting_place_vtc.dart';
 import 'package:test/test.dart';
 
 import '../utils/fake_vta.dart';
-import '../utils/fakes.dart';
 
 const _vtcDid = 'did:web:community.example';
 const _membership = CommunityMembership(
@@ -22,8 +20,8 @@ void main() {
   setUp(() {
     vta = FakeVta();
     sdk = MeetingPlaceVtcSDK(
-      didResolver: FakeDidResolver({vta.did: vta.document}),
-      dio: Dio()..httpClientAdapter = (FakeHttpAdapter()..handler = vta.handle),
+      didResolver: FakeVtaResolver(vta),
+      openVtaMailbox: vta.openMailbox,
     );
     client = sdk.vtaClient(vtaDid: vta.did, manager: sdk.newManagerKey());
   });

@@ -1,9 +1,7 @@
-import 'package:dio/dio.dart';
 import 'package:meeting_place_vtc/meeting_place_vtc.dart';
 import 'package:test/test.dart';
 
 import '../utils/fake_vta.dart';
-import '../utils/fakes.dart';
 
 const _vtcDid = 'did:web:community.example';
 const _persona = 'did:webvh:QmPersona:host.example';
@@ -14,14 +12,12 @@ void main() {
 
   setUp(() {
     vta = FakeVta();
+    final manager = VtaLink.newManagerKey();
     client = VtaClient(
       vtaDid: vta.did,
-      manager: VtaLink.newManagerKey(),
-      didResolver: FakeDidResolver({vta.did: vta.document}),
-      transport: TrustTaskHttpTransport(
-        dio: Dio()
-          ..httpClientAdapter = (FakeHttpAdapter()..handler = vta.handle),
-      ),
+      manager: manager,
+      didResolver: FakeVtaResolver(vta),
+      transport: vta.transport(manager),
     );
     vta.answers[VtaTask.didsList] = {
       'dids': [

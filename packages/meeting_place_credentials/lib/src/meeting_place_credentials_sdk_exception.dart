@@ -80,6 +80,15 @@ class MeetingPlaceCredentialsSDKException implements Exception {
     );
   }
 
+  /// Creates an exception for an external signing key's holder answering
+  /// with a proof that is not as the credential's issuer.
+  factory MeetingPlaceCredentialsSDKException.externalSignatureInvalid() {
+    return MeetingPlaceCredentialsSDKException(
+      message: 'The external signing key did not sign as the issuer.',
+      code: MeetingPlaceCredentialsSDKErrorCode.externalSignatureInvalid,
+    );
+  }
+
   /// The descriptive message for the exception.
   final String message;
 

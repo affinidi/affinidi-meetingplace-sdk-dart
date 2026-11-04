@@ -241,10 +241,10 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
   /// Builds a [MeetingPlaceMatrixSDK], wiring the Matrix transport into the
   /// underlying [MeetingPlaceCoreSDK].
   ///
-  /// [wallet] and [repositoryConfig] are passed straight through to
-  /// [MeetingPlaceCoreSDK.create]. [config] additionally supplies the Matrix
-  /// homeserver and local database used to build the [MatrixService] behind
-  /// [matrixService], via `channelTransportFactory`.
+  /// [wallet], [repositoryConfig] and [externalSigningKeys] are passed
+  /// straight through to [MeetingPlaceCoreSDK.create]. [config] additionally
+  /// supplies the Matrix homeserver and local database used to build the
+  /// [MatrixService] behind [matrixService], via `channelTransportFactory`.
   ///
   /// The call plugin is only created when [rtcDelegate] and [roomFactory] are
   /// both supplied and [MatrixConfig.livekitServiceUrl] is set on [config];
@@ -258,6 +258,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
     MeetingPlaceMatrixSDKLogger? logger,
     matrix.WebRTCDelegate? rtcDelegate,
     LiveKitRoomFactory? roomFactory,
+    ExternalSigningKeys? externalSigningKeys,
   }) async {
     MatrixService? matrixServiceRef;
 
@@ -267,6 +268,7 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
       config: config,
       options: options,
       logger: logger,
+      externalSigningKeys: externalSigningKeys,
       channelTransportFactory: (controlPlaneSDK) {
         final svc = MatrixService(
           config: config,

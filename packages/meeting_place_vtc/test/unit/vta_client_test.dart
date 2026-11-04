@@ -1046,6 +1046,90 @@ void main() {
       expect(kept, isFalse);
     });
 
+    group('createConnectionKey', () {
+      // did:key multibase of 32 bytes 1..32, multicodec-prefixed.
+      final publicKey = Ed25519DidKeySigner.fromSeed(
+        Uint8List.fromList(List.generate(32, (i) => i)),
+      ).did.substring('did:key:'.length);
+
+      List<Object?> sent() =>
+          vta.received.map((request) => request['type']).toList();
+
+      Map<String, dynamic> payloadOf(String type) =>
+          vta.received.lastWhere(
+                (request) => request['type'] == type,
+              )['payload']
+              as Map<String, dynamic>;
+
+      setUp(() {
+        vta.answers[VtaTask.keysCreate] = {
+          'key': {
+            'keyId': 'key-1',
+            'keyType': 'ed25519',
+            'publicKey': publicKey,
+            'status': 'active',
+            'createdAt': '2026-11-04T12:00:00Z',
+          },
+        };
+      });
+
+      test('creates the connections context once, then a key in it', () async {
+        vta.answers[VtaTask.contextsList] = {
+          'contexts': [
+            {'id': 'vta'},
+          ],
+        };
+
+        final key = await client.createConnectionKey();
+
+        expect(
+          sent(),
+          containsAllInOrder([
+            VtaTask.contextsList,
+            VtaTask.contextsCreate,
+            VtaTask.keysCreate,
+          ]),
+        );
+        expect(
+          payloadOf(VtaTask.contextsCreate)['id'],
+          connectionKeysContextId,
+        );
+        expect(payloadOf(VtaTask.keysCreate), {
+          'keyType': 'ed25519',
+          'contextId': connectionKeysContextId,
+          'label': 'Meeting Place connections',
+        });
+        expect(key.keyId, 'key-1');
+        expect(key.publicKey, hasLength(32));
+      });
+
+      test('reuses the connections context', () async {
+        vta.answers[VtaTask.contextsList] = {
+          'contexts': [
+            {'id': connectionKeysContextId},
+          ],
+        };
+
+        await client.createConnectionKey();
+
+        expect(sent(), isNot(contains(VtaTask.contextsCreate)));
+      });
+
+      test('refuses a key that is not Ed25519', () {
+        vta.answers[VtaTask.contextsList] = {
+          'contexts': [
+            {'id': connectionKeysContextId},
+          ],
+        };
+        (vta.answers[VtaTask.keysCreate]!['key'] as Map)['keyType'] = 'p256';
+
+        expect(
+          client.createConnectionKey(),
+          throwsA(isA<MeetingPlaceVtcSDKException>()),
+        );
+      });
+    });
+
     test('has the VTA sign a document as a persona', () async {
       final document = {'issuer': 'did:webvh:QmP:host.example', 'id': 'urn:x'};
       vta.answers[VtaTask.signDocument] = {

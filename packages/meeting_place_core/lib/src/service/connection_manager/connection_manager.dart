@@ -7,12 +7,20 @@ import '../../loggers/meeting_place_core_sdk_logger.dart';
 import '../../repository/key_repository.dart';
 import '../../utils/string.dart';
 import 'connection_manager_exception.dart';
+import 'external_signing_keys.dart';
 
 class ConnectionManager {
+  /// Creates a [ConnectionManager].
+  ///
+  /// With [externalSigningKeys], each new permanent channel DID gets an
+  /// external key as its only assertion method, so its credentials are
+  /// signed where that key is held.
   ConnectionManager({
     required KeyRepository keyRepository,
+    ExternalSigningKeys? externalSigningKeys,
     MeetingPlaceCoreSDKLogger? logger,
   }) : _keyRepository = keyRepository,
+       _externalSigningKeys = externalSigningKeys,
        _logger =
            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
 
@@ -21,6 +29,7 @@ class ConnectionManager {
   static const String lastConnectionIndexPrefix = 'lastConnectionIndex_';
 
   final KeyRepository _keyRepository;
+  final ExternalSigningKeys? _externalSigningKeys;
   final String _rootKeyId = "m/44'/60'/0'/0'/0'";
   final Mutex _mutex = Mutex();
   final MeetingPlaceCoreSDKLogger _logger;
@@ -60,7 +69,12 @@ class ConnectionManager {
       factory: (keyId) {
         final segment = const Uuid().v4();
         final domain = baseHost.replace(path: '${baseHost.path}/user/$segment');
-        return _initDidWebManager(wallet: wallet, keyId: keyId, domain: domain);
+        return _initDidWebManager(
+          wallet: wallet,
+          keyId: keyId,
+          domain: domain,
+          isNew: true,
+        );
       },
     );
   }
@@ -114,7 +128,12 @@ class ConnectionManager {
 
     if (did.startsWith('did:web:')) {
       final domain = _domainFromDidWeb(did);
-      return _initDidWebManager(wallet: wallet, keyId: keyId, domain: domain);
+      return _initDidWebManager(
+        wallet: wallet,
+        keyId: keyId,
+        domain: domain,
+        isNew: false,
+      );
     }
     return _initDidManager(wallet: wallet, keyId: keyId);
   }
@@ -133,15 +152,45 @@ class ConnectionManager {
     return didManager;
   }
 
+  /// A did:web manager for the device key [keyId]. A new DID gets an
+  /// external key when [ExternalSigningKeys] are configured; an existing one
+  /// keeps the key it was made with, or none.
   Future<DidManager> _initDidWebManager({
     required Wallet wallet,
     required String keyId,
     required Uri domain,
+    required bool isNew,
   }) async {
     await wallet.generateKey(keyId: keyId);
+    final did = DidWeb.getDid(domain);
+    final externalKeys = _externalSigningKeys;
+    final externalKey = externalKeys == null
+        ? null
+        : isNew
+        ? await externalKeys.createKey(did)
+        : await externalKeys.findKey(did);
+
+    if (externalKeys == null || externalKey == null) {
+      final didManager = DidWebManager(
+        store: InMemoryDidStore(),
+        wallet: wallet,
+        domain: domain,
+      );
+      await didManager.addVerificationMethod(
+        keyId,
+        relationships: {
+          VerificationRelationship.authentication,
+          VerificationRelationship.keyAgreement,
+          VerificationRelationship.assertionMethod,
+        },
+      );
+      return didManager;
+    }
+
+    final externalWallet = ExternalKeyWallet(wallet, externalKeys);
     final didManager = DidWebManager(
       store: InMemoryDidStore(),
-      wallet: wallet,
+      wallet: externalWallet,
       domain: domain,
     );
     await didManager.addVerificationMethod(
@@ -149,8 +198,11 @@ class ConnectionManager {
       relationships: {
         VerificationRelationship.authentication,
         VerificationRelationship.keyAgreement,
-        VerificationRelationship.assertionMethod,
       },
+    );
+    await didManager.addVerificationMethod(
+      externalWallet.add(externalKey),
+      relationships: {VerificationRelationship.assertionMethod},
     );
     return didManager;
   }

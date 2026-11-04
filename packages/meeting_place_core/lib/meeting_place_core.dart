@@ -48,6 +48,7 @@ export 'src/protocol/protocol.dart';
 export 'src/repository/repository.dart';
 export 'src/sdk/results/register_for_didcomm_notifications_result.dart';
 export 'src/sdk/sdk.dart';
+export 'src/service/connection_manager/external_signing_keys.dart';
 export 'src/service/core_sdk_stream_subscription.dart';
 export 'src/service/direct_connection/session/direct_connection_acceptance_session.dart';
 export 'src/service/direct_connection/session/direct_connection_offer_session.dart';

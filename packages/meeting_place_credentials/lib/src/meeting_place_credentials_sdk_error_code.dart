@@ -24,6 +24,10 @@ enum MeetingPlaceCredentialsSDKErrorCode {
   /// No assertion method key is available for signing a credential.
   signingKeyUnavailable('credentials_signing_key_unavailable'),
 
+  /// The holder of an external signing key answered with a proof that is not
+  /// an `eddsa-jcs-2022` proof as the credential's issuer.
+  externalSignatureInvalid('credentials_external_signature_invalid'),
+
   // others
   /// A generic / unclassified error.
   generic('generic');

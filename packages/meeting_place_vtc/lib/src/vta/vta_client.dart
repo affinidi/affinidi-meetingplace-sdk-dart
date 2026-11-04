@@ -94,6 +94,9 @@ abstract final class VtaTask {
   /// Lends the private half of a key the VTA holds, over DIDComm only.
   static const exportSecret = '$_base/keys/export-secret/0.1';
 
+  /// Creates a key the VTA holds, in one context.
+  static const keysCreate = '$_base/keys/create/0.1';
+
   /// Shows what the VTA would disclose about a persona to a verifier.
   static const disclosurePreview = '$_base/persona/disclosure/preview/1.0';
 
@@ -119,6 +122,16 @@ const _defaultContextId = 'vta';
 /// What the member's VTA calls an identity's context, DID and profile. The
 /// holder's own labels: never disclosed.
 const _identityLabel = 'Meeting Place identity';
+
+/// The context the signing keys of Meeting Place connection DIDs live in:
+/// one for all connections, so a connection costs a key, not a context.
+const connectionKeysContextId = 'mpx-connections';
+
+/// What the member's VTA calls the connection keys' context.
+const _connectionKeysLabel = 'Meeting Place connections';
+
+/// Multicodec prefix of an Ed25519 public key.
+const _ed25519Codec = [0xed, 0x01];
 
 /// Vault secret kind of a persona's sign-in entry, as `vault/upsert/0.4`
 /// spells it.
@@ -326,6 +339,64 @@ class VtaClient implements PersonaSigningAgent {
       if (error.refusalCode != 'alreadyRegistered') rethrow;
       await _task(VtaTask.deviceHeartbeat, {'ext': ext});
     }
+  }
+
+  /// Creates an Ed25519 key the VTA holds, to sign credentials as one
+  /// Meeting Place connection DID. Its private key never leaves the VTA:
+  /// the VTA signs with it through [signDocument].
+  ///
+  /// The key lives in [connectionKeysContextId], which is created on first
+  /// use. Throws [MeetingPlaceVtcSDKException] when the VTA refuses or
+  /// cannot be reached.
+  Future<VtaSigningKey> createConnectionKey() async {
+    await _ensureContext(connectionKeysContextId, name: _connectionKeysLabel);
+    final answer = await _task(VtaTask.keysCreate, {
+      'keyType': 'ed25519',
+      'contextId': connectionKeysContextId,
+      'label': _connectionKeysLabel,
+    });
+    final key = answer['key'];
+    final keyId = key is Map<String, dynamic> ? key['keyId'] : null;
+    final publicKey = key is Map<String, dynamic> ? key['publicKey'] : null;
+    if (keyId is! String ||
+        publicKey is! String ||
+        (key as Map<String, dynamic>)['keyType'] != 'ed25519') {
+      throw MeetingPlaceVtcSDKException.invalidDocument('no Ed25519 key');
+    }
+    return VtaSigningKey(keyId: keyId, publicKey: _ed25519Bytes(publicKey));
+  }
+
+  /// Creates the context [contextId] unless this client may already act
+  /// there.
+  Future<void> _ensureContext(String contextId, {required String name}) async {
+    final contextIds = _ids(
+      (await _task(VtaTask.contextsList, const {}))['contexts'],
+    );
+    if (contextIds.contains(contextId)) return;
+    try {
+      await _task(VtaTask.contextsCreate, {'id': contextId, 'name': name});
+    } on MeetingPlaceVtcSDKException catch (error) {
+      // Created meanwhile by another call.
+      if (error.refusalCode != 'alreadyExists') rethrow;
+    }
+  }
+
+  /// The 32 bytes of the Ed25519 public key [multibase], with or without
+  /// its multicodec prefix.
+  static Uint8List _ed25519Bytes(String multibase) {
+    final Uint8List bytes;
+    try {
+      bytes = multiBaseToUint8List(multibase);
+    } on Object {
+      throw MeetingPlaceVtcSDKException.invalidDocument('bad public key');
+    }
+    if (bytes.length == 34 &&
+        bytes[0] == _ed25519Codec[0] &&
+        bytes[1] == _ed25519Codec[1]) {
+      return Uint8List.sublistView(bytes, 2);
+    }
+    if (bytes.length == 32) return bytes;
+    throw MeetingPlaceVtcSDKException.invalidDocument('bad public key');
   }
 
   /// Lists the `did:webvh` DIDs whose keys the VTA holds: the member's

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 /// A persona whose keys the member's VTA holds: one `did:webvh` per
 /// community.
 class VtaPersona {
@@ -276,4 +278,17 @@ class DisclosurePreview {
 
   /// The claims the preview covers.
   final List<DisclosedClaim> claims;
+}
+
+/// A key the member's VTA holds, that signs as a Meeting Place connection
+/// DID. Only its public half is on this device.
+class VtaSigningKey {
+  /// Creates a [VtaSigningKey].
+  const VtaSigningKey({required this.keyId, required this.publicKey});
+
+  /// The VTA's id of the key, which `VtaClient.signDocument` names.
+  final String keyId;
+
+  /// The 32-byte Ed25519 public key.
+  final Uint8List publicKey;
 }

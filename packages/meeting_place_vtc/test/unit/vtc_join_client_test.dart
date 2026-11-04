@@ -108,6 +108,28 @@ void main() {
       expect(manifest.canApply, isFalse);
     });
 
+    test('keeps the manifest as the community sent it', () async {
+      vtc.manifest = {
+        ...vtc.manifest,
+        'criteria': [
+          ...vtc.manifest['criteria'] as List,
+          {'id': 'undigested', 'admission': 'automatic'},
+          {
+            'id': 'members',
+            'admission': 'automatic',
+            'requirementsDigest': 'z3',
+            'presentationDefinition': {'credentials': <Object>[]},
+            'credentialIssuers': 'any',
+          },
+        ],
+      };
+
+      final manifest = await client().readManifest(vtcDid);
+
+      expect(manifest.document, vtc.manifest);
+      expect(() => manifest.document['name'] = 'x', throwsUnsupportedError);
+    });
+
     test('reads the profile details the community asks for', () async {
       vtc.manifest = {
         ...vtc.manifest,

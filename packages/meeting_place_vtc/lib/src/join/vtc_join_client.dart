@@ -117,6 +117,7 @@ class VtcJoinClient {
       ],
       listsNewMembers: _listsNewMembers(payload['directoryDisclosure']),
       directoryDisclosure: _directoryDisclosure(payload['directoryDisclosure']),
+      document: Map.unmodifiable(payload),
     );
   }
 

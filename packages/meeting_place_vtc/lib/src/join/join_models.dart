@@ -94,6 +94,7 @@ class JoinManifest {
     this.requestedAttributes = const [],
     this.listsNewMembers,
     this.directoryDisclosure,
+    this.document = const {},
   });
 
   /// The community and where it takes Trust Tasks.
@@ -120,6 +121,11 @@ class JoinManifest {
   /// What the community's member directory would disclose about a member,
   /// or null when it offers no directory.
   final DirectoryDisclosure? directoryDisclosure;
+
+  /// The manifest exactly as the community sent it, members this wallet
+  /// does not read included. For showing to the member only: decide from
+  /// the fields above, never from this.
+  final Map<String, dynamic> document;
 
   /// The community's DID.
   String get communityDid => community.did;

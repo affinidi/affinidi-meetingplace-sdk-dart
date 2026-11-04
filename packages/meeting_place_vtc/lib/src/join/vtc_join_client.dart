@@ -173,20 +173,27 @@ class VtcJoinClient {
   /// [agent] (the member's VTA) signs.
   ///
   /// Applies under [criterion], or else [JoinManifest.openCriterion],
-  /// naming it by its digest, with an empty presentation and the profile
-  /// details in [attributes]. [registryConsent] is consent to publication in
-  /// the community's trust registry. When the persona already has a request
-  /// open, returns that request as [JoinPending].
+  /// naming it by its digest, with the profile details in [attributes].
+  /// [registryConsent] is consent to publication in the community's trust
+  /// registry. When the persona already has a request open, returns that
+  /// request as [JoinPending].
+  ///
+  /// A criterion that asks for credentials alone is met with
+  /// [presentation]: a W3C presentation by [persona] of the credentials it
+  /// asks for, such as the VTA's `vault/credentials/present` makes for the
+  /// community. An open criterion is met with an empty one.
   ///
   /// Throws [StateError] when the manifest has no criterion this wallet can
-  /// apply under, or [criterion] is not one of [manifest]'s open criteria,
-  /// and [MeetingPlaceVtcSDKException] when the VTA or the community
-  /// refuses, cannot be reached, or answers with something else.
+  /// apply under, [criterion] is not one of [manifest]'s criteria this
+  /// wallet can meet, or [presentation] is missing, not [persona]'s or not
+  /// asked for; and [MeetingPlaceVtcSDKException] when the VTA or the
+  /// community refuses, cannot be reached, or answers with something else.
   Future<JoinVerdict> apply(
     JoinManifest manifest, {
     required SignInAgent agent,
     required SignInPersona persona,
     JoinCriterion? criterion,
+    Map<String, dynamic>? presentation,
     List<JoinAttribute> attributes = const [],
     bool registryConsent = false,
   }) async {
@@ -195,12 +202,23 @@ class VtcJoinClient {
       throw StateError('the community has no criterion this wallet meets');
     }
     // Only a way in the community offers and this wallet can meet.
-    if (!manifest.openCriteria.any(
-      (open) =>
-          open.id == chosen.id &&
-          open.requirementsDigest == chosen.requirementsDigest,
+    if (!manifest.criteria.any(
+      (offered) =>
+          offered.id == chosen.id &&
+          offered.requirementsDigest == chosen.requirementsDigest &&
+          (offered.isOpen || offered.asksOnlyForCredentials),
     )) {
-      throw StateError('not an open criterion of the community');
+      throw StateError('not a criterion of the community this wallet meets');
+    }
+    if (chosen.asksForCredentials != (presentation != null)) {
+      throw StateError(
+        chosen.asksForCredentials
+            ? 'the criterion asks for credentials'
+            : 'the criterion asks for no credentials',
+      );
+    }
+    if (presentation != null && presentation['holder'] != persona.did) {
+      throw StateError('a presentation by another holder');
     }
     final community = manifest.community;
     final request = await _signedByPersona(
@@ -209,12 +227,14 @@ class VtcJoinClient {
       community,
       type: JoinTask.submit,
       payload: {
-        'vp': {
-          '@context': ['https://www.w3.org/ns/credentials/v2'],
-          'type': ['VerifiablePresentation'],
-          'holder': persona.did,
-          'verifiableCredential': <Object>[],
-        },
+        'vp':
+            presentation ??
+            {
+              '@context': ['https://www.w3.org/ns/credentials/v2'],
+              'type': ['VerifiablePresentation'],
+              'holder': persona.did,
+              'verifiableCredential': <Object>[],
+            },
         'criterion': chosen.requirementsDigest,
         if (attributes.isNotEmpty)
           'attributes': [

@@ -535,6 +535,124 @@ void main() {
       });
     });
 
+    group('under a credential criterion', () {
+      final credentialCriterion = {
+        'id': 'members',
+        'admission': 'automatic',
+        'requirementsDigest': 'zMembers',
+        'presentationDefinition': {
+          'credentials': [
+            {
+              'id': 'membership',
+              'format': 'ldp_vc',
+              'meta': {
+                'type_values': [
+                  ['VerifiableCredential', 'MembershipCredential'],
+                ],
+              },
+            },
+          ],
+        },
+        'credentialIssuers': 'any',
+      };
+
+      setUp(() {
+        vtc.manifest = {
+          ...vtc.manifest,
+          'criteria': [
+            {
+              'id': 'open',
+              'admission': 'automatic',
+              'requirementsDigest': 'z1',
+            },
+            credentialCriterion,
+          ],
+        };
+      });
+
+      Map<String, dynamic> presentationBy(String holder) => {
+        '@context': ['https://www.w3.org/ns/credentials/v2'],
+        'type': ['VerifiablePresentation'],
+        'holder': holder,
+        'verifiableCredential': [
+          {'id': 'urn:uuid:card'},
+        ],
+      };
+
+      Future<JoinVerdict> applyUnder(
+        String id, {
+        Map<String, dynamic>? presentation,
+      }) async {
+        final manifest = await client().readManifest(vtcDid);
+        return client().apply(
+          manifest,
+          agent: agent,
+          persona: agent.signInPersona,
+          criterion: manifest.criteria.firstWhere((c) => c.id == id),
+          presentation: presentation,
+        );
+      }
+
+      Iterable<Map<String, dynamic>> submits() =>
+          vtc.received.where((d) => d['type'] == JoinTask.submit);
+
+      test('submits the presentation under it', () async {
+        final presentation = presentationBy(agent.persona.did);
+
+        await applyUnder('members', presentation: presentation);
+
+        final payload = submits().single['payload'] as Map;
+        expect(payload['criterion'], 'zMembers');
+        expect(payload['vp'], presentation);
+      });
+
+      test('refuses it without a presentation', () async {
+        await expectLater(applyUnder('members'), throwsStateError);
+        expect(submits(), isEmpty);
+      });
+
+      test("refuses another holder's presentation", () async {
+        await expectLater(
+          applyUnder('members', presentation: presentationBy('did:key:zOther')),
+          throwsStateError,
+        );
+        expect(submits(), isEmpty);
+      });
+
+      test('refuses a presentation for an open criterion', () async {
+        await expectLater(
+          applyUnder('open', presentation: presentationBy(agent.persona.did)),
+          throwsStateError,
+        );
+        expect(submits(), isEmpty);
+      });
+
+      test('refuses one asking for credentials it cannot read', () async {
+        vtc.manifest = {
+          ...vtc.manifest,
+          'criteria': [
+            {
+              ...credentialCriterion,
+              'presentationDefinition': {
+                'credentials': [
+                  {'id': 'pid', 'format': 'dc+sd-jwt'},
+                ],
+              },
+            },
+          ],
+        };
+
+        await expectLater(
+          applyUnder(
+            'members',
+            presentation: presentationBy(agent.persona.did),
+          ),
+          throwsStateError,
+        );
+        expect(submits(), isEmpty);
+      });
+    });
+
     test('reads a role credential under its former name', () async {
       final card = (vtc.verdict['with'] as Map)['roleVac'];
       vtc.verdict = {

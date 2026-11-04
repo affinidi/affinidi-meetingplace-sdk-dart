@@ -89,9 +89,16 @@ class JoinCriterion {
   final bool asksForVetting;
 
   /// Whether an applicant with no invitation, credentials or vetting can
-  /// meet it: the only criteria this wallet applies under.
+  /// meet it.
   bool get isOpen =>
       !invitationRequired && !asksForCredentials && !asksForVetting;
+
+  /// Whether it asks for credentials alone, in a query this wallet can
+  /// read: met by presenting held credentials.
+  bool get asksOnlyForCredentials =>
+      !invitationRequired &&
+      !asksForVetting &&
+      (credentials?.readable ?? false);
 }
 
 /// A profile detail a community asks for with an application.

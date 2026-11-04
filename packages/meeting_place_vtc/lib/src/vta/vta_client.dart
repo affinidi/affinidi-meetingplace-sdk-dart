@@ -53,11 +53,29 @@ abstract final class VtaTask {
   /// Lists the VTA contexts this client may act in.
   static const contextsList = '$_base/vta/contexts/list/1.0';
 
+  /// Creates a VTA context.
+  static const contextsCreate = '$_base/vta/contexts/create/1.0';
+
+  /// Deletes a VTA context, with its keys and DIDs when forced.
+  static const contextsDelete = '$_base/vta/contexts/delete/1.1';
+
   /// Lists the servers the VTA publishes `did:webvh` DIDs on.
   static const serversList = '$_base/vta/webvh/servers/list/1.0';
 
   /// Creates a `did:webvh` DID whose keys the VTA holds.
   static const didsCreate = '$_base/vta/webvh/dids/create/1.2';
+
+  /// Composes a profile for one context and has a persona there wear it.
+  static const profileCompose = '$_base/persona/profile/compose/1.1';
+
+  /// Takes a profile off every persona wearing it, and keeps it.
+  static const profileRetire = '$_base/persona/profile/retire/1.0';
+
+  /// Creates or updates a profile kept in one context.
+  static const localProfilePut = '$_base/persona/local/profile/put/1.1';
+
+  /// Reads a profile kept in one context.
+  static const localProfileGet = '$_base/persona/local/profile/get/1.0';
 
   /// Lists the `did:webvh` DIDs the VTA hosts keys for.
   static const didsList = '$_base/vta/webvh/dids/list/1.0';
@@ -75,7 +93,7 @@ abstract final class VtaTask {
   static const deviceRegister = '$_base/device/register/0.2';
 
   /// Refreshes this phone's device binding.
-  static const deviceHeartbeat = '$_base/device/heartbeat/0.2';
+  static const deviceHeartbeat = '$_base/device/heartbeat/0.3';
 }
 
 /// DID document service type of a VTA's REST Trust Task base.
@@ -86,6 +104,10 @@ const uvKeyExtension = 'org.openvtc.uv-key';
 
 /// The context a VTA creates by default; personas go there when it exists.
 const _defaultContextId = 'vta';
+
+/// What the member's VTA calls an identity's context, DID and profile. The
+/// holder's own labels: never disclosed.
+const _identityLabel = 'Meeting Place identity';
 
 /// Vault secret kind of a persona's sign-in entry, as `vault/upsert/0.4`
 /// spells it.
@@ -313,33 +335,168 @@ class VtaClient implements PersonaSigningAgent {
     if (contextIds.isEmpty) {
       throw MeetingPlaceVtcSDKException.invalidDocument('no VTA context');
     }
+    return _createDid(
+      contextId: contextIds.contains(_defaultContextId)
+          ? _defaultContextId
+          : contextIds.first,
+      serverId: await _firstServerId(),
+      label: label,
+      setPrimary: false,
+    );
+  }
+
+  /// Creates an identity showing [profile]: a context of its own, a persona
+  /// DID published on the VTA's first DID hosting server, and a profile kept
+  /// in that context which the persona wears.
+  ///
+  /// All or nothing: when a step fails, the context is deleted with whatever
+  /// was created in it, and the failure is rethrown.
+  ///
+  /// Throws [MeetingPlaceVtcSDKException] with
+  /// [MeetingPlaceVtcSDKErrorCode.didHostingMissing] when the VTA has no
+  /// hosting server.
+  Future<VtaIdentity> createIdentity(VtaProfile profile) async {
+    final serverId = await _firstServerId();
+    final contextId = 'mpx-${const Uuid().v4().replaceAll('-', '')}';
+    await _task(VtaTask.contextsCreate, {
+      'id': contextId,
+      'name': _identityLabel,
+    });
+    try {
+      final persona = await _createDid(
+        contextId: contextId,
+        serverId: serverId,
+        label: _identityLabel,
+        setPrimary: true,
+      );
+      final composed = await _task(VtaTask.profileCompose, {
+        'contextId': contextId,
+        'name': _identityLabel,
+        'claims': profile.toClaims(),
+        'personaDid': persona.did,
+      });
+      final profileId = composed['profileId'];
+      if (profileId is! String) {
+        throw MeetingPlaceVtcSDKException.invalidDocument('no profile id');
+      }
+      return VtaIdentity(
+        persona: persona,
+        profileId: profileId,
+        profile: profile,
+      );
+    } catch (_) {
+      await _deleteContext(contextId, ignoreFailure: true);
+      rethrow;
+    }
+  }
+
+  /// Reads the profile [profileId] that the identity in [contextId] wears.
+  Future<VtaProfile> profile({
+    required String contextId,
+    required String profileId,
+  }) async {
+    final answer = await _task(VtaTask.localProfileGet, {
+      'contextId': contextId,
+      'profileId': profileId,
+    });
+    final profile = answer['profile'];
+    if (profile is! Map<String, dynamic>) {
+      throw MeetingPlaceVtcSDKException.invalidDocument('no profile');
+    }
+    return VtaProfile.fromEntries(profile['entries']);
+  }
+
+  /// Replaces the details of the profile [profileId] that the identity in
+  /// [contextId] wears with [profile].
+  Future<void> updateProfile({
+    required String contextId,
+    required String profileId,
+    required VtaProfile profile,
+  }) async {
+    await _task(VtaTask.localProfilePut, {
+      'contextId': contextId,
+      'profileId': profileId,
+      'name': _identityLabel,
+      'entries': profile.toEntries(),
+    });
+  }
+
+  /// Deletes an identity: retires its profile [profileId], then deletes its
+  /// context [contextId] with the persona DID and keys in it, including the
+  /// copy on the DID hosting server. The DID cannot be used again.
+  ///
+  /// Safe to repeat: an identity already gone is not an error.
+  Future<void> deleteIdentity({
+    required String contextId,
+    required String profileId,
+  }) async {
+    try {
+      await _task(VtaTask.profileRetire, {
+        'contextId': contextId,
+        'profileId': profileId,
+      });
+    } on MeetingPlaceVtcSDKException catch (error) {
+      // Already retired, or gone: the context delete below removes it.
+      if (error.code != MeetingPlaceVtcSDKErrorCode.refused) rethrow;
+    }
+    await _deleteContext(contextId);
+  }
+
+  Future<String> _firstServerId() async {
     final serverIds = _ids(
       (await _task(VtaTask.serversList, const {}))['servers'],
     );
     if (serverIds.isEmpty) {
       throw MeetingPlaceVtcSDKException.didHostingMissing();
     }
+    return serverIds.first;
+  }
 
+  /// Creates a persona DID in [contextId], published on [serverId]. It
+  /// advertises the VTA's mediator, when the VTA has one, so a community
+  /// can deliver what it issues later, e.g. the membership card once an
+  /// administrator admits the persona.
+  Future<VtaPersona> _createDid({
+    required String contextId,
+    required String serverId,
+    required String label,
+    required bool setPrimary,
+  }) async {
     final created = await _task(VtaTask.didsCreate, {
-      'contextId': contextIds.contains(_defaultContextId)
-          ? _defaultContextId
-          : contextIds.first,
-      'serverId': serverIds.first,
+      'contextId': contextId,
+      'serverId': serverId,
       'label': label,
       'addMediatorService': true,
-      'setPrimary': false,
+      'setPrimary': setPrimary,
     });
     final did = created['did'];
-    final contextId = created['contextId'];
+    final createdContextId = created['contextId'];
     final signingKeyId = created['signingKeyId'];
-    if (did is! String || contextId is! String || signingKeyId is! String) {
+    if (did is! String ||
+        createdContextId is! String ||
+        signingKeyId is! String) {
       throw MeetingPlaceVtcSDKException.invalidDocument('no created persona');
     }
     return VtaPersona(
       did: did,
-      contextId: contextId,
+      contextId: createdContextId,
       signingKeyId: signingKeyId,
     );
+  }
+
+  /// Deletes [contextId] with everything in it. A context already gone is
+  /// not an error; with [ignoreFailure], neither is any other refusal or
+  /// transport failure.
+  Future<void> _deleteContext(
+    String contextId, {
+    bool ignoreFailure = false,
+  }) async {
+    try {
+      await _task(VtaTask.contextsDelete, {'id': contextId, 'force': true});
+    } on MeetingPlaceVtcSDKException catch (error) {
+      if (ignoreFailure || error.refusalCode == 'notFound') return;
+      rethrow;
+    }
   }
 
   /// Stores [credential] in the vault, in the context [contextId] of the

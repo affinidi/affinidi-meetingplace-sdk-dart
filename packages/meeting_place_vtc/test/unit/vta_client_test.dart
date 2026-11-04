@@ -471,6 +471,248 @@ void main() {
       });
     });
 
+    group('identities', () {
+      const profile = VtaProfile(
+        displayName: 'Ada',
+        firstName: 'Ada',
+        lastName: 'Lovelace',
+        email: 'ada@example.com',
+        mobile: ' ',
+      );
+
+      List<Object?> sent() =>
+          vta.received.map((request) => request['type']).toList();
+
+      Map<String, dynamic> payloadOf(String type) =>
+          vta.received.lastWhere(
+                (request) => request['type'] == type,
+              )['payload']
+              as Map<String, dynamic>;
+
+      setUp(() {
+        vta.answers[VtaTask.serversList] = {
+          'servers': [
+            {'id': 'dids'},
+          ],
+        };
+        vta.answers[VtaTask.didsCreate] = {
+          'did': 'did:webvh:QmP:host.example:ada',
+          'contextId': 'ignored',
+          'signingKeyId': 'did:webvh:QmP:host.example:ada#key-0',
+        };
+        vta.answers[VtaTask.profileCompose] = {
+          'profileId': '01PROFILE',
+          'scope': 'local',
+          'version': 1,
+        };
+      });
+
+      test(
+        'creates a context, a persona in it, and a profile it wears',
+        () async {
+          final identity = await client.createIdentity(profile);
+
+          expect(
+            sent(),
+            containsAllInOrder([
+              VtaTask.serversList,
+              VtaTask.contextsCreate,
+              VtaTask.didsCreate,
+              VtaTask.profileCompose,
+            ]),
+          );
+          final contextId = payloadOf(VtaTask.contextsCreate)['id'] as String;
+          expect(contextId, startsWith('mpx-'));
+          expect(payloadOf(VtaTask.didsCreate), {
+            'contextId': contextId,
+            'serverId': 'dids',
+            'label': 'Meeting Place identity',
+            'addMediatorService': true,
+            'setPrimary': true,
+          });
+          expect(payloadOf(VtaTask.profileCompose), {
+            'contextId': contextId,
+            'name': 'Meeting Place identity',
+            'personaDid': 'did:webvh:QmP:host.example:ada',
+            'claims': [
+              {
+                'type': 'name.display',
+                'valueType': 'string',
+                'value': 'Ada',
+                'share': 'local',
+                'slot': 'displayName',
+              },
+              {
+                'type': 'name.given',
+                'valueType': 'string',
+                'value': 'Ada',
+                'share': 'local',
+              },
+              {
+                'type': 'name.family',
+                'valueType': 'string',
+                'value': 'Lovelace',
+                'share': 'local',
+              },
+              {
+                'type': 'email.personal',
+                'valueType': 'string',
+                'value': 'ada@example.com',
+                'share': 'local',
+                'slot': 'primaryEmail',
+              },
+            ],
+          });
+          expect(identity.persona.did, 'did:webvh:QmP:host.example:ada');
+          expect(identity.profileId, '01PROFILE');
+          expect(identity.persona.signingKeyId, endsWith('#key-0'));
+        },
+      );
+
+      test('deletes the context when a later step fails', () async {
+        vta.refusals[VtaTask.profileCompose] = {
+          'code': 'persona/profile/compose:noPersonaHere',
+        };
+
+        await expectLater(
+          client.createIdentity(profile),
+          throwsA(isA<MeetingPlaceVtcSDKException>()),
+        );
+
+        final contextId = payloadOf(VtaTask.contextsCreate)['id'];
+        expect(sent().last, VtaTask.contextsDelete);
+        expect(payloadOf(VtaTask.contextsDelete), {
+          'id': contextId,
+          'force': true,
+        });
+      });
+
+      test('creates nothing without a DID hosting server', () async {
+        vta.answers[VtaTask.serversList] = {'servers': <Object>[]};
+
+        await expectLater(
+          client.createIdentity(profile),
+          throwsA(
+            isA<MeetingPlaceVtcSDKException>().having(
+              (error) => error.code,
+              'code',
+              MeetingPlaceVtcSDKErrorCode.didHostingMissing,
+            ),
+          ),
+        );
+        expect(sent(), isNot(contains(VtaTask.contextsCreate)));
+      });
+
+      test('reads and replaces the profile kept in the context', () async {
+        vta.answers[VtaTask.localProfileGet] = {
+          'profile': {
+            'profileId': '01PROFILE',
+            'name': 'Meeting Place identity',
+            'version': 2,
+            'entries': [
+              {
+                'slot': 'displayName',
+                'inline': {
+                  'type': 'name.display',
+                  'valueType': 'string',
+                  'value': 'Ada',
+                },
+              },
+              {
+                'inline': {
+                  'type': 'phone.mobile',
+                  'valueType': 'string',
+                  'value': '+44 20',
+                },
+              },
+            ],
+          },
+        };
+
+        final read = await client.profile(
+          contextId: 'mpx-1',
+          profileId: '01PROFILE',
+        );
+        await client.updateProfile(
+          contextId: 'mpx-1',
+          profileId: '01PROFILE',
+          profile: const VtaProfile(displayName: 'Ada L', firstName: 'Ada'),
+        );
+
+        expect(read.displayName, 'Ada');
+        expect(read.firstName, '');
+        expect(read.mobile, '+44 20');
+        expect(read.email, isNull);
+        expect(payloadOf(VtaTask.localProfilePut), {
+          'contextId': 'mpx-1',
+          'profileId': '01PROFILE',
+          'name': 'Meeting Place identity',
+          'entries': [
+            {
+              'inline': {
+                'type': 'name.display',
+                'valueType': 'string',
+                'value': 'Ada L',
+              },
+              'slot': 'displayName',
+            },
+            {
+              'inline': {
+                'type': 'name.given',
+                'valueType': 'string',
+                'value': 'Ada',
+              },
+            },
+          ],
+        });
+      });
+
+      test('retires the profile, then deletes the context', () async {
+        await client.deleteIdentity(contextId: 'mpx-1', profileId: '01PROFILE');
+
+        expect(sent().sublist(sent().length - 2), [
+          VtaTask.profileRetire,
+          VtaTask.contextsDelete,
+        ]);
+        expect(payloadOf(VtaTask.profileRetire), {
+          'contextId': 'mpx-1',
+          'profileId': '01PROFILE',
+        });
+        expect(payloadOf(VtaTask.contextsDelete), {
+          'id': 'mpx-1',
+          'force': true,
+        });
+      });
+
+      test('deletes an identity already gone without error', () async {
+        vta.refusals[VtaTask.profileRetire] = {
+          'code': 'persona/profile/retire:versionConflict',
+        };
+        vta.refusals[VtaTask.contextsDelete] = {
+          'code': 'vta/contexts/delete:notFound',
+        };
+
+        await client.deleteIdentity(contextId: 'mpx-1', profileId: '01PROFILE');
+      });
+
+      test('says when the context could not be deleted', () async {
+        vta.refusals[VtaTask.contextsDelete] = {
+          'code': 'vta/contexts/delete:hostCleanupFailed',
+        };
+
+        await expectLater(
+          client.deleteIdentity(contextId: 'mpx-1', profileId: '01PROFILE'),
+          throwsA(
+            isA<MeetingPlaceVtcSDKException>().having(
+              (error) => error.refusalCode,
+              'refusalCode',
+              'hostCleanupFailed',
+            ),
+          ),
+        );
+      });
+    });
+
     test('keeps a credential in the persona context', () async {
       vta.answers[VtaTask.credentialsReceive] = {'status': 'valid'};
 

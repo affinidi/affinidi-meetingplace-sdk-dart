@@ -16,7 +16,7 @@ class AppAclBody implements AclBody {
   Map<String, dynamic> toJson() => {'app_acl': <String, dynamic>{}};
 }
 
-MediatorClientException httpError(int statusCode) {
+MediatorClientException httpError(int statusCode, {Object? data}) {
   final requestOptions = RequestOptions(path: '/inbound');
   return MediatorClientException(
     innerException: DioException(
@@ -24,11 +24,28 @@ MediatorClientException httpError(int statusCode) {
       response: Response(
         requestOptions: requestOptions,
         statusCode: statusCode,
+        data: data,
       ),
       type: DioExceptionType.badResponse,
     ),
   );
 }
+
+/// What a mediator that does not serve Trust Tasks answers: a 500 carrying
+/// a not-implemented problem report.
+MediatorClientException notImplementedProblemReport() => httpError(
+  HttpStatus.internalServerError,
+  data: {
+    'httpCode': 500,
+    'errorCode': 66,
+    'errorCodeStr': 'DIDCommProblemReport',
+    'message':
+        '{"code":"e.p.me.not_implemented","comment":"Feature is not '
+        'implemented by the mediator: Message type ({1}) is not supported to '
+        'the Mediator","args":["https://trusttasks.org/binding/didcomm/0.1/'
+        'envelope"]}',
+  },
+);
 
 void main() {
   const owner = 'did:example:owner';
@@ -144,6 +161,16 @@ void main() {
     verify(() => client.sendTrustTask(any())).called(1);
     expect(aclManagementMessages, hasLength(2));
     expect(aclManagementMessages.first.body, grantAccess.toJson());
+  });
+
+  test('falls back to acl-management when the mediator answers the Trust '
+      'Task with a not-implemented problem report', () async {
+    answerTrustTasks(error: notImplementedProblemReport());
+
+    await send(AccessListSet.toPublic(ownerDid: owner));
+
+    verify(() => client.sendTrustTask(any())).called(1);
+    expect(aclManagementMessages, hasLength(1));
   });
 
   test('uses Trust Tasks again once a remembered legacy mediator answers '

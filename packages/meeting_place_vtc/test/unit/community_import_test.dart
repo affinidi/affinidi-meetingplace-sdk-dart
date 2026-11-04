@@ -169,13 +169,13 @@ void main() {
     });
   });
 
-  group('VtaLink.grantCommands', () {
-    test('grants the admin role, then persona-holder', () {
-      expect(VtaLink.grantCommands('did:key:z6MkManager'), [
+  group('VtaLink.grantCommand', () {
+    test('grants the admin role with persona-holder, in one step', () {
+      expect(
+        VtaLink.grantCommand('did:key:z6MkManager'),
         'pnm acl create --did did:key:z6MkManager --role admin '
-            '--label "Meeting Place"',
-        'pnm acl update did:key:z6MkManager --capabilities persona-holder',
-      ]);
+        '--capabilities persona-holder --label "Meeting Place"',
+      );
     });
   });
 }

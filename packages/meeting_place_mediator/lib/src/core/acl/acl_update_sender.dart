@@ -116,8 +116,14 @@ class AclUpdateSender {
     }
   }
 
+  /// DIDComm problem report code of a message type a mediator does not serve.
+  static const _notImplementedProblemCode = 'e.p.me.not_implemented';
+
+  /// Whether the mediator does not serve the message sent: a 501, or the
+  /// problem report a mediator answers with as a 500.
   static bool _isNotImplemented(MediatorClientException e) =>
-      e.response?.statusCode == HttpStatus.notImplemented;
+      e.response?.statusCode == HttpStatus.notImplemented ||
+      e.innerMessage.contains(_notImplementedProblemCode);
 
   static Future<void> _sendWithExtension(
     MediatorClient client,

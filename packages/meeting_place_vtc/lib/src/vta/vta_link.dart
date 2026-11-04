@@ -7,21 +7,19 @@ import 'vta_models.dart';
 /// Links this phone to a member's existing VTA by hand.
 ///
 /// The phone mints a manager key and shows its DID; the VTA's administrator
-/// grants it with [grantCommands]; the phone then checks it was granted. The
+/// grants it with [grantCommand]; the phone then checks it was granted. The
 /// manager key acts as the member towards their VTA: keep its seed in secure
 /// storage, on this device only.
 abstract final class VtaLink {
   /// Mints a new manager key to be granted on the VTA.
   static Ed25519DidKeySigner newManagerKey() => Ed25519DidKeySigner.generate();
 
-  /// The `pnm` commands that grant [managerDid] what the phone needs: the
-  /// admin role, then the `persona-holder` capability, which only the VTA's
-  /// super-admin can add.
-  static List<String> grantCommands(String managerDid) => [
-    'pnm acl create --did $managerDid --role ${VtaAccess.adminRole} '
-        '--label "Meeting Place"',
-    'pnm acl update $managerDid --capabilities ${VtaAccess.personaHolder}',
-  ];
+  /// The `pnm` command that grants [managerDid] what the phone needs, in one
+  /// step: the admin role with the `persona-holder` capability, which only
+  /// the VTA's super-admin can confer.
+  static String grantCommand(String managerDid) =>
+      'pnm acl create --did $managerDid --role ${VtaAccess.adminRole} '
+      '--capabilities ${VtaAccess.personaHolder} --label "Meeting Place"';
 
   /// What the VTA lets the manager key [client] acts as do, or null while
   /// the key is not on the VTA's access list.

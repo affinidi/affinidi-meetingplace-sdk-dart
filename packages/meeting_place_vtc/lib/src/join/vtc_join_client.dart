@@ -165,25 +165,35 @@ class VtcJoinClient {
   /// Applies to join [manifest]'s community as [persona], whose document
   /// [agent] (the member's VTA) signs.
   ///
-  /// Applies under [JoinManifest.openCriterion], naming it by its digest,
-  /// with an empty presentation and the profile details in [attributes].
-  /// [registryConsent] is consent to publication in the community's trust
-  /// registry. When the persona already has a request open, returns that
-  /// request as [JoinPending].
+  /// Applies under [criterion], or else [JoinManifest.openCriterion],
+  /// naming it by its digest, with an empty presentation and the profile
+  /// details in [attributes]. [registryConsent] is consent to publication in
+  /// the community's trust registry. When the persona already has a request
+  /// open, returns that request as [JoinPending].
   ///
   /// Throws [StateError] when the manifest has no criterion this wallet can
-  /// apply under, and [MeetingPlaceVtcSDKException] when the VTA or the
-  /// community refuses, cannot be reached, or answers with something else.
+  /// apply under, or [criterion] is not one of [manifest]'s open criteria,
+  /// and [MeetingPlaceVtcSDKException] when the VTA or the community
+  /// refuses, cannot be reached, or answers with something else.
   Future<JoinVerdict> apply(
     JoinManifest manifest, {
     required SignInAgent agent,
     required SignInPersona persona,
+    JoinCriterion? criterion,
     List<JoinAttribute> attributes = const [],
     bool registryConsent = false,
   }) async {
-    final criterion = manifest.openCriterion;
-    if (criterion == null) {
+    final chosen = criterion ?? manifest.openCriterion;
+    if (chosen == null) {
       throw StateError('the community has no criterion this wallet meets');
+    }
+    // Only a way in the community offers and this wallet can meet.
+    if (!manifest.openCriteria.any(
+      (open) =>
+          open.id == chosen.id &&
+          open.requirementsDigest == chosen.requirementsDigest,
+    )) {
+      throw StateError('not an open criterion of the community');
     }
     final community = manifest.community;
     final request = await _signedByPersona(
@@ -198,7 +208,7 @@ class VtcJoinClient {
           'holder': persona.did,
           'verifiableCredential': <Object>[],
         },
-        'criterion': criterion.requirementsDigest,
+        'criterion': chosen.requirementsDigest,
         if (attributes.isNotEmpty)
           'attributes': [
             for (final attribute in attributes) attribute.toJson(),

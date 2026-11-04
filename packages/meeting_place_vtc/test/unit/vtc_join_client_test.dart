@@ -292,6 +292,93 @@ void main() {
       expect(payload['registryConsent'], isTrue);
     });
 
+    group('under a chosen way in', () {
+      setUp(() {
+        vtc.manifest = {
+          ...vtc.manifest,
+          'criteria': [
+            {
+              'id': 'open',
+              'admission': 'automatic',
+              'requirementsDigest': 'z1',
+            },
+            {
+              'id': 'invited',
+              'admission': 'automatic',
+              'requirementsDigest': 'z2',
+              'invitationRequired': true,
+            },
+            {
+              'id': 'reviewed',
+              'admission': 'review',
+              'requirementsDigest': 'z3',
+            },
+          ],
+        };
+      });
+
+      test('lists the open ways in, in the community\'s order', () async {
+        final manifest = await client().readManifest(vtcDid);
+
+        expect(manifest.openCriteria.map((c) => c.id), ['open', 'reviewed']);
+        expect(manifest.openCriterion?.id, 'open');
+      });
+
+      test('submits the chosen criterion\'s digest', () async {
+        final manifest = await client().readManifest(vtcDid);
+
+        await client().apply(
+          manifest,
+          agent: agent,
+          persona: agent.signInPersona,
+          criterion: manifest.openCriteria.last,
+        );
+
+        expect((vtc.received.last['payload'] as Map)['criterion'], 'z3');
+      });
+
+      test('refuses a criterion it cannot meet', () async {
+        final manifest = await client().readManifest(vtcDid);
+        final invited = manifest.criteria.firstWhere((c) => c.id == 'invited');
+
+        await expectLater(
+          client().apply(
+            manifest,
+            agent: agent,
+            persona: agent.signInPersona,
+            criterion: invited,
+          ),
+          throwsStateError,
+        );
+        expect(
+          vtc.received.where((d) => d['type'] == JoinTask.submit),
+          isEmpty,
+        );
+      });
+
+      test('refuses a criterion the community does not offer', () async {
+        final manifest = await client().readManifest(vtcDid);
+
+        await expectLater(
+          client().apply(
+            manifest,
+            agent: agent,
+            persona: agent.signInPersona,
+            criterion: const JoinCriterion(
+              id: 'open',
+              admission: JoinAdmission.automatic,
+              requirementsDigest: 'zOther',
+            ),
+          ),
+          throwsStateError,
+        );
+        expect(
+          vtc.received.where((d) => d['type'] == JoinTask.submit),
+          isEmpty,
+        );
+      });
+    });
+
     test('reads a role credential under its former name', () async {
       final card = (vtc.verdict['with'] as Map)['roleVac'];
       vtc.verdict = {

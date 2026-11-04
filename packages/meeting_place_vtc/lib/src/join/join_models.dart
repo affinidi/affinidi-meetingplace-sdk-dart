@@ -124,10 +124,14 @@ class JoinManifest {
   /// The community's DID.
   String get communityDid => community.did;
 
-  /// The way in this wallet applies under: the first open criterion, in the
-  /// community's order, or null when there is none.
-  JoinCriterion? get openCriterion =>
-      criteria.where((criterion) => criterion.isOpen).firstOrNull;
+  /// The ways in this wallet can apply under: the open criteria, in the
+  /// community's order.
+  List<JoinCriterion> get openCriteria =>
+      criteria.where((criterion) => criterion.isOpen).toList();
+
+  /// The way in this wallet applies under unless told otherwise: the first
+  /// open criterion, in the community's order, or null when there is none.
+  JoinCriterion? get openCriterion => openCriteria.firstOrNull;
 
   /// Whether this wallet can apply: one way in needs no invitation,
   /// credentials or vetting. Requested profile details are the caller's to

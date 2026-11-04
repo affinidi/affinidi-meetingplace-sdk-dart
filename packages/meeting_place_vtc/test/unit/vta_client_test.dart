@@ -452,6 +452,16 @@ void main() {
         expect(card.validUntil, DateTime.utc(2027));
       });
 
+      test('finds valid credentials of any type from one issuer', () async {
+        await client.findCredentials(issuerDid: _vtcDid, subjectDid: persona);
+
+        expect(sent(VtaTask.credentialsQuery), {
+          'issuerDid': _vtcDid,
+          'subjectDid': persona,
+          'status': 'valid',
+        });
+      });
+
       test('matches each credential asked for from the community', () async {
         vta.answers[VtaTask.credentialsQuery] = {
           'credentials': [

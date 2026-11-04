@@ -641,16 +641,16 @@ class VtaClient implements PersonaSigningAgent {
     return credential is Map<String, dynamic> ? credential : null;
   }
 
-  /// Finds the valid credentials the vault holds carrying the VC type
+  /// Finds the valid credentials the vault holds, carrying the VC type
   /// [type], issued by [issuerDid] and made out to [subjectDid] when given.
   /// Returns descriptions only, never a credential's claims.
   Future<List<HeldCredential>> findCredentials({
-    required String type,
+    String? type,
     String? issuerDid,
     String? subjectDid,
   }) async {
     final answer = await _task(VtaTask.credentialsQuery, {
-      'type': type,
+      'type': ?type,
       'issuerDid': ?issuerDid,
       'subjectDid': ?subjectDid,
       'status': 'valid',

@@ -394,6 +394,18 @@ class VtaClient implements PersonaSigningAgent {
   Future<VtaProfile> profile({
     required String contextId,
     required String profileId,
+  }) async => VtaProfile.fromEntries(
+    (await profileDocument(
+      contextId: contextId,
+      profileId: profileId,
+    ))['entries'],
+  );
+
+  /// Reads the profile [profileId] that the identity in [contextId] wears,
+  /// as the VTA keeps it: its version, name and entries, unparsed.
+  Future<Map<String, dynamic>> profileDocument({
+    required String contextId,
+    required String profileId,
   }) async {
     final answer = await _task(VtaTask.localProfileGet, {
       'contextId': contextId,
@@ -403,7 +415,7 @@ class VtaClient implements PersonaSigningAgent {
     if (profile is! Map<String, dynamic>) {
       throw MeetingPlaceVtcSDKException.invalidDocument('no profile');
     }
-    return VtaProfile.fromEntries(profile['entries']);
+    return profile;
   }
 
   /// Replaces the details of the profile [profileId] that the identity in

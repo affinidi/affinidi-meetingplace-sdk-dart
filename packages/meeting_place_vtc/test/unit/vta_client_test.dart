@@ -668,6 +668,51 @@ void main() {
         });
       });
 
+      test('reads the profile as the VTA keeps it', () async {
+        final document = {
+          'profileId': '01PROFILE',
+          'name': 'Meeting Place identity',
+          'version': 2,
+          'entries': [
+            {
+              'slot': 'displayName',
+              'inline': {
+                'type': 'name.display',
+                'valueType': 'string',
+                'value': 'Ada',
+              },
+            },
+          ],
+        };
+        vta.answers[VtaTask.localProfileGet] = {'profile': document};
+
+        final read = await client.profileDocument(
+          contextId: 'mpx-1',
+          profileId: '01PROFILE',
+        );
+
+        expect(read, document);
+        expect(payloadOf(VtaTask.localProfileGet), {
+          'contextId': 'mpx-1',
+          'profileId': '01PROFILE',
+        });
+      });
+
+      test('says when the VTA answers without a profile', () async {
+        vta.answers[VtaTask.localProfileGet] = <String, dynamic>{};
+
+        await expectLater(
+          client.profileDocument(contextId: 'mpx-1', profileId: '01PROFILE'),
+          throwsA(
+            isA<MeetingPlaceVtcSDKException>().having(
+              (error) => error.code,
+              'code',
+              MeetingPlaceVtcSDKErrorCode.invalidDocument,
+            ),
+          ),
+        );
+      });
+
       test('keeps a thumbnail in the profile, up to the cap', () async {
         final thumbnail = 'A' * VtaProfile.maxThumbnailLength;
         vta.answers[VtaTask.localProfileGet] = {

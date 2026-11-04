@@ -668,6 +668,77 @@ void main() {
         });
       });
 
+      test('keeps a thumbnail in the profile, up to the cap', () async {
+        final thumbnail = 'A' * VtaProfile.maxThumbnailLength;
+        vta.answers[VtaTask.localProfileGet] = {
+          'profile': {
+            'entries': [
+              {
+                'slot': 'avatar',
+                'inline': {
+                  'type': 'x:photo.thumbnail',
+                  'valueType': 'string',
+                  'value': thumbnail,
+                },
+              },
+            ],
+          },
+        };
+
+        final read = await client.profile(
+          contextId: 'mpx-1',
+          profileId: '01PROFILE',
+        );
+        await client.updateProfile(
+          contextId: 'mpx-1',
+          profileId: '01PROFILE',
+          profile: VtaProfile(
+            displayName: 'Ada',
+            firstName: 'Ada',
+            thumbnail: thumbnail,
+          ),
+        );
+
+        expect(read.thumbnail, thumbnail);
+        expect((payloadOf(VtaTask.localProfilePut)['entries'] as List).last, {
+          'inline': {
+            'type': 'x:photo.thumbnail',
+            'valueType': 'string',
+            'value': thumbnail,
+          },
+          'slot': 'avatar',
+        });
+      });
+
+      test('refuses to send a thumbnail over the cap', () async {
+        final oversized = VtaProfile(
+          displayName: 'Ada',
+          firstName: 'Ada',
+          thumbnail: 'A' * (VtaProfile.maxThumbnailLength + 1),
+        );
+
+        expect(oversized.toClaims, throwsArgumentError);
+        await expectLater(
+          client.createIdentity(oversized),
+          throwsArgumentError,
+        );
+        expect(sent(), isNot(contains(VtaTask.profileCompose)));
+      });
+
+      test('drops a thumbnail over the cap read from the VTA', () {
+        final read = VtaProfile.fromEntries([
+          {
+            'inline': {
+              'type': 'x:photo.thumbnail',
+              'valueType': 'string',
+              'value': 'A' * (VtaProfile.maxThumbnailLength + 1),
+            },
+          },
+        ]);
+
+        expect(read.thumbnail, isNull);
+      });
+
       test('retires the profile, then deletes the context', () async {
         await client.deleteIdentity(contextId: 'mpx-1', profileId: '01PROFILE');
 

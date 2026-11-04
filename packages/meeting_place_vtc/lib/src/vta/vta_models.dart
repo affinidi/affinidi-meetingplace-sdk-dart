@@ -34,6 +34,7 @@ class VtaProfile {
     this.lastName,
     this.email,
     this.mobile,
+    this.thumbnail,
   });
 
   /// Reads a profile from its entries, as the VTA returns them.
@@ -55,14 +56,26 @@ class VtaProfile {
       lastName: values[_lastName],
       email: values[_email],
       mobile: values[_mobile],
+      thumbnail: _withinCap(values[_thumbnail]),
     );
   }
+
+  /// The longest [thumbnail] a profile carries, in characters of base64.
+  ///
+  /// Every profile read and write carries the thumbnail, so it is kept small
+  /// next to the VTA's 1 MB request cap.
+  static const maxThumbnailLength = 48 * 1024;
 
   static const _displayName = 'name.display';
   static const _firstName = 'name.given';
   static const _lastName = 'name.family';
   static const _email = 'email.personal';
   static const _mobile = 'phone.mobile';
+
+  /// The VTA's claim-type registry has no picture type yet, so the thumbnail
+  /// uses the open extension namespace. The VTA treats an `x:` type as
+  /// unregistered: high sensitivity, released only with consent.
+  static const _thumbnail = 'x:photo.thumbnail';
 
   /// What the identity calls itself.
   final String displayName;
@@ -78,6 +91,10 @@ class VtaProfile {
 
   /// Mobile number.
   final String? mobile;
+
+  /// Picture of the identity, as a base64-encoded JPEG of at most
+  /// [maxThumbnailLength] characters.
+  final String? thumbnail;
 
   /// The profile's values as claims typed now, for composing it.
   List<Map<String, dynamic>> toClaims() => [
@@ -106,7 +123,25 @@ class VtaProfile {
     if (_present(lastName) case final value?) (_lastName, null, value),
     if (_present(email) case final value?) (_email, 'primaryEmail', value),
     if (_present(mobile) case final value?) (_mobile, 'primaryPhone', value),
+    if (_present(thumbnail) case final value?)
+      (_thumbnail, 'avatar', _checkedThumbnail(value)),
   ];
+
+  static String _checkedThumbnail(String value) {
+    if (value.length > maxThumbnailLength) {
+      throw ArgumentError.value(
+        value.length,
+        'thumbnail',
+        'longer than $maxThumbnailLength characters',
+      );
+    }
+    return value;
+  }
+
+  /// A thumbnail over the cap, as another client of the VTA may write one, is
+  /// dropped rather than handed on to be decoded.
+  static String? _withinCap(String? value) =>
+      value != null && value.length <= maxThumbnailLength ? value : null;
 
   static String? _present(String? value) =>
       value == null || value.trim().isEmpty ? null : value;

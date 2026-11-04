@@ -94,6 +94,140 @@ void main() {
       expect(manifest.canApply, isFalse);
     });
 
+    group('a credential criterion', () {
+      Future<JoinCredentialRequest> read(
+        Object? query, {
+        Object? issuers = 'any',
+      }) async {
+        vtc.manifest = {
+          ...vtc.manifest,
+          'criteria': [
+            {
+              'id': 'members',
+              'admission': 'automatic',
+              'requirementsDigest': 'z3',
+              'presentationDefinition': query,
+              'credentialIssuers': ?issuers,
+            },
+          ],
+        };
+        final manifest = await client().readManifest(vtcDid);
+        return manifest.criteria.single.credentials!;
+      }
+
+      Map<String, dynamic> credential({
+        String format = 'ldp_vc',
+        Object? typeValues = const [
+          ['VerifiableCredential', 'MembershipCredential'],
+        ],
+        Map<String, dynamic> extra = const {},
+      }) => {
+        'id': 'membership',
+        'format': format,
+        'meta': {'type_values': typeValues},
+        ...extra,
+      };
+
+      test('reads the types and issuers of W3C credentials', () async {
+        final request = await read({
+          'credentials': [
+            credential(
+              typeValues: [
+                ['VerifiableCredential', 'MembershipCredential'],
+                ['VerifiableCredential', 'RoleCredential'],
+              ],
+            ),
+            credential(),
+          ],
+        });
+
+        expect(request.readable, isTrue);
+        expect(request.issuers, JoinCredentialIssuers.any);
+        expect(request.typeAlternatives, [
+          [
+            ['VerifiableCredential', 'MembershipCredential'],
+            ['VerifiableCredential', 'RoleCredential'],
+          ],
+          [
+            ['VerifiableCredential', 'MembershipCredential'],
+          ],
+        ]);
+        expect((request.query['credentials'] as List).length, 2);
+      });
+
+      test('reads unknown or absent issuers as the community only', () async {
+        final q = {
+          'credentials': [credential()],
+        };
+        expect(
+          (await read(q, issuers: null)).issuers,
+          JoinCredentialIssuers.community,
+        );
+        expect(
+          (await read(q, issuers: 'everyone')).issuers,
+          JoinCredentialIssuers.community,
+        );
+        expect(
+          (await read(q, issuers: 'recognised')).issuers,
+          JoinCredentialIssuers.recognised,
+        );
+      });
+
+      for (final (what, query) in <(String, Object?)>[
+        (
+          'SD-JWT credentials',
+          {
+            'credentials': [credential(format: 'dc+sd-jwt')],
+          },
+        ),
+        (
+          'claims',
+          {
+            'credentials': [
+              credential(
+                extra: {
+                  'claims': [
+                    {
+                      'path': ['name'],
+                    },
+                  ],
+                },
+              ),
+            ],
+          },
+        ),
+        (
+          'credential sets',
+          {
+            'credentials': [credential()],
+            'credential_sets': <Object>[],
+          },
+        ),
+        (
+          'trusted authorities',
+          {
+            'credentials': [
+              credential(extra: {'trusted_authorities': <Object>[]}),
+            ],
+          },
+        ),
+        (
+          'no types',
+          {
+            'credentials': [credential(typeValues: null)],
+          },
+        ),
+        ('no credentials', {'credentials': <Object>[]}),
+        ('a query that is no object', 'members only'),
+      ]) {
+        test('cannot read one asking for $what', () async {
+          final request = await read(query);
+
+          expect(request.readable, isFalse);
+        });
+      }
+    });
+
     test('skips a criterion it cannot name by digest', () async {
       vtc.manifest = {
         ...vtc.manifest,

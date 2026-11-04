@@ -565,9 +565,71 @@ class VtcJoinClient {
       requirementsDigest: digest,
       description: description is String ? description : null,
       invitationRequired: criterion['invitationRequired'] == true,
-      asksForCredentials: criterion['presentationDefinition'] != null,
+      credentials: _credentialRequest(criterion),
       asksForVetting: criterion['vetting'] != null,
     );
+  }
+
+  /// What [criterion]'s `presentationDefinition` asks for, or null when it
+  /// asks for no credentials. A query this wallet cannot read in full is
+  /// kept without type alternatives, so the criterion stays one it cannot
+  /// meet.
+  static JoinCredentialRequest? _credentialRequest(
+    Map<String, dynamic> criterion,
+  ) {
+    final query = criterion['presentationDefinition'];
+    if (query == null) return null;
+    final issuers =
+        JoinCredentialIssuers.values
+            .asNameMap()[criterion['credentialIssuers']] ??
+        // Absent or unknown is read the restrictive way, as the community
+        // reads it.
+        JoinCredentialIssuers.community;
+    if (query is! Map<String, dynamic>) {
+      return JoinCredentialRequest(query: const {}, issuers: issuers);
+    }
+    return JoinCredentialRequest(
+      query: Map.unmodifiable(query),
+      issuers: issuers,
+      typeAlternatives: _typeAlternatives(query) ?? const [],
+    );
+  }
+
+  /// The type alternatives of each credential [query] asks for, or null
+  /// when it asks for anything but W3C credentials selected by type: other
+  /// formats, claims, credential sets or trusted authorities.
+  static List<List<List<String>>>? _typeAlternatives(
+    Map<String, dynamic> query,
+  ) {
+    final credentials = query['credentials'];
+    if (credentials is! List ||
+        credentials.isEmpty ||
+        query['credential_sets'] != null) {
+      return null;
+    }
+    final wanted = <List<List<String>>>[];
+    for (final credential in credentials) {
+      if (credential is! Map ||
+          credential['format'] != 'ldp_vc' ||
+          credential['claims'] != null ||
+          credential['trusted_authorities'] != null) {
+        return null;
+      }
+      final meta = credential['meta'];
+      final alternatives = meta is Map ? meta['type_values'] : null;
+      if (alternatives is! List || alternatives.isEmpty) return null;
+      final read = <List<String>>[];
+      for (final types in alternatives) {
+        if (types is! List ||
+            types.isEmpty ||
+            types.any((type) => type is! String)) {
+          return null;
+        }
+        read.add(List.unmodifiable(types.cast<String>()));
+      }
+      wanted.add(List.unmodifiable(read));
+    }
+    return List.unmodifiable(wanted);
   }
 
   /// Whether `directoryDisclosure.newCard.listing` lists new members: a

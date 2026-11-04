@@ -11,6 +11,46 @@ enum JoinAdmission {
   review,
 }
 
+/// Whose credentials meet a criterion's credential query
+/// (`credentialIssuers`).
+enum JoinCredentialIssuers {
+  /// Any issuer.
+  any,
+
+  /// The community itself only.
+  community,
+
+  /// The community and the communities it recognises, which only the
+  /// community can tell.
+  recognised,
+}
+
+/// The credentials a criterion asks an applicant to present: its
+/// `presentationDefinition`, a DCQL query, and whose credentials count.
+class JoinCredentialRequest {
+  /// Creates a [JoinCredentialRequest].
+  const JoinCredentialRequest({
+    required this.query,
+    required this.issuers,
+    this.typeAlternatives = const [],
+  });
+
+  /// The query as the community stated it.
+  final Map<String, dynamic> query;
+
+  /// Whose credentials meet the query.
+  final JoinCredentialIssuers issuers;
+
+  /// For each credential the query asks for, all of them required: the
+  /// alternative sets of VC types, one of which it must carry in full.
+  /// Empty when the query asks for anything this wallet cannot read.
+  final List<List<List<String>>> typeAlternatives;
+
+  /// Whether this wallet can read the query: W3C credentials (`ldp_vc`)
+  /// selected by type alone.
+  bool get readable => typeAlternatives.isNotEmpty;
+}
+
 /// One way into a community, as its join manifest states it.
 class JoinCriterion {
   /// Creates a [JoinCriterion].
@@ -20,7 +60,7 @@ class JoinCriterion {
     required this.requirementsDigest,
     this.description,
     this.invitationRequired = false,
-    this.asksForCredentials = false,
+    this.credentials,
     this.asksForVetting = false,
   });
 
@@ -39,8 +79,11 @@ class JoinCriterion {
   /// Whether only invited applicants meet it.
   final bool invitationRequired;
 
+  /// The credentials it asks the applicant to present, or null.
+  final JoinCredentialRequest? credentials;
+
   /// Whether it asks the applicant to present credentials.
-  final bool asksForCredentials;
+  bool get asksForCredentials => credentials != null;
 
   /// Whether it asks the applicant to be vetted in person.
   final bool asksForVetting;

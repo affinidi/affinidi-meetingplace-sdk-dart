@@ -226,6 +226,45 @@ class DisclosedClaim {
   final bool stale;
 }
 
+/// A credential the vault holds, as a query describes it: no claim content.
+class HeldCredential {
+  /// Creates a [HeldCredential].
+  const HeldCredential({
+    required this.id,
+    required this.types,
+    this.issuerDid,
+    this.validUntil,
+  });
+
+  /// The vault's own handle for it, which the VTA client's `credential`
+  /// and `presentCredential` take.
+  final String id;
+
+  /// Its VC `type` tags.
+  final List<String> types;
+
+  /// The DID that issued it, when the vault says.
+  final String? issuerDid;
+
+  /// When it stops being valid, when it says.
+  final DateTime? validUntil;
+}
+
+/// A credential presented to one verifier (`vault/credentials/present/0.1`).
+class CredentialPresentation {
+  /// Creates a [CredentialPresentation].
+  const CredentialPresentation({
+    required this.presentation,
+    required this.disclosed,
+  });
+
+  /// The holder-signed W3C presentation, to carry to the verifier unchanged.
+  final Map<String, dynamic> presentation;
+
+  /// The names of the subject claims it discloses.
+  final List<String> disclosed;
+}
+
 /// What the VTA would disclose about a persona to a verifier
 /// (`persona/disclosure/preview/1.0`), awaiting the member's approval.
 class DisclosurePreview {

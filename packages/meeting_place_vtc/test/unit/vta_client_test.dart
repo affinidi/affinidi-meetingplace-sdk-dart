@@ -400,6 +400,182 @@ void main() {
       ]);
     });
 
+    group('held credentials', () {
+      const persona = 'did:webvh:QmA:host.example';
+      const membership = ['VerifiableCredential', 'MembershipCredential'];
+
+      Map<String, dynamic> sent(String type) =>
+          vta.received.lastWhere((r) => r['type'] == type)['payload']
+              as Map<String, dynamic>;
+
+      JoinCredentialRequest request(
+        JoinCredentialIssuers issuers, [
+        List<List<List<String>>> alternatives = const [
+          [membership],
+        ],
+      ]) => JoinCredentialRequest(
+        query: const {},
+        issuers: issuers,
+        typeAlternatives: alternatives,
+      );
+
+      test('finds valid credentials by type, without their claims', () async {
+        vta.answers[VtaTask.credentialsQuery] = {
+          'credentials': [
+            {
+              'id': 'card-1',
+              'types': membership,
+              'status': 'valid',
+              'issuerDid': _vtcDid,
+              'validUntil': '2027-01-01T00:00:00Z',
+            },
+            {'id': 'no-types', 'status': 'valid'},
+          ],
+        };
+
+        final held = await client.findCredentials(
+          type: 'MembershipCredential',
+          issuerDid: _vtcDid,
+          subjectDid: persona,
+        );
+
+        expect(sent(VtaTask.credentialsQuery), {
+          'type': 'MembershipCredential',
+          'issuerDid': _vtcDid,
+          'subjectDid': persona,
+          'status': 'valid',
+        });
+        final card = held.single;
+        expect(card.id, 'card-1');
+        expect(card.types, membership);
+        expect(card.issuerDid, _vtcDid);
+        expect(card.validUntil, DateTime.utc(2027));
+      });
+
+      test('matches each credential asked for from the community', () async {
+        vta.answers[VtaTask.credentialsQuery] = {
+          'credentials': [
+            {'id': 'card-1', 'types': membership, 'status': 'valid'},
+          ],
+        };
+
+        final matches = await client.matchCredentials(
+          request(JoinCredentialIssuers.community),
+          subjectDid: persona,
+          communityDid: _vtcDid,
+        );
+
+        expect(matches?.single.id, 'card-1');
+        final query = sent(VtaTask.credentialsQuery);
+        expect(query['type'], 'MembershipCredential');
+        expect(query['issuerDid'], _vtcDid);
+        expect(query['subjectDid'], persona);
+      });
+
+      test(
+        'leaves the issuer to the community when it recognises others',
+        () async {
+          vta.answers[VtaTask.credentialsQuery] = {
+            'credentials': [
+              {'id': 'card-1', 'types': membership, 'status': 'valid'},
+            ],
+          };
+
+          await client.matchCredentials(
+            request(JoinCredentialIssuers.recognised),
+            subjectDid: persona,
+            communityDid: _vtcDid,
+          );
+
+          expect(
+            sent(VtaTask.credentialsQuery).containsKey('issuerDid'),
+            isFalse,
+          );
+        },
+      );
+
+      test('matches only a credential carrying every type', () async {
+        vta.answers[VtaTask.credentialsQuery] = {
+          'credentials': [
+            {
+              'id': 'role',
+              'types': ['VerifiableCredential', 'RoleCredential'],
+              'status': 'valid',
+            },
+          ],
+        };
+
+        final matches = await client.matchCredentials(
+          request(JoinCredentialIssuers.any, [
+            [
+              ['VerifiableCredential', 'RoleCredential', 'AdminCredential'],
+            ],
+          ]),
+          subjectDid: persona,
+          communityDid: _vtcDid,
+        );
+
+        expect(matches, isNull);
+      });
+
+      test('matches nothing for a request it cannot read', () async {
+        final matches = await client.matchCredentials(
+          request(JoinCredentialIssuers.any, const []),
+          subjectDid: persona,
+          communityDid: _vtcDid,
+        );
+
+        expect(matches, isNull);
+        expect(
+          vta.received.where((r) => r['type'] == VtaTask.credentialsQuery),
+          isEmpty,
+        );
+      });
+
+      test('presents a credential to a verifier', () async {
+        vta.answers[VtaTask.credentialsPresent] = {
+          'presentation': {
+            'type': ['VerifiablePresentation'],
+            'holder': persona,
+          },
+          'disclosed': ['memberOf'],
+        };
+
+        final presented = await client.presentCredential(
+          id: 'card-1',
+          claims: const ['memberOf'],
+          audience: _vtcDid,
+          nonce: 'nonce-1',
+        );
+
+        expect(sent(VtaTask.credentialsPresent), {
+          'id': 'card-1',
+          'claims': ['memberOf'],
+          'audience': _vtcDid,
+          'nonce': 'nonce-1',
+        });
+        expect(presented.presentation['holder'], persona);
+        expect(presented.disclosed, ['memberOf']);
+      });
+
+      test('refuses a presentation that is not a W3C one', () {
+        vta.answers[VtaTask.credentialsPresent] = {
+          'presentation': 'eyJ.sd-jwt~',
+          'disclosed': ['memberOf'],
+        };
+
+        expect(
+          client.presentCredential(
+            id: 'card-1',
+            claims: const ['memberOf'],
+            audience: _vtcDid,
+            nonce: 'nonce-1',
+          ),
+          throwsA(isA<MeetingPlaceVtcSDKException>()),
+        );
+      });
+    });
+
     group('createPersona', () {
       setUp(() {
         vta.answers[VtaTask.contextsList] = {

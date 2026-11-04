@@ -4,6 +4,7 @@ import 'package:didcomm/didcomm.dart' show EncryptedMessage, PlainTextMessage;
 import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
 
+import '../join/join_models.dart';
 import '../meeting_place_vtc_sdk_error_code.dart';
 import '../meeting_place_vtc_sdk_exception.dart';
 import '../proof/trust_task_signer.dart';
@@ -38,8 +39,11 @@ abstract final class VtaTask {
   /// Creates or updates a vault entry.
   static const vaultUpsert = '$_base/vault/upsert/0.4';
 
-  /// Finds stored credentials by purpose.
+  /// Finds stored credentials.
   static const credentialsQuery = '$_base/vault/credentials/query/0.1';
+
+  /// Presents one stored credential to a verifier, signed as its subject.
+  static const credentialsPresent = '$_base/vault/credentials/present/0.1';
 
   /// Fetches one stored credential.
   static const credentialsGet = '$_base/vault/credentials/get/0.2';
@@ -622,11 +626,129 @@ class VtaClient implements PersonaSigningAgent {
 
     final credentials = <String, Map<String, dynamic>>{};
     for (final id in ids) {
-      final got = await _task(VtaTask.credentialsGet, {'id': id});
-      final credential = got['credential'];
-      if (credential is Map<String, dynamic>) credentials[id] = credential;
+      if (await credential(id) case final credential?) {
+        credentials[id] = credential;
+      }
     }
     return credentials;
+  }
+
+  /// Returns the stored credential [id], or null when the vault answers
+  /// with no credential.
+  Future<Map<String, dynamic>?> credential(String id) async {
+    final got = await _task(VtaTask.credentialsGet, {'id': id});
+    final credential = got['credential'];
+    return credential is Map<String, dynamic> ? credential : null;
+  }
+
+  /// Finds the valid credentials the vault holds carrying the VC type
+  /// [type], issued by [issuerDid] and made out to [subjectDid] when given.
+  /// Returns descriptions only, never a credential's claims.
+  Future<List<HeldCredential>> findCredentials({
+    required String type,
+    String? issuerDid,
+    String? subjectDid,
+  }) async {
+    final answer = await _task(VtaTask.credentialsQuery, {
+      'type': type,
+      'issuerDid': ?issuerDid,
+      'subjectDid': ?subjectDid,
+      'status': 'valid',
+    });
+    return [
+      for (final descriptor in _maps(answer['credentials']))
+        if ((descriptor['id'], descriptor['types']) case (
+          final String id,
+          final List<dynamic> types,
+        ))
+          HeldCredential(
+            id: id,
+            types: List.unmodifiable(types.whereType<String>()),
+            issuerDid: descriptor['issuerDid'] is String
+                ? descriptor['issuerDid'] as String
+                : null,
+            validUntil: descriptor['validUntil'] is String
+                ? DateTime.tryParse(descriptor['validUntil'] as String)
+                : null,
+          ),
+    ];
+  }
+
+  /// Finds a held credential made out to [subjectDid] for each credential
+  /// [request] asks for, from an issuer it admits for the community
+  /// [communityDid]. Returns null when one is missing, or the request is
+  /// one this wallet cannot read.
+  ///
+  /// Issuers a community recognises are known only to the community, so
+  /// for [JoinCredentialIssuers.recognised] any issuer is taken and the
+  /// community decides.
+  Future<List<HeldCredential>?> matchCredentials(
+    JoinCredentialRequest request, {
+    required String subjectDid,
+    required String communityDid,
+  }) async {
+    if (!request.readable) return null;
+    final issuerDid = request.issuers == JoinCredentialIssuers.community
+        ? communityDid
+        : null;
+    final matches = <HeldCredential>[];
+    for (final alternatives in request.typeAlternatives) {
+      HeldCredential? match;
+      for (final types in alternatives) {
+        // The most specific type narrows the query; the rest are checked.
+        final narrowest = types.lastWhere(
+          (type) => type != 'VerifiableCredential',
+          orElse: () => types.last,
+        );
+        final held = await findCredentials(
+          type: narrowest,
+          issuerDid: issuerDid,
+          subjectDid: subjectDid,
+        );
+        match = held
+            .where((credential) => types.every(credential.types.contains))
+            .firstOrNull;
+        if (match != null) break;
+      }
+      if (match == null) return null;
+      matches.add(match);
+    }
+    return matches;
+  }
+
+  /// Presents the stored credential [id] to [audience], bound to [nonce],
+  /// disclosing the subject claims [claims]. The VTA signs the presentation
+  /// as the credential's subject and records the disclosure.
+  ///
+  /// Throws [MeetingPlaceVtcSDKException] refused with `wouldOverDisclose`
+  /// when the credential cannot disclose less than claims [claims] leaves
+  /// out, `claimNotHeld` when it lacks one, or `notPresentable` when it is
+  /// no longer valid.
+  Future<CredentialPresentation> presentCredential({
+    required String id,
+    required List<String> claims,
+    required String audience,
+    required String nonce,
+    String? purpose,
+  }) async {
+    final answer = await _task(VtaTask.credentialsPresent, {
+      'id': id,
+      'claims': claims,
+      'audience': audience,
+      'nonce': nonce,
+      'purpose': ?purpose,
+    });
+    final presentation = answer['presentation'];
+    if (presentation is! Map<String, dynamic>) {
+      throw MeetingPlaceVtcSDKException.invalidDocument('no W3C presentation');
+    }
+    return CredentialPresentation(
+      presentation: presentation,
+      disclosed: switch (answer['disclosed']) {
+        final List<dynamic> claims => [...claims.whereType<String>()],
+        _ => const [],
+      },
+    );
   }
 
   /// Archives the stored credential [id], one of [heldCredentials]: the VTA

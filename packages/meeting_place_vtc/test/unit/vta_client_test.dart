@@ -165,6 +165,29 @@ void main() {
       });
     });
 
+    test('reads no refusal code from a DID in the message', () async {
+      vta.refusals[VtaTask.credentialsPresent] = {
+        'code': 'internalError',
+        'message': 'holder key did:key:z6MkExample#z6MkExample cannot sign',
+      };
+
+      await expectLater(
+        client.presentCredential(
+          id: 'card-1',
+          claims: const ['memberOf'],
+          audience: _vtcDid,
+          nonce: 'nonce-1',
+        ),
+        throwsA(
+          isA<MeetingPlaceVtcSDKException>().having(
+            (e) => e.refusalCode,
+            'refusalCode',
+            'internalError',
+          ),
+        ),
+      );
+    });
+
     test('reads the local refusal code from details or message', () async {
       vta.refusals[VtaTask.signTrustTask] = {
         'code': 'taskFailed',

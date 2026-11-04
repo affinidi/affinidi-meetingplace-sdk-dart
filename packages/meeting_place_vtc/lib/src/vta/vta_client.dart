@@ -151,7 +151,11 @@ class VtaClient implements PersonaSigningAgent {
              didResolver: didResolver ?? UniversalDIDResolver.defaultResolver,
            );
 
-  static final _innerCode = RegExp(r'\b[a-z][a-z/-]*:([A-Za-z_]+)');
+  /// A `<task>:<code>` in a message, the task a path such as
+  /// `vault/sign-trust-task`. Never a DID: `did:key:z…` names no code.
+  static final _innerCode = RegExp(
+    r'(?<![\w:.#/-])(?!did:)[a-z][a-z-]*(?:/[a-z0-9.-]+)+:([A-Za-z_]+)',
+  );
 
   @override
   final String vtaDid;

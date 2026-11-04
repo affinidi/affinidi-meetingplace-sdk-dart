@@ -748,6 +748,51 @@ void main() {
     });
   });
 
+  group('VtcJoinClient.withdraw', () {
+    Future<TrustTaskReceipt> withdraw() => client().withdraw(
+      vtcDid,
+      requestId: 'request-1',
+      agent: agent,
+      persona: agent.signInPersona,
+    );
+
+    test('withdraws the request as the persona', () async {
+      final receipt = await withdraw();
+
+      final request = vtc.received.single;
+      expect(request['type'], JoinTask.withdraw);
+      expect(request['issuer'], agent.persona.did);
+      expect(request['recipient'], vtcDid);
+      expect(request['payload'], {'requestId': 'request-1'});
+      expect(receipt.type, JoinTask.withdraw);
+      expect(receipt.answeredBy, vtcDid);
+    });
+
+    test('passes on that the community decided already', () async {
+      vtc.withdrawRefusal = 'vtc/join-requests/withdraw:alreadyDecided';
+
+      expect(
+        withdraw(),
+        throwsA(
+          isA<MeetingPlaceVtcSDKException>().having(
+            (e) => e.refusalCode,
+            'refusalCode',
+            'vtc/join-requests/withdraw:alreadyDecided',
+          ),
+        ),
+      );
+    });
+
+    test('refuses an answer that does not withdraw', () async {
+      vtc.withdrawNotWithdrawn = true;
+
+      expect(
+        withdraw(),
+        _throwsCode(MeetingPlaceVtcSDKErrorCode.invalidDocument),
+      );
+    });
+  });
+
   group('VtcJoinClient.status', () {
     test('asks as the persona where the request stands', () async {
       vtc.status = 'approved';

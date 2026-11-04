@@ -85,6 +85,12 @@ class FakeJoinVtc {
   /// Refusal codes for the next membership confirmations, one per call.
   final List<String> vmcRefusals = [];
 
+  /// The code to refuse the next withdraw with, if any.
+  String? withdrawRefusal;
+
+  /// Answers a withdraw with a status other than `withdrawn`.
+  bool withdrawNotWithdrawn = false;
+
   /// The HTTP status and code to refuse the next leave with, if any.
   (int, String)? leaveRefusal;
 
@@ -118,6 +124,17 @@ class FakeJoinVtc {
         },
       );
     }
+    if (type == JoinTask.withdraw && withdrawRefusal != null) {
+      return (
+        404,
+        {
+          'id': 'urn:uuid:error',
+          'type': 'https://trusttasks.org/spec/trust-task-error/0.1',
+          'issuer': vtcDid,
+          'payload': {'code': withdrawRefusal},
+        },
+      );
+    }
     if (type == MemberTask.vmc && vmcRefusals.isNotEmpty) {
       return (
         422,
@@ -140,6 +157,10 @@ class FakeJoinVtc {
         'status': status,
         'reason': ?rejectionReason,
         if (status == 'approved') 'credentialsDelivered': false,
+      },
+      JoinTask.withdraw => {
+        'requestId': (request['payload'] as Map)['requestId'],
+        'status': withdrawNotWithdrawn ? 'pending' : 'withdrawn',
       },
       MemberTask.directoryCardUpdate => {'revision': 1},
       MemberTask.selfRemove => {

@@ -28,6 +28,10 @@ abstract final class JoinTask {
 
   /// Asks where the applicant's request stands.
   static const status = '$_base/status/0.1';
+
+  /// Withdraws the applicant's open request. A draft upstream: the version
+  /// may change.
+  static const withdraw = '$_base/withdraw/0.1';
 }
 
 /// The `vtc/members` Trust Task types this client sends.
@@ -279,6 +283,36 @@ class VtcJoinClient {
           : null,
       receipt: TrustTaskReceipt.exchange(request, answer),
     );
+  }
+
+  /// Withdraws [persona]'s open request [requestId] to the community
+  /// [communityDid], which then counts as `withdrawn`; the persona may apply
+  /// again. Returns the signed request and the community's verified answer.
+  ///
+  /// Throws [MeetingPlaceVtcSDKException] when the VTA or the community
+  /// refuses, cannot be reached, or answers with something else: refused
+  /// with a code ending in `:notFound` when no such request of [persona] is
+  /// open, and in `:alreadyDecided` when the community decided on it.
+  Future<TrustTaskReceipt> withdraw(
+    String communityDid, {
+    required String requestId,
+    required SignInAgent agent,
+    required SignInPersona persona,
+  }) async {
+    final community = await _vtcResolver.resolveCommunity(communityDid);
+    final request = await _signedByPersona(
+      agent,
+      persona,
+      community,
+      type: JoinTask.withdraw,
+      payload: {'requestId': requestId},
+    );
+    final answer = await _exchange(community, request);
+    final payload = answer.payload;
+    if (payload['requestId'] != requestId || payload['status'] != 'withdrawn') {
+      throw MeetingPlaceVtcSDKException.invalidDocument('not withdrawn');
+    }
+    return TrustTaskReceipt.exchange(request, answer);
   }
 
   /// Takes [persona]'s card in the community [communityDid] out of the

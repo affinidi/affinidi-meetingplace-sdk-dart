@@ -346,6 +346,7 @@ void main() {
       );
 
       expect(vta.received.last['type'], VtaTask.deviceHeartbeat);
+      expect(VtaTask.deviceHeartbeat, endsWith('/device/heartbeat/0.3'));
     });
 
     test('reports why the VTA DID did not resolve', () async {

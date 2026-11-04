@@ -22,7 +22,7 @@ abstract final class OobTask {
   static const _base = 'https://trusttasks.org/spec/auth/oob';
 
   /// Locks a request to this phone's throwaway key.
-  static const claim = '$_base/claim/0.1';
+  static const claim = '$_base/claim/0.2';
 
   /// Ends a claimed request.
   static const cancel = '$_base/cancel/0.1';
@@ -31,13 +31,13 @@ abstract final class OobTask {
   static const identify = '$_base/identify/0.1';
 
   /// Carries the `identify` document.
-  static const prove = '$_base/prove/0.1';
+  static const prove = '$_base/prove/0.3';
 
   /// The persona's approval of one browser session, signed by the VTA.
-  static const grant = '$_base/grant/0.1';
+  static const grant = '$_base/grant/0.3';
 
   /// Carries the `grant` document.
-  static const respond = '$_base/respond/0.1';
+  static const respond = '$_base/respond/0.3';
 }
 
 /// Type of the person's approval decision, signed with the UV key.
@@ -81,12 +81,16 @@ class OobSignInClient {
 
   static final _twoDigits = RegExp(r'^\d{2}$');
   static final _ed25519DidKey = RegExp(r'^did:key:z6Mk[1-9A-HJ-NP-Za-km-z]+$');
+  static final _taskFamily = RegExp(
+    r'^[a-z][a-z0-9]*(-[a-z0-9]+)*(/[a-z][a-z0-9]*(-[a-z0-9]+)*)*$',
+  );
+  static const _maxSigningScope = 8;
   static const _repeatedStep1Members = [
     'requestId',
     'service',
     'origin',
     'purpose',
-    'decisionDeadline',
+    'decisionClosesAt',
   ];
 
   final Future<bool> Function(String vtcDid) _isKnownCommunity;
@@ -153,7 +157,7 @@ class OobSignInClient {
     return ClaimedSignIn(
       requestId: requestId,
       vtc: vtc,
-      decisionDeadline: payload['decisionDeadline'] as int,
+      decisionDeadline: _epochSeconds(payload['decisionClosesAt'])!,
       audience: _audience(answer),
       approverKey: approverKey,
       step1: answer.toJson(),
@@ -219,11 +223,13 @@ class OobSignInClient {
     }
 
     final requester = payload['requester'] as Map<String, dynamic>;
+    final signingScope = payload['signingScope'] as List<dynamic>?;
     return ProvedSignIn(
       claimed: claimed,
       persona: persona,
       step2: step2.toJson(),
       sessionKey: payload['sessionKey'] as String,
+      signingScope: signingScope?.cast<String>(),
       requester: SignInRequester(
         browser: _text(requester['browser']),
         os: _text(requester['os']),
@@ -261,7 +267,14 @@ class OobSignInClient {
         'origin': claimed.origin,
         // Over the whole signed step 2 as received, proof included.
         'contextDigest': digestMultibase(proved.step2),
-        'notAfter': now + grantLifetime.inSeconds,
+        'sessionEndsAt': formatTrustTaskTime(
+          DateTime.fromMillisecondsSinceEpoch(
+            (now + grantLifetime.inSeconds) * 1000,
+            isUtc: true,
+          ),
+        ),
+        // The community checks it is step 2's, unchanged.
+        'signingScope': ?proved.signingScope,
       },
       persona: proved.persona.did,
       vtcDid: claimed.vtc.did,
@@ -531,8 +544,8 @@ class OobSignInClient {
     if (payload['origin'] != vtc.signInOrigin) {
       return 'origin is not the portal';
     }
-    final deadline = payload['decisionDeadline'];
-    if (deadline is! int) return 'no decision deadline';
+    final deadline = _epochSeconds(payload['decisionClosesAt']);
+    if (deadline == null) return 'no decision deadline';
     if (deadline <= _now()) return 'the decision deadline has passed';
     return null;
   }
@@ -554,8 +567,8 @@ class OobSignInClient {
       }
     }
     if (_audience(step2) != claimed.audience) return 'the audience changed';
-    final deadline = payload['decisionDeadline'];
-    if (deadline is! int || deadline <= _now()) {
+    final deadline = _epochSeconds(payload['decisionClosesAt']);
+    if (deadline == null || deadline <= _now()) {
       return 'the decision deadline has passed';
     }
     final sessionKey = payload['sessionKey'];
@@ -564,7 +577,37 @@ class OobSignInClient {
     }
     if (payload['identifiedAs'] != persona) return 'identified someone else';
     if (payload['requester'] is! Map<String, dynamic>) return 'no requester';
+    if (!_isSigningScope(payload['signingScope'])) {
+      return 'the signing scope is not a list of task families';
+    }
     return null;
+  }
+
+  /// Absent, or 1 to [_maxSigningScope] distinct task families.
+  static bool _isSigningScope(Object? scope) {
+    if (scope == null) return true;
+    if (scope is! List || scope.isEmpty || scope.length > _maxSigningScope) {
+      return false;
+    }
+    final families = <String>{};
+    for (final family in scope) {
+      if (family is! String ||
+          family.length > 128 ||
+          !_taskFamily.hasMatch(family) ||
+          !families.add(family)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /// Seconds since the epoch of an RFC 3339 [instant], or null when it is
+  /// none.
+  static int? _epochSeconds(Object? instant) {
+    if (instant is! String) return null;
+    final time = DateTime.tryParse(instant);
+    if (time == null || !time.isUtc) return null;
+    return time.millisecondsSinceEpoch ~/ 1000;
   }
 
   /// The audience the community echoes in its signed answers: under the

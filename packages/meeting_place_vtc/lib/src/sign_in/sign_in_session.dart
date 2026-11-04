@@ -91,6 +91,7 @@ class ProvedSignIn {
     required this.step2,
     required this.sessionKey,
     required this.requester,
+    this.signingScope,
   });
 
   /// The claimed request.
@@ -108,4 +109,8 @@ class ProvedSignIn {
 
   /// What the browser reported about itself.
   final SignInRequester requester;
+
+  /// The task families the grant lets [sessionKey] sign for as the persona,
+  /// as the community offered them; null for none beyond signing in.
+  final List<String>? signingScope;
 }

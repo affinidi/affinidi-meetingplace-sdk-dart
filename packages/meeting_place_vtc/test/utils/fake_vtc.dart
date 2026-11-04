@@ -68,6 +68,10 @@ DidDocument communityDocument(NamedSigner signer, {bool signInPortal = true}) {
   });
 }
 
+String _instant(int epochSeconds) => formatTrustTaskTime(
+  DateTime.fromMillisecondsSinceEpoch(epochSeconds * 1000, isUtc: true),
+);
+
 /// A community that answers `auth/oob` tasks like a VTC.
 class FakeVtc {
   FakeVtc({this.audience}) {
@@ -83,6 +87,12 @@ class FakeVtc {
 
   final browserKey = Ed25519DidKeySigner.generate();
   String matchNumber = '47';
+
+  /// The task families step 2 offers the browser key, or null for none.
+  List<String>? signingScope;
+
+  /// The decision deadline the answers carry.
+  Object decisionClosesAt = _instant(fakeNow + 120);
   String? refuseWith;
   Map<String, dynamic>? receivedGrant;
   int cancels = 0;
@@ -112,7 +122,7 @@ class FakeVtc {
       'service': {'did': vtcDid, 'name': vtcDid},
       'purpose': 'login',
       'origin': vtcOrigin,
-      'decisionDeadline': fakeNow + 120,
+      'decisionClosesAt': decisionClosesAt,
       'ext': ?ext,
     };
 
@@ -137,6 +147,7 @@ class FakeVtc {
           'sameNetwork': true,
           'createdAt': '2026-10-08T12:00:00Z',
         },
+        'signingScope': ?signingScope,
       };
     } else if (type == OobTask.respond) {
       receivedGrant = payload['grant'] as Map<String, dynamic>;

@@ -58,6 +58,15 @@ void main() {
     isMember = true;
   });
 
+  test('speaks the auth/oob versions communities serve', () {
+    expect(OobTask.claim, endsWith('/auth/oob/claim/0.2'));
+    expect(OobTask.cancel, endsWith('/auth/oob/cancel/0.1'));
+    expect(OobTask.identify, endsWith('/auth/oob/identify/0.1'));
+    expect(OobTask.prove, endsWith('/auth/oob/prove/0.3'));
+    expect(OobTask.grant, endsWith('/auth/oob/grant/0.3'));
+    expect(OobTask.respond, endsWith('/auth/oob/respond/0.3'));
+  });
+
   group('OobSignInClient.claim', () {
     test('claims with a throwaway key and checks the answer', () async {
       final claimed = await client().claim(_trigger());
@@ -108,6 +117,12 @@ void main() {
       );
     });
 
+    test('refuses a decision deadline that is not an RFC 3339 instant', () {
+      vtc.decisionClosesAt = fakeNow + 120;
+
+      expect(client().claim(_trigger()), _failsWith(SignInFailure.badAnswer));
+    });
+
     test('does not believe an answer signed by another key', () async {
       adapter.handler = (request) async {
         final (status, answer) = await vtc.handle(request);
@@ -149,6 +164,37 @@ void main() {
       expect(
         (identify['payload'] as Map)['approverKey'],
         claimed.approverKey.did,
+      );
+    });
+
+    test('reads the signing scope the community offers', () async {
+      vtc.signingScope = ['vtc/directory', 'git-ns/view'];
+      final signIn = client();
+      final claimed = await signIn.claim(_trigger());
+
+      final proved = await signIn.prove(
+        claimed,
+        enteredNumber: '47',
+        persona: agent.signInPersona,
+        agent: agent,
+      );
+
+      expect(proved.signingScope, ['vtc/directory', 'git-ns/view']);
+    });
+
+    test('refuses a signing scope that is not task families', () async {
+      vtc.signingScope = ['vtc/directory', 'vtc/directory'];
+      final signIn = client();
+      final claimed = await signIn.claim(_trigger());
+
+      expect(
+        signIn.prove(
+          claimed,
+          enteredNumber: '47',
+          persona: agent.signInPersona,
+          agent: agent,
+        ),
+        _failsWith(SignInFailure.badAnswer),
       );
     });
 
@@ -243,7 +289,16 @@ void main() {
       expect(payload['sessionKey'], vtc.browserKey.did);
       expect(payload['origin'], vtcOrigin);
       expect(payload['contextDigest'], digestMultibase(signInToApprove.step2));
-      expect(payload['notAfter'], fakeNow + grantLifetime.inSeconds);
+      expect(
+        payload['sessionEndsAt'],
+        formatTrustTaskTime(
+          DateTime.fromMillisecondsSinceEpoch(
+            (fakeNow + grantLifetime.inSeconds) * 1000,
+            isUtc: true,
+          ),
+        ),
+      );
+      expect(payload.containsKey('signingScope'), isFalse);
       expect(signInToApprove.claimed.responded, isTrue);
 
       final decision =
@@ -259,6 +314,21 @@ void main() {
         ),
         completes,
       );
+    });
+
+    test('copies the offered signing scope into the grant', () async {
+      vtc.signingScope = ['vtc/directory'];
+      final signIn = client();
+      final signInToApprove = await proved(signIn);
+
+      await signIn.approve(
+        signInToApprove,
+        agent: agent,
+        userVerification: userVerification,
+      );
+
+      final payload = vtc.receivedGrant!['payload'] as Map<String, dynamic>;
+      expect(payload['signingScope'], ['vtc/directory']);
     });
 
     test(

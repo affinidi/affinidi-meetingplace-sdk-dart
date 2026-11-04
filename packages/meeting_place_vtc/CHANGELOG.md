@@ -4,6 +4,7 @@
  - Add the VTI trigger-link reader for one-scan sign-in codes.
  - Add VTC endpoint resolution and the Trust Task HTTPS transport.
  - Add the Key Grant sign-in client (`auth/oob/*`).
+ - Sign in with the `auth/oob` versions VTCs serve: claim 0.2, prove 0.3, respond 0.3 and grant 0.3, with RFC 3339 deadlines and the offered `signingScope`.
  - Add a minimal VTA client over the REST binding.
  - Add the manual VTA link and community import from backed-up membership cards.
  - Add the `MeetingPlaceVtcSDK` entry point.

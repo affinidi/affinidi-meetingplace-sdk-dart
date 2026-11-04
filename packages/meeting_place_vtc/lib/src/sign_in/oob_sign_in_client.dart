@@ -433,6 +433,8 @@ class OobSignInClient {
       'auth/oob/prove:numberMismatch' => SignInFailure.wrongNumber,
       'auth/oob:requestExpired' => SignInFailure.expired,
       'auth/oob:requestNotFound' => SignInFailure.notFound,
+      // The community no longer serves the version this SDK speaks.
+      'unsupportedVersion' || 'unsupportedType' => SignInFailure.update,
       final String code when code.contains('notAnAdmin') =>
         SignInFailure.notAnAdmin,
       _ => SignInFailure.refused,

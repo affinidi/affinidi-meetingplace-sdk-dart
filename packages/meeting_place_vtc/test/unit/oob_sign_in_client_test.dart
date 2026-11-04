@@ -117,6 +117,12 @@ void main() {
       );
     });
 
+    test('says the app needs an update for a version no longer served', () {
+      vtc.refuseWith = 'unsupportedVersion';
+
+      expect(client().claim(_trigger()), _failsWith(SignInFailure.update));
+    });
+
     test('refuses a decision deadline that is not an RFC 3339 instant', () {
       vtc.decisionClosesAt = fakeNow + 120;
 

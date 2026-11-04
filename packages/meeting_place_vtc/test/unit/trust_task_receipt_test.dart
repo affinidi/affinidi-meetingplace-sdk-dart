@@ -5,6 +5,38 @@ import 'package:test/test.dart';
 import '../utils/fake_vtc.dart';
 
 void main() {
+  group('TrustTaskExchange', () {
+    late TrustTaskDocument request;
+    late TrustTaskDocument answer;
+
+    setUp(() async {
+      final agent = FakeSignInAgent();
+      request = await TrustTaskDocument.create(
+        type: JoinTask.submit,
+        issuer: agent.persona.did,
+        recipient: vtcDid,
+        payload: const {'criterion': 'z1'},
+      ).sign(agent.persona, purpose: ProofPurpose.authentication);
+      answer = await TrustTaskDocument.create(
+        type: '${JoinTask.submit}#response',
+        issuer: vtcDid,
+        recipient: agent.persona.did,
+        threadId: request.id,
+        payload: const {'requestId': 'request-1'},
+      ).sign(communitySigner(), purpose: ProofPurpose.authentication);
+    });
+
+    test('restores both documents exactly as they were', () {
+      final exchange = TrustTaskExchange(request: request, answer: answer);
+
+      final restored = TrustTaskExchange.fromJson(exchange.toJson());
+
+      expect(restored.request.toJson(), request.toJson());
+      expect(restored.answer.toJson(), answer.toJson());
+      expect(restored.receipt.toJson(), exchange.receipt.toJson());
+    });
+  });
+
   group('TrustTaskReceipt', () {
     late TrustTaskDocument request;
     late TrustTaskDocument answer;
@@ -46,6 +78,8 @@ void main() {
       expect(receipt.signedAt, isNotNull);
       expect(receipt.proofPurpose, 'authentication');
       expect(receipt.answeredBy, vtcDid);
+      expect(receipt.answerType, '${JoinTask.submit}#response');
+      expect(receipt.answerDocumentId, answer.id);
       expect(receipt.answeredAt, DateTime.utc(2026, 11, 4, 10, 13));
     });
 

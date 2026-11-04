@@ -21,6 +21,7 @@ export 'src/trigger_link/trigger_link.dart';
 export 'src/trigger_link/trigger_link_config.dart';
 export 'src/trigger_link/trigger_link_result.dart';
 export 'src/trust_task/trust_task_document.dart';
+export 'src/trust_task/trust_task_exchange.dart';
 export 'src/trust_task/trust_task_receipt.dart';
 export 'src/trust_task/trust_task_time.dart';
 export 'src/vta/vta_client.dart';

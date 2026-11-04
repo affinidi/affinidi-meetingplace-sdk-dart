@@ -1,3 +1,4 @@
+import '../trust_task/trust_task_exchange.dart';
 import '../trust_task/trust_task_receipt.dart';
 import '../vtc/vtc_resolver.dart';
 
@@ -184,11 +185,14 @@ class JoinAdmitted extends JoinVerdict {
 /// The request waits for the community's administrators.
 class JoinPending extends JoinVerdict {
   /// Creates a [JoinPending].
-  const JoinPending({required super.requestId, this.receipt});
+  const JoinPending({required super.requestId, this.exchange});
 
-  /// The signed submit and the community's verified answer to it, or null
-  /// when the request was submitted before.
-  final TrustTaskReceipt? receipt;
+  /// The signed submit and the community's verified answer to it, as they
+  /// were on the wire, or null when the request was submitted before.
+  final TrustTaskExchange? exchange;
+
+  /// What [exchange] shows, without its payloads.
+  TrustTaskReceipt? get receipt => exchange?.receipt;
 }
 
 /// The community turned the request down.
@@ -325,7 +329,7 @@ class JoinStatus {
     required this.status,
     this.reason,
     this.credentialsDelivered,
-    this.receipt,
+    this.exchange,
   });
 
   /// Where the request stands.
@@ -338,8 +342,12 @@ class JoinStatus {
   /// membership credential, i.e. whether the membership was confirmed.
   final bool? credentialsDelivered;
 
-  /// The signed status request and the community's verified answer to it.
-  final TrustTaskReceipt? receipt;
+  /// The signed status request and the community's verified answer to it,
+  /// as they were on the wire.
+  final TrustTaskExchange? exchange;
+
+  /// What [exchange] shows, without its payloads.
+  TrustTaskReceipt? get receipt => exchange?.receipt;
 }
 
 /// The community's receipt for a member leaving it

@@ -8,6 +8,7 @@ import '../proof/trust_task_signer.dart';
 import '../sign_in/sign_in_agent.dart';
 import '../transport/trust_task_http_transport.dart';
 import '../trust_task/trust_task_document.dart';
+import '../trust_task/trust_task_exchange.dart';
 import '../trust_task/trust_task_receipt.dart';
 import '../vta/vta_models.dart';
 import '../vtc/resolved_document.dart';
@@ -237,7 +238,7 @@ class VtcJoinClient {
     }
     final verdict = _verdict(
       answer.payload,
-      receipt: TrustTaskReceipt.exchange(request, answer),
+      exchange: TrustTaskExchange(request: request, answer: answer),
     );
     if (verdict is JoinAdmitted) {
       _checkCards(verdict, community: community.did, persona: persona.did);
@@ -281,7 +282,7 @@ class VtcJoinClient {
       credentialsDelivered: payload['credentialsDelivered'] is bool
           ? payload['credentialsDelivered'] as bool
           : null,
-      receipt: TrustTaskReceipt.exchange(request, answer),
+      exchange: TrustTaskExchange(request: request, answer: answer),
     );
   }
 
@@ -514,7 +515,7 @@ class VtcJoinClient {
 
   static JoinVerdict _verdict(
     Map<String, dynamic> payload, {
-    required TrustTaskReceipt receipt,
+    required TrustTaskExchange exchange,
   }) {
     final requestId = payload['requestId'];
     final verdict = payload['verdict'];
@@ -538,7 +539,7 @@ class VtcJoinClient {
         },
         role: details['role'] is String ? details['role'] as String : null,
       ),
-      'refer' => JoinPending(requestId: requestId, receipt: receipt),
+      'refer' => JoinPending(requestId: requestId, exchange: exchange),
       'deny' => JoinDenied(
         requestId: requestId,
         reason: details['reason'] is String

@@ -13,6 +13,8 @@ class TrustTaskReceipt {
     required this.documentId,
     required this.signer,
     required this.answeredBy,
+    this.answerType,
+    this.answerDocumentId,
     this.signedAt,
     this.cryptosuite,
     this.verificationMethod,
@@ -40,6 +42,8 @@ class TrustTaskReceipt {
       verificationMethod: _string(proof['verificationMethod']),
       proofPurpose: _string(proof['proofPurpose']),
       answeredBy: answer.issuer,
+      answerType: answer.type,
+      answerDocumentId: answer.id,
       answeredAt: _time(answer.toJson()['issuedAt']),
       answerSignedAt: _time(answerProof['created']),
       answerCryptosuite: _string(answerProof['cryptosuite']),
@@ -56,6 +60,8 @@ class TrustTaskReceipt {
       documentId: json['documentId'] as String,
       signer: json['signer'] as String,
       answeredBy: json['answeredBy'] as String,
+      answerType: _string(json['answerType']),
+      answerDocumentId: _string(json['answerDocumentId']),
       signedAt: _time(json['signedAt']),
       cryptosuite: _string(json['cryptosuite']),
       verificationMethod: _string(json['verificationMethod']),
@@ -92,6 +98,12 @@ class TrustTaskReceipt {
   /// DID that signed the answer, which was verified against its document.
   final String answeredBy;
 
+  /// The answer's Trust Task type URI, e.g. the request's with `#response`.
+  final String? answerType;
+
+  /// The answer's document id.
+  final String? answerDocumentId;
+
   /// When the answer was issued, as it says.
   final DateTime? answeredAt;
 
@@ -113,6 +125,8 @@ class TrustTaskReceipt {
     'documentId': documentId,
     'signer': signer,
     'answeredBy': answeredBy,
+    'answerType': ?answerType,
+    'answerDocumentId': ?answerDocumentId,
     'signedAt': ?signedAt?.toUtc().toIso8601String(),
     'cryptosuite': ?cryptosuite,
     'verificationMethod': ?verificationMethod,

@@ -467,6 +467,8 @@ void main() {
       expect(pending, isA<JoinPending>());
       final receipt = (pending as JoinPending).receipt!;
       final submit = vtc.received.last;
+      expect(pending.exchange?.request.toJson(), submit);
+      expect(pending.exchange?.answer.issuer, vtcDid);
       expect(receipt.type, JoinTask.submit);
       expect(receipt.documentId, submit['id']);
       expect(receipt.signer, agent.persona.did);

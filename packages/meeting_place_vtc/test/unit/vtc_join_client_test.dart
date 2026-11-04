@@ -478,6 +478,8 @@ void main() {
       expect(receipt.signedAt, isNotNull);
       expect(receipt.answeredBy, vtcDid);
       expect(receipt.answeredAt, isNotNull);
+      expect(receipt.answerCryptosuite, 'eddsa-jcs-2022');
+      expect(receipt.answerVerificationMethod, startsWith('$vtcDid#'));
 
       vtc.verdict = {
         'effect': 'deny',

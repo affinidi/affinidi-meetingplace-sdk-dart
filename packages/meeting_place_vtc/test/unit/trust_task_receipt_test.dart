@@ -44,8 +44,23 @@ void main() {
         (request.toJson()['proof'] as Map)['verificationMethod'],
       );
       expect(receipt.signedAt, isNotNull);
+      expect(receipt.proofPurpose, 'authentication');
       expect(receipt.answeredBy, vtcDid);
       expect(receipt.answeredAt, DateTime.utc(2026, 11, 4, 10, 13));
+    });
+
+    test("reads the answer's proof", () {
+      final receipt = TrustTaskReceipt.exchange(request, answer);
+      final proof = answer.toJson()['proof'] as Map;
+
+      expect(receipt.answerCryptosuite, 'eddsa-jcs-2022');
+      expect(receipt.answerVerificationMethod, proof['verificationMethod']);
+      expect(receipt.answerVerificationMethod, startsWith('$vtcDid#'));
+      expect(receipt.answerProofPurpose, 'authentication');
+      expect(
+        receipt.answerSignedAt,
+        DateTime.parse(proof['created'] as String),
+      );
     });
 
     test('keeps no payload or signature', () {
@@ -62,6 +77,24 @@ void main() {
       expect(restored.toJson(), receipt.toJson());
       expect(restored.signedAt, receipt.signedAt);
       expect(restored.answeredAt, receipt.answeredAt);
+      expect(restored.answerSignedAt, receipt.answerSignedAt);
+    });
+
+    test("restores a receipt stored without the answer's proof", () {
+      final json = TrustTaskReceipt.exchange(request, answer).toJson()
+        ..removeWhere(
+          (key, _) =>
+              key.startsWith('answer') && key != 'answeredBy' ||
+              key == 'proofPurpose',
+        );
+
+      final restored = TrustTaskReceipt.fromJson(json);
+
+      expect(restored.answeredBy, vtcDid);
+      expect(restored.answerCryptosuite, isNull);
+      expect(restored.answerVerificationMethod, isNull);
+      expect(restored.answerSignedAt, isNull);
+      expect(restored.proofPurpose, isNull);
     });
   });
 }

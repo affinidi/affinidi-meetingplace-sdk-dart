@@ -1,3 +1,4 @@
+import '../trust_task/trust_task_receipt.dart';
 import '../vtc/vtc_resolver.dart';
 
 /// How a community decides on an applicant who meets a criterion.
@@ -183,7 +184,11 @@ class JoinAdmitted extends JoinVerdict {
 /// The request waits for the community's administrators.
 class JoinPending extends JoinVerdict {
   /// Creates a [JoinPending].
-  const JoinPending({required super.requestId});
+  const JoinPending({required super.requestId, this.receipt});
+
+  /// The signed submit and the community's verified answer to it, or null
+  /// when the request was submitted before.
+  final TrustTaskReceipt? receipt;
 }
 
 /// The community turned the request down.
@@ -320,6 +325,7 @@ class JoinStatus {
     required this.status,
     this.reason,
     this.credentialsDelivered,
+    this.receipt,
   });
 
   /// Where the request stands.
@@ -331,6 +337,9 @@ class JoinStatus {
   /// For an approved request: whether the community holds the member's own
   /// membership credential, i.e. whether the membership was confirmed.
   final bool? credentialsDelivered;
+
+  /// The signed status request and the community's verified answer to it.
+  final TrustTaskReceipt? receipt;
 }
 
 /// The community's receipt for a member leaving it

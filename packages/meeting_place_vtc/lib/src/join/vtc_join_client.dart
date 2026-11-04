@@ -8,6 +8,7 @@ import '../proof/trust_task_signer.dart';
 import '../sign_in/sign_in_agent.dart';
 import '../transport/trust_task_http_transport.dart';
 import '../trust_task/trust_task_document.dart';
+import '../trust_task/trust_task_receipt.dart';
 import '../vta/vta_models.dart';
 import '../vtc/resolved_document.dart';
 import '../vtc/service_endpoints.dart';
@@ -218,9 +219,9 @@ class VtcJoinClient {
       },
     );
 
-    final Map<String, dynamic> payload;
+    final TrustTaskDocument answer;
     try {
-      payload = await _ask(community, request);
+      answer = await _exchange(community, request);
     } on MeetingPlaceVtcSDKException catch (error) {
       final openRequestId = error.errorPayload?['details'] is Map
           ? (error.errorPayload!['details'] as Map)['requestId']
@@ -230,7 +231,10 @@ class VtcJoinClient {
       }
       rethrow;
     }
-    final verdict = _verdict(payload);
+    final verdict = _verdict(
+      answer.payload,
+      receipt: TrustTaskReceipt.exchange(request, answer),
+    );
     if (verdict is JoinAdmitted) {
       _checkCards(verdict, community: community.did, persona: persona.did);
     }
@@ -261,7 +265,8 @@ class VtcJoinClient {
         if (resendCredentials) 'resendCredentials': true,
       },
     );
-    final payload = await _ask(community, request);
+    final answer = await _exchange(community, request);
+    final payload = answer.payload;
     final status = JoinRequestStatus.values.asNameMap()[payload['status']];
     if (payload['requestId'] != requestId || status == null) {
       throw MeetingPlaceVtcSDKException.invalidDocument('no request status');
@@ -272,6 +277,7 @@ class VtcJoinClient {
       credentialsDelivered: payload['credentialsDelivered'] is bool
           ? payload['credentialsDelivered'] as bool
           : null,
+      receipt: TrustTaskReceipt.exchange(request, answer),
     );
   }
 
@@ -421,6 +427,13 @@ class VtcJoinClient {
   Future<Map<String, dynamic>> _ask(
     VtcCommunityEndpoint community,
     TrustTaskDocument request,
+  ) async => (await _exchange(community, request)).payload;
+
+  /// Sends [request] and returns the community's answer to it, after
+  /// checking that it answers [request] and is signed by the community.
+  Future<TrustTaskDocument> _exchange(
+    VtcCommunityEndpoint community,
+    TrustTaskDocument request,
   ) async {
     final answer = await _transport.send(community.trustTaskBase, request);
     if (answer.issuer != community.did || answer.threadId != request.id) {
@@ -434,7 +447,7 @@ class VtcJoinClient {
       resolver: ResolvedDocument(community.didDocument),
       expectedSigner: community.did,
     );
-    return answer.payload;
+    return answer;
   }
 
   /// Refuses cards the community did not issue to [persona]: a membership
@@ -465,7 +478,10 @@ class VtcJoinClient {
     }
   }
 
-  static JoinVerdict _verdict(Map<String, dynamic> payload) {
+  static JoinVerdict _verdict(
+    Map<String, dynamic> payload, {
+    required TrustTaskReceipt receipt,
+  }) {
     final requestId = payload['requestId'];
     final verdict = payload['verdict'];
     if (requestId is! String || verdict is! Map) {
@@ -488,7 +504,7 @@ class VtcJoinClient {
         },
         role: details['role'] is String ? details['role'] as String : null,
       ),
-      'refer' => JoinPending(requestId: requestId),
+      'refer' => JoinPending(requestId: requestId, receipt: receipt),
       'deny' => JoinDenied(
         requestId: requestId,
         reason: details['reason'] is String

@@ -463,7 +463,21 @@ void main() {
         'effect': 'refer',
         'with': {'queue': 'review'},
       };
-      expect(await apply(), isA<JoinPending>());
+      final pending = await apply();
+      expect(pending, isA<JoinPending>());
+      final receipt = (pending as JoinPending).receipt!;
+      final submit = vtc.received.last;
+      expect(receipt.type, JoinTask.submit);
+      expect(receipt.documentId, submit['id']);
+      expect(receipt.signer, agent.persona.did);
+      expect(receipt.cryptosuite, 'eddsa-jcs-2022');
+      expect(
+        receipt.verificationMethod,
+        (submit['proof'] as Map)['verificationMethod'],
+      );
+      expect(receipt.signedAt, isNotNull);
+      expect(receipt.answeredBy, vtcDid);
+      expect(receipt.answeredAt, isNotNull);
 
       vtc.verdict = {
         'effect': 'deny',
@@ -492,6 +506,7 @@ void main() {
 
       expect(verdict, isA<JoinPending>());
       expect(verdict.requestId, 'request-0');
+      expect((verdict as JoinPending).receipt, isNull);
     });
 
     test('passes other refusals on', () async {
@@ -748,6 +763,9 @@ void main() {
       final request = vtc.received.single;
       expect(request['issuer'], agent.persona.did);
       expect(request['payload'], {'requestId': 'request-1'});
+      expect(status.receipt?.type, JoinTask.status);
+      expect(status.receipt?.documentId, request['id']);
+      expect(status.receipt?.answeredBy, vtcDid);
     });
 
     test("gives the community's reason for a rejection", () async {
@@ -781,6 +799,20 @@ void main() {
         'requestId': 'request-1',
         'resendCredentials': true,
       });
+    });
+
+    test('reads a deferred request as still open', () async {
+      vtc.status = 'deferred';
+
+      final status = await client().status(
+        vtcDid,
+        requestId: 'request-1',
+        agent: agent,
+        persona: agent.signInPersona,
+      );
+
+      expect(status.status, JoinRequestStatus.deferred);
+      expect(status.status.isOpen, isTrue);
     });
 
     test('refuses an unknown status', () async {

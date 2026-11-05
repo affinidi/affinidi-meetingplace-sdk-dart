@@ -4,6 +4,8 @@ library;
 export 'src/community/community_import.dart';
 export 'src/community/community_profile.dart';
 export 'src/groups/group_admission.dart';
+export 'src/groups/group_chat_link.dart';
+export 'src/groups/group_join_proof.dart';
 export 'src/groups/vtc_group.dart';
 export 'src/groups/vtc_groups_client.dart';
 export 'src/join/join_models.dart';

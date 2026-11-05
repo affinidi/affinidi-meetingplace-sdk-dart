@@ -2,6 +2,9 @@ import 'package:dio/dio.dart';
 import 'package:ssi/ssi.dart';
 
 import 'community/community_import.dart';
+import 'groups/group_admission.dart';
+import 'groups/group_chat_link.dart';
+import 'groups/vtc_groups_client.dart';
 import 'join/vtc_join_client.dart';
 import 'meeting_place_vtc_sdk_exception.dart';
 import 'persona/persona_did_manager.dart';
@@ -108,6 +111,23 @@ class MeetingPlaceVtcSDK {
   /// A client that reads whether a credential's issuer revoked it.
   StatusListClient statusListClient() =>
       StatusListClient(didResolver: _didResolver, dio: _dio);
+
+  /// A client to read a community's groups as a member's persona.
+  VtcGroupsClient groupsClient() =>
+      VtcGroupsClient(didResolver: _didResolver, transport: _transport);
+
+  /// A verifier for requests to join a community group's chat.
+  GroupAdmissionVerifier groupAdmissionVerifier() => GroupAdmissionVerifier(
+    didResolver: _didResolver,
+    statusListClient: statusListClient(),
+  );
+
+  /// The link to a Meeting Place chat that the community published in the
+  /// DID document of its group [groupDid], or null when it published none.
+  ///
+  /// Throws when the group's DID cannot be resolved.
+  Future<GroupChatLink?> groupChatLink(String groupDid) async =>
+      GroupChatLink.fromDidDocument(await _didResolver.resolveDid(groupDid));
 
   /// A client to join communities.
   VtcJoinClient joinClient() =>

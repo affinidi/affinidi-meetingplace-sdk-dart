@@ -28,10 +28,6 @@ Trust Tasks in Dart. It is interoperable with other OpenVTC wallets, such as
   (`vault/credentials/receive`).
 - **Manual VTA link and community import** from membership cards that another
   app backed up to the VTA.
-- **Join phrases** (`CommunityOffer`): a community admin vouches, as their
-  persona, that a Meeting Place offer phrase leads to the community, showing
-  the admin role card the community issued them (`CommunityRoleCard`). A
-  member verifies the statement and takes only the community's DID from it.
 
 ## Key custody
 
@@ -114,31 +110,6 @@ switch (await join.apply(manifest, agent: vta, persona: signer)) {
     showOutcome();
 }
 ```
-
-Finding a community by a join phrase instead of its DID. The admin publishes
-the statement in a Meeting Place offer's contact card, under
-`CommunityOffer.contactInfoKey`; the member checks it against the phrase the
-offer is registered under:
-
-```dart
-// Admin: roleCard is the community's admin role card for the persona.
-final statement = await CommunityOffer.sign(
-  agent: vta,
-  persona: persona,
-  communityDid: communityDid,
-  phrase: 'my-club',
-  roleCard: roleCard,
-);
-
-// Member: throws unless an admin of the community signed it for this phrase.
-final communityDid = await CommunityOffer.verify(statement, phrase: offer.mnemonic);
-final manifest = await join.readManifest(communityDid);
-```
-
-Anyone can copy a published statement, but it only ever leads to the
-community it names, under the phrase it names, until the role card expires.
-A role card names no status list, so a demoted admin's statement holds until
-then.
 
 A community that admits a request later pushes the cards to the persona's
 messaging service. Personas created here advertise none, so the app only

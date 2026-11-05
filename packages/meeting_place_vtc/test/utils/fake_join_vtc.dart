@@ -120,6 +120,11 @@ class FakeJoinVtc {
   /// Answers a renewal for a DID other than the one that asked.
   bool renewalForOther = false;
 
+  /// The pages a vetter listing answers with, the next one per call; each
+  /// but the last names a `nextCursor`. None answers without vetters.
+  List<List<Map<String, dynamic>>> vetterPages = [[]];
+  int _vetterPage = 0;
+
   Future<(int, Object?)> handle(Map<String, dynamic> request) async {
     received.add(request);
     if (refusal case final payload?) {
@@ -203,6 +208,12 @@ class FakeJoinVtc {
             as Map<String, dynamic>,
         'personhood': false,
         'personhoodChanged': false,
+      },
+      VettingCommunityTask.vettersList when vetterPages.isEmpty =>
+        <String, dynamic>{},
+      VettingCommunityTask.vettersList => {
+        'vetters': vetterPages[_vetterPage],
+        if (++_vetterPage < vetterPages.length) 'nextCursor': 'page-2',
       },
       _ =>
         answerTo[type]?.call(request['payload'] as Map<String, dynamic>) ??

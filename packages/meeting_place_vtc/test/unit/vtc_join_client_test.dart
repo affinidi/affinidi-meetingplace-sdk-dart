@@ -1104,6 +1104,79 @@ void main() {
     });
   });
 
+  group('VtcJoinClient.listVetters', () {
+    Map<String, dynamic> vetter(String did, {String? name}) => {
+      'vetterDid': did,
+      'displayName': ?name,
+      'languages': ['de', 'en'],
+      'methods': ['inPerson', 'video'],
+      'acceptsDocumentation': ['passport'],
+      'events': [
+        {
+          'name': 'Club day',
+          'startDate': '2026-11-10',
+          'endDate': '2026-11-10',
+        },
+      ],
+      'location': {'country': 'DE', 'city': 'Berlin'},
+      'contactHint': 'At the club bar',
+      'grantValidUntil': '2027-11-01T00:00:00Z',
+      'updatedAt': '2026-11-01T00:00:00Z',
+    };
+
+    Future<List<ListedVetter>> listVetters() => client().listVetters(
+      vtcDid,
+      agent: agent,
+      persona: agent.signInPersona,
+    );
+
+    test('lists every page as the persona', () async {
+      vtc.vetterPages = [
+        [vetter('did:key:bob', name: 'Bob')],
+        [vetter('did:key:carol')],
+      ];
+
+      final vetters = await listVetters();
+
+      expect(vetters.map((v) => v.did), ['did:key:bob', 'did:key:carol']);
+      final bob = vetters.first;
+      expect(bob.displayName, 'Bob');
+      expect(bob.methods, [VettingMethod.inPerson, VettingMethod.video]);
+      expect(bob.languages, ['de', 'en']);
+      expect(bob.place, 'Berlin, DE');
+      expect(bob.events, ['Club day']);
+      expect(bob.contactHint, 'At the club bar');
+      final [first, second] = vtc.received;
+      expect(first['type'], VettingCommunityTask.vettersList);
+      expect(first['issuer'], agent.persona.did);
+      expect(first['payload'], {'limit': 100});
+      expect(second['payload'], {'limit': 100, 'cursor': 'page-2'});
+    });
+
+    test('leaves out a vetter it cannot read', () async {
+      vtc.vetterPages = [
+        [
+          {'vetterDid': 'did:key:dora', 'methods': <String>[]},
+          {
+            'methods': ['inPerson'],
+          },
+          vetter('did:key:bob'),
+        ],
+      ];
+
+      expect((await listVetters()).map((v) => v.did), ['did:key:bob']);
+    });
+
+    test('refuses an answer without vetters', () async {
+      vtc.vetterPages = [];
+
+      expect(
+        listVetters(),
+        _throwsCode(MeetingPlaceVtcSDKErrorCode.invalidDocument),
+      );
+    });
+  });
+
   group('VtcJoinClient.withdraw', () {
     Future<TrustTaskReceipt> withdraw() => client().withdraw(
       vtcDid,

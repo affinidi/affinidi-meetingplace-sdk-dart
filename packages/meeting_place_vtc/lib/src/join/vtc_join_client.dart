@@ -9,6 +9,7 @@ import '../transport/trust_task_http_transport.dart';
 import '../trust_task/trust_task_document.dart';
 import '../trust_task/trust_task_exchange.dart';
 import '../trust_task/trust_task_receipt.dart';
+import '../vetting/listed_vetter.dart';
 import '../vetting/vetting_requirements.dart';
 import '../vta/vta_models.dart';
 import '../vtc/community_exchange.dart';
@@ -33,6 +34,13 @@ abstract final class JoinTask {
   /// Withdraws the applicant's open request. A draft upstream: the version
   /// may change.
   static const withdraw = '$_base/withdraw/0.1';
+}
+
+/// The `vtc/vetting` Trust Task types this client sends.
+abstract final class VettingCommunityTask {
+  /// Lists the vetters the community lets applicants find.
+  static const vettersList =
+      'https://trusttasks.org/spec/vtc/vetting/vetters/list/0.1';
 }
 
 /// The `vtc/members` Trust Task types this client sends.
@@ -461,6 +469,45 @@ class VtcJoinClient {
       persona: persona.did,
     );
     return MembershipCards(membership: membership, role: role);
+  }
+
+  /// The most pages of vetters [listVetters] reads.
+  static const maxVetterPages = 10;
+
+  /// The vetters the community [communityDid] lists, asked as [persona]: the
+  /// community lists vetters only to callers it can identify. Reads up to
+  /// [maxVetterPages] pages, in the community's order.
+  ///
+  /// Throws [MeetingPlaceVtcSDKException] when the community refuses,
+  /// cannot be reached, or answers with something else.
+  Future<List<ListedVetter>> listVetters(
+    String communityDid, {
+    required SignInAgent agent,
+    required SignInPersona persona,
+  }) async {
+    final community = await _vtcResolver.resolveCommunity(communityDid);
+    final vetters = <ListedVetter>[];
+    String? cursor;
+    for (var page = 0; page < maxVetterPages; page++) {
+      final request = await _signedByPersona(
+        agent,
+        persona,
+        community,
+        type: VettingCommunityTask.vettersList,
+        payload: {'limit': 100, 'cursor': ?cursor},
+      );
+      final payload = await _ask(community, request);
+      final listed = payload['vetters'];
+      if (listed is! List) {
+        throw MeetingPlaceVtcSDKException.invalidDocument('no vetters');
+      }
+      vetters.addAll([for (final vetter in listed) ?ListedVetter.read(vetter)]);
+      cursor = payload['nextCursor'] is String
+          ? payload['nextCursor'] as String
+          : null;
+      if (cursor == null) break;
+    }
+    return vetters;
   }
 
   /// Confirms [persona]'s membership back to the community [communityDid]:

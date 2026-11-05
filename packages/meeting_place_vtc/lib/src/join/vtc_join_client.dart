@@ -386,7 +386,8 @@ class VtcJoinClient {
       type: MemberTask.selfRemove,
       payload: const {},
     );
-    final payload = await _ask(community, request);
+    final answer = await _exchange(community, request);
+    final payload = answer.payload;
     final disposition = payload['disposition'];
     final removed = payload['removed'];
     if (payload['did'] != persona.did ||
@@ -398,6 +399,7 @@ class VtcJoinClient {
       did: persona.did,
       disposition: disposition,
       removed: removed,
+      exchange: TrustTaskExchange(request: request, answer: answer),
     );
   }
 

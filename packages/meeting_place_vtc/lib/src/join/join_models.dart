@@ -408,6 +408,7 @@ class LeaveReceipt {
     required this.did,
     required this.disposition,
     required this.removed,
+    this.exchange,
   });
 
   /// The DID that left: the member's persona in the community.
@@ -419,4 +420,11 @@ class LeaveReceipt {
 
   /// Whether the community removed the member.
   final bool removed;
+
+  /// The signed request to leave and the community's verified answer, as
+  /// they were on the wire: what shows the member left.
+  final TrustTaskExchange? exchange;
+
+  /// What [exchange] shows, without its payloads.
+  TrustTaskReceipt? get receipt => exchange?.receipt;
 }

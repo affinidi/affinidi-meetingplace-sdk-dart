@@ -963,6 +963,17 @@ void main() {
       expect(receipt.removed, isTrue);
     });
 
+    test('keeps the signed request and answer', () async {
+      final receipt = await leave();
+
+      final exchange = receipt.exchange!;
+      expect(exchange.request.toJson(), vtc.received.single);
+      expect(exchange.answer.issuer, vtcDid);
+      expect(exchange.answer.threadId, exchange.request.id);
+      expect(exchange.answer.payload['disposition'], 'tombstone');
+      expect(receipt.receipt!.signer, agent.persona.did);
+    });
+
     test('refuses a receipt for another DID', () {
       vtc.leaveReceiptForOther = true;
 

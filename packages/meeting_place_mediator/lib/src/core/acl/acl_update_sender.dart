@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:didcomm/didcomm.dart';
+import 'package:ssi/ssi.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../loggers/meeting_place_mediator_sdk_logger.dart';
@@ -8,6 +9,7 @@ import 'acl_body.dart';
 import 'acl_management.dart';
 import 'acl_time_utils.dart';
 import 'trust_task_acl_body.dart';
+import 'trust_task_proof.dart';
 
 /// Runs [operation], retrying it on transient errors.
 typedef RetryRunner = Future<void> Function(Future<void> Function() operation);
@@ -43,14 +45,17 @@ class AclUpdateSender {
 
   /// Sends [acl] for [issuerDid] to the mediator [client] is connected to.
   ///
-  /// An action that changes nothing is skipped. An [AclBody] the SDK cannot
-  /// send as a Trust Task is sent with acl-management.
+  /// A Trust Task is signed by [signer], the issuer's authentication key,
+  /// when given and able to (see [TrustTaskProof.sign]). An action that
+  /// changes nothing is skipped. An [AclBody] the SDK cannot send as a
+  /// Trust Task is sent with acl-management.
   Future<void> send({
     required MediatorClient client,
     required String issuerDid,
     required AclBody acl,
     required int expiresInSeconds,
     required RetryRunner retry,
+    DidSigner? signer,
   }) async {
     final methodName = 'send';
     final mediatorDid = client.mediatorDidDocument.id;
@@ -95,10 +100,13 @@ class AclUpdateSender {
     try {
       await retry(() async {
         final createdTime = getCreatedTime();
+        final task = buildTask()!;
         await client.sendTrustTask(
           TrustTaskMessage(
             id: const Uuid().v4(),
-            document: buildTask()!,
+            document: signer == null
+                ? task
+                : await TrustTaskProof.sign(task, signer: signer),
             createdTime: createdTime,
             expiresTime: createdTime.add(Duration(seconds: expiresInSeconds)),
           ),

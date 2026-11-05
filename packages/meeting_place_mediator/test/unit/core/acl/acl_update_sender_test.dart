@@ -59,13 +59,14 @@ void main() {
 
   Future<void> runOnce(Future<void> Function() operation) => operation();
 
-  Future<void> send(AclBody acl, {RetryRunner? retry}) {
+  Future<void> send(AclBody acl, {RetryRunner? retry, DidSigner? signer}) {
     return sender.send(
       client: client,
       issuerDid: owner,
       acl: acl,
       expiresInSeconds: 60,
       retry: retry ?? runOnce,
+      signer: signer,
     );
   }
 
@@ -124,6 +125,38 @@ void main() {
             as TrustTaskMessage;
     expect(message.document.type, AccessListUpdateTask.taskType);
     expect(aclManagementMessages, isEmpty);
+  });
+
+  test('signs the Trust Task as the issuer when given a signer', () async {
+    answerTrustTasks();
+    final (keyPair, _) = Ed25519KeyPair.generate();
+
+    await send(
+      grantAccess,
+      signer: DidSigner(
+        did: owner,
+        didKeyId: '$owner#key-1',
+        keyPair: keyPair,
+        signatureScheme: SignatureScheme.ed25519,
+      ),
+    );
+
+    final message =
+        verify(() => client.sendTrustTask(captureAny())).captured.single
+            as TrustTaskMessage;
+    expect(message.document.proof?['verificationMethod'], '$owner#key-1');
+    expect(message.document.proof?['cryptosuite'], 'eddsa-jcs-2022');
+  });
+
+  test('sends the Trust Task unsigned without a signer', () async {
+    answerTrustTasks();
+
+    await send(grantAccess);
+
+    final message =
+        verify(() => client.sendTrustTask(captureAny())).captured.single
+            as TrustTaskMessage;
+    expect(message.document.proof, isNull);
   });
 
   test('builds a fresh task id on every retry', () async {

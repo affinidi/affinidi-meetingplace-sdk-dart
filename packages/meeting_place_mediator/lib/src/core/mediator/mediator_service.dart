@@ -438,6 +438,9 @@ class MediatorService {
         acl: acl,
         expiresInSeconds: expiresInSeconds,
         retry: _retry<void>,
+        signer: await ownerDidManager.getSigner(
+          ownerDidDocument.authentication.first.id,
+        ),
       );
 
       _logger.info(

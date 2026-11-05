@@ -34,6 +34,7 @@ export 'src/trust_task/trust_task_document.dart';
 export 'src/trust_task/trust_task_exchange.dart';
 export 'src/trust_task/trust_task_receipt.dart';
 export 'src/trust_task/trust_task_time.dart';
+export 'src/vetting/listed_vetter.dart';
 export 'src/vetting/vetting_card.dart';
 export 'src/vetting/vetting_requirements.dart';
 export 'src/vetting/vetting_statement.dart';

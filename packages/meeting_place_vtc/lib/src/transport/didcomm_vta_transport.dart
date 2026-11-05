@@ -135,6 +135,8 @@ class DidcommVtaTransport implements VtaTransport {
     );
     final forward = ForwardMessage(
       id: const Uuid().v4(),
+      // The mediator resolves the forward's signer from `from`.
+      from: _manager.did,
       to: [_mediatorDid!],
       next: vtaDid,
       expiresTime: DateTime.now().toUtc().add(const Duration(minutes: 30)),

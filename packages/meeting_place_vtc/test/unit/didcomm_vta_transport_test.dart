@@ -36,6 +36,7 @@ void main() {
       final answer = await transport.send(sent);
 
       final forward = vta.forwarded.single;
+      expect(forward.from, manager.did);
       expect(forward.to, [vta.mediatorDid]);
       expect(forward.next, vta.did);
       expect(vta.received.single, sent.toJson());

@@ -175,6 +175,25 @@ void main() {
         },
       );
 
+      test('reads the role of a card in hand', () {
+        expect(
+          CommunityImport.roleOf(
+            roleCard(actions: ['role:admin']),
+            _vtcDid,
+            _persona,
+          ),
+          'admin',
+        );
+        expect(
+          CommunityImport.roleOf(
+            roleCard(issuer: 'did:web:other.example'),
+            _vtcDid,
+            _persona,
+          ),
+          isNull,
+        );
+      });
+
       test('finds none while the VTA holds no role card', () async {
         vta.answers[VtaTask.credentialsQuery] = {'credentials': <Object>[]};
 

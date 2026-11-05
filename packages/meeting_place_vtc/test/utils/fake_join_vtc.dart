@@ -97,6 +97,25 @@ class FakeJoinVtc {
   /// Answers a leave for a DID other than the one that left.
   bool leaveReceiptForOther = false;
 
+  /// The cards a renewal answers with. [applicant] stands for the renewing
+  /// DID.
+  Map<String, dynamic> renewal = {
+    'vmc': {
+      'id': 'urn:uuid:vmc-2',
+      'type': ['VerifiableCredential', 'MembershipCredential'],
+      'issuer': vtcDid,
+      'credentialSubject': {'id': applicant},
+    },
+    'roleVac': {
+      'id': 'urn:uuid:vac-2',
+      'type': ['VerifiableCredential', 'AuthorityCredential'],
+      'issuer': vtcDid,
+    },
+  };
+
+  /// Answers a renewal for a DID other than the one that asked.
+  bool renewalForOther = false;
+
   Future<(int, Object?)> handle(Map<String, dynamic> request) async {
     received.add(request);
     if (refusal case final payload?) {
@@ -173,6 +192,13 @@ class FakeJoinVtc {
         'vmcId': 'urn:uuid:member-vmc',
         'status': 'stored',
         'requestId': ?(request['payload'] as Map)['requestId'],
+      },
+      MemberTask.renew => {
+        'did': renewalForOther ? 'did:key:other' : request['issuer'],
+        ..._withApplicant(renewal, request['issuer'] as String)
+            as Map<String, dynamic>,
+        'personhood': false,
+        'personhoodChanged': false,
       },
       _ => throw StateError('unexpected task'),
     };

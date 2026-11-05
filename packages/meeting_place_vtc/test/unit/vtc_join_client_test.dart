@@ -1013,6 +1013,65 @@ void main() {
     });
   });
 
+  group('VtcJoinClient.renew', () {
+    Future<MembershipCards?> renew() =>
+        client().renew(vtcDid, agent: agent, persona: agent.signInPersona);
+
+    test('returns the current cards, asked as the persona', () async {
+      final cards = await renew();
+
+      expect(cards!.membership['id'], 'urn:uuid:vmc-2');
+      expect(cards.role['id'], 'urn:uuid:vac-2');
+      final request = vtc.received.single;
+      expect(request['type'], MemberTask.renew);
+      expect(request['issuer'], agent.persona.did);
+      expect(request['recipient'], vtcDid);
+      expect(request['payload'], isEmpty);
+    });
+
+    test('returns null once the persona is no longer a member', () async {
+      vtc.refusal = {'code': MemberTask.notMember};
+
+      expect(await renew(), isNull);
+    });
+
+    test('passes other refusals on', () {
+      vtc.refusal = {'code': 'permissionDenied'};
+
+      expect(renew(), _throwsCode(MeetingPlaceVtcSDKErrorCode.refused));
+    });
+
+    test('refuses cards renewed for another DID', () {
+      vtc.renewalForOther = true;
+
+      expect(renew(), _throwsCode(MeetingPlaceVtcSDKErrorCode.invalidDocument));
+    });
+
+    test('refuses an answer without both cards', () {
+      vtc.renewal = {'vmc': vtc.renewal['vmc']};
+
+      expect(renew(), _throwsCode(MeetingPlaceVtcSDKErrorCode.invalidDocument));
+    });
+
+    test('refuses a role card another issuer issued', () {
+      vtc.renewal = {
+        ...vtc.renewal,
+        'roleVac': {
+          'type': ['VerifiableCredential', 'AuthorityCredential'],
+          'issuer': 'did:key:other',
+        },
+      };
+
+      expect(renew(), _throwsCode(MeetingPlaceVtcSDKErrorCode.invalidDocument));
+    });
+
+    test('refuses an answer not signed by the community', () {
+      vtc.signWithOtherKey = true;
+
+      expect(renew(), _throwsCode(MeetingPlaceVtcSDKErrorCode.invalidProof));
+    });
+  });
+
   group('VtcJoinClient.withdraw', () {
     Future<TrustTaskReceipt> withdraw() => client().withdraw(
       vtcDid,

@@ -75,7 +75,7 @@ class CommunityImport {
     for (final record in newestFirst) {
       final card = await _vta.credential(record.id);
       if (card == null) continue;
-      if (_roleOf(card, communityDid, personaDid) case final role?) {
+      if (roleOf(card, communityDid, personaDid) case final role?) {
         return role;
       }
     }
@@ -85,9 +85,10 @@ class CommunityImport {
   static DateTime _issuedAt(HeldCredential record) =>
       record.validFrom ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
 
-  /// The role [card] grants [personaDid] in [communityDid], when the
-  /// community issued it about that persona.
-  static String? _roleOf(
+  /// The role [card] grants [personaDid] in [communityDid], or null when
+  /// the community did not issue it about that persona. Does not verify
+  /// the card.
+  static String? roleOf(
     Map<String, dynamic> card,
     String communityDid,
     String personaDid,

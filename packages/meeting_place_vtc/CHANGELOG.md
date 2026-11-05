@@ -11,3 +11,4 @@
  - Add the `MeetingPlaceVtcSDK` entry point.
  - Add the join client (`vtc/join-requests/*`), persona creation and credential storage on the VTA.
  - Include the underlying cause in `MeetingPlaceVtcSDKException.toString`.
+ - Add `VtcJoinClient.renew` (`vtc/members/renew/0.1`) to fetch a member's current membership and role cards.

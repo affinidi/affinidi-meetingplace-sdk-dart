@@ -400,6 +400,22 @@ class JoinStatus {
   TrustTaskReceipt? get receipt => exchange?.receipt;
 }
 
+/// A member's current cards, as the community re-issued them
+/// (`vtc/members/renew/0.1`).
+class MembershipCards {
+  /// Creates [MembershipCards].
+  const MembershipCards({required this.membership, required this.role});
+
+  /// The membership card (VMC).
+  final Map<String, dynamic> membership;
+
+  /// The role card naming the member's role in the community.
+  final Map<String, dynamic> role;
+
+  /// Both cards, membership card first.
+  List<Map<String, dynamic>> get credentials => [membership, role];
+}
+
 /// The community's receipt for a member leaving it
 /// (`vtc/members/self-remove/0.1`).
 class LeaveReceipt {

@@ -47,6 +47,12 @@ abstract final class MemberTask {
   /// Changes the member's own card in the member directory.
   static const directoryCardUpdate =
       'https://trusttasks.org/spec/vtc/directory/card/update/0.1';
+
+  /// Re-issues the member's own membership and role cards.
+  static const renew = 'https://trusttasks.org/spec/vtc/members/renew/0.1';
+
+  /// Refusal code of a renewal by someone who is not a member.
+  static const notMember = 'vtc/members/renew:notMember';
 }
 
 /// Refusals of a confirmation naming a request the community no longer
@@ -261,7 +267,12 @@ class VtcJoinClient {
       exchange: TrustTaskExchange(request: request, answer: answer),
     );
     if (verdict is JoinAdmitted) {
-      _checkCards(verdict, community: community.did, persona: persona.did);
+      _checkCards(
+        membership: verdict.membershipCard,
+        role: verdict.roleCard,
+        community: community.did,
+        persona: persona.did,
+      );
     }
     return verdict;
   }
@@ -403,6 +414,55 @@ class VtcJoinClient {
     );
   }
 
+  /// Asks the community [communityDid] for [persona]'s current cards
+  /// (`vtc/members/renew/0.1`), which also tells whether the persona is
+  /// still a member.
+  ///
+  /// The community re-issues both cards on every call, at the role the
+  /// member holds now: this is how a member learns of a role change whose
+  /// pushed card never arrived. Returns `null` when the community says
+  /// [persona] is not a member.
+  ///
+  /// Throws [MeetingPlaceVtcSDKException] when the VTA or the community
+  /// refuses otherwise, cannot be reached, or answers with something else.
+  Future<MembershipCards?> renew(
+    String communityDid, {
+    required SignInAgent agent,
+    required SignInPersona persona,
+  }) async {
+    final community = await _vtcResolver.resolveCommunity(communityDid);
+    final request = await _signedByPersona(
+      agent,
+      persona,
+      community,
+      type: MemberTask.renew,
+      payload: const {},
+    );
+
+    final Map<String, dynamic> payload;
+    try {
+      payload = await _ask(community, request);
+    } on MeetingPlaceVtcSDKException catch (error) {
+      if (error.refusalCode == MemberTask.notMember) return null;
+      rethrow;
+    }
+
+    final membership = payload['vmc'];
+    final role = payload['roleVac'];
+    if (payload['did'] != persona.did ||
+        membership is! Map<String, dynamic> ||
+        role is! Map<String, dynamic>) {
+      throw MeetingPlaceVtcSDKException.invalidDocument('no renewed cards');
+    }
+    _checkCards(
+      membership: membership,
+      role: role,
+      community: community.did,
+      persona: persona.did,
+    );
+    return MembershipCards(membership: membership, role: role);
+  }
+
   /// Confirms [persona]'s membership back to the community [communityDid]:
   /// the VTA signs, as the persona, a membership credential bound to
   /// [communityCard], the card the community issued, and the community
@@ -511,12 +571,12 @@ class VtcJoinClient {
   /// card must be the community's `MembershipCredential` about the persona,
   /// a role card the community's `AuthorityCredential`. Their proofs are the
   /// VTA's to verify when it stores them.
-  static void _checkCards(
-    JoinAdmitted admitted, {
+  static void _checkCards({
+    required Map<String, dynamic>? membership,
+    required Map<String, dynamic>? role,
     required String community,
     required String persona,
   }) {
-    final membership = admitted.membershipCard;
     if (membership != null &&
         (!credentialTypes(membership).contains('MembershipCredential') ||
             credentialIssuer(membership) != community ||
@@ -525,7 +585,6 @@ class VtcJoinClient {
         'a membership card not issued by the community to this persona',
       );
     }
-    final role = admitted.roleCard;
     if (role != null &&
         (!credentialTypes(role).contains('AuthorityCredential') ||
             credentialIssuer(role) != community)) {

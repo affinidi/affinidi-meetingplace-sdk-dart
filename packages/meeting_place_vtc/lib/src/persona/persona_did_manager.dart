@@ -4,6 +4,7 @@ import 'package:ssi/ssi.dart';
 import 'package:x25519/x25519.dart' as x25519;
 
 import '../meeting_place_vtc_sdk_exception.dart';
+import '../proof/trust_task_signer.dart';
 
 /// The keys of a persona its VTA holds, borrowed for this session so DIDComm
 /// can sign in, seal and unseal as the persona.
@@ -111,6 +112,11 @@ class PersonaDidManager extends DidManager {
     throw StateError('not a persona key');
   }
 
+  /// Signs as the persona with its lent signing key, for documents the VTA
+  /// cannot sign because they name their signer other than as `issuer`,
+  /// such as a vetting card's `publisher`.
+  TrustTaskSigner get signer => _PersonaSigner(this);
+
   /// Zero-fills the key agreement key and refuses any key from now on.
   ///
   /// Best effort: Dart cannot wipe copies the runtime or `ssi` made, such as
@@ -196,4 +202,25 @@ class _X25519KeyPair extends KeyPair {
       throw UnsupportedError('a key agreement key does not decrypt');
 
   void forget() => _privateKey.fillRange(0, _privateKey.length, 0);
+}
+
+class _PersonaSigner implements TrustTaskSigner {
+  _PersonaSigner(this._manager);
+
+  final PersonaDidManager _manager;
+
+  @override
+  String get did => _manager.did;
+
+  @override
+  String get verificationMethod => _manager._signing.id;
+
+  @override
+  Future<Uint8List> sign(Uint8List data) {
+    if (_manager._isForgotten) throw StateError('persona keys forgotten');
+    return _manager._signing.sign(
+      data,
+      signatureScheme: SignatureScheme.ed25519,
+    );
+  }
 }

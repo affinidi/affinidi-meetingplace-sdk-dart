@@ -82,6 +82,10 @@ class FakeJoinVtc {
 
   final List<Map<String, dynamic>> received = [];
 
+  /// Answers to other tasks, by type, from the request's payload.
+  final Map<String, Map<String, dynamic> Function(Map<String, dynamic>)>
+  answerTo = {};
+
   /// Refusal codes for the next membership confirmations, one per call.
   final List<String> vmcRefusals = [];
 
@@ -200,7 +204,9 @@ class FakeJoinVtc {
         'personhood': false,
         'personhoodChanged': false,
       },
-      _ => throw StateError('unexpected task'),
+      _ =>
+        answerTo[type]?.call(request['payload'] as Map<String, dynamic>) ??
+            (throw StateError('unexpected task')),
     };
 
     final signer = signWithOtherKey

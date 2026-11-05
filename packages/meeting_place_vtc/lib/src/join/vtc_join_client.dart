@@ -3,7 +3,6 @@ import 'package:ssi/ssi.dart';
 import '../community/community_profile.dart';
 import '../credentials/credential_fields.dart';
 import '../meeting_place_vtc_sdk_exception.dart';
-import '../proof/eddsa_jcs_2022.dart';
 import '../proof/trust_task_signer.dart';
 import '../sign_in/sign_in_agent.dart';
 import '../transport/trust_task_http_transport.dart';
@@ -11,7 +10,7 @@ import '../trust_task/trust_task_document.dart';
 import '../trust_task/trust_task_exchange.dart';
 import '../trust_task/trust_task_receipt.dart';
 import '../vta/vta_models.dart';
-import '../vtc/resolved_document.dart';
+import '../vtc/community_exchange.dart';
 import '../vtc/service_endpoints.dart';
 import '../vtc/vtc_resolver.dart';
 import 'join_models.dart';
@@ -519,25 +518,19 @@ class VtcJoinClient {
   }
 
   /// A document of [type] from [persona] to [community], signed by the VTA.
-  ///
-  /// The community verifies the proof against the persona's DID document.
   Future<TrustTaskDocument> _signedByPersona(
     SignInAgent agent,
     SignInPersona persona,
     VtcCommunityEndpoint community, {
     required String type,
     required Map<String, dynamic> payload,
-  }) async {
-    final unsigned = TrustTaskDocument.create(
-      type: type,
-      issuer: persona.did,
-      recipient: community.did,
-      payload: payload,
-    ).toJson();
-    return TrustTaskDocument.fromJson(
-      await signAsPersona(agent, persona, unsigned),
-    );
-  }
+  }) => signedByPersona(
+    agent,
+    persona,
+    community,
+    type: type,
+    payload: payload,
+  );
 
   /// Sends [request] and returns the payload of the community's answer to
   /// it, after checking that answer.
@@ -551,21 +544,7 @@ class VtcJoinClient {
   Future<TrustTaskDocument> _exchange(
     VtcCommunityEndpoint community,
     TrustTaskDocument request,
-  ) async {
-    final answer = await _transport.send(community.trustTaskBase, request);
-    if (answer.issuer != community.did || answer.threadId != request.id) {
-      throw MeetingPlaceVtcSDKException.invalidDocument(
-        'not an answer from the community to this request',
-      );
-    }
-    await EddsaJcs2022.verify(
-      answer.toJson(),
-      purpose: ProofPurpose.authentication,
-      resolver: ResolvedDocument(community.didDocument),
-      expectedSigner: community.did,
-    );
-    return answer;
-  }
+  ) => exchangeWithCommunity(_transport, community, request);
 
   /// Refuses cards the community did not issue to [persona]: a membership
   /// card must be the community's `MembershipCredential` about the persona,

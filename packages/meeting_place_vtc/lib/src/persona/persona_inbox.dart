@@ -56,6 +56,19 @@ class IssuedCredential {
   final Map<String, dynamic> credential;
 }
 
+/// A Trust Task document a peer sent the persona, as it lies in the
+/// persona's inbox.
+class PeerDocument {
+  /// Creates a [PeerDocument].
+  const PeerDocument({required this.messageId, required this.document});
+
+  /// Id of the message in the inbox, to [PersonaInbox.remove] it by.
+  final String messageId;
+
+  /// The peer's signed document, exactly as received.
+  final TrustTaskDocument document;
+}
+
 /// What one look into the inbox found.
 class InboxPickup {
   /// Creates an [InboxPickup].
@@ -180,32 +193,61 @@ class PersonaInbox {
     String senderDid, {
     required bool Function(Map<String, dynamic> credential) accepts,
   }) async {
+    final messages = await _messages();
+    final credentials = <IssuedCredential>[];
+    for (final (id, raw) in messages) {
+      final issued = await _readIssue(id, raw, senderDid, accepts);
+      if (issued != null) credentials.add(issued);
+    }
+    return InboxPickup(waiting: messages.length, credentials: credentials);
+  }
+
+  /// The documents of [types] that [senderDid] sent the persona and signed,
+  /// oldest first as the mediator lists them. Leaves them there.
+  ///
+  /// Only an authcrypt message from [senderDid] counts, typed as the task
+  /// its document is, whose document [senderDid] issued to the persona and
+  /// signed for `authentication`. Throws [MeetingPlaceVtcSDKException] with
+  /// a `transportFailed` code when the inbox cannot be read.
+  Future<List<PeerDocument>> peerDocuments({
+    required String senderDid,
+    required Set<String> types,
+  }) async {
+    final documents = <PeerDocument>[];
+    for (final (id, raw) in await _messages()) {
+      final message = await _unpack(raw, authenticatedOnly: true);
+      if (message == null ||
+          message.from != senderDid ||
+          !types.contains(message.type.toString())) {
+        continue;
+      }
+      final document = await _readDocument(
+        message,
+        type: message.type.toString(),
+        issuerDid: senderDid,
+      );
+      if (document != null) {
+        documents.add(PeerDocument(messageId: id, document: document));
+      }
+    }
+    return documents;
+  }
+
+  /// Every message waiting, by id.
+  Future<List<(String, Map<String, dynamic>)>> _messages() async {
     final inbox = _openedInbox();
-    final List<String> ids;
     try {
-      ids = await inbox.listIds();
+      final messages = <(String, Map<String, dynamic>)>[];
+      for (final id in await inbox.listIds()) {
+        if (await inbox.fetch(id) case final raw?) messages.add((id, raw));
+      }
+      return messages;
     } catch (error) {
       throw MeetingPlaceVtcSDKException.transportFailed(
         'mediator inbox unreadable',
         innerException: error,
       );
     }
-    final credentials = <IssuedCredential>[];
-    for (final id in ids) {
-      final Map<String, dynamic>? raw;
-      try {
-        raw = await inbox.fetch(id);
-      } catch (error) {
-        throw MeetingPlaceVtcSDKException.transportFailed(
-          'mediator inbox unreadable',
-          innerException: error,
-        );
-      }
-      if (raw == null) continue;
-      final issued = await _readIssue(id, raw, senderDid, accepts);
-      if (issued != null) credentials.add(issued);
-    }
-    return InboxPickup(waiting: ids.length, credentials: credentials);
   }
 
   /// Deletes the messages [messageIds] from the inbox, once handled.
@@ -247,26 +289,61 @@ class PersonaInbox {
     String issuerDid,
     bool Function(Map<String, dynamic> credential) accepts,
   ) async {
-    final PlainTextMessage message;
+    final message = await _unpack(raw, authenticatedOnly: false);
+    if (message == null) return null;
+    if (message.from case final from? when from != issuerDid) return null;
+    if (message.type.toString() != trustTaskEnvelopeType) return null;
+    final document = await _readDocument(
+      message,
+      type: credentialIssueTask,
+      issuerDid: issuerDid,
+    );
+    if (document == null) return null;
+
+    final credential = switch (document.payload['credential_response']) {
+      {'credential': final Map<String, dynamic> credential} => credential,
+      _ => null,
+    };
+    if (credential == null || !accepts(credential)) return null;
+    return IssuedCredential(
+      messageId: messageId,
+      document: document,
+      credential: credential,
+    );
+  }
+
+  /// [raw] unpacked as a message sealed to the persona, or null when it is
+  /// not one, e.g. a TSP copy. Only authcrypt when [authenticatedOnly].
+  Future<PlainTextMessage?> _unpack(
+    Map<String, dynamic> raw, {
+    required bool authenticatedOnly,
+  }) async {
     try {
-      message = await DidcommMessage.unpackToPlainTextMessage(
+      return await DidcommMessage.unpackToPlainTextMessage(
         message: raw,
         recipientDidManager: _persona,
-        expectedMessageWrappingTypes: const [
+        expectedMessageWrappingTypes: [
           MessageWrappingType.authcryptPlaintext,
           MessageWrappingType.authcryptSignPlaintext,
-          MessageWrappingType.anoncryptPlaintext,
-          MessageWrappingType.anoncryptSignPlaintext,
-          MessageWrappingType.anoncryptAuthcryptPlaintext,
+          if (!authenticatedOnly) ...[
+            MessageWrappingType.anoncryptPlaintext,
+            MessageWrappingType.anoncryptSignPlaintext,
+            MessageWrappingType.anoncryptAuthcryptPlaintext,
+          ],
         ],
       );
     } catch (_) {
-      // Not DIDComm sealed to the persona, e.g. a TSP copy.
       return null;
     }
-    if (message.from case final from? when from != issuerDid) return null;
-    if (message.type.toString() != trustTaskEnvelopeType) return null;
+  }
 
+  /// [message]'s body read as a [type] document [issuerDid] issued to the
+  /// persona and signed, or null when it is anything else.
+  Future<TrustTaskDocument?> _readDocument(
+    PlainTextMessage message, {
+    required String type,
+    required String issuerDid,
+  }) async {
     final TrustTaskDocument document;
     try {
       document = TrustTaskDocument.fromJson(
@@ -275,7 +352,7 @@ class PersonaInbox {
     } on MeetingPlaceVtcSDKException {
       return null;
     }
-    if (document.type != credentialIssueTask ||
+    if (document.type != type ||
         document.issuer != issuerDid ||
         document.recipient != _persona.did) {
       return null;
@@ -290,17 +367,7 @@ class PersonaInbox {
     } on MeetingPlaceVtcSDKException {
       return null;
     }
-
-    final credential = switch (document.payload['credential_response']) {
-      {'credential': final Map<String, dynamic> credential} => credential,
-      _ => null,
-    };
-    if (credential == null || !accepts(credential)) return null;
-    return IssuedCredential(
-      messageId: messageId,
-      document: document,
-      credential: credential,
-    );
+    return document;
   }
 
   static Future<MediatorInbox> _openMediatorInbox({

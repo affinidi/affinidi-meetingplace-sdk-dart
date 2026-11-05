@@ -9,6 +9,7 @@ import 'join/vtc_join_client.dart';
 import 'meeting_place_vtc_sdk_exception.dart';
 import 'persona/persona_did_manager.dart';
 import 'persona/persona_inbox.dart';
+import 'persona/persona_messenger.dart';
 import 'proof/trust_task_signer.dart';
 import 'sign_in/oob_sign_in_client.dart';
 import 'sign_in/sign_in_agent.dart';
@@ -107,6 +108,11 @@ class MeetingPlaceVtcSDK {
     didResolver: _didResolver,
     openInbox: _openMediatorInbox,
   );
+
+  /// Sends Trust Tasks as [persona], whose keys its VTA lent
+  /// ([VtaClient.borrowPersonaKeys]), to other members such as a vetter.
+  PersonaMessenger personaMessenger(PersonaDidManager persona) =>
+      PersonaMessenger(persona: persona, didResolver: _didResolver);
 
   /// A client that reads whether a credential's issuer revoked it.
   StatusListClient statusListClient() =>

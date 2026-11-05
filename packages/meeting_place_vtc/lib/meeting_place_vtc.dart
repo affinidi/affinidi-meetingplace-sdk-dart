@@ -17,6 +17,7 @@ export 'src/sign_in/oob_sign_in_client.dart';
 export 'src/sign_in/sign_in_agent.dart';
 export 'src/sign_in/sign_in_failure.dart';
 export 'src/sign_in/sign_in_session.dart';
+export 'src/status/status_list_client.dart';
 export 'src/transport/didcomm_vta_transport.dart' hide vtaForwardMessageOptions;
 export 'src/transport/trust_task_http_transport.dart';
 export 'src/trigger_link/host_rules.dart';

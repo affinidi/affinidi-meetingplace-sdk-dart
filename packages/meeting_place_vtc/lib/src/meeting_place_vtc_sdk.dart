@@ -10,6 +10,7 @@ import 'proof/trust_task_signer.dart';
 import 'sign_in/oob_sign_in_client.dart';
 import 'sign_in/sign_in_agent.dart';
 import 'sign_in/sign_in_failure.dart';
+import 'status/status_list_client.dart';
 import 'transport/didcomm_vta_transport.dart';
 import 'transport/trust_task_http_transport.dart';
 import 'trigger_link/trigger_link.dart';
@@ -48,11 +49,13 @@ class MeetingPlaceVtcSDK {
     VtaMailboxOpener? openVtaMailbox,
     MediatorInboxOpener? openMediatorInbox,
   }) : _didResolver = didResolver ?? UniversalDIDResolver.defaultResolver,
+       _dio = dio,
        _transport = TrustTaskHttpTransport(dio: dio),
        _openVtaMailbox = openVtaMailbox,
        _openMediatorInbox = openMediatorInbox;
 
   final DidResolver _didResolver;
+  final Dio? _dio;
   final TrustTaskHttpTransport _transport;
   final VtaMailboxOpener? _openVtaMailbox;
   final MediatorInboxOpener? _openMediatorInbox;
@@ -101,6 +104,10 @@ class MeetingPlaceVtcSDK {
     didResolver: _didResolver,
     openInbox: _openMediatorInbox,
   );
+
+  /// A client that reads whether a credential's issuer revoked it.
+  StatusListClient statusListClient() =>
+      StatusListClient(didResolver: _didResolver, dio: _dio);
 
   /// A client to join communities.
   VtcJoinClient joinClient() =>

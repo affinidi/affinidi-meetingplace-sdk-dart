@@ -2,6 +2,7 @@ import 'package:didcomm/didcomm.dart' hide TrustTaskDocument;
 import 'package:ssi/ssi.dart';
 
 import '../credentials/credential_fields.dart';
+import '../groups/group_admission.dart';
 import '../meeting_place_vtc_sdk_exception.dart';
 import '../proof/eddsa_jcs_2022.dart';
 import '../transport/didcomm_vta_transport.dart';
@@ -139,7 +140,46 @@ class PersonaInbox {
   /// envelope may be authcrypt or anoncrypt; an authcrypt sender must be
   /// [issuerDid]. Throws [MeetingPlaceVtcSDKException] with a
   /// `transportFailed` code when the inbox cannot be read.
-  Future<InboxPickup> issuedCredentials({required String issuerDid}) async {
+  Future<InboxPickup> issuedCredentials({required String issuerDid}) =>
+      _pickUp(
+        issuerDid,
+        accepts: (credential) =>
+            credentialIssuer(credential) == issuerDid &&
+            credentialSubjects(credential).contains(_persona.did),
+      );
+
+  /// The credentials of the community [communityDid]'s groups [groupDids]
+  /// that wait in the inbox, each in a `credential-exchange/issue` document
+  /// the community signed for the persona: a group's membership credential
+  /// about the persona, issued by the group's DID, and the community's
+  /// authority credential to a group, which comes with it. Leaves them
+  /// there.
+  ///
+  /// Throws as [issuedCredentials] does.
+  Future<InboxPickup> groupCredentials({
+    required String communityDid,
+    required Set<String> groupDids,
+  }) => _pickUp(
+    communityDid,
+    accepts: (credential) {
+      final issuer = credentialIssuer(credential);
+      final subjects = credentialSubjects(credential);
+      final types = credentialTypes(credential);
+      return (groupDids.contains(issuer) &&
+              subjects.contains(_persona.did) &&
+              types.contains(GroupAdmissionVerifier.membershipType)) ||
+          (issuer == communityDid &&
+              subjects.any(groupDids.contains) &&
+              types.contains(GroupAdmissionVerifier.authorityType));
+    },
+  );
+
+  /// The credentials in `credential-exchange/issue` documents [senderDid]
+  /// signed for the persona that [accepts], waiting in the inbox.
+  Future<InboxPickup> _pickUp(
+    String senderDid, {
+    required bool Function(Map<String, dynamic> credential) accepts,
+  }) async {
     final inbox = _openedInbox();
     final List<String> ids;
     try {
@@ -162,7 +202,7 @@ class PersonaInbox {
         );
       }
       if (raw == null) continue;
-      final issued = await _readIssue(id, raw, issuerDid);
+      final issued = await _readIssue(id, raw, senderDid, accepts);
       if (issued != null) credentials.add(issued);
     }
     return InboxPickup(waiting: ids.length, credentials: credentials);
@@ -199,12 +239,13 @@ class PersonaInbox {
   MediatorInbox _openedInbox() =>
       _inbox ?? (throw StateError('persona inbox not open'));
 
-  /// [raw] read as [issuerDid]'s issue of a credential to the persona, or
-  /// null when it is anything else.
+  /// [raw] read as [issuerDid]'s issue to the persona of a credential that
+  /// [accepts], or null when it is anything else.
   Future<IssuedCredential?> _readIssue(
     String messageId,
     Map<String, dynamic> raw,
     String issuerDid,
+    bool Function(Map<String, dynamic> credential) accepts,
   ) async {
     final PlainTextMessage message;
     try {
@@ -254,11 +295,7 @@ class PersonaInbox {
       {'credential': final Map<String, dynamic> credential} => credential,
       _ => null,
     };
-    if (credential == null ||
-        credentialIssuer(credential) != issuerDid ||
-        !credentialSubjects(credential).contains(_persona.did)) {
-      return null;
-    }
+    if (credential == null || !accepts(credential)) return null;
     return IssuedCredential(
       messageId: messageId,
       document: document,

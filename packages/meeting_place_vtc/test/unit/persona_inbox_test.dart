@@ -198,6 +198,83 @@ void main() {
       expect(inbox.deleted, isEmpty);
     });
 
+    group('group credentials', () {
+      const groupDid = 'did:webvh:QmGroup:vtc.example:group-dids:g1';
+      const otherGroupDid = 'did:webvh:QmOther:vtc.example:group-dids:g2';
+
+      Map<String, dynamic> grant(String group) => {
+        '@context': ['https://www.w3.org/ns/credentials/v2'],
+        'type': [
+          'VerifiableCredential',
+          'DTGCredential',
+          'AuthorityCredential',
+        ],
+        'issuer': community.did,
+        'credentialSubject': {
+          'id': group,
+          'authority': {
+            'scope': community.did,
+            'actions': ['issue-membership'],
+          },
+        },
+      };
+
+      Future<InboxPickup> pickUp() async {
+        await personaInbox.open();
+        return personaInbox.groupCredentials(
+          communityDid: community.did,
+          groupDids: {groupDid},
+        );
+      }
+
+      test("picks up a group's card and the community's grant to the "
+          'group', () async {
+        inbox.messages
+          ..['card'] = await sealed(
+            (await issue(credential: card(issuer: groupDid))).toJson(),
+          )
+          ..['grant'] = await sealed(
+            (await issue(credential: grant(groupDid))).toJson(),
+          );
+
+        final pickup = await pickUp();
+
+        expect(
+          pickup.credentials.map((issued) => issued.messageId),
+          unorderedEquals(['card', 'grant']),
+        );
+      });
+
+      test("leaves other groups' credentials and the community's own "
+          'card', () async {
+        inbox.messages
+          ..['other-card'] = await sealed(
+            (await issue(credential: card(issuer: otherGroupDid))).toJson(),
+          )
+          ..['other-grant'] = await sealed(
+            (await issue(credential: grant(otherGroupDid))).toJson(),
+          )
+          ..['community-card'] = await sealed((await issue()).toJson());
+
+        final pickup = await pickUp();
+
+        expect(pickup.waiting, 3);
+        expect(pickup.credentials, isEmpty);
+      });
+
+      test('leaves a group card someone else sends', () async {
+        final stranger = Ed25519DidKeySigner.generate();
+        inbox.messages['card'] = await sealed(
+          (await issue(credential: card(issuer: groupDid))).toJson(),
+          from: stranger,
+        );
+
+        final pickup = await pickUp();
+
+        expect(pickup.credentials, isEmpty);
+      });
+    });
+
     test('removes only what it is asked to', () async {
       inbox.messages
         ..['m-1'] = await sealed((await issue()).toJson())

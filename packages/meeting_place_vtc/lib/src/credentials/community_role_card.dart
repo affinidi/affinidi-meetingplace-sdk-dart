@@ -57,7 +57,12 @@ abstract final class CommunityRoleCard {
         'role card of another community',
       );
     }
-    if (!_grants(card, communityDid, holderDid, action(role))) {
+    if (!grants(
+      card,
+      communityDid: communityDid,
+      holderDid: holderDid,
+      role: role,
+    )) {
       throw MeetingPlaceVtcSDKException.invalidDocument(
         'role card does not grant the role',
       );
@@ -71,12 +76,17 @@ abstract final class CommunityRoleCard {
     );
   }
 
-  static bool _grants(
-    Map<String, dynamic> card,
-    String communityDid,
-    String holderDid,
-    String action,
-  ) {
+  /// Whether [card], as it reads, grants [holderDid] [role] in
+  /// [communityDid]. Neither its issuer, its validity nor its proof is
+  /// checked: for a card the VTA verified when it kept it; [verify] checks
+  /// one received.
+  static bool grants(
+    Map<String, dynamic> card, {
+    required String communityDid,
+    required String holderDid,
+    required String role,
+  }) {
+    final grant = action(role);
     final subject = card['credentialSubject'];
     final subjects = subject is List ? subject : [subject];
     return subjects.any(
@@ -88,7 +98,7 @@ abstract final class CommunityRoleCard {
             'actions': final List<dynamic> actions,
           },
         } =>
-          id == holderDid && scope == communityDid && actions.contains(action),
+          id == holderDid && scope == communityDid && actions.contains(grant),
         _ => false,
       },
     );

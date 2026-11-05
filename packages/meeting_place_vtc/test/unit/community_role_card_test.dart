@@ -170,6 +170,22 @@ void main() {
     });
   });
 
+  test('CommunityRoleCard.grants reads the role a card grants', () async {
+    final admin = await card();
+
+    bool grants({String holder = _persona, String role = 'admin'}) =>
+        CommunityRoleCard.grants(
+          admin,
+          communityDid: community.did,
+          holderDid: holder,
+          role: role,
+        );
+
+    expect(grants(), isTrue);
+    expect(grants(role: 'member'), isFalse);
+    expect(grants(holder: 'did:webvh:someone-else'), isFalse);
+  });
+
   test('CommunityRoleCard.validUntil reads the end of the validity', () async {
     expect(
       CommunityRoleCard.validUntil(await card()),

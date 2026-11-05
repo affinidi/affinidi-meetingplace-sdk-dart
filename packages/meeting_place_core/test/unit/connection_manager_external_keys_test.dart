@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:didcomm/didcomm.dart';
@@ -39,12 +40,18 @@ class _ExternalKeys implements ExternalConnectionKeys {
   /// When set, lends this secret instead of the one asked for.
   Uint8List? wrongSecret;
 
+  /// The type of the agreement keys it creates: Ed25519, or P-256 as for
+  /// DIDs made before.
+  KeyType agreementType = KeyType.ed25519;
+
   @override
   Future<ExternalDidKeys?> createKeys(String did) async {
     if (isOff) return null;
     created++;
     final (signing, _) = Ed25519KeyPair.generate();
-    final (agreement, secret) = P256KeyPair.generate();
+    final (agreement, secret) = agreementType == KeyType.ed25519
+        ? _ed25519()
+        : P256KeyPair.generate();
     final agreementId = 'vta-agreement-$created';
     _secrets[agreementId] = secret;
     return byDid[did] = ExternalDidKeys(
@@ -110,11 +117,20 @@ void main() {
       final document = await didManager.getDidDocument();
 
       expect(externalKeys.byDid.keys, [document.id]);
-      expect(document.verificationMethod, hasLength(2));
+      // The agreement key, the X25519 key derived from it, and the signing
+      // key.
+      expect(document.verificationMethod, hasLength(3));
       final assertion = document.assertionMethod.single.id;
       final authentication = document.authentication.single.id;
-      expect(document.keyAgreement.single.id, authentication);
+      final agreement = document.keyAgreement.single.id;
       expect(assertion, isNot(authentication));
+      expect(agreement, isNot(authentication));
+      expect(
+        document.verificationMethod
+            .firstWhere((method) => method.id == agreement)
+            .toJson()['publicKeyMultibase'],
+        startsWith('z6LS'),
+      );
 
       final held = externalKeys.byDid[document.id]!;
       final assertionKey = await didManager.wallet.getPublicKey(
@@ -125,8 +141,12 @@ void main() {
       final agreementKey = await didManager.wallet.getPublicKey(
         (await didManager.getWalletKeyId(authentication))!,
       );
-      expect(agreementKey.type, KeyType.p256);
+      expect(agreementKey.type, KeyType.ed25519);
       expect(agreementKey.bytes, held.agreement.publicKey);
+      expect(
+        await didManager.getWalletKeyId(agreement),
+        await didManager.getWalletKeyId(authentication),
+      );
 
       expect(await deviceKeys.contains("m/44'/60'/0'/0'/2'"), isFalse);
       expect(externalKeys.lent, isEmpty);
@@ -184,6 +204,46 @@ void main() {
       ]);
     });
 
+    test('unseals for a DID made before on a P-256 agreement key', () async {
+      externalKeys.agreementType = KeyType.p256;
+      final didManager = await manager().generateDidWeb(
+        wallet,
+        baseHost: baseHost,
+      );
+      final document = await didManager.getDidDocument();
+      expect(
+        document.keyAgreement.single.id,
+        document.authentication.single.id,
+      );
+      final peer = await _peer(KeyType.p256);
+      final peerDocument = await peer.getDidDocument();
+      final message = PlainTextMessage(
+        id: 'urn:uuid:hello',
+        type: Uri.parse('https://example.com/hello'),
+        from: peerDocument.id,
+        to: [document.id],
+        body: const {'text': 'hello'},
+      );
+      final sealed = await EncryptedMessage.packWithAuthentication(
+        message,
+        keyPair: await peer.getKeyPairByDidKeyId(
+          peerDocument.keyAgreement.first.id,
+        ),
+        didKeyId: peerDocument.keyAgreement.first.id,
+        recipientDidDocuments: [document],
+      );
+
+      final opened = await DidcommMessage.unpackToPlainTextMessage(
+        message: sealed.toJson(),
+        recipientDidManager: didManager,
+        expectedMessageWrappingTypes: const [
+          MessageWrappingType.authcryptPlaintext,
+        ],
+      );
+
+      expect(opened.body, {'text': 'hello'});
+    });
+
     test('signs as the DID with the borrowed agreement key', () async {
       final didManager = await manager().generateDidWeb(
         wallet,
@@ -197,7 +257,7 @@ void main() {
         document.authentication.single.id,
       );
 
-      final held = P256KeyPair.fromPrivateKey(
+      final held = Ed25519KeyPair.fromSeed(
         await externalKeys.lendSecret(
           externalKeys.byDid[document.id]!.agreement.keyId,
         ),
@@ -211,7 +271,7 @@ void main() {
         baseHost: baseHost,
       );
       final document = await didManager.getDidDocument();
-      externalKeys.wrongSecret = P256KeyPair.generate().$2;
+      externalKeys.wrongSecret = _ed25519().$2;
 
       await expectLater(
         didManager.sign(
@@ -286,6 +346,15 @@ void main() {
 }
 
 /// A party that does not use a VTA: a P-256 did:key on its own device.
+/// A new Ed25519 key pair and its 32-byte seed, which a VTA lends.
+(Ed25519KeyPair, Uint8List) _ed25519() {
+  final random = Random.secure();
+  final seed = Uint8List.fromList(
+    List.generate(32, (_) => random.nextInt(256)),
+  );
+  return (Ed25519KeyPair.fromSeed(seed), seed);
+}
+
 /// The ids of [document]'s keys when one Ed25519 device key makes them: the
 /// key itself, which signs, and the X25519 key derived from it, which
 /// agrees keys.
@@ -303,9 +372,9 @@ Set<String> _deviceKeyIds(DidDocument document) {
   return {signing, agreement};
 }
 
-Future<DidManager> _peer() async {
+Future<DidManager> _peer([KeyType keyType = KeyType.ed25519]) async {
   final wallet = PersistentWallet(InMemoryKeyStore());
-  await wallet.generateKey(keyId: 'peer');
+  await wallet.generateKey(keyId: 'peer', keyType: keyType);
   final manager = DidKeyManager(store: InMemoryDidStore(), wallet: wallet);
   await manager.addVerificationMethod('peer');
   return manager;

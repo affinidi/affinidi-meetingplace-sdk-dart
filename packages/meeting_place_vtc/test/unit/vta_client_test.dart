@@ -1110,15 +1110,15 @@ void main() {
             'label': 'Meeting Place connections',
           },
           {
-            'keyType': 'p256',
+            'keyType': 'ed25519',
             'contextId': connectionKeysContextId,
             'label': 'Meeting Place connections',
           },
         ]);
         expect(keys.signing.keyId, 'key-ed25519');
         expect(keys.signing.publicKey, hasLength(32));
-        expect(keys.agreement.keyId, 'key-p256');
-        expect(keys.agreement.publicKey, hasLength(33));
+        expect(keys.agreement.keyId, 'key-ed25519');
+        expect(keys.agreement.publicKey, hasLength(32));
       });
 
       test('reuses the connections context', () async {
@@ -1140,11 +1140,7 @@ void main() {
           ],
         };
         vta.answerTo[VtaTask.keysCreate] = (payload) => {
-          'key': {
-            'keyId': 'key-1',
-            'keyType': 'ed25519',
-            'publicKey': ed25519Key,
-          },
+          'key': {'keyId': 'key-1', 'keyType': 'p256', 'publicKey': p256Key},
         };
 
         expect(
@@ -1155,7 +1151,27 @@ void main() {
     });
 
     group('lendConnectionKey', () {
-      test('borrows a P-256 secret over DIDComm', () async {
+      test('borrows an Ed25519 seed over DIDComm', () async {
+        final seed = Uint8List.fromList(List.generate(32, (i) => i + 1));
+        vta.exportedKeys['key-ed25519'] = {
+          'keyId': 'key-ed25519',
+          'keyType': 'ed25519',
+          'privateKeyMultibase': toMultiBase(
+            Uint8List.fromList([0x80, 0x26, ...seed]),
+          ),
+        };
+
+        final lent = await client.lendConnectionKey('key-ed25519');
+
+        expect(lent, seed);
+        expect(
+          vta.received.single,
+          containsPair('payload', {'keyId': 'key-ed25519'}),
+        );
+        expect(vta.forwarded, hasLength(1));
+      });
+
+      test('borrows the P-256 secret of a key created before', () async {
         final secret = Uint8List.fromList(List.generate(32, (i) => i + 1));
         vta.exportedKeys['key-p256'] = {
           'keyId': 'key-p256',
@@ -1178,7 +1194,7 @@ void main() {
       test('refuses a secret of another type', () {
         vta.exportedKeys['key-p256'] = {
           'privateKeyMultibase': toMultiBase(
-            Uint8List.fromList([0x80, 0x26, ...List.filled(32, 1)]),
+            Uint8List.fromList([0x82, 0x26, ...List.filled(32, 1)]),
           ),
         };
 

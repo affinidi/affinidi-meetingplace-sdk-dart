@@ -133,9 +133,6 @@ const _connectionKeysLabel = 'Meeting Place connections';
 /// Multicodec prefix of an Ed25519 public key.
 const _ed25519Codec = [0xed, 0x01];
 
-/// Multicodec prefix of a compressed P-256 public key.
-const _p256Codec = [0x80, 0x24];
-
 /// Vault secret kind of a persona's sign-in entry, as `vault/upsert/0.4`
 /// spells it.
 const didSelfIssuedSecretKind = 'didSelfIssued';
@@ -349,8 +346,10 @@ class VtaClient implements PersonaSigningAgent {
   ///
   /// - `signing`, an Ed25519 key that signs its credentials. Its private key
   ///   never leaves the VTA: the VTA signs with it through [signDocument].
-  /// - `agreement`, a P-256 key it signs in and agrees keys with, which the
-  ///   VTA lends through [lendConnectionKey] when DIDComm needs it.
+  /// - `agreement`, an Ed25519 key it signs in with and, as the X25519 key
+  ///   derived from it, agrees keys with. The VTA lends it through
+  ///   [lendConnectionKey] when DIDComm needs it. Ed25519, so the DID agrees
+  ///   keys over X25519, the curve every DIDComm mediator supports.
   ///
   /// The keys live in [connectionKeysContextId], which is created on first
   /// use. Throws [MeetingPlaceVtcSDKException] when the VTA refuses or
@@ -365,21 +364,33 @@ class VtaClient implements PersonaSigningAgent {
         length: 32,
       ),
       agreement: await _createConnectionKey(
-        'p256',
-        codec: _p256Codec,
-        length: 33,
+        'ed25519',
+        codec: _ed25519Codec,
+        length: 32,
       ),
     );
   }
 
-  /// Borrows the private half of the connection key [keyId], a P-256 key
-  /// from [createConnectionKeys], as its 32 bytes.
+  /// Borrows the private half of the connection key [keyId] from
+  /// [createConnectionKeys], as its 32 bytes: an Ed25519 seed, or, for a key
+  /// created before, a P-256 private key.
   ///
   /// The VTA lends keys over DIDComm only, and audits each loan. Keep the
   /// key in memory and zero-fill it when done. Throws
   /// [MeetingPlaceVtcSDKException] refused when the VTA will not lend it.
-  Future<Uint8List> lendConnectionKey(String keyId) =>
-      _exportKey(keyId, prefix: _p256SecretPrefix, keyType: 'p256');
+  Future<Uint8List> lendConnectionKey(String keyId) async {
+    final answer = await _task(VtaTask.exportSecret, {'keyId': keyId});
+    for (final (prefix, keyType) in const [
+      (_ed25519SecretPrefix, 'ed25519'),
+      (_p256SecretPrefix, 'p256'),
+    ]) {
+      if (_readSecret(answer, prefix: prefix, keyType: keyType)
+          case final key?) {
+        return key;
+      }
+    }
+    throw MeetingPlaceVtcSDKException.invalidDocument('lent key unreadable');
+  }
 
   Future<VtaConnectionKey> _createConnectionKey(
     String keyType, {
@@ -748,6 +759,22 @@ class VtaClient implements PersonaSigningAgent {
     required String keyType,
   }) async {
     final answer = await _task(VtaTask.exportSecret, {'keyId': keyId});
+    return _readSecret(answer, prefix: prefix, keyType: keyType) ??
+        (throw MeetingPlaceVtcSDKException.invalidDocument(
+          'lent key unreadable',
+        ));
+  }
+
+  /// The private key in a `keys/export-secret` [answer]: a Multikey with
+  /// [prefix], or a bare key when the answer names it [keyType]; null when
+  /// it is neither.
+  ///
+  /// Throws [MeetingPlaceVtcSDKException] when the answer holds no key.
+  static Uint8List? _readSecret(
+    Map<String, dynamic> answer, {
+    required List<int> prefix,
+    required String keyType,
+  }) {
     final multibase = answer['privateKeyMultibase'];
     final Uint8List decoded;
     try {
@@ -764,7 +791,7 @@ class VtaClient implements PersonaSigningAgent {
         '${answer['keyType']}'.toLowerCase().contains(keyType);
     if (!hasPrefix && !isBare) {
       decoded.fillRange(0, decoded.length, 0);
-      throw MeetingPlaceVtcSDKException.invalidDocument('lent key unreadable');
+      return null;
     }
     final key = Uint8List.fromList(
       hasPrefix ? decoded.sublist(prefix.length) : decoded,

@@ -23,8 +23,10 @@ class ExternalDidKeys {
   /// holder: credentials are signed there.
   final ExternalKey signing;
 
-  /// A P-256 key, the DID's authentication and key agreement method. Its
-  /// holder lends it to this device when DIDComm needs it.
+  /// The DID's authentication and key agreement key, which its holder lends
+  /// to this device when DIDComm needs it: an Ed25519 key, from which the
+  /// DID publishes an X25519 key for agreement, or, for a DID made before,
+  /// a P-256 key.
   final ExternalKey agreement;
 }
 
@@ -33,10 +35,11 @@ class ExternalDidKeys {
 ///
 /// A permanent channel DID made while these keys are configured carries two
 /// keys: an Ed25519 key, its only assertion method, that signs credentials
-/// where it is held; and a P-256 key, for authentication and key agreement,
-/// that is lent to this device when it signs in, seals or unseals.
-/// P-256 because the parties and mediators Meeting Place talks to agree
-/// keys on that curve.
+/// where it is held; and an agreement key, for authentication and key
+/// agreement, that is lent to this device when it signs in, seals or
+/// unseals. The agreement key is Ed25519, so the DID agrees keys over
+/// X25519, the curve every DIDComm mediator supports; a DID made before
+/// keeps the P-256 key it was made with.
 abstract interface class ExternalConnectionKeys {
   /// Creates the keys of the new permanent channel DID [did], and remembers
   /// them for [findKeys]. Returns null when there is nowhere to hold them,
@@ -56,7 +59,8 @@ abstract interface class ExternalConnectionKeys {
     required String keyId,
   });
 
-  /// Lends the 32-byte P-256 private key [keyId].
+  /// Lends the 32-byte private key [keyId]: an Ed25519 seed, or a P-256
+  /// private key for a DID made before.
   ///
   /// The secret must stay in memory: never write or log it. An
   /// implementation may hold it for the session so each message does not
@@ -97,8 +101,8 @@ class ExternalKeyWallet implements Wallet {
       _add(_agreementKeys, key, kind: 'agreement');
 
   /// Whether [walletKeyId] names an external key.
-  bool isExternal(String walletKeyId) => _isSigning(walletKeyId) ||
-      _isAgreement(walletKeyId);
+  bool isExternal(String walletKeyId) =>
+      _isSigning(walletKeyId) || _isAgreement(walletKeyId);
 
   /// Returns [document] signed by the external signing key [walletKeyId],
   /// as the DID that [document] names as its `issuer`.
@@ -135,7 +139,10 @@ class ExternalKeyWallet implements Wallet {
     final secret = await externalKeys.lendSecret(key.keyId);
     final KeyPair keyPair;
     try {
-      keyPair = P256KeyPair.fromPrivateKey(secret, id: walletKeyId);
+      keyPair = switch (_agreementType(key)) {
+        KeyType.ed25519 => Ed25519KeyPair.fromSeed(secret, id: walletKeyId),
+        _ => P256KeyPair.fromPrivateKey(secret, id: walletKeyId),
+      };
     } finally {
       secret.fillRange(0, secret.length, 0);
     }
@@ -144,6 +151,15 @@ class ExternalKeyWallet implements Wallet {
     }
     return keyPair;
   }
+
+  /// The type of the agreement key [key]: Ed25519 for a 32-byte public key,
+  /// and P-256, compressed to 33 bytes, for a DID made before.
+  static KeyType _agreementType(ExternalKey key) =>
+      key.publicKey.length == _ed25519PublicKeyLength
+      ? KeyType.ed25519
+      : KeyType.p256;
+
+  static const _ed25519PublicKeyLength = 32;
 
   static bool _isSame(List<int> a, List<int> b) {
     if (a.length != b.length) return false;
@@ -163,7 +179,7 @@ class ExternalKeyWallet implements Wallet {
       return PublicKey(keyId, key.publicKey, KeyType.ed25519);
     }
     if (_agreementKeys[keyId] case final key?) {
-      return PublicKey(keyId, key.publicKey, KeyType.p256);
+      return PublicKey(keyId, key.publicKey, _agreementType(key));
     }
     return device.getPublicKey(keyId);
   }
@@ -171,8 +187,12 @@ class ExternalKeyWallet implements Wallet {
   @override
   Future<List<SignatureScheme>> getSupportedSignatureSchemes(String keyId) {
     if (_isSigning(keyId)) return Future.value(const [SignatureScheme.ed25519]);
-    if (_isAgreement(keyId)) {
-      return Future.value(const [SignatureScheme.ecdsa_p256_sha256]);
+    if (_agreementKeys[keyId] case final key?) {
+      return Future.value([
+        _agreementType(key) == KeyType.ed25519
+            ? SignatureScheme.ed25519
+            : SignatureScheme.ecdsa_p256_sha256,
+      ]);
     }
     return device.getSupportedSignatureSchemes(keyId);
   }

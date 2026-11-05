@@ -48,9 +48,10 @@ class CommunityImport {
         .firstOrNull;
   }
 
-  /// Every membership card the VTA holds, of any community and persona.
-  Future<List<Map<String, dynamic>>> membershipCards() =>
-      _vta.credentials(_membershipPurpose);
+  /// Every membership card the VTA holds, of any community and persona,
+  /// each with the VTA's record of it.
+  Future<List<StoredCredential>> membershipCards() =>
+      _vta.storedCredentials(_membershipPurpose);
 
   /// Archives the membership cards [communityDid] issued to [personaDid] on
   /// the VTA, once the persona left: neither [find] nor another app of the

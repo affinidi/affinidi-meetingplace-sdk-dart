@@ -841,17 +841,20 @@ class VtaClient implements PersonaSigningAgent {
   /// vault's own id for each, which [archiveCredential] takes.
   Future<Map<String, Map<String, dynamic>>> heldCredentials(
     String purpose,
-  ) async {
-    final answer = await _task(VtaTask.credentialsQuery, {'purpose': purpose});
-    final ids = _ids(answer['credentials']);
+  ) async => {
+    for (final stored in await storedCredentials(purpose))
+      stored.record.id: stored.credential,
+  };
 
-    final credentials = <String, Map<String, dynamic>>{};
-    for (final id in ids) {
-      if (await credential(id) case final credential?) {
-        credentials[id] = credential;
-      }
-    }
-    return credentials;
+  /// Returns the credentials stored in the vault for [purpose], each with
+  /// the vault's record of it.
+  Future<List<StoredCredential>> storedCredentials(String purpose) async {
+    final answer = await _task(VtaTask.credentialsQuery, {'purpose': purpose});
+    return [
+      for (final record in _heldOf(_maps(answer['credentials'])))
+        if (await credential(record.id) case final credential?)
+          StoredCredential(record: record, credential: credential),
+    ];
   }
 
   /// Returns the stored credential [id], or null when the vault answers
@@ -876,24 +879,35 @@ class VtaClient implements PersonaSigningAgent {
       'subjectDid': ?subjectDid,
       'status': 'valid',
     });
-    return [
-      for (final descriptor in _maps(answer['credentials']))
-        if ((descriptor['id'], descriptor['types']) case (
-          final String id,
-          final List<dynamic> types,
-        ))
-          HeldCredential(
-            id: id,
-            types: List.unmodifiable(types.whereType<String>()),
-            issuerDid: descriptor['issuerDid'] is String
-                ? descriptor['issuerDid'] as String
-                : null,
-            validUntil: descriptor['validUntil'] is String
-                ? DateTime.tryParse(descriptor['validUntil'] as String)
-                : null,
-          ),
-    ];
+    // A description without types cannot be matched to what is asked.
+    return _heldOf(
+      _maps(answer['credentials']).where((d) => d['types'] is List),
+    );
   }
+
+  /// The vault's descriptions of credentials in a query answer.
+  static List<HeldCredential> _heldOf(
+    Iterable<Map<String, dynamic>> descriptors,
+  ) => [
+    for (final descriptor in descriptors)
+      if (descriptor['id'] case final String id)
+        HeldCredential(
+          id: id,
+          types: switch (descriptor['types']) {
+            final List<dynamic> types => List.unmodifiable(
+              types.whereType<String>(),
+            ),
+            _ => const [],
+          },
+          issuerDid: _stringOf(descriptor['issuerDid']),
+          validFrom: DateTime.tryParse('${descriptor['validFrom']}'),
+          validUntil: DateTime.tryParse('${descriptor['validUntil']}'),
+          purpose: _stringOf(descriptor['purpose']),
+          status: _stringOf(descriptor['status']),
+        ),
+  ];
+
+  static String? _stringOf(Object? value) => value is String ? value : null;
 
   /// Finds a held credential made out to [subjectDid] for each credential
   /// [request] asks for, from an issuer it admits for the community

@@ -235,7 +235,10 @@ class HeldCredential {
     required this.id,
     required this.types,
     this.issuerDid,
+    this.validFrom,
     this.validUntil,
+    this.purpose,
+    this.status,
   });
 
   /// The vault's own handle for it, which the VTA client's `credential`
@@ -248,8 +251,31 @@ class HeldCredential {
   /// The DID that issued it, when the vault says.
   final String? issuerDid;
 
+  /// When it starts being valid, when it says.
+  final DateTime? validFrom;
+
   /// When it stops being valid, when it says.
   final DateTime? validUntil;
+
+  /// What the vault files it under, e.g. `membership`, when it knows.
+  final String? purpose;
+
+  /// Whether the vault holds it valid, e.g. `valid`, `expired`, `revoked`
+  /// or `unknown`, as it last read its issuer's status.
+  final String? status;
+}
+
+/// A credential the vault holds: the vault's record of it, and the
+/// credential itself.
+class StoredCredential {
+  /// Creates a [StoredCredential].
+  const StoredCredential({required this.record, required this.credential});
+
+  /// What the vault keeps about it.
+  final HeldCredential record;
+
+  /// The credential exactly as the vault keeps it.
+  final Map<String, dynamic> credential;
 }
 
 /// A credential presented to one verifier (`vault/credentials/present/0.1`).

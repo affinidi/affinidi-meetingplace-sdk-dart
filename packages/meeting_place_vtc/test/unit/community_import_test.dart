@@ -78,9 +78,27 @@ void main() {
         },
       };
 
+      vta.answers[VtaTask.credentialsQuery] = {
+        'credentials': [
+          {
+            'id': 'card-1',
+            'types': ['VerifiableCredential', 'MembershipCredential'],
+            'purpose': 'membership',
+            'status': 'valid',
+            'validUntil': '2027-11-04T10:00:00Z',
+          },
+        ],
+      };
+
       final cards = await CommunityImport(client).membershipCards();
 
-      expect(cards.single['id'], 'urn:uuid:vmc');
+      expect(cards.single.credential['id'], 'urn:uuid:vmc');
+      final record = cards.single.record;
+      expect(record.id, 'card-1');
+      expect(record.types, contains('MembershipCredential'));
+      expect(record.purpose, 'membership');
+      expect(record.status, 'valid');
+      expect(record.validUntil, DateTime.utc(2027, 11, 4, 10));
       expect(
         vta.received
             .where((task) => task['type'] == VtaTask.credentialsQuery)

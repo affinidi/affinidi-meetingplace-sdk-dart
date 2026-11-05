@@ -239,9 +239,10 @@ class MeetingPlaceCoreSDK {
   ///   [MeetingPlaceTransport] for channel operations. If omitted, channel
   ///   operations are no-ops.
   /// - [options]: Instance of [MeetingPlaceCoreSDKOptions]
-  /// - [externalSigningKeys]: Optional keys held outside this device, such
-  ///   as on the member's VTA, that sign credentials as each new permanent
-  ///   channel DID. The device keeps authentication and key agreement.
+  /// - [externalConnectionKeys]: Optional keys held outside this device, such
+  ///   as on the member's VTA, for each new permanent channel DID. The
+  ///   signing key never leaves its holder; the agreement key is lent to
+  ///   this device, in memory, when DIDComm needs it.
   ///
   /// **Returns:**
   /// - [MeetingPlaceCoreSDK] instance with all the required instance
@@ -254,7 +255,7 @@ class MeetingPlaceCoreSDK {
     channelTransportFactory,
     MeetingPlaceCoreSDKOptions options = const MeetingPlaceCoreSDKOptions(),
     MeetingPlaceCoreSDKLogger? logger,
-    ExternalSigningKeys? externalSigningKeys,
+    ExternalConnectionKeys? externalConnectionKeys,
   }) async {
     final methodName = 'create';
     final mediatorDid = config.mediatorDid;
@@ -299,7 +300,7 @@ class MeetingPlaceCoreSDK {
 
     final connectionManager = ConnectionManager(
       keyRepository: repositoryConfig.keyRepository,
-      externalSigningKeys: externalSigningKeys,
+      externalConnectionKeys: externalConnectionKeys,
       logger: mpxLogger,
     );
 

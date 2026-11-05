@@ -7,20 +7,20 @@ import '../../loggers/meeting_place_core_sdk_logger.dart';
 import '../../repository/key_repository.dart';
 import '../../utils/string.dart';
 import 'connection_manager_exception.dart';
-import 'external_signing_keys.dart';
+import 'external_connection_keys.dart';
 
 class ConnectionManager {
   /// Creates a [ConnectionManager].
   ///
-  /// With [externalSigningKeys], each new permanent channel DID gets an
-  /// external key as its only assertion method, so its credentials are
-  /// signed where that key is held.
+  /// With [externalConnectionKeys], each new permanent channel DID is made
+  /// of keys held outside this device: one that signs its credentials where
+  /// it is held, and one lent to this device for DIDComm.
   ConnectionManager({
     required KeyRepository keyRepository,
-    ExternalSigningKeys? externalSigningKeys,
+    ExternalConnectionKeys? externalConnectionKeys,
     MeetingPlaceCoreSDKLogger? logger,
   }) : _keyRepository = keyRepository,
-       _externalSigningKeys = externalSigningKeys,
+       _externalConnectionKeys = externalConnectionKeys,
        _logger =
            logger ?? DefaultMeetingPlaceCoreSDKLogger(className: _className);
 
@@ -29,7 +29,7 @@ class ConnectionManager {
   static const String lastConnectionIndexPrefix = 'lastConnectionIndex_';
 
   final KeyRepository _keyRepository;
-  final ExternalSigningKeys? _externalSigningKeys;
+  final ExternalConnectionKeys? _externalConnectionKeys;
   final String _rootKeyId = "m/44'/60'/0'/0'/0'";
   final Mutex _mutex = Mutex();
   final MeetingPlaceCoreSDKLogger _logger;
@@ -152,25 +152,26 @@ class ConnectionManager {
     return didManager;
   }
 
-  /// A did:web manager for the device key [keyId]. A new DID gets an
-  /// external key when [ExternalSigningKeys] are configured and offer one;
-  /// an existing one keeps the key it was made with, or none.
+  /// A did:web manager at [domain]. A new DID is made of external keys when
+  /// [ExternalConnectionKeys] are configured and offer them, and otherwise
+  /// of the device key [keyId]; an existing one keeps the keys it was made
+  /// with.
   Future<DidManager> _initDidWebManager({
     required Wallet wallet,
     required String keyId,
     required Uri domain,
     required bool isNew,
   }) async {
-    await wallet.generateKey(keyId: keyId);
     final did = DidWeb.getDid(domain);
-    final externalKeys = _externalSigningKeys;
-    final externalKey = externalKeys == null
+    final externalKeys = _externalConnectionKeys;
+    final heldKeys = externalKeys == null
         ? null
         : isNew
-        ? await externalKeys.createKey(did)
-        : await externalKeys.findKey(did);
+        ? await externalKeys.createKeys(did)
+        : await externalKeys.findKeys(did);
 
-    if (externalKeys == null || externalKey == null) {
+    if (externalKeys == null || heldKeys == null) {
+      await wallet.generateKey(keyId: keyId);
       final didManager = DidWebManager(
         store: InMemoryDidStore(),
         wallet: wallet,
@@ -194,14 +195,14 @@ class ConnectionManager {
       domain: domain,
     );
     await didManager.addVerificationMethod(
-      keyId,
+      externalWallet.addAgreementKey(heldKeys.agreement),
       relationships: {
         VerificationRelationship.authentication,
         VerificationRelationship.keyAgreement,
       },
     );
     await didManager.addVerificationMethod(
-      externalWallet.add(externalKey),
+      externalWallet.addSigningKey(heldKeys.signing),
       relationships: {VerificationRelationship.assertionMethod},
     );
     return didManager;

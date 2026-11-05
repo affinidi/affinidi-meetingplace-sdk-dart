@@ -10,7 +10,7 @@ import '../meeting_place_credentials_sdk_exception.dart';
 abstract final class CredentialSigner {
   /// Signs [unsigned] using the first assertion method key from [manager].
   ///
-  /// A key held outside this device, through [ExternalSigningKeys], signs
+  /// A key held outside this device, through [ExternalConnectionKeys], signs
   /// with `eddsa-jcs-2022` where it is held; a device key signs with
   /// `ecdsa-jcs-2019`.
   ///

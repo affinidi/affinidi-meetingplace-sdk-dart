@@ -133,6 +133,9 @@ const _connectionKeysLabel = 'Meeting Place connections';
 /// Multicodec prefix of an Ed25519 public key.
 const _ed25519Codec = [0xed, 0x01];
 
+/// Multicodec prefix of a compressed P-256 public key.
+const _p256Codec = [0x80, 0x24];
+
 /// Vault secret kind of a persona's sign-in entry, as `vault/upsert/0.4`
 /// spells it.
 const didSelfIssuedSecretKind = 'didSelfIssued';
@@ -175,9 +178,10 @@ class VtaClient implements PersonaSigningAgent {
     r'(?<![\w:.#/-])(?!did:)[a-z][a-z-]*(?:/[a-z0-9.-]+)+:([A-Za-z_]+)',
   );
 
-  /// Multicodec prefixes of an Ed25519 and an X25519 private key.
+  /// Multicodec prefixes of an Ed25519, an X25519 and a P-256 private key.
   static const _ed25519SecretPrefix = [0x80, 0x26];
   static const _x25519SecretPrefix = [0x82, 0x26];
+  static const _p256SecretPrefix = [0x86, 0x26];
   static const _secretKeyLength = 32;
 
   @override
@@ -341,17 +345,49 @@ class VtaClient implements PersonaSigningAgent {
     }
   }
 
-  /// Creates an Ed25519 key the VTA holds, to sign credentials as one
-  /// Meeting Place connection DID. Its private key never leaves the VTA:
-  /// the VTA signs with it through [signDocument].
+  /// Creates the keys the VTA holds for one Meeting Place connection DID:
   ///
-  /// The key lives in [connectionKeysContextId], which is created on first
+  /// - `signing`, an Ed25519 key that signs its credentials. Its private key
+  ///   never leaves the VTA: the VTA signs with it through [signDocument].
+  /// - `agreement`, a P-256 key it signs in and agrees keys with, which the
+  ///   VTA lends through [lendConnectionKey] when DIDComm needs it.
+  ///
+  /// The keys live in [connectionKeysContextId], which is created on first
   /// use. Throws [MeetingPlaceVtcSDKException] when the VTA refuses or
   /// cannot be reached.
-  Future<VtaSigningKey> createConnectionKey() async {
+  Future<({VtaConnectionKey signing, VtaConnectionKey agreement})>
+  createConnectionKeys() async {
     await _ensureContext(connectionKeysContextId, name: _connectionKeysLabel);
+    return (
+      signing: await _createConnectionKey(
+        'ed25519',
+        codec: _ed25519Codec,
+        length: 32,
+      ),
+      agreement: await _createConnectionKey(
+        'p256',
+        codec: _p256Codec,
+        length: 33,
+      ),
+    );
+  }
+
+  /// Borrows the private half of the connection key [keyId], a P-256 key
+  /// from [createConnectionKeys], as its 32 bytes.
+  ///
+  /// The VTA lends keys over DIDComm only, and audits each loan. Keep the
+  /// key in memory and zero-fill it when done. Throws
+  /// [MeetingPlaceVtcSDKException] refused when the VTA will not lend it.
+  Future<Uint8List> lendConnectionKey(String keyId) =>
+      _exportKey(keyId, prefix: _p256SecretPrefix, keyType: 'p256');
+
+  Future<VtaConnectionKey> _createConnectionKey(
+    String keyType, {
+    required List<int> codec,
+    required int length,
+  }) async {
     final answer = await _task(VtaTask.keysCreate, {
-      'keyType': 'ed25519',
+      'keyType': keyType,
       'contextId': connectionKeysContextId,
       'label': _connectionKeysLabel,
     });
@@ -360,10 +396,13 @@ class VtaClient implements PersonaSigningAgent {
     final publicKey = key is Map<String, dynamic> ? key['publicKey'] : null;
     if (keyId is! String ||
         publicKey is! String ||
-        (key as Map<String, dynamic>)['keyType'] != 'ed25519') {
-      throw MeetingPlaceVtcSDKException.invalidDocument('no Ed25519 key');
+        (key as Map<String, dynamic>)['keyType'] != keyType) {
+      throw MeetingPlaceVtcSDKException.invalidDocument('no $keyType key');
     }
-    return VtaSigningKey(keyId: keyId, publicKey: _ed25519Bytes(publicKey));
+    return VtaConnectionKey(
+      keyId: keyId,
+      publicKey: _publicKeyBytes(publicKey, codec: codec, length: length),
+    );
   }
 
   /// Creates the context [contextId] unless this client may already act
@@ -381,21 +420,25 @@ class VtaClient implements PersonaSigningAgent {
     }
   }
 
-  /// The 32 bytes of the Ed25519 public key [multibase], with or without
-  /// its multicodec prefix.
-  static Uint8List _ed25519Bytes(String multibase) {
+  /// The [length] bytes of the public key [multibase], with or without its
+  /// multicodec prefix [codec].
+  static Uint8List _publicKeyBytes(
+    String multibase, {
+    required List<int> codec,
+    required int length,
+  }) {
     final Uint8List bytes;
     try {
       bytes = multiBaseToUint8List(multibase);
     } on Object {
       throw MeetingPlaceVtcSDKException.invalidDocument('bad public key');
     }
-    if (bytes.length == 34 &&
-        bytes[0] == _ed25519Codec[0] &&
-        bytes[1] == _ed25519Codec[1]) {
-      return Uint8List.sublistView(bytes, 2);
+    if (bytes.length == codec.length + length &&
+        bytes[0] == codec[0] &&
+        bytes[1] == codec[1]) {
+      return Uint8List.sublistView(bytes, codec.length);
     }
-    if (bytes.length == 32) return bytes;
+    if (bytes.length == length) return bytes;
     throw MeetingPlaceVtcSDKException.invalidDocument('bad public key');
   }
 

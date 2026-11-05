@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 /// Holds Ed25519 keys and signs documents with them, as a VTA's
 /// `keys/sign-document` does: as the issuer, by the method its document
 /// lists for the key.
-class _ExternalKeys implements ExternalSigningKeys {
+class _ExternalKeys implements ExternalConnectionKeys {
   final Map<String, Ed25519KeyPair> keyPairs = {};
   final Map<String, String> verificationMethods = {};
   final List<Map<String, dynamic>> signed = [];
@@ -18,19 +18,26 @@ class _ExternalKeys implements ExternalSigningKeys {
   /// When set, the proof is made as this DID instead of the issuer.
   String? signAs;
 
-  @override
-  Future<ExternalSigningKey> createKey(String did) async {
+  /// Creates an Ed25519 signing key.
+  ExternalKey createSigningKey() {
     final (keyPair, _) = Ed25519KeyPair.generate();
     final keyId = 'vta-key-${keyPairs.length}';
     keyPairs[keyId] = keyPair;
-    return ExternalSigningKey(
+    return ExternalKey(
       keyId: keyId,
       publicKey: Uint8List.fromList(keyPair.publicKey.bytes),
     );
   }
 
   @override
-  Future<ExternalSigningKey?> findKey(String did) async => null;
+  Future<ExternalDidKeys?> createKeys(String did) =>
+      throw UnimplementedError();
+
+  @override
+  Future<ExternalDidKeys?> findKeys(String did) async => null;
+
+  @override
+  Future<Uint8List> lendSecret(String keyId) => throw UnimplementedError();
 
   @override
   Future<Map<String, dynamic>> signDocument(
@@ -85,9 +92,9 @@ void main() {
         VerificationRelationship.keyAgreement,
       },
     );
-    final externalKey = await externalKeys.createKey('did:web:mpx.example');
+    final externalKey = externalKeys.createSigningKey();
     await didManager.addVerificationMethod(
-      wallet.add(externalKey),
+      wallet.addSigningKey(externalKey),
       relationships: {VerificationRelationship.assertionMethod},
     );
     document = await didManager.getDidDocument();

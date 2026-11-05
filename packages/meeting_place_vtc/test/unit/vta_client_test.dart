@@ -1046,41 +1046,49 @@ void main() {
       expect(kept, isFalse);
     });
 
-    group('createConnectionKey', () {
+    group('createConnectionKeys', () {
       // did:key multibase of 32 bytes 1..32, multicodec-prefixed.
-      final publicKey = Ed25519DidKeySigner.fromSeed(
+      final ed25519Key = Ed25519DidKeySigner.fromSeed(
         Uint8List.fromList(List.generate(32, (i) => i)),
       ).did.substring('did:key:'.length);
+      final p256Key = toMultiBase(
+        Uint8List.fromList([
+          0x80,
+          0x24,
+          ...P256KeyPair.generate().$1.publicKey.bytes,
+        ]),
+      );
 
       List<Object?> sent() =>
           vta.received.map((request) => request['type']).toList();
 
-      Map<String, dynamic> payloadOf(String type) =>
-          vta.received.lastWhere(
-                (request) => request['type'] == type,
-              )['payload']
-              as Map<String, dynamic>;
+      List<Map<String, dynamic>> payloadsOf(String type) => [
+        for (final request in vta.received)
+          if (request['type'] == type)
+            request['payload'] as Map<String, dynamic>,
+      ];
 
       setUp(() {
-        vta.answers[VtaTask.keysCreate] = {
+        vta.answerTo[VtaTask.keysCreate] = (payload) => {
           'key': {
-            'keyId': 'key-1',
-            'keyType': 'ed25519',
-            'publicKey': publicKey,
+            'keyId': 'key-${payload['keyType']}',
+            'keyType': payload['keyType'],
+            'publicKey': payload['keyType'] == 'p256' ? p256Key : ed25519Key,
             'status': 'active',
             'createdAt': '2026-11-04T12:00:00Z',
           },
         };
       });
 
-      test('creates the connections context once, then a key in it', () async {
+      test('creates the connections context once, then the keys in '
+          'it', () async {
         vta.answers[VtaTask.contextsList] = {
           'contexts': [
             {'id': 'vta'},
           ],
         };
 
-        final key = await client.createConnectionKey();
+        final keys = await client.createConnectionKeys();
 
         expect(
           sent(),
@@ -1088,19 +1096,29 @@ void main() {
             VtaTask.contextsList,
             VtaTask.contextsCreate,
             VtaTask.keysCreate,
+            VtaTask.keysCreate,
           ]),
         );
         expect(
-          payloadOf(VtaTask.contextsCreate)['id'],
+          payloadsOf(VtaTask.contextsCreate).single['id'],
           connectionKeysContextId,
         );
-        expect(payloadOf(VtaTask.keysCreate), {
-          'keyType': 'ed25519',
-          'contextId': connectionKeysContextId,
-          'label': 'Meeting Place connections',
-        });
-        expect(key.keyId, 'key-1');
-        expect(key.publicKey, hasLength(32));
+        expect(payloadsOf(VtaTask.keysCreate), [
+          {
+            'keyType': 'ed25519',
+            'contextId': connectionKeysContextId,
+            'label': 'Meeting Place connections',
+          },
+          {
+            'keyType': 'p256',
+            'contextId': connectionKeysContextId,
+            'label': 'Meeting Place connections',
+          },
+        ]);
+        expect(keys.signing.keyId, 'key-ed25519');
+        expect(keys.signing.publicKey, hasLength(32));
+        expect(keys.agreement.keyId, 'key-p256');
+        expect(keys.agreement.publicKey, hasLength(33));
       });
 
       test('reuses the connections context', () async {
@@ -1110,22 +1128,78 @@ void main() {
           ],
         };
 
-        await client.createConnectionKey();
+        await client.createConnectionKeys();
 
         expect(sent(), isNot(contains(VtaTask.contextsCreate)));
       });
 
-      test('refuses a key that is not Ed25519', () {
+      test('refuses a key of another type than it asked for', () {
         vta.answers[VtaTask.contextsList] = {
           'contexts': [
             {'id': connectionKeysContextId},
           ],
         };
-        (vta.answers[VtaTask.keysCreate]!['key'] as Map)['keyType'] = 'p256';
+        vta.answerTo[VtaTask.keysCreate] = (payload) => {
+          'key': {
+            'keyId': 'key-1',
+            'keyType': 'ed25519',
+            'publicKey': ed25519Key,
+          },
+        };
 
         expect(
-          client.createConnectionKey(),
+          client.createConnectionKeys(),
           throwsA(isA<MeetingPlaceVtcSDKException>()),
+        );
+      });
+    });
+
+    group('lendConnectionKey', () {
+      test('borrows a P-256 secret over DIDComm', () async {
+        final secret = Uint8List.fromList(List.generate(32, (i) => i + 1));
+        vta.exportedKeys['key-p256'] = {
+          'keyId': 'key-p256',
+          'keyType': 'p256',
+          'privateKeyMultibase': toMultiBase(
+            Uint8List.fromList([0x86, 0x26, ...secret]),
+          ),
+        };
+
+        final lent = await client.lendConnectionKey('key-p256');
+
+        expect(lent, secret);
+        expect(
+          vta.received.single,
+          containsPair('payload', {'keyId': 'key-p256'}),
+        );
+        expect(vta.forwarded, hasLength(1));
+      });
+
+      test('refuses a secret of another type', () {
+        vta.exportedKeys['key-p256'] = {
+          'privateKeyMultibase': toMultiBase(
+            Uint8List.fromList([0x80, 0x26, ...List.filled(32, 1)]),
+          ),
+        };
+
+        expect(
+          client.lendConnectionKey('key-p256'),
+          throwsA(isA<MeetingPlaceVtcSDKException>()),
+        );
+      });
+
+      test('fails when the VTA will not lend the key', () {
+        vta.refusals[VtaTask.exportSecret] = {'code': 'permissionDenied'};
+
+        expect(
+          client.lendConnectionKey('key-p256'),
+          throwsA(
+            isA<MeetingPlaceVtcSDKException>().having(
+              (error) => error.refusalCode,
+              'refusalCode',
+              'permissionDenied',
+            ),
+          ),
         );
       });
     });

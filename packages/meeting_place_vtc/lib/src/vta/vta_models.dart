@@ -280,15 +280,16 @@ class DisclosurePreview {
   final List<DisclosedClaim> claims;
 }
 
-/// A key the member's VTA holds, that signs as a Meeting Place connection
-/// DID. Only its public half is on this device.
-class VtaSigningKey {
-  /// Creates a [VtaSigningKey].
-  const VtaSigningKey({required this.keyId, required this.publicKey});
+/// A key the member's VTA holds for a Meeting Place connection DID. Only
+/// its public half is kept on this device.
+class VtaConnectionKey {
+  /// Creates a [VtaConnectionKey].
+  const VtaConnectionKey({required this.keyId, required this.publicKey});
 
-  /// The VTA's id of the key, which `VtaClient.signDocument` names.
+  /// The VTA's id of the key, which `VtaClient.signDocument` and
+  /// `VtaClient.lendConnectionKey` name.
   final String keyId;
 
-  /// The 32-byte Ed25519 public key.
+  /// The public key: 32 bytes for Ed25519, 33 compressed bytes for P-256.
   final Uint8List publicKey;
 }

@@ -33,6 +33,10 @@ class FakeVta {
   final _mediatorKey = Ed25519DidKeySigner.generate();
   late final DidDocument document;
   final Map<String, Map<String, dynamic>> answers = {};
+
+  /// Answers that depend on the request's payload, ahead of [answers].
+  final Map<String, Map<String, dynamic> Function(Map<String, dynamic>)>
+  answerTo = {};
   final Map<String, Map<String, dynamic>> refusals = {};
 
   /// What `keys/export-secret` answers, by the key id asked for.
@@ -101,7 +105,12 @@ class FakeVta {
       final keyId = (request['payload'] as Map)['keyId'];
       return _answer(request, exportedKeys[keyId] ?? const {});
     }
-    return _answer(request, answers[type] ?? const {});
+    return _answer(
+      request,
+      answerTo[type]?.call(request['payload'] as Map<String, dynamic>) ??
+          answers[type] ??
+          const {},
+    );
   }
 
   Future<void> _receive(ForwardMessage forward) async {

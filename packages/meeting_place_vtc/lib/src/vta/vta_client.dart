@@ -508,6 +508,9 @@ class VtaClient implements PersonaSigningAgent {
       'serverId': serverId,
       'label': label,
       'addMediatorService': true,
+      // DIDComm only: a community pushes over TSP first when the DID offers
+      // it, and Meeting Place collects the persona's mail over DIDComm.
+      'addTspService': false,
       'setPrimary': setPrimary,
     });
     final did = created['did'];

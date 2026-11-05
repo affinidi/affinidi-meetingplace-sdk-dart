@@ -624,6 +624,7 @@ void main() {
           'serverId': 'webvh-1',
           'label': 'Football club',
           'addMediatorService': true,
+          'addTspService': false,
           'setPrimary': false,
         });
       });
@@ -717,6 +718,7 @@ void main() {
             'serverId': 'dids',
             'label': 'Meeting Place identity',
             'addMediatorService': true,
+            'addTspService': false,
             'setPrimary': true,
           });
           expect(payloadOf(VtaTask.profileCompose), {

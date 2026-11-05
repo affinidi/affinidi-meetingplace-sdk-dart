@@ -31,6 +31,7 @@ PlainTextMessage _acceptanceMessage({
   required String to,
   required String channelDid,
   ContactCard? contactCard,
+  List<Attachment> attachments = const [],
 }) {
   final msg = InvitationAcceptanceGroup.create(
     from: from,
@@ -38,6 +39,7 @@ PlainTextMessage _acceptanceMessage({
     parentThreadId: const Uuid().v4(),
     channelDid: channelDid,
     contactCard: contactCard,
+    attachments: attachments,
   );
   return msg.toPlainTextMessage();
 }
@@ -309,6 +311,85 @@ void main() {
       expect(captured.did, joinerDid);
       expect(captured.status, GroupMemberStatus.pendingApproval);
       verifyNever(() => mockGroupRepository.updateGroup(any()));
+    });
+  });
+
+  group('join request attachments', () {
+    final credential = Attachment(
+      id: 'membership',
+      mediaType: 'application/json',
+      data: AttachmentData(base64: 'eyJ0eXBlIjoiVlAifQ'),
+    );
+
+    late List<(Channel, List<Attachment>)> received;
+
+    setUp(() {
+      received = [];
+      handler = InvitationGroupAcceptedEventHandler(
+        wallet: mockWallet,
+        connectionOfferRepository: mockConnectionOfferRepository,
+        channelService: mockChannelService,
+        connectionManager: mockConnectionManager,
+        mediatorService: mockMediatorService,
+        groupRepository: mockGroupRepository,
+        options: ControlPlaneEventHandlerManagerOptions(
+          onAttachmentsReceived: (channel, attachments) =>
+              received.add((channel, attachments)),
+        ),
+        logger: DefaultMeetingPlaceCoreSDKLogger(),
+      );
+      when(
+        () => mockGroupRepository.findGroupByOfferLink(offerLink),
+      ).thenAnswer(
+        (_) async => _makeGroup(
+          ownerDid: adminDid,
+          groupDid: groupDid,
+          offerLink: offerLink,
+        ),
+      );
+      when(
+        () => mockGroupRepository.addMemberIfAbsent(any(), any()),
+      ).thenAnswer((_) async {});
+    });
+
+    test('hands what follows the contact card to the owner, with the '
+        "joiner's pending channel", () async {
+      stubMediatorFetch([
+        buildMediatorMessage(
+          _acceptanceMessage(
+            from: acceptOfferDid,
+            to: publishOfferDid,
+            channelDid: joinerDid,
+            contactCard: _contactCard(joinerDid),
+            attachments: [credential],
+          ),
+        ),
+      ]);
+
+      await handler.process(event);
+
+      final (channel, attachments) = received.single;
+      expect(channel.otherPartyPermanentChannelDid, joinerDid);
+      expect(channel.status, ChannelStatus.waitingForApproval);
+      expect(attachments.single.id, 'membership');
+    });
+
+    test('hands nothing over when the joiner sent only a contact '
+        'card', () async {
+      stubMediatorFetch([
+        buildMediatorMessage(
+          _acceptanceMessage(
+            from: acceptOfferDid,
+            to: publishOfferDid,
+            channelDid: joinerDid,
+            contactCard: _contactCard(joinerDid),
+          ),
+        ),
+      ]);
+
+      await handler.process(event);
+
+      expect(received, isEmpty);
     });
   });
 }

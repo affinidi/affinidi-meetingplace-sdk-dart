@@ -136,6 +136,12 @@ class InvitationGroupAcceptedEventHandler
     );
 
     await channelService.persistChannel(channel);
+
+    final attachments = invitationAcceptance.attachments;
+    if (attachments.isNotEmpty) {
+      options.onAttachmentsReceived?.call(channel, attachments);
+    }
+
     return groupChannel;
   }
 

@@ -17,6 +17,7 @@ class InvitationAcceptanceGroup {
     required String parentThreadId,
     required String channelDid,
     ContactCard? contactCard,
+    List<Attachment> attachments = const [],
   }) {
     return InvitationAcceptanceGroup(
       id: const Uuid().v4(),
@@ -25,6 +26,7 @@ class InvitationAcceptanceGroup {
       parentThreadId: parentThreadId,
       body: InvitationAcceptanceGroupBody(channelDid: channelDid),
       contactCard: contactCard,
+      attachments: attachments,
     );
   }
 
@@ -34,8 +36,9 @@ class InvitationAcceptanceGroup {
     PlainTextMessage message,
   ) {
     ContactCard? contactCard;
-    if (message.attachments != null && message.attachments!.isNotEmpty) {
-      final base64 = message.attachments!.first.data?.base64;
+    final received = message.attachments ?? const <Attachment>[];
+    if (received.isNotEmpty) {
+      final base64 = received.first.data?.base64;
       if (base64 != null) {
         contactCard = ContactCard.fromBase64(base64);
       }
@@ -47,6 +50,7 @@ class InvitationAcceptanceGroup {
       parentThreadId: message.parentThreadId!,
       body: InvitationAcceptanceGroupBody.fromJson(message.body!),
       contactCard: contactCard,
+      attachments: contactCard == null ? received : received.sublist(1),
       createdTime: message.createdTime,
     );
   }
@@ -60,6 +64,7 @@ class InvitationAcceptanceGroup {
     required this.parentThreadId,
     required this.body,
     this.contactCard,
+    this.attachments = const [],
     DateTime? createdTime,
   }) : createdTime = createdTime ?? DateTime.now().toUtc();
 
@@ -81,6 +86,10 @@ class InvitationAcceptanceGroup {
   /// The sender's contact card, if shared.
   final ContactCard? contactCard;
 
+  /// What else the sender shares with the group's owner to be let in, such
+  /// as credentials. Sent after the contact card, which is always first.
+  final List<Attachment> attachments;
+
   /// When this message was created.
   final DateTime createdTime;
 
@@ -94,9 +103,13 @@ class InvitationAcceptanceGroup {
       parentThreadId: parentThreadId,
       body: body.toJson(),
       createdTime: createdTime,
-      attachments: contactCard == null
+      attachments: contactCard == null && attachments.isEmpty
           ? null
-          : [ContactCardHelper.vCardToAttachment(contactCard!)],
+          : [
+              if (contactCard != null)
+                ContactCardHelper.vCardToAttachment(contactCard!),
+              ...attachments,
+            ],
     );
   }
 }

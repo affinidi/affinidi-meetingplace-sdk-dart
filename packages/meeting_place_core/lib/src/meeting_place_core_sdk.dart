@@ -848,6 +848,7 @@ class MeetingPlaceCoreSDK {
           card: contactCard,
           senderInfo: senderInfo,
           externalRef: externalRef,
+          buildJoinAttachments: request.buildGroupJoinAttachments,
         );
 
         return sdk.AcceptOfferResult(

@@ -1,3 +1,4 @@
+import 'package:didcomm/didcomm.dart' show Attachment;
 import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
     as cp;
 import 'package:meeting_place_mediator/meeting_place_mediator.dart';
@@ -14,6 +15,8 @@ import '../loggers/meeting_place_core_sdk_logger.dart';
 import '../protocol/message/group_member_inauguration/group_member_inauguration_member.dart';
 import '../protocol/protocol.dart';
 import '../repository/repository.dart';
+import '../sdk/requests/accept_offer_request.dart'
+    show GroupJoinAttachmentsBuilder;
 import '../transport/meeting_place_transport.dart';
 import '../utils/string.dart';
 import 'channel/channel_service.dart';
@@ -241,6 +244,7 @@ class GroupService {
     required ContactCard card,
     required String senderInfo,
     String? externalRef,
+    GroupJoinAttachmentsBuilder? buildJoinAttachments,
   }) async {
     final methodName = 'acceptGroupOffer';
     _logger.info(
@@ -304,6 +308,9 @@ class GroupService {
         permanentChannelDidManager: permanentChannelDidManager,
         invitationMessage: invitationMessage,
         contactCard: card,
+        attachments:
+            await buildJoinAttachments?.call(permanentChannelDidDocument.id) ??
+            const [],
       );
 
       final channel = Channel.groupFromAcceptedConnectionOffer(
@@ -452,6 +459,7 @@ class GroupService {
     required OobInvitationMessage invitationMessage,
     required String mediatorDid,
     ContactCard? contactCard,
+    List<Attachment> attachments = const [],
   }) async {
     final methodName = 'sendAcceptInvitationGroupToMediator';
     _logger.info(
@@ -483,6 +491,7 @@ class GroupService {
       parentThreadId: invitationMessage.id,
       channelDid: permanentChannelDidDocument.id,
       contactCard: contactCard,
+      attachments: attachments,
     );
 
     await _mediatorSDK.sendMessage(

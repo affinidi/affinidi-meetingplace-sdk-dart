@@ -131,4 +131,55 @@ void main() {
       await _waitUntil(() => server.connectionsInfo().total == 0);
     });
   });
+
+  group('MeetingPlaceControlPlaneSDK initialization', () {
+    test('tries again after a failed sign-in', () async {
+      final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      addTearDown(() => server.close(force: true));
+      var requests = 0;
+      server.listen((request) async {
+        requests += 1;
+        request.response.statusCode = HttpStatus.badRequest;
+        await request.response.close();
+      });
+
+      const controlPlaneDid = 'did:web:example.com';
+      final apiBaseUri = Uri.parse(
+        'http://${server.address.address}:${server.port}/v1',
+      );
+      final didManager = _MockDidManager();
+      when(
+        didManager.getDidDocument,
+      ).thenAnswer((_) async => DidDocument.create(id: 'did:key:test-sender'));
+      final retryingSdk = MeetingPlaceControlPlaneSDK(
+        didManager: didManager,
+        controlPlaneDid: controlPlaneDid,
+        mediatorDid: 'did:web:mediator',
+        didResolver: FakeDidResolver({
+          controlPlaneDid: _didDocument(controlPlaneDid, apiBaseUri),
+        }),
+      );
+      addTearDown(retryingSdk.dispose);
+
+      Future<void> attempt() => expectLater(
+        retryingSdk.findOfferByMnemonic(
+          QueryOfferRequest(mnemonic: 'test-offer'),
+        ),
+        throwsA(
+          isA<MeetingPlaceControlPlaneSDKException>().having(
+            (error) => '${error.innerException}',
+            'innerException',
+            isNot(contains('LateInitializationError')),
+          ),
+        ),
+      );
+
+      await attempt();
+      final afterFirst = requests;
+      await attempt();
+
+      expect(afterFirst, greaterThan(0));
+      expect(requests, greaterThan(afterFirst));
+    });
+  });
 }

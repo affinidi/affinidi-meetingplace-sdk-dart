@@ -111,7 +111,7 @@ class MeetingPlaceControlPlaneSDK {
 
   late final SDKErrorHandler _sdkErrorHandler;
   ControlPlaneApiClient? _controlPlaneApiClient;
-  late final CommandDispatcher _dispatcher;
+  late CommandDispatcher _dispatcher;
 
   Device? _device;
   Future<void>? _initializing;

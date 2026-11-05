@@ -39,7 +39,11 @@ class ConnectionManager {
     _logger.info('Generating root DID...', name: methodName);
 
     final keyId = _rootKeyId;
-    final didManager = await _initDidManager(wallet: wallet, keyId: keyId);
+    final didManager = await _initDidManager(
+      wallet: wallet,
+      keyId: keyId,
+      keyType: _rootKeyType,
+    );
     final didDoc = await didManager.getDidDocument();
 
     await _keyRepository.saveKeyIdForDid(keyId: keyId, did: didDoc.id);
@@ -143,6 +147,11 @@ class ConnectionManager {
   /// keeps its type, so DIDs made before stay as they are.
   static const _keyType = KeyType.ed25519;
 
+  /// The key type of the root DID: P-256. The root DID signs in to the
+  /// control plane and registers did:web documents there, and the hosted
+  /// control plane accepts P-256 only. It never talks to a mediator.
+  static const _rootKeyType = KeyType.p256;
+
   String _buildKeyId(int index) {
     return "m/44'/60'/0'/0'/$index'";
   }
@@ -150,8 +159,9 @@ class ConnectionManager {
   Future<DidManager> _initDidManager({
     required Wallet wallet,
     required String keyId,
+    KeyType keyType = _keyType,
   }) async {
-    await wallet.generateKey(keyId: keyId, keyType: _keyType);
+    await wallet.generateKey(keyId: keyId, keyType: keyType);
     final didManager = DidKeyManager(store: InMemoryDidStore(), wallet: wallet);
     await didManager.addVerificationMethod(keyId);
     return didManager;

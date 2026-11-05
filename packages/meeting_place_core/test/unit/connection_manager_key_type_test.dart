@@ -114,6 +114,16 @@ void main() {
     expect(opened.body, {'text': 'hello'});
   });
 
+  test('makes the root DID on P-256, as the control plane accepts', () async {
+    final didManager = await manager.generateRootDid(wallet);
+
+    final document = await didManager.getDidDocument();
+    final key = await wallet.getPublicKey(
+      (await didManager.getWalletKeyId(document.authentication.single.id))!,
+    );
+    expect(key.type, KeyType.p256);
+  });
+
   test('keeps the P-256 key of a DID made before', () async {
     const keyId = "m/44'/60'/0'/0'/7'";
     await wallet.generateKey(keyId: keyId, keyType: KeyType.p256);

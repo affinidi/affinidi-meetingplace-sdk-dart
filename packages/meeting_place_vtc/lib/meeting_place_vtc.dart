@@ -33,6 +33,8 @@ export 'src/trust_task/trust_task_document.dart';
 export 'src/trust_task/trust_task_exchange.dart';
 export 'src/trust_task/trust_task_receipt.dart';
 export 'src/trust_task/trust_task_time.dart';
+export 'src/vetting/vetting_requirements.dart';
+export 'src/vetting/vetting_statement.dart';
 export 'src/vta/vta_client.dart';
 export 'src/vta/vta_link.dart';
 export 'src/vta/vta_models.dart';

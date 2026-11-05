@@ -9,6 +9,7 @@ import '../transport/trust_task_http_transport.dart';
 import '../trust_task/trust_task_document.dart';
 import '../trust_task/trust_task_exchange.dart';
 import '../trust_task/trust_task_receipt.dart';
+import '../vetting/vetting_requirements.dart';
 import '../vta/vta_models.dart';
 import '../vtc/community_exchange.dart';
 import '../vtc/service_endpoints.dart';
@@ -627,6 +628,7 @@ class VtcJoinClient {
       invitationRequired: criterion['invitationRequired'] == true,
       credentials: _credentialRequest(criterion),
       asksForVetting: criterion['vetting'] != null,
+      vetting: VettingRequirements.read(criterion['vetting']),
     );
   }
 

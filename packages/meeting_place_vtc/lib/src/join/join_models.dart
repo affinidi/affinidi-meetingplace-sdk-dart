@@ -1,5 +1,6 @@
 import '../trust_task/trust_task_exchange.dart';
 import '../trust_task/trust_task_receipt.dart';
+import '../vetting/vetting_requirements.dart';
 import '../vtc/vtc_resolver.dart';
 
 /// How a community decides on an applicant who meets a criterion.
@@ -62,6 +63,7 @@ class JoinCriterion {
     this.invitationRequired = false,
     this.credentials,
     this.asksForVetting = false,
+    this.vetting,
   });
 
   /// The criterion's id within the community.
@@ -88,6 +90,10 @@ class JoinCriterion {
   /// Whether it asks the applicant to be vetted in person.
   final bool asksForVetting;
 
+  /// What it asks of vetting, or null when it asks for none or for vetting
+  /// this wallet cannot meet.
+  final VettingRequirements? vetting;
+
   /// Whether an applicant with no invitation, credentials or vetting can
   /// meet it.
   bool get isOpen =>
@@ -99,6 +105,11 @@ class JoinCriterion {
       !invitationRequired &&
       !asksForVetting &&
       (credentials?.readable ?? false);
+
+  /// Whether it asks for vetting alone, in requirements this wallet can
+  /// meet: met by gathering vetters' statements.
+  bool get asksOnlyForVetting =>
+      !invitationRequired && !asksForCredentials && vetting != null;
 }
 
 /// A profile detail a community asks for with an application.

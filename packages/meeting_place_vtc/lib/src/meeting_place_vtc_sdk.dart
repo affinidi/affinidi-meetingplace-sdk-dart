@@ -4,6 +4,8 @@ import 'package:ssi/ssi.dart';
 import 'community/community_import.dart';
 import 'join/vtc_join_client.dart';
 import 'meeting_place_vtc_sdk_exception.dart';
+import 'persona/persona_did_manager.dart';
+import 'persona/persona_inbox.dart';
 import 'proof/trust_task_signer.dart';
 import 'sign_in/oob_sign_in_client.dart';
 import 'sign_in/sign_in_agent.dart';
@@ -37,19 +39,23 @@ class MeetingPlaceVtcSDK {
   /// Creates a [MeetingPlaceVtcSDK].
   ///
   /// [didResolver] defaults to a resolver that verifies `did:webvh` logs.
-  /// [openVtaMailbox] opens a manager key's inbox on the VTA's mediator; by
-  /// default, through the mediator's own API.
+  /// [openVtaMailbox] opens a manager key's inbox on the VTA's mediator, and
+  /// [openMediatorInbox] a persona's inbox on its mediator; by default,
+  /// through the mediator's own API.
   MeetingPlaceVtcSDK({
     DidResolver? didResolver,
     Dio? dio,
     VtaMailboxOpener? openVtaMailbox,
+    MediatorInboxOpener? openMediatorInbox,
   }) : _didResolver = didResolver ?? UniversalDIDResolver.defaultResolver,
        _transport = TrustTaskHttpTransport(dio: dio),
-       _openVtaMailbox = openVtaMailbox;
+       _openVtaMailbox = openVtaMailbox,
+       _openMediatorInbox = openMediatorInbox;
 
   final DidResolver _didResolver;
   final TrustTaskHttpTransport _transport;
   final VtaMailboxOpener? _openVtaMailbox;
+  final MediatorInboxOpener? _openMediatorInbox;
 
   /// Reads scanned or pasted [text] as a trigger link, offline.
   TriggerLinkResult readTriggerLink(String text) =>
@@ -87,6 +93,14 @@ class MeetingPlaceVtcSDK {
       transport: _transport,
     );
   }
+
+  /// The inbox of [persona], whose keys its VTA lent
+  /// ([VtaClient.borrowPersonaKeys]), on the persona's mediator.
+  PersonaInbox personaInbox(PersonaDidManager persona) => PersonaInbox(
+    persona: persona,
+    didResolver: _didResolver,
+    openInbox: _openMediatorInbox,
+  );
 
   /// A client to join communities.
   VtcJoinClient joinClient() =>

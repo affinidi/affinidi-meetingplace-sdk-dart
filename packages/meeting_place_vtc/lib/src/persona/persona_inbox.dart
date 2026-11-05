@@ -1,0 +1,306 @@
+import 'package:didcomm/didcomm.dart' hide TrustTaskDocument;
+import 'package:ssi/ssi.dart';
+
+import '../credentials/credential_fields.dart';
+import '../meeting_place_vtc_sdk_exception.dart';
+import '../proof/eddsa_jcs_2022.dart';
+import '../transport/didcomm_vta_transport.dart';
+import '../trust_task/trust_task_document.dart';
+import 'persona_did_manager.dart';
+
+/// Trust Task a community issues a credential to its holder with.
+const credentialIssueTask =
+    'https://trusttasks.org/spec/credential-exchange/issue/0.1';
+
+/// A DID's inbox on its mediator.
+abstract interface class MediatorInbox {
+  /// Ids of the messages waiting.
+  Future<List<String>> listIds();
+
+  /// The message [id], left in the inbox, or null when it is gone.
+  Future<Map<String, dynamic>?> fetch(String id);
+
+  /// Deletes the messages [ids] from the inbox.
+  Future<void> delete(List<String> ids);
+
+  /// Ends the session with the mediator.
+  Future<void> close();
+}
+
+/// Signs in to the mediator [mediatorDid] as [manager] and opens its inbox.
+typedef MediatorInboxOpener =
+    Future<MediatorInbox> Function({
+      required String mediatorDid,
+      required DidDocument mediatorDocument,
+      required DidManager manager,
+    });
+
+/// A credential a community issued to the persona, as it lies in the
+/// persona's inbox.
+class IssuedCredential {
+  /// Creates an [IssuedCredential].
+  const IssuedCredential({
+    required this.messageId,
+    required this.document,
+    required this.credential,
+  });
+
+  /// Id of the message in the inbox, to [PersonaInbox.remove] it by.
+  final String messageId;
+
+  /// The community's signed `credential-exchange/issue` document.
+  final TrustTaskDocument document;
+
+  /// The credential it issues.
+  final Map<String, dynamic> credential;
+}
+
+/// What one look into the inbox found.
+class InboxPickup {
+  /// Creates an [InboxPickup].
+  const InboxPickup({required this.waiting, required this.credentials});
+
+  /// How many messages were waiting, of any kind.
+  final int waiting;
+
+  /// The credentials among them the asked community issued.
+  final List<IssuedCredential> credentials;
+}
+
+/// The inbox of a persona on its mediator, read as the persona with keys its
+/// VTA lent ([PersonaDidManager]).
+///
+/// Takes only what a community issued to the persona and leaves everything
+/// else where it is, such as a TSP copy or another sender's message, so
+/// nothing this client cannot read is ever taken for delivered. Removes a
+/// message only when asked to, once its credential is kept. Nothing is
+/// logged.
+class PersonaInbox {
+  /// Creates a [PersonaInbox] for [persona].
+  PersonaInbox({
+    required PersonaDidManager persona,
+    required DidResolver didResolver,
+    MediatorInboxOpener? openInbox,
+  }) : _persona = persona,
+       _didResolver = didResolver,
+       _openInbox = openInbox ?? _openMediatorInbox;
+
+  final PersonaDidManager _persona;
+  final DidResolver _didResolver;
+  final MediatorInboxOpener _openInbox;
+  MediatorInbox? _inbox;
+  String? _mediatorDid;
+
+  /// DID of the mediator the persona's DID document names, once [open].
+  String? get mediatorDid => _mediatorDid;
+
+  /// Signs in to the persona's mediator. Does nothing when already open.
+  ///
+  /// Throws [MeetingPlaceVtcSDKException] with a `signInNotOffered` code when
+  /// the persona's DID document names no DIDComm mediator, and with a
+  /// `transportFailed` code when the mediator cannot be reached.
+  Future<void> open() async {
+    if (_inbox != null) return;
+    final document = await _persona.getDidDocument();
+    final mediatorDid = mediatorDidOf(document);
+    if (mediatorDid == null) {
+      throw MeetingPlaceVtcSDKException.signInNotOffered(
+        didCommMessagingServiceType,
+      );
+    }
+    final DidDocument mediatorDocument;
+    try {
+      mediatorDocument = await _didResolver.resolveDid(mediatorDid);
+    } catch (error) {
+      throw MeetingPlaceVtcSDKException.didResolutionFailed(
+        innerException: error,
+      );
+    }
+    try {
+      _inbox = await _openInbox(
+        mediatorDid: mediatorDid,
+        mediatorDocument: mediatorDocument,
+        manager: _persona,
+      );
+    } catch (error) {
+      throw MeetingPlaceVtcSDKException.transportFailed(
+        'mediator unreachable',
+        innerException: error,
+      );
+    }
+    _mediatorDid = mediatorDid;
+  }
+
+  /// The credentials [issuerDid] issued to the persona that wait in the
+  /// inbox, each in a `credential-exchange/issue` document [issuerDid]
+  /// signed for the persona. Leaves them there.
+  ///
+  /// The document's proof is what authenticates the community, so the
+  /// envelope may be authcrypt or anoncrypt; an authcrypt sender must be
+  /// [issuerDid]. Throws [MeetingPlaceVtcSDKException] with a
+  /// `transportFailed` code when the inbox cannot be read.
+  Future<InboxPickup> issuedCredentials({required String issuerDid}) async {
+    final inbox = _openedInbox();
+    final List<String> ids;
+    try {
+      ids = await inbox.listIds();
+    } catch (error) {
+      throw MeetingPlaceVtcSDKException.transportFailed(
+        'mediator inbox unreadable',
+        innerException: error,
+      );
+    }
+    final credentials = <IssuedCredential>[];
+    for (final id in ids) {
+      final Map<String, dynamic>? raw;
+      try {
+        raw = await inbox.fetch(id);
+      } catch (error) {
+        throw MeetingPlaceVtcSDKException.transportFailed(
+          'mediator inbox unreadable',
+          innerException: error,
+        );
+      }
+      if (raw == null) continue;
+      final issued = await _readIssue(id, raw, issuerDid);
+      if (issued != null) credentials.add(issued);
+    }
+    return InboxPickup(waiting: ids.length, credentials: credentials);
+  }
+
+  /// Deletes the messages [messageIds] from the inbox, once handled.
+  ///
+  /// Throws [MeetingPlaceVtcSDKException] with a `transportFailed` code when
+  /// the mediator refuses.
+  Future<void> remove(List<String> messageIds) async {
+    if (messageIds.isEmpty) return;
+    try {
+      await _openedInbox().delete(messageIds);
+    } catch (error) {
+      throw MeetingPlaceVtcSDKException.transportFailed(
+        'mediator refused to delete',
+        innerException: error,
+      );
+    }
+  }
+
+  /// Ends the session with the mediator, best effort. Leaves the persona's
+  /// keys to their owner to forget.
+  Future<void> close() async {
+    final inbox = _inbox;
+    _inbox = null;
+    try {
+      await inbox?.close();
+    } catch (_) {
+      // The session ends on the mediator's side all the same.
+    }
+  }
+
+  MediatorInbox _openedInbox() =>
+      _inbox ?? (throw StateError('persona inbox not open'));
+
+  /// [raw] read as [issuerDid]'s issue of a credential to the persona, or
+  /// null when it is anything else.
+  Future<IssuedCredential?> _readIssue(
+    String messageId,
+    Map<String, dynamic> raw,
+    String issuerDid,
+  ) async {
+    final PlainTextMessage message;
+    try {
+      message = await DidcommMessage.unpackToPlainTextMessage(
+        message: raw,
+        recipientDidManager: _persona,
+        expectedMessageWrappingTypes: const [
+          MessageWrappingType.authcryptPlaintext,
+          MessageWrappingType.authcryptSignPlaintext,
+          MessageWrappingType.anoncryptPlaintext,
+          MessageWrappingType.anoncryptSignPlaintext,
+          MessageWrappingType.anoncryptAuthcryptPlaintext,
+        ],
+      );
+    } catch (_) {
+      // Not DIDComm sealed to the persona, e.g. a TSP copy.
+      return null;
+    }
+    if (message.from case final from? when from != issuerDid) return null;
+    if (message.type.toString() != trustTaskEnvelopeType) return null;
+
+    final TrustTaskDocument document;
+    try {
+      document = TrustTaskDocument.fromJson(
+        Map<String, dynamic>.of(message.body ?? const {}),
+      );
+    } on MeetingPlaceVtcSDKException {
+      return null;
+    }
+    if (document.type != credentialIssueTask ||
+        document.issuer != issuerDid ||
+        document.recipient != _persona.did) {
+      return null;
+    }
+    try {
+      await EddsaJcs2022.verify(
+        document.toJson(),
+        purpose: ProofPurpose.authentication,
+        resolver: _didResolver,
+        expectedSigner: issuerDid,
+      );
+    } on MeetingPlaceVtcSDKException {
+      return null;
+    }
+
+    final credential = switch (document.payload['credential_response']) {
+      {'credential': final Map<String, dynamic> credential} => credential,
+      _ => null,
+    };
+    if (credential == null ||
+        credentialIssuer(credential) != issuerDid ||
+        !credentialSubjects(credential).contains(_persona.did)) {
+      return null;
+    }
+    return IssuedCredential(
+      messageId: messageId,
+      document: document,
+      credential: credential,
+    );
+  }
+
+  static Future<MediatorInbox> _openMediatorInbox({
+    required String mediatorDid,
+    required DidDocument mediatorDocument,
+    required DidManager manager,
+  }) async {
+    final client = await MediatorClient.init(
+      mediatorDidDocument: mediatorDocument,
+      didManager: manager,
+      authorizationProvider: await AffinidiAuthorizationProvider.init(
+        mediatorDidDocument: mediatorDocument,
+        didManager: manager,
+      ),
+    );
+    return _MediatorClientInbox(client);
+  }
+}
+
+class _MediatorClientInbox implements MediatorInbox {
+  _MediatorClientInbox(this._client);
+
+  final MediatorClient _client;
+
+  @override
+  Future<List<String>> listIds() => _client.listInboxMessageIds();
+
+  @override
+  Future<Map<String, dynamic>?> fetch(String id) async =>
+      (await _client.fetchMessagesByIds([
+        id,
+      ], deleteOnMediator: false)).firstOrNull;
+
+  @override
+  Future<void> delete(List<String> ids) =>
+      _client.deleteMessages(messageIds: ids);
+
+  @override
+  Future<void> close() => _client.disconnect();
+}

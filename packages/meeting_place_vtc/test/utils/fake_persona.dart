@@ -7,11 +7,12 @@ import 'package:x25519/x25519.dart' as x25519;
 /// X25519 key it agrees keys with.
 ///
 /// Its DID is a `did:peer:2`, which names both keys and resolves offline, as
-/// DIDComm resolves a sender while it unpacks.
+/// DIDComm resolves a sender while it unpacks. With a `mediatorDid`, its
+/// document also names that mediator, as a persona's does.
 class FakePersona {
   FakePersona._(this.signingSeed, this.keyAgreementKey, this.document);
 
-  factory FakePersona() {
+  factory FakePersona({String? mediatorDid}) {
     final signing = Ed25519KeyPair.generate().$1;
     final keyAgreement = x25519.generateKeyPair();
     final did = DidPeer.getDid(
@@ -28,10 +29,23 @@ class FakePersona {
         VerificationRelationship.keyAgreement: [1],
       },
     );
+    final json = DidPeer.resolve(did).toJson();
+    if (mediatorDid != null) {
+      json['service'] = [
+        {
+          'id': '$did#didcomm',
+          'type': 'DIDCommMessaging',
+          'serviceEndpoint': {
+            'uri': mediatorDid,
+            'accept': ['didcomm/v2'],
+          },
+        },
+      ];
+    }
     return FakePersona._(
       signing.getSeed(),
       Uint8List.fromList(keyAgreement.privateKey),
-      DidPeer.resolve(did),
+      DidDocument.fromJson(json),
     );
   }
 

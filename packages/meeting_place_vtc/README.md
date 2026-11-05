@@ -111,6 +111,43 @@ switch (await join.apply(manifest, agent: vta, persona: signer)) {
 }
 ```
 
+A criterion that asks for in-person vetting (`criterion.vetting`) is met with
+vetters' statements. Gather one per vetter with a `VettingApplicant`, over
+the persona's lent keys (`vta.borrowPersonaKeys`), then apply with them:
+
+```dart
+final vetting = VettingApplicant(
+  persona: keys,
+  messenger: sdk.personaMessenger(keys),
+  didResolver: resolver,
+  statusList: sdk.statusListClient(),
+);
+final request = await vetting.request(
+  communityDid: manifest.communityDid,
+  ticket: VettingTicket.parse(scannedTicket)!,
+  requirementsDigest: criterion.requirementsDigest,
+);
+// Pick up the vetter's documents with sdk.personaInbox(keys).peerDocuments(
+// senderDid: request.recipient!, types: VettingTask.fromVetter), then:
+final vetter = await vetting.accepted(answer, request: request, ...);
+final session = vetting.openSession(sessionDocument, vetter: vetter, ...);
+// Show session.matchCode; only once the person confirms it matches:
+final sent = await vetting.sendCard(session, claims: approved, ...);
+final statement = await vetting.receiveStatement(issue, session: session, ...);
+
+// Once VettingProgress.of(...).satisfied:
+await join.apply(
+  manifest,
+  agent: vta,
+  persona: signer,
+  criterion: criterion,
+  vettingStatements: statements,
+);
+```
+
+Vetting failures are thrown as `VettingException`, whose `VettingFailure`
+names the outcome to word for the person.
+
 A community that admits a request later pushes the cards to the persona's
 messaging service. Personas created here advertise none, so the app only
 learns the decision through `status`.

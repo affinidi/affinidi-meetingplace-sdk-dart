@@ -11,6 +11,7 @@ import '../trust_task/trust_task_exchange.dart';
 import '../trust_task/trust_task_receipt.dart';
 import '../vetting/listed_vetter.dart';
 import '../vetting/vetting_requirements.dart';
+import '../vetting/vetting_statement.dart';
 import '../vta/vta_models.dart';
 import '../vtc/community_exchange.dart';
 import '../vtc/service_endpoints.dart';
@@ -195,19 +196,24 @@ class VtcJoinClient {
   /// A criterion that asks for credentials alone is met with
   /// [presentation]: a W3C presentation by [persona] of the credentials it
   /// asks for, such as the VTA's `vault/credentials/present` makes for the
-  /// community. An open criterion is met with an empty one.
+  /// community. A criterion that asks for vetting alone is met with
+  /// [vettingStatements], the vetters' statements about [persona], which
+  /// go in a presentation by [persona]. An open criterion is met with an
+  /// empty one.
   ///
   /// Throws [StateError] when the manifest has no criterion this wallet can
   /// apply under, [criterion] is not one of [manifest]'s criteria this
-  /// wallet can meet, or [presentation] is missing, not [persona]'s or not
-  /// asked for; and [MeetingPlaceVtcSDKException] when the VTA or the
-  /// community refuses, cannot be reached, or answers with something else.
+  /// wallet can meet, or [presentation] or [vettingStatements] is missing,
+  /// not [persona]'s or not asked for; and [MeetingPlaceVtcSDKException]
+  /// when the VTA or the community refuses, cannot be reached, or answers
+  /// with something else.
   Future<JoinVerdict> apply(
     JoinManifest manifest, {
     required SignInAgent agent,
     required SignInPersona persona,
     JoinCriterion? criterion,
     Map<String, dynamic>? presentation,
+    List<VettingStatement> vettingStatements = const [],
     List<JoinAttribute> attributes = const [],
     bool registryConsent = false,
   }) async {
@@ -220,7 +226,9 @@ class VtcJoinClient {
       (offered) =>
           offered.id == chosen.id &&
           offered.requirementsDigest == chosen.requirementsDigest &&
-          (offered.isOpen || offered.asksOnlyForCredentials),
+          (offered.isOpen ||
+              offered.asksOnlyForCredentials ||
+              offered.asksOnlyForVetting),
     )) {
       throw StateError('not a criterion of the community this wallet meets');
     }
@@ -233,6 +241,16 @@ class VtcJoinClient {
     }
     if (presentation != null && presentation['holder'] != persona.did) {
       throw StateError('a presentation by another holder');
+    }
+    if (chosen.asksForVetting != vettingStatements.isNotEmpty) {
+      throw StateError(
+        chosen.asksForVetting
+            ? 'the criterion asks for vetting'
+            : 'the criterion asks for no vetting',
+      );
+    }
+    if (vettingStatements.any((s) => s.applicantDid != persona.did)) {
+      throw StateError('a statement about another applicant');
     }
     final community = manifest.community;
     final request = await _signedByPersona(
@@ -247,7 +265,9 @@ class VtcJoinClient {
               '@context': ['https://www.w3.org/ns/credentials/v2'],
               'type': ['VerifiablePresentation'],
               'holder': persona.did,
-              'verifiableCredential': <Object>[],
+              'verifiableCredential': [
+                for (final statement in vettingStatements) statement.credential,
+              ],
             },
         'criterion': chosen.requirementsDigest,
         if (attributes.isNotEmpty)

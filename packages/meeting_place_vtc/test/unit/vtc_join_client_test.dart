@@ -685,6 +685,108 @@ void main() {
       });
     });
 
+    group('under a vetting criterion', () {
+      setUp(() {
+        vtc.manifest = {
+          ...vtc.manifest,
+          'criteria': [
+            {
+              'id': 'open',
+              'admission': 'automatic',
+              'requirementsDigest': 'z1',
+            },
+            {
+              'id': 'vetted',
+              'admission': 'automatic',
+              'requirementsDigest': 'zVetted',
+              'vetting': {
+                'version': '0.1',
+                'statementType': VettingStatement.predicate,
+                'minStatements': 1,
+                'acceptedMethods': ['inPerson'],
+                'eligibleVetters': {'role': 'vetter'},
+              },
+            },
+          ],
+        };
+      });
+
+      VettingStatement statementAbout(String applicant) =>
+          VettingStatement.read({
+            'type': ['VerifiableCredential', 'StatementCredential'],
+            'id': 'urn:uuid:statement',
+            'issuer': 'did:key:zVetter',
+            'validFrom': '2026-11-05T10:00:00Z',
+            'validUntil': '2027-11-05T10:00:00Z',
+            'taskContext': 'urn:uuid:session',
+            'taskDigestMultibase': 'zSession',
+            'credentialSubject': {
+              'id': applicant,
+              'predicate': VettingStatement.predicate,
+              'object': {
+                'value': {
+                  'community': vtcDid,
+                  'method': 'inPerson',
+                  'claimsVerified': ['name.legal'],
+                  'identityCommitment': 'zCommitment',
+                  'cardDigestMultibase': 'zCard',
+                  'declaredRelationship': 'none',
+                },
+              },
+            },
+          })!;
+
+      Future<JoinVerdict> applyUnder(
+        String id, {
+        List<VettingStatement> statements = const [],
+      }) async {
+        final manifest = await client().readManifest(vtcDid);
+        return client().apply(
+          manifest,
+          agent: agent,
+          persona: agent.signInPersona,
+          criterion: manifest.criteria.firstWhere((c) => c.id == id),
+          vettingStatements: statements,
+        );
+      }
+
+      Iterable<Map<String, dynamic>> submits() =>
+          vtc.received.where((d) => d['type'] == JoinTask.submit);
+
+      test('submits the statements in a presentation by the persona', () async {
+        final statement = statementAbout(agent.persona.did);
+
+        await applyUnder('vetted', statements: [statement]);
+
+        final payload = submits().single['payload'] as Map;
+        expect(payload['criterion'], 'zVetted');
+        final vp = payload['vp'] as Map;
+        expect(vp['holder'], agent.persona.did);
+        expect(vp['verifiableCredential'], [statement.credential]);
+      });
+
+      test('refuses it without statements', () async {
+        await expectLater(applyUnder('vetted'), throwsStateError);
+        expect(submits(), isEmpty);
+      });
+
+      test('refuses a statement about another applicant', () async {
+        await expectLater(
+          applyUnder('vetted', statements: [statementAbout('did:key:zOther')]),
+          throwsStateError,
+        );
+        expect(submits(), isEmpty);
+      });
+
+      test('refuses statements for an open criterion', () async {
+        await expectLater(
+          applyUnder('open', statements: [statementAbout(agent.persona.did)]),
+          throwsStateError,
+        );
+        expect(submits(), isEmpty);
+      });
+    });
+
     test('reads a role credential under its former name', () async {
       final card = (vtc.verdict['with'] as Map)['roleVac'];
       vtc.verdict = {

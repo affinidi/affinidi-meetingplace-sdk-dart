@@ -8,6 +8,7 @@ import 'proof/trust_task_signer.dart';
 import 'sign_in/oob_sign_in_client.dart';
 import 'sign_in/sign_in_agent.dart';
 import 'sign_in/sign_in_failure.dart';
+import 'transport/didcomm_vta_transport.dart';
 import 'transport/trust_task_http_transport.dart';
 import 'trigger_link/trigger_link.dart';
 import 'trigger_link/trigger_link_config.dart';
@@ -19,7 +20,8 @@ import 'vta/vta_models.dart';
 /// Entry point to Verifiable Trust Community (VTC) support.
 ///
 /// Shares one DID resolver and one HTTPS transport across the clients it
-/// creates. A typical Key Grant sign-in:
+/// creates; VTA clients talk to the VTA over DIDComm, through its
+/// mediator. A typical Key Grant sign-in:
 ///
 /// 1. [readTriggerLink] on the scanned text;
 /// 2. [OobSignInClient.claim], then show the community and ask for the
@@ -35,12 +37,19 @@ class MeetingPlaceVtcSDK {
   /// Creates a [MeetingPlaceVtcSDK].
   ///
   /// [didResolver] defaults to a resolver that verifies `did:webvh` logs.
-  MeetingPlaceVtcSDK({DidResolver? didResolver, Dio? dio})
-    : _didResolver = didResolver ?? UniversalDIDResolver.defaultResolver,
-      _transport = TrustTaskHttpTransport(dio: dio);
+  /// [openVtaMailbox] opens a manager key's inbox on the VTA's mediator; by
+  /// default, through the mediator's own API.
+  MeetingPlaceVtcSDK({
+    DidResolver? didResolver,
+    Dio? dio,
+    VtaMailboxOpener? openVtaMailbox,
+  }) : _didResolver = didResolver ?? UniversalDIDResolver.defaultResolver,
+       _transport = TrustTaskHttpTransport(dio: dio),
+       _openVtaMailbox = openVtaMailbox;
 
   final DidResolver _didResolver;
   final TrustTaskHttpTransport _transport;
+  final VtaMailboxOpener? _openVtaMailbox;
 
   /// Reads scanned or pasted [text] as a trigger link, offline.
   TriggerLinkResult readTriggerLink(String text) =>
@@ -58,7 +67,12 @@ class MeetingPlaceVtcSDK {
       vtaDid: vtaDid,
       manager: manager,
       didResolver: _didResolver,
-      transport: _transport,
+      transport: DidcommVtaTransport(
+        vtaDid: vtaDid,
+        manager: manager,
+        didResolver: _didResolver,
+        openMailbox: _openVtaMailbox,
+      ),
     );
   }
 

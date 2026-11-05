@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:dio/dio.dart';
 import 'package:meeting_place_vtc/meeting_place_vtc.dart';
+import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
 import '../utils/fake_vta.dart';
@@ -11,26 +11,22 @@ const _vtcDid = 'did:web:community.example';
 
 void main() {
   late FakeVta vta;
-  late FakeHttpAdapter adapter;
   late Ed25519DidKeySigner manager;
   late VtaClient client;
 
   setUp(() {
     vta = FakeVta();
-    adapter = FakeHttpAdapter()..handler = vta.handle;
     manager = Ed25519DidKeySigner.generate();
     client = VtaClient(
       vtaDid: vta.did,
       manager: manager,
-      didResolver: FakeDidResolver({vta.did: vta.document}),
-      transport: TrustTaskHttpTransport(
-        dio: Dio()..httpClientAdapter = adapter,
-      ),
+      didResolver: FakeVtaResolver(vta),
+      transport: vta.transport(manager),
     );
   });
 
   group('VtaClient', () {
-    test('authenticates over REST, then sends signed tasks', () async {
+    test('sends signed tasks over DIDComm, without a login', () async {
       vta.answers[VtaTask.whoAmI] = {
         'roles': ['admin'],
       };
@@ -38,67 +34,12 @@ void main() {
       final whoAmI = await client.whoAmI();
 
       expect(whoAmI.roles, {'admin'});
-      final [challenge, authenticate, task] = adapter.requests;
-      expect(
-        challenge.options.uri.toString(),
-        'https://vta.example/api/trust-tasks',
-      );
-      expect(challenge.body.containsKey('proof'), isFalse);
-      expect(challenge.body['payload'], {'subject': manager.did});
-      // The only authenticate version a VTA serves before a session.
-      expect(
-        authenticate.body['type'],
-        'https://trusttasks.org/spec/auth/authenticate/0.3',
-      );
-      expect(authenticate.body['payload'], {
-        'sessionId': 'session-1',
-        'challenge': 'nonce-1',
-      });
-      expect(
-        (authenticate.body['proof'] as Map)['proofPurpose'],
-        'authentication',
-      );
-      expect(task.options.headers['Authorization'], 'Bearer $fakeVtaToken');
-      expect(task.body['issuer'], manager.did);
+      final [task] = vta.received;
+      expect(task['type'], VtaTask.whoAmI);
+      expect(task['issuer'], manager.did);
+      expect((task['proof'] as Map)['proofPurpose'], 'authentication');
+      expect(vta.forwarded.single.next, vta.did);
     });
-
-    test('authenticates again once when the token is rejected', () async {
-      await client.whoAmI();
-      vta.rejectTokenTimes = 1;
-
-      await client.whoAmI();
-
-      final types = vta.received.map((r) => r['type']).toList();
-      expect(types, [
-        VtaTask.challenge,
-        VtaTask.authenticate,
-        VtaTask.whoAmI,
-        VtaTask.whoAmI,
-        VtaTask.challenge,
-        VtaTask.authenticate,
-        VtaTask.whoAmI,
-      ]);
-    });
-
-    test(
-      'authenticates again when the token is refused with a document',
-      () async {
-        await client.whoAmI();
-        vta
-          ..rejectTokenTimes = 1
-          ..rejectTokenWithDocument = true;
-
-        await client.whoAmI();
-
-        final types = vta.received.map((r) => r['type']).skip(3).toList();
-        expect(types, [
-          VtaTask.whoAmI,
-          VtaTask.challenge,
-          VtaTask.authenticate,
-          VtaTask.whoAmI,
-        ]);
-      },
-    );
 
     test('refuses a whoami answer signed by another key', () async {
       vta.answerSigner = Ed25519DidKeySigner.generate();
@@ -133,9 +74,44 @@ void main() {
     test('checks the VTA answers before any grant', () async {
       await client.checkReachable();
 
-      final [challenge] = adapter.requests;
-      expect(challenge.body['type'], VtaTask.challenge);
-      expect(challenge.body.containsKey('proof'), isFalse);
+      expect(vta.received.single['type'], VtaTask.ping);
+    });
+
+    test('takes a refusal as an answer before any grant', () async {
+      vta.refusals[VtaTask.ping] = {'code': 'permissionDenied'};
+
+      await client.checkReachable();
+    });
+
+    test('says when the VTA names no DIDComm mediator', () async {
+      final restOnly = DidDocument.fromJson(
+        DidKey.resolve(vta.did).toJson()
+          ..['service'] = [
+            {
+              'id': '${vta.did}#vta-rest',
+              'type': 'VTARest',
+              'serviceEndpoint': 'https://vta.example/api',
+            },
+          ],
+      );
+      final resolver = FakeDidResolver({vta.did: restOnly});
+      final unreachable = VtaClient(
+        vtaDid: vta.did,
+        manager: manager,
+        didResolver: resolver,
+        transport: vta.transport(manager, resolver: resolver),
+      );
+
+      await expectLater(
+        unreachable.checkReachable(),
+        throwsA(
+          isA<MeetingPlaceVtcSDKException>().having(
+            (e) => e.code,
+            'code',
+            MeetingPlaceVtcSDKErrorCode.signInNotOffered,
+          ),
+        ),
+      );
     });
 
     test('says when the VTA DID does not resolve', () async {
@@ -157,7 +133,7 @@ void main() {
       );
     });
 
-    test('signs out of every session, once authenticated', () async {
+    test('signs out of every session, once it has spoken', () async {
       await client.signOut();
       expect(vta.received, isEmpty);
 

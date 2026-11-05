@@ -233,10 +233,7 @@ void main() {
       )).getDidDocument();
 
       expect(restored.toJson(), created.toJson());
-      expect(
-        restored.assertionMethod.single.id,
-        restored.keyAgreement.single.id,
-      );
+      expect(_deviceKeyIds(restored), hasLength(2));
       expect(externalKeys.created, 0);
     });
 
@@ -249,11 +246,8 @@ void main() {
         baseHost: baseHost,
       )).getDidDocument();
 
-      expect(document.verificationMethod, hasLength(1));
-      expect(
-        document.assertionMethod.single.id,
-        document.keyAgreement.single.id,
-      );
+      expect(_deviceKeyIds(document), hasLength(2));
+      expect(externalKeys.created, 0);
     });
 
     test('fails to make a DID when the external keys cannot be '
@@ -269,7 +263,7 @@ void main() {
         wallet,
       )).getDidDocument();
 
-      expect(document.verificationMethod, hasLength(1));
+      expect(_deviceKeyIds(document), hasLength(2));
       expect(externalKeys.created, 0);
     });
 
@@ -292,6 +286,23 @@ void main() {
 }
 
 /// A party that does not use a VTA: a P-256 did:key on its own device.
+/// The ids of [document]'s keys when one Ed25519 device key makes them: the
+/// key itself, which signs, and the X25519 key derived from it, which
+/// agrees keys.
+Set<String> _deviceKeyIds(DidDocument document) {
+  final agreement = document.keyAgreement.single.id;
+  final signing = document.authentication.single.id;
+  expect(document.assertionMethod.single.id, signing);
+  expect(agreement, isNot(signing));
+  final multibase = {
+    for (final method in document.verificationMethod)
+      method.id: method.toJson()['publicKeyMultibase'],
+  };
+  expect(multibase[signing], startsWith('z6Mk'));
+  expect(multibase[agreement], startsWith('z6LS'));
+  return {signing, agreement};
+}
+
 Future<DidManager> _peer() async {
   final wallet = PersistentWallet(InMemoryKeyStore());
   await wallet.generateKey(keyId: 'peer');

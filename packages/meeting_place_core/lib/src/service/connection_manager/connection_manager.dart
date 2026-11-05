@@ -138,6 +138,11 @@ class ConnectionManager {
     return _initDidManager(wallet: wallet, keyId: keyId);
   }
 
+  /// The key type of new DIDs: Ed25519, whose DIDs agree keys over X25519,
+  /// the curve every DIDComm mediator supports. A key that exists already
+  /// keeps its type, so DIDs made before stay as they are.
+  static const _keyType = KeyType.ed25519;
+
   String _buildKeyId(int index) {
     return "m/44'/60'/0'/0'/$index'";
   }
@@ -146,7 +151,7 @@ class ConnectionManager {
     required Wallet wallet,
     required String keyId,
   }) async {
-    await wallet.generateKey(keyId: keyId);
+    await wallet.generateKey(keyId: keyId, keyType: _keyType);
     final didManager = DidKeyManager(store: InMemoryDidStore(), wallet: wallet);
     await didManager.addVerificationMethod(keyId);
     return didManager;
@@ -171,7 +176,7 @@ class ConnectionManager {
         : await externalKeys.findKeys(did);
 
     if (externalKeys == null || heldKeys == null) {
-      await wallet.generateKey(keyId: keyId);
+      await wallet.generateKey(keyId: keyId, keyType: _keyType);
       final didManager = DidWebManager(
         store: InMemoryDidStore(),
         wallet: wallet,

@@ -90,6 +90,7 @@ class GroupService {
     int? maximumUsage,
     String? metadata,
     String? externalRef,
+    String? groupDid,
   }) async {
     final methodName = 'createGroup';
     _logger.info(
@@ -106,11 +107,11 @@ class GroupService {
     final oobDidManager = await _connectionManager.generateDid(_wallet);
     final oobDidDoc = await oobDidManager.getDidDocument();
 
-    // The group DID is no longer issued by the control plane — generate it
-    // locally as a did:key so the group has a stable identifier from the
+    // The group DID is no longer issued by the control plane. Nothing signs
+    // with it: unless the group is known by a DID held elsewhere, generate
+    // it locally as a did:key so the group has a stable identifier from the
     // start.
-    final groupDidManager = await _connectionManager.generateDid(_wallet);
-    final groupDidDoc = await groupDidManager.getDidDocument();
+    final effectiveGroupDid = groupDid ?? await _generateGroupDid();
 
     final oobMessage = OobInvitationMessage.create(from: oobDidDoc.id);
 
@@ -142,7 +143,7 @@ class GroupService {
 
     final group = Group(
       id: result.groupId,
-      did: groupDidDoc.id,
+      did: effectiveGroupDid,
       offerLink: result.offerLink,
       ownerDid: ownerDidDocument.id,
       created: DateTime.now().toUtc(),
@@ -162,7 +163,7 @@ class GroupService {
         type: ChannelType.group,
         isConnectionInitiator: true,
         permanentChannelDid: ownerDidDocument.id,
-        otherPartyPermanentChannelDid: groupDidDoc.id,
+        otherPartyPermanentChannelDid: effectiveGroupDid,
         externalRef: externalRef,
         transport: ChannelTransport.matrix,
       );
@@ -172,13 +173,13 @@ class GroupService {
         _allowGroupToMessageGroupOwner(
           groupOwnerDidManager: ownerDid,
           mediatorDid: result.mediatorDid,
-          groupDid: groupDidDoc.id,
+          groupDid: effectiveGroupDid,
         ),
       ).wait;
 
       final connectionOffer = GroupConnectionOffer(
         groupId: result.groupId,
-        groupDid: groupDidDoc.id,
+        groupDid: effectiveGroupDid,
         groupOwnerDid: ownerDidDocument.id,
         memberDid: ownerDidDocument.id,
         metadata: metadata,
@@ -220,11 +221,18 @@ class GroupService {
           mnemonic: result.mnemonic,
         ),
       );
+      // A group left behind would claim its DID on this device.
+      await _groupRepository.removeGroup(group);
       Error.throwWithStackTrace(
         ConnectionOfferException.publishOfferError(innerException: e),
         stackTrace,
       );
     }
+  }
+
+  Future<String> _generateGroupDid() async {
+    final didManager = await _connectionManager.generateDid(_wallet);
+    return (await didManager.getDidDocument()).id;
   }
 
   Future<AcceptGroupOfferResult> acceptGroupOffer({

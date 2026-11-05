@@ -3,6 +3,7 @@ import 'package:meeting_place_control_plane/meeting_place_control_plane.dart'
 import 'package:meeting_place_core/meeting_place_core.dart';
 import 'package:meeting_place_core/src/service/channel/channel_service.dart';
 import 'package:meeting_place_core/src/service/connection_manager/connection_manager.dart';
+import 'package:meeting_place_core/src/service/connection_offer/connection_offer_exception.dart';
 import 'package:meeting_place_core/src/service/connection_offer/connection_offer_service.dart';
 import 'package:meeting_place_core/src/service/connection_service.dart';
 import 'package:meeting_place_core/src/service/group.dart';
@@ -50,6 +51,17 @@ class _MockDidManager extends Mock implements DidManager {}
 
 class _FakeAclBody extends Fake implements AclBody {}
 
+class _FakeRegisterOfferGroupRequest extends Fake
+    implements cp.RegisterOfferGroupRequest {}
+
+class _FakeDeregisterOfferRequest extends Fake
+    implements cp.DeregisterOfferRequest {}
+
+class _FakeDeregisterOfferResult extends Fake
+    implements cp.DeregisterOfferResult {}
+
+class _FakeConnectionOffer extends Fake implements ConnectionOffer {}
+
 class _MockDidDocument extends Mock implements DidDocument {
   _MockDidDocument(this._id);
   final String _id;
@@ -93,6 +105,9 @@ void main() {
     registerFallbackValue(FakeDidDocument());
     registerFallbackValue(_group());
     registerFallbackValue(FakeGroupAddMemberRequest());
+    registerFallbackValue(_FakeRegisterOfferGroupRequest());
+    registerFallbackValue(_FakeDeregisterOfferRequest());
+    registerFallbackValue(_FakeConnectionOffer());
     registerFallbackValue(
       MediatorMessageRequest(
         message: FakePlainTextMessage(),
@@ -603,6 +618,172 @@ void main() {
 
       // The returned group no longer contains the rejected member.
       expect(result.members.any((m) => m.did == rejectMemberDid), isFalse);
+    });
+  });
+
+  group('GroupService.createGroup — group DID', () {
+    const ownerDid = 'did:web:mpx.example:owner';
+    const oobDid = 'did:key:oob';
+    const vtcGroupDid = 'did:webvh:QmGroup:vtc.example:group-dids:g1';
+
+    late _MockWallet wallet;
+    late _MockConnectionManager connectionManager;
+    late _MockGroupRepository groupRepository;
+    late _MockMeetingPlaceControlPlaneSDK controlPlaneSDK;
+    late _MockMeetingPlaceTransport channelTransport;
+    late _MockConnectionOfferRepository connectionOfferRepository;
+    late GroupService service;
+
+    _MockDidManager didManagerFor(String did) {
+      final didManager = _MockDidManager();
+      when(
+        didManager.getDidDocument,
+      ).thenAnswer((_) async => _MockDidDocument(did));
+      return didManager;
+    }
+
+    Future<void> createGroup({String? groupDid}) => service.createGroup(
+      offerName: 'Identity WG',
+      offerDescription: 'The working group chat',
+      card: ContactCardFixture.getContactCardFixture(did: ownerDid),
+      mediatorDid: 'did:web:mediator.example',
+      groupDid: groupDid,
+    );
+
+    setUp(() {
+      wallet = _MockWallet();
+      connectionManager = _MockConnectionManager();
+      groupRepository = _MockGroupRepository();
+      controlPlaneSDK = _MockMeetingPlaceControlPlaneSDK();
+      channelTransport = _MockMeetingPlaceTransport();
+      connectionOfferRepository = _MockConnectionOfferRepository();
+      final identityService = _MockIdentityService();
+      final mediatorSDK = _MockMediatorSDK();
+      final channelService = _MockChannelService();
+
+      final ownerDidManager = didManagerFor(ownerDid);
+      when(() => identityService.createPermanentIdentity(any())).thenAnswer(
+        (_) async => PermanentIdentity(
+          didManager: ownerDidManager,
+          didDocument: _MockDidDocument(ownerDid),
+        ),
+      );
+      var generated = 0;
+      when(() => connectionManager.generateDid(any())).thenAnswer(
+        (_) async =>
+            didManagerFor(generated++ == 0 ? oobDid : 'did:key:generated'),
+      );
+      when(
+        () => mediatorSDK.updateAcl(
+          ownerDidManager: any(named: 'ownerDidManager'),
+          acl: any(named: 'acl'),
+          mediatorDid: any(named: 'mediatorDid'),
+        ),
+      ).thenAnswer((_) async {});
+      when(() => controlPlaneSDK.device).thenReturn(
+        cp.Device(deviceToken: 'token', platformType: cp.PlatformType.didcomm),
+      );
+      when(() => controlPlaneSDK.registerOfferGroup(any())).thenAnswer(
+        (_) async => cp.RegisterOfferGroupResult(
+          groupId: 'group-1',
+          mediatorDid: 'did:web:mediator.example',
+          offerLink: 'offer://group-1',
+          mnemonic: 'identity-wg',
+          expiresAt: null,
+          maximumUsage: null,
+          oobInvitationMessage: PlainTextMessage(
+            id: 'oob-1',
+            type: Uri.parse('https://didcomm.org/out-of-band/2.0/invitation'),
+            body: const {},
+          ),
+        ),
+      );
+      when(
+        () => controlPlaneSDK.deregisterOffer(any()),
+      ).thenAnswer((_) async => _FakeDeregisterOfferResult());
+      when(() => groupRepository.createGroup(any())).thenAnswer((_) async {});
+      when(() => groupRepository.removeGroup(any())).thenAnswer((_) async {});
+      when(
+        () => channelTransport.setupChannel(
+          channel: any(named: 'channel'),
+          didManager: any(named: 'didManager'),
+        ),
+      ).thenAnswer((_) async {});
+      when(
+        () => connectionOfferRepository.createConnectionOffer(any()),
+      ).thenAnswer((invocation) async => invocation.positionalArguments.first);
+      when(() => channelService.persistChannel(any())).thenAnswer((_) async {});
+
+      service = GroupService(
+        wallet: wallet,
+        connectionManager: connectionManager,
+        connectionOfferRepository: connectionOfferRepository,
+        groupRepository: groupRepository,
+        channelService: channelService,
+        offerService: _MockConnectionOfferService(),
+        connectionService: _MockConnectionService(),
+        identityService: identityService,
+        controlPlaneSDK: controlPlaneSDK,
+        mediatorSDK: mediatorSDK,
+        channelTransport: channelTransport,
+        didResolver: _MockDidResolver(),
+      );
+    });
+
+    test('names the group by a DID held elsewhere, generating none', () async {
+      await createGroup(groupDid: vtcGroupDid);
+
+      final group =
+          verify(
+                () => groupRepository.createGroup(captureAny()),
+              ).captured.single
+              as Group;
+      expect(group.did, vtcGroupDid);
+      final channel =
+          verify(
+                () => channelTransport.setupChannel(
+                  channel: captureAny(named: 'channel'),
+                  didManager: any(named: 'didManager'),
+                ),
+              ).captured.single
+              as Channel;
+      expect(channel.otherPartyPermanentChannelDid, vtcGroupDid);
+      // The out-of-band DID only.
+      verify(() => connectionManager.generateDid(wallet)).called(1);
+    });
+
+    test('generates a did:key when no group DID is given', () async {
+      await createGroup();
+
+      final group =
+          verify(
+                () => groupRepository.createGroup(captureAny()),
+              ).captured.single
+              as Group;
+      expect(group.did, 'did:key:generated');
+    });
+
+    test('withdraws the offer and forgets the group when its room cannot be '
+        'created', () async {
+      when(
+        () => channelTransport.setupChannel(
+          channel: any(named: 'channel'),
+          didManager: any(named: 'didManager'),
+        ),
+      ).thenThrow(StateError('M_ROOM_IN_USE'));
+
+      await expectLater(
+        createGroup(groupDid: vtcGroupDid),
+        throwsA(isA<ConnectionOfferException>()),
+      );
+
+      verify(() => controlPlaneSDK.deregisterOffer(any())).called(1);
+      final removed =
+          verify(
+                () => groupRepository.removeGroup(captureAny()),
+              ).captured.single
+              as Group;
+      expect(removed.did, vtcGroupDid);
     });
   });
 }

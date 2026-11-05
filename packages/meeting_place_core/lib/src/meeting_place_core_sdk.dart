@@ -767,6 +767,7 @@ class MeetingPlaceCoreSDK {
           externalRef: request.externalRef,
           metadata: request.metadata,
           card: request.contactCard,
+          groupDid: request.groupDid,
         );
         return sdk.PublishOfferResult(
           connectionOffer: connectionOffer as T,

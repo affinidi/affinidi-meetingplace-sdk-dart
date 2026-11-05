@@ -18,6 +18,7 @@ class PublishOfferRequest {
     this.externalRef,
     this.transport = ChannelTransport.didcomm,
     this.score,
+    this.groupDid,
   });
 
   /// The name of your offer as it will be displayed when others search for
@@ -68,4 +69,14 @@ class PublishOfferRequest {
 
   /// Initial VRC score to associate with the published offer.
   final int? score;
+
+  /// For a group invitation, the DID the group is known by when it is held
+  /// elsewhere, such as a VTC community group's. The group's keys are never
+  /// needed: its DID only names the group and its Matrix room, and the
+  /// homeserver gives one room per DID, so a second group with the same DID
+  /// cannot be published.
+  ///
+  /// When null, a `did:key` is generated on this device. Ignored for other
+  /// offer types.
+  final String? groupDid;
 }

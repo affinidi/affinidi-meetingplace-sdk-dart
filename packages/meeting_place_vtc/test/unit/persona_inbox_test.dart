@@ -74,11 +74,12 @@ void main() {
     Map<String, dynamic> body, {
     Ed25519DidKeySigner? from,
     bool anonymously = false,
+    String type = trustTaskEnvelopeType,
   }) async {
     final sender = from ?? community;
     final message = PlainTextMessage(
       id: 'urn:uuid:${body['id'] ?? 'message'}',
-      type: Uri.parse(trustTaskEnvelopeType),
+      type: Uri.parse(type),
       // An anoncrypt message names no sender.
       from: anonymously ? null : sender.did,
       to: [persona.did],
@@ -324,6 +325,90 @@ void main() {
         down.open(),
         failsWith(MeetingPlaceVtcSDKErrorCode.transportFailed),
       );
+    });
+
+    group('peerDocuments', () {
+      const session = 'https://trusttasks.org/spec/vetting/session/0.1';
+      const decline = 'https://trusttasks.org/spec/vetting/decline/0.1';
+      late Ed25519DidKeySigner vetter;
+
+      Future<TrustTaskDocument> sent({
+        String type = session,
+        String? recipient,
+      }) => TrustTaskDocument.create(
+        type: type,
+        issuer: vetter.did,
+        recipient: recipient ?? persona.did,
+        payload: const {'requestId': 'r-1'},
+      ).sign(vetter, purpose: ProofPurpose.authentication);
+
+      setUp(() => vetter = Ed25519DidKeySigner.generate());
+
+      test('picks up what the peer sent, typed as its task', () async {
+        final document = await sent();
+        inbox.messages['m-1'] = await sealed(
+          document.toJson(),
+          from: vetter,
+          type: session,
+        );
+        await personaInbox.open();
+
+        final documents = await personaInbox.peerDocuments(
+          senderDid: vetter.did,
+          types: {session, decline},
+        );
+
+        expect(documents.single.messageId, 'm-1');
+        expect(documents.single.document.toJson(), document.toJson());
+        expect(inbox.messages, contains('m-1'));
+      });
+
+      test('leaves everything else where it is', () async {
+        final stranger = Ed25519DidKeySigner.generate();
+        inbox.messages
+          ..['tsp'] = {'not': 'didcomm'}
+          ..['envelope'] = await sealed((await sent()).toJson(), from: vetter)
+          ..['anonymous'] = await sealed(
+            (await sent()).toJson(),
+            anonymously: true,
+            type: session,
+          )
+          ..['stranger'] = await sealed(
+            (await sent()).toJson(),
+            from: stranger,
+            type: session,
+          )
+          ..['mistyped'] = await sealed(
+            (await sent(type: decline)).toJson(),
+            from: vetter,
+            type: session,
+          )
+          ..['not-asked'] = await sealed(
+            (await sent(type: decline)).toJson(),
+            from: vetter,
+            type: decline,
+          )
+          ..['forged'] = await sealed(
+            // Signed over another payload: the proof no longer holds.
+            (await sent()).toJson()..['payload'] = {'requestId': 'r-2'},
+            from: vetter,
+            type: session,
+          )
+          ..['for-another'] = await sealed(
+            (await sent(recipient: stranger.did)).toJson(),
+            from: vetter,
+            type: session,
+          );
+        await personaInbox.open();
+
+        final documents = await personaInbox.peerDocuments(
+          senderDid: vetter.did,
+          types: {session},
+        );
+
+        expect(documents, isEmpty);
+        expect(inbox.deleted, isEmpty);
+      });
     });
 
     test('ends the session on close', () async {

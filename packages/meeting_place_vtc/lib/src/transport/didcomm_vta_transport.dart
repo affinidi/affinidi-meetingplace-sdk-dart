@@ -312,6 +312,7 @@ class DidcommVtaTransport implements VtaTransport {
     final client = await MediatorClient.init(
       mediatorDidDocument: mediatorDocument,
       didManager: manager,
+      forwardMessageOptions: vtaForwardMessageOptions,
       authorizationProvider: await AffinidiAuthorizationProvider.init(
         mediatorDidDocument: mediatorDocument,
         didManager: manager,
@@ -320,6 +321,16 @@ class DidcommVtaTransport implements VtaTransport {
     return _MediatorMailbox(client);
   }
 }
+
+/// How a task is wrapped for the mediator. Signed: a mediator that blocks
+/// anonymous outer envelopes refuses the forward otherwise, as the task
+/// inside is encrypted for the VTA alone.
+const vtaForwardMessageOptions = ForwardMessageOptions(
+  shouldSign: true,
+  shouldEncrypt: true,
+  keyWrappingAlgorithm: KeyWrappingAlgorithm.ecdhEs,
+  encryptionAlgorithm: EncryptionAlgorithm.a256cbc,
+);
 
 /// The DID of the mediator [document]'s `DIDCommMessaging` service names,
 /// or null when it names none.

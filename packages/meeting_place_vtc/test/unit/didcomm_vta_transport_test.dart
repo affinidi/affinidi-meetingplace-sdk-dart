@@ -1,4 +1,6 @@
 import 'package:meeting_place_vtc/meeting_place_vtc.dart';
+import 'package:meeting_place_vtc/src/transport/didcomm_vta_transport.dart'
+    show vtaForwardMessageOptions;
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
@@ -125,6 +127,13 @@ void main() {
 
       expect(answers[0].threadId, first.id);
       expect(answers[1].threadId, second.id);
+    });
+  });
+
+  group('vtaForwardMessageOptions', () {
+    test('signs the forward, as mediators refuse anonymous ones', () {
+      expect(vtaForwardMessageOptions.shouldSign, isTrue);
+      expect(vtaForwardMessageOptions.shouldEncrypt, isTrue);
     });
   });
 

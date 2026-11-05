@@ -8,6 +8,7 @@ export 'src/join/vtc_join_client.dart';
 export 'src/meeting_place_vtc_sdk.dart';
 export 'src/meeting_place_vtc_sdk_error_code.dart';
 export 'src/meeting_place_vtc_sdk_exception.dart';
+export 'src/persona/persona_did_manager.dart';
 export 'src/proof/digest_multibase.dart';
 export 'src/proof/eddsa_jcs_2022.dart';
 export 'src/proof/trust_task_signer.dart';

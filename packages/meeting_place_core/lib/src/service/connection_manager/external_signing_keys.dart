@@ -24,8 +24,12 @@ class ExternalSigningKey {
 /// only assertion method, for credentials.
 abstract interface class ExternalSigningKeys {
   /// Creates a key for the new permanent channel DID [did], and remembers it
-  /// for [findKey].
-  Future<ExternalSigningKey> createKey(String did);
+  /// for [findKey]. Returns null when there is nowhere to hold one, such as
+  /// no linked VTA: [did] then keeps all its keys on the device.
+  ///
+  /// Throws when keys are held externally but this one cannot be created,
+  /// so the DID is never quietly made with a device signing key.
+  Future<ExternalSigningKey?> createKey(String did);
 
   /// The key created for [did], or null when [did] has none.
   Future<ExternalSigningKey?> findKey(String did);

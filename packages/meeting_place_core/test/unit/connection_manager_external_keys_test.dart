@@ -29,8 +29,12 @@ class _ExternalKeys implements ExternalSigningKeys {
   final Map<String, ExternalSigningKey> byDid = {};
   int created = 0;
 
+  /// When true, there is nowhere to hold keys, as with no linked VTA.
+  bool isOff = false;
+
   @override
-  Future<ExternalSigningKey> createKey(String did) async {
+  Future<ExternalSigningKey?> createKey(String did) async {
+    if (isOff) return null;
     final (keyPair, _) = Ed25519KeyPair.generate();
     final key = ExternalSigningKey(
       keyId: 'vta-key-${++created}',
@@ -47,6 +51,12 @@ class _ExternalKeys implements ExternalSigningKeys {
     Map<String, dynamic> document, {
     required String keyId,
   }) => throw UnimplementedError();
+}
+
+class _FailingKeys extends _ExternalKeys {
+  @override
+  Future<ExternalSigningKey?> createKey(String did) async =>
+      throw StateError('VTA unreachable');
 }
 
 void main() {
@@ -131,6 +141,39 @@ void main() {
         restored.keyAgreement.single.id,
       );
       expect(externalKeys.created, 0);
+    });
+
+    test('keeps a new DID on the device when no external key is '
+        'offered', () async {
+      externalKeys.isOff = true;
+      final manager = ConnectionManager(
+        keyRepository: keyRepository,
+        externalSigningKeys: externalKeys,
+      );
+
+      final document = await (await manager.generateDidWeb(
+        wallet,
+        baseHost: baseHost,
+      )).getDidDocument();
+
+      expect(document.verificationMethod, hasLength(1));
+      expect(
+        document.assertionMethod.single.id,
+        document.keyAgreement.single.id,
+      );
+    });
+
+    test('fails to make a DID when the external key cannot be '
+        'created', () async {
+      final manager = ConnectionManager(
+        keyRepository: keyRepository,
+        externalSigningKeys: _FailingKeys(),
+      );
+
+      await expectLater(
+        manager.generateDidWeb(wallet, baseHost: baseHost),
+        throwsStateError,
+      );
     });
 
     test('gives did:key DIDs no external key', () async {

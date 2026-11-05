@@ -153,8 +153,8 @@ class ConnectionManager {
   }
 
   /// A did:web manager for the device key [keyId]. A new DID gets an
-  /// external key when [ExternalSigningKeys] are configured; an existing one
-  /// keeps the key it was made with, or none.
+  /// external key when [ExternalSigningKeys] are configured and offer one;
+  /// an existing one keeps the key it was made with, or none.
   Future<DidManager> _initDidWebManager({
     required Wallet wallet,
     required String keyId,

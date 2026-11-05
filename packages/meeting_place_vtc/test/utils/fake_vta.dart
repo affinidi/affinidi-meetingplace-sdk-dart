@@ -34,6 +34,9 @@ class FakeVta {
   late final DidDocument document;
   final Map<String, Map<String, dynamic>> answers = {};
   final Map<String, Map<String, dynamic>> refusals = {};
+
+  /// What `keys/export-secret` answers, by the key id asked for.
+  final Map<String, Map<String, dynamic>> exportedKeys = {};
   final List<Map<String, dynamic>> received = [];
 
   /// The forward messages the mediator was handed.
@@ -94,6 +97,10 @@ class FakeVta {
     received.add(request);
     final type = request['type'] as String;
     if (refusals[type] case final payload?) return _error(payload);
+    if (type == VtaTask.exportSecret) {
+      final keyId = (request['payload'] as Map)['keyId'];
+      return _answer(request, exportedKeys[keyId] ?? const {});
+    }
     return _answer(request, answers[type] ?? const {});
   }
 

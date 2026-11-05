@@ -1,9 +1,12 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
+import 'package:didcomm/didcomm.dart' hide TrustTaskDocument;
 import 'package:meeting_place_vtc/meeting_place_vtc.dart';
 import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
+import '../utils/fake_persona.dart';
 import '../utils/fake_vta.dart';
 import '../utils/fakes.dart';
 
@@ -1146,6 +1149,153 @@ void main() {
           'contextId': 'vta',
           'previewId': 'preview-1',
         });
+      });
+    });
+
+    group('borrowPersonaKeys', () {
+      late FakePersona persona;
+      late VtaPersona vtaPersona;
+
+      String keyId(VerificationMethod method) =>
+          method.id.startsWith('#') ? '${persona.did}${method.id}' : method.id;
+
+      Matcher failsWith(MeetingPlaceVtcSDKErrorCode code) => throwsA(
+        isA<MeetingPlaceVtcSDKException>().having((e) => e.code, 'code', code),
+      );
+
+      String multikey(List<int> prefix, Uint8List key) =>
+          toMultiBase(Uint8List.fromList([...prefix, ...key]));
+
+      void lend({String? signing, String? keyAgreement}) {
+        vta.exportedKeys[keyId(persona.document.authentication.first)] = {
+          'keyType': 'Ed25519',
+          'privateKeyMultibase':
+              signing ?? multikey(const [0x80, 0x26], persona.signingSeed),
+        };
+        vta.exportedKeys[keyId(persona.document.keyAgreement.first)] = {
+          'keyType': 'X25519',
+          'privateKeyMultibase':
+              keyAgreement ??
+              multikey(const [0x82, 0x26], persona.keyAgreementKey),
+        };
+      }
+
+      setUp(() {
+        persona = FakePersona();
+        vtaPersona = VtaPersona(did: persona.did, contextId: 'persona');
+        client = VtaClient(
+          vtaDid: vta.did,
+          manager: manager,
+          didResolver: FakeVtaResolver(vta, {persona.did: persona.document}),
+          transport: vta.transport(manager),
+        );
+      });
+
+      test('borrows both keys over DIDComm, as Multikeys', () async {
+        lend();
+
+        final borrowed = await client.borrowPersonaKeys(vtaPersona);
+
+        expect(borrowed.did, persona.did);
+        expect(vta.received.map((r) => r['type']), [
+          VtaTask.exportSecret,
+          VtaTask.exportSecret,
+        ]);
+        expect(vta.received.map((r) => r['payload']), [
+          {'keyId': keyId(persona.document.authentication.first)},
+          {'keyId': keyId(persona.document.keyAgreement.first)},
+        ]);
+        expect(vta.forwarded, hasLength(2));
+      });
+
+      test('borrows bare keys the answer names the type of', () async {
+        lend(
+          signing: toMultiBase(persona.signingSeed),
+          keyAgreement: toMultiBase(persona.keyAgreementKey),
+        );
+
+        final borrowed = await client.borrowPersonaKeys(vtaPersona);
+
+        expect(borrowed.did, persona.did);
+      });
+
+      test(
+        'unseals what is sent to the persona with the borrowed keys',
+        () async {
+          lend();
+          final borrowed = await client.borrowPersonaKeys(vtaPersona);
+          final sender = Ed25519DidKeySigner.generate();
+          final sealed = await EncryptedMessage.packWithAuthentication(
+            PlainTextMessage(
+              id: 'urn:uuid:card-1',
+              type: Uri.parse('https://example.org/test/1.0/card'),
+              from: sender.did,
+              to: [persona.did],
+              body: const {'card': 'membership'},
+            ),
+            keyPair: sender.keyPair,
+            didKeyId: DidKey.resolve(sender.did).keyAgreement.first.id,
+            recipientDidDocuments: [persona.document],
+          );
+
+          final unsealed = await DidcommMessage.unpackToPlainTextMessage(
+            message: jsonDecode(jsonEncode(sealed)) as Map<String, dynamic>,
+            recipientDidManager: borrowed,
+            expectedMessageWrappingTypes: const [
+              MessageWrappingType.authcryptPlaintext,
+            ],
+          );
+
+          expect(unsealed.body, {'card': 'membership'});
+        },
+      );
+
+      test('passes on the VTA refusing to lend a key', () async {
+        vta.refusals[VtaTask.exportSecret] = {
+          'code': 'taskFailed',
+          'message': 'keys/export-secret:notExportable',
+        };
+
+        await expectLater(
+          client.borrowPersonaKeys(vtaPersona),
+          throwsA(
+            isA<MeetingPlaceVtcSDKException>().having(
+              (e) => e.refusalCode,
+              'refusalCode',
+              'notExportable',
+            ),
+          ),
+        );
+      });
+
+      test('refuses a lent key that is not the persona one', () async {
+        lend(
+          keyAgreement: multikey(const [
+            0x82,
+            0x26,
+          ], FakePersona().keyAgreementKey),
+        );
+
+        await expectLater(
+          client.borrowPersonaKeys(vtaPersona),
+          failsWith(MeetingPlaceVtcSDKErrorCode.invalidDocument),
+        );
+      });
+
+      test('refuses a lent key it cannot read', () async {
+        // An X25519 key where the Ed25519 seed goes.
+        lend(signing: multikey(const [0x82, 0x26], persona.signingSeed));
+
+        await expectLater(
+          client.borrowPersonaKeys(vtaPersona),
+          failsWith(MeetingPlaceVtcSDKErrorCode.invalidDocument),
+        );
+
+        lend(signing: 'not multibase');
+        await expectLater(
+          client.borrowPersonaKeys(vtaPersona),
+          failsWith(MeetingPlaceVtcSDKErrorCode.invalidDocument),
+        );
       });
     });
   });

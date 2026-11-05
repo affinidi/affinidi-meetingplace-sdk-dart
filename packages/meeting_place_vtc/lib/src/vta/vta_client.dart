@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:didcomm/didcomm.dart' show EncryptedMessage, PlainTextMessage;
 import 'package:ssi/ssi.dart';
@@ -7,6 +8,7 @@ import 'package:uuid/uuid.dart';
 import '../join/join_models.dart';
 import '../meeting_place_vtc_sdk_error_code.dart';
 import '../meeting_place_vtc_sdk_exception.dart';
+import '../persona/persona_did_manager.dart';
 import '../proof/trust_task_signer.dart';
 import '../sign_in/sign_in_agent.dart';
 import '../transport/didcomm_vta_transport.dart';
@@ -89,6 +91,9 @@ abstract final class VtaTask {
   /// Signs a JSON document as the DID it names, with a key the VTA holds.
   static const signDocument = '$_base/keys/sign-document/0.1';
 
+  /// Lends the private half of a key the VTA holds, over DIDComm only.
+  static const exportSecret = '$_base/keys/export-secret/0.1';
+
   /// Shows what the VTA would disclose about a persona to a verifier.
   static const disclosurePreview = '$_base/persona/disclosure/preview/1.0';
 
@@ -156,6 +161,11 @@ class VtaClient implements PersonaSigningAgent {
   static final _innerCode = RegExp(
     r'(?<![\w:.#/-])(?!did:)[a-z][a-z-]*(?:/[a-z0-9.-]+)+:([A-Za-z_]+)',
   );
+
+  /// Multicodec prefixes of an Ed25519 and an X25519 private key.
+  static const _ed25519SecretPrefix = [0x80, 0x26];
+  static const _x25519SecretPrefix = [0x82, 0x26];
+  static const _secretKeyLength = 32;
 
   @override
   final String vtaDid;
@@ -570,6 +580,85 @@ class VtaClient implements PersonaSigningAgent {
     return signed;
   }
 
+  /// Borrows [persona]'s keys from the VTA for this session, so DIDComm can
+  /// sign in, seal and unseal as the persona: the first signing key and the
+  /// first key agreement key its DID document names.
+  ///
+  /// The VTA lends keys over DIDComm only, and audits each loan. Keep the
+  /// manager in memory and [PersonaDidManager.forget] it when the session
+  /// ends. Throws [MeetingPlaceVtcSDKException] refused when the VTA will not
+  /// lend a key, and with an `invalidDocument` code when a key it lends is
+  /// not the one the persona's DID document states.
+  Future<PersonaDidManager> borrowPersonaKeys(VtaPersona persona) async {
+    final document = await _resolve(persona.did);
+    final signingMethod = document.authentication.firstOrNull;
+    final keyAgreementMethod = document.keyAgreement.firstOrNull;
+    if (signingMethod == null || keyAgreementMethod == null) {
+      throw MeetingPlaceVtcSDKException.invalidDocument(
+        'persona names no signing or key agreement key',
+      );
+    }
+    final signingSeed = await _exportKey(
+      _absoluteId(signingMethod.id, persona.did),
+      prefix: _ed25519SecretPrefix,
+      keyType: 'ed25519',
+    );
+    try {
+      final keyAgreementKey = await _exportKey(
+        _absoluteId(keyAgreementMethod.id, persona.did),
+        prefix: _x25519SecretPrefix,
+        keyType: 'x25519',
+      );
+      try {
+        return await PersonaDidManager.borrow(
+          document: document,
+          signingSeed: signingSeed,
+          keyAgreementKey: keyAgreementKey,
+        );
+      } finally {
+        keyAgreementKey.fillRange(0, keyAgreementKey.length, 0);
+      }
+    } finally {
+      signingSeed.fillRange(0, signingSeed.length, 0);
+    }
+  }
+
+  /// The private key [keyId] the VTA lends: a Multikey with [prefix], or a
+  /// bare key when the answer names it [keyType].
+  Future<Uint8List> _exportKey(
+    String keyId, {
+    required List<int> prefix,
+    required String keyType,
+  }) async {
+    final answer = await _task(VtaTask.exportSecret, {'keyId': keyId});
+    final multibase = answer['privateKeyMultibase'];
+    final Uint8List decoded;
+    try {
+      decoded = multiBaseToUint8List(multibase as String);
+    } on Object {
+      throw MeetingPlaceVtcSDKException.invalidDocument('no lent key');
+    }
+    final hasPrefix =
+        decoded.length == prefix.length + _secretKeyLength &&
+        decoded[0] == prefix[0] &&
+        decoded[1] == prefix[1];
+    final isBare =
+        decoded.length == _secretKeyLength &&
+        '${answer['keyType']}'.toLowerCase().contains(keyType);
+    if (!hasPrefix && !isBare) {
+      decoded.fillRange(0, decoded.length, 0);
+      throw MeetingPlaceVtcSDKException.invalidDocument('lent key unreadable');
+    }
+    final key = Uint8List.fromList(
+      hasPrefix ? decoded.sublist(prefix.length) : decoded,
+    );
+    decoded.fillRange(0, decoded.length, 0);
+    return key;
+  }
+
+  static String _absoluteId(String id, String did) =>
+      id.startsWith('#') ? '$did$id' : id;
+
   /// Previews what the VTA would disclose about [persona] to [verifierDid]
   /// for [requestedClaims], the claim types a verifier asks for.
   ///
@@ -826,12 +915,17 @@ class VtaClient implements PersonaSigningAgent {
 
   Future<DidDocument> _resolveVta() async {
     if (_vtaDocument case final document?) return document;
+    return _vtaDocument = await _resolve(vtaDid);
+  }
+
+  /// [did]'s document, which must name [did] as its id.
+  Future<DidDocument> _resolve(String did) async {
     try {
-      final document = await _didResolver.resolveDid(vtaDid);
-      if (document.id != vtaDid) {
+      final document = await _didResolver.resolveDid(did);
+      if (document.id != did) {
         throw MeetingPlaceVtcSDKException.didResolutionFailed();
       }
-      return _vtaDocument = document;
+      return document;
     } on MeetingPlaceVtcSDKException {
       rethrow;
     } catch (error) {

@@ -94,6 +94,38 @@ void main() {
       expect(manifest.canApply, isFalse);
     });
 
+    test('reads what a vetting criterion asks of vetting', () async {
+      vtc.manifest = {
+        ...vtc.manifest,
+        'criteria': [
+          {
+            'id': 'vetted',
+            'admission': 'automatic',
+            'requirementsDigest': 'z5',
+            'vetting': {
+              'version': '0.1',
+              'statementType': VettingStatement.predicate,
+              'minStatements': 2,
+              'minByMethod': {'inPerson': 1},
+              'acceptedMethods': ['inPerson', 'video'],
+              'eligibleVetters': {'role': 'vetter'},
+              'requiredClaims': ['name.legal'],
+              'maxStatementAge': 'P120D',
+            },
+          },
+        ],
+      };
+
+      final manifest = await client().readManifest(vtcDid);
+
+      final vetted = manifest.criteria.single;
+      expect(vetted.asksForVetting, isTrue);
+      expect(vetted.asksOnlyForVetting, isTrue);
+      expect(vetted.vetting!.minStatements, 2);
+      expect(vetted.vetting!.vetterRole, 'vetter');
+      expect(vetted.vetting!.maxStatementAge, const Duration(days: 120));
+    });
+
     group('a credential criterion', () {
       Future<JoinCredentialRequest> read(
         Object? query, {

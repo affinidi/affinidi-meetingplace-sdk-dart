@@ -76,6 +76,10 @@ class StatusListClient {
   static const _purpose = 'revocation';
   static const _cryptosuite = 'eddsa-jcs-2022';
   static const _base64UrlMultibase = 'u';
+
+  /// How far the phone's clock may be off the issuer's: a list is signed,
+  /// and so valid from, the moment it is served.
+  static const clockSkew = Duration(minutes: 5);
   static const _bitsPerByte = 8;
 
   final DidResolver _didResolver;
@@ -199,8 +203,8 @@ class StatusListClient {
     }
     final validFrom = DateTime.tryParse('${list['validFrom']}');
     final validUntil = DateTime.tryParse('${list['validUntil']}');
-    if ((validFrom != null && now.isBefore(validFrom)) ||
-        (validUntil != null && now.isAfter(validUntil))) {
+    if ((validFrom != null && now.add(clockSkew).isBefore(validFrom)) ||
+        (validUntil != null && now.subtract(clockSkew).isAfter(validUntil))) {
       throw MeetingPlaceVtcSDKException.invalidDocument(
         'status list not valid now',
       );
@@ -238,16 +242,22 @@ class StatusListClient {
 
   /// Whether the bit at [index] of [list]'s bitstring is set. Bit 0 is the
   /// most significant bit of the first byte.
+  ///
+  /// The bitstring is GZIP in base64url: multibase (`u…`) as the W3C
+  /// specification writes it, or bare as `affinidi-status-list` and so the
+  /// VTC write it. Bare GZIP always starts `H4sI`, so a leading `u` is
+  /// never part of it.
   bool _bitAt(Map<String, dynamic> list, int index) {
     final encoded = _subject(list)['encodedList'];
     final List<int> bits;
     try {
-      if (encoded is! String || !encoded.startsWith(_base64UrlMultibase)) {
-        throw const FormatException('not base64url multibase');
+      if (encoded is! String) {
+        throw const FormatException('no bitstring');
       }
-      final compressed = base64Url.decode(
-        base64Url.normalize(encoded.substring(1)),
-      );
+      final base64 = encoded.startsWith(_base64UrlMultibase)
+          ? encoded.substring(_base64UrlMultibase.length)
+          : encoded;
+      final compressed = base64Url.decode(base64Url.normalize(base64));
       bits = const GZipDecoder().decodeBytes(compressed);
     } on Object {
       throw MeetingPlaceVtcSDKException.invalidDocument(

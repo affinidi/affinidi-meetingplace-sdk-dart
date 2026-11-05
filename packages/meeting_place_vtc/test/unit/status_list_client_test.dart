@@ -131,6 +131,43 @@ void main() {
       );
     });
 
+    test('reads a bare base64url bitstring, as the VTC writes it', () async {
+      final unsigned = Map<String, dynamic>.of(await list())..remove('proof');
+      final subject = Map<String, dynamic>.of(
+        unsigned['credentialSubject'] as Map<String, dynamic>,
+      );
+      subject['encodedList'] = encode({42}).substring(1);
+      serve(
+        await EddsaJcs2022.sign(
+          {...unsigned, 'credentialSubject': subject},
+          signer: issuer,
+          purpose: ProofPurpose.assertionMethod,
+        ),
+      );
+
+      expect(
+        (await client.check(credential())).state,
+        CredentialStatusState.revoked,
+      );
+    });
+
+    test('takes a list signed just now on a clock running behind', () async {
+      final signed = await EddsaJcs2022.sign(
+        {
+          ...Map<String, dynamic>.of(await list())..remove('proof'),
+          'validFrom': '2026-11-05T10:02:00Z',
+        },
+        signer: issuer,
+        purpose: ProofPurpose.assertionMethod,
+      );
+      serve(signed);
+
+      expect(
+        (await client.check(credential())).state,
+        CredentialStatusState.valid,
+      );
+    });
+
     test('says a credential without a status list cannot be revoked', () async {
       final check = await client.check(credential(revocable: false));
 

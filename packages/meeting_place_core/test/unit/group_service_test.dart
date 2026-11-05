@@ -621,6 +621,134 @@ void main() {
     });
   });
 
+  group('GroupService.setModerator', () {
+    late _MockGroupRepository groupRepository;
+    late _MockIdentityService identityService;
+    late _MockChannelService channelService;
+    late _MockMeetingPlaceTransport channelTransport;
+    late GroupService service;
+    final ownerDidManager = _MockDidManager();
+    final groupChannel = Channel(
+      offerLink: 'offer://test',
+      publishOfferDid: 'did:test:oob',
+      mediatorDid: 'did:test:mediator',
+      status: ChannelStatus.inaugurated,
+      contactCard: ContactCardFixture.getContactCardFixture(),
+      type: ChannelType.group,
+      isConnectionInitiator: true,
+      permanentChannelDid: 'did:test:alice',
+      otherPartyPermanentChannelDid: 'did:test:group',
+    );
+
+    setUp(() {
+      groupRepository = _MockGroupRepository();
+      identityService = _MockIdentityService();
+      channelService = _MockChannelService();
+      channelTransport = _MockMeetingPlaceTransport();
+      service = GroupService(
+        wallet: _MockWallet(),
+        connectionManager: _MockConnectionManager(),
+        connectionOfferRepository: _MockConnectionOfferRepository(),
+        groupRepository: groupRepository,
+        channelService: channelService,
+        offerService: _MockConnectionOfferService(),
+        connectionService: _MockConnectionService(),
+        identityService: identityService,
+        controlPlaneSDK: _MockMeetingPlaceControlPlaneSDK(),
+        mediatorSDK: _MockMediatorSDK(),
+        channelTransport: channelTransport,
+        didResolver: _MockDidResolver(),
+      );
+      when(
+        () => groupRepository.findGroupById('group-1'),
+      ).thenAnswer((_) async => _group());
+      when(
+        () => identityService.getPermanentIdentity(any(), 'did:test:alice'),
+      ).thenAnswer(
+        (_) async => PermanentIdentity(
+          didManager: ownerDidManager,
+          didDocument: _MockDidDocument('did:test:alice'),
+        ),
+      );
+      when(
+        () => channelService.getChannelByOtherPartyPermanentChannelDid(
+          'did:test:group',
+        ),
+      ).thenAnswer((_) async => groupChannel);
+      when(
+        () => channelTransport.setModerator(
+          channel: any(named: 'channel'),
+          participantDid: any(named: 'participantDid'),
+          isModerator: any(named: 'isModerator'),
+          didManager: any(named: 'didManager'),
+        ),
+      ).thenAnswer((_) async {});
+    });
+
+    test("changes a member's rights in the chat as the owner", () async {
+      await service.setModerator(
+        groupId: 'group-1',
+        memberDid: 'did:test:bob',
+        isModerator: true,
+      );
+
+      verify(
+        () => channelTransport.setModerator(
+          channel: groupChannel,
+          participantDid: 'did:test:bob',
+          isModerator: true,
+          didManager: ownerDidManager,
+        ),
+      ).called(1);
+    });
+
+    test("leaves the owner's rights alone", () async {
+      await expectLater(
+        service.setModerator(
+          groupId: 'group-1',
+          memberDid: 'did:test:alice',
+          isModerator: false,
+        ),
+        throwsA(
+          isA<GroupException>().having(
+            (e) => e.code,
+            'code',
+            MeetingPlaceCoreSDKErrorCode.groupCannotRemoveOwnerError,
+          ),
+        ),
+      );
+      verifyNever(
+        () => channelTransport.setModerator(
+          channel: any(named: 'channel'),
+          participantDid: any(named: 'participantDid'),
+          isModerator: any(named: 'isModerator'),
+          didManager: any(named: 'didManager'),
+        ),
+      );
+    });
+
+    test('refuses a caller that does not own the group', () async {
+      when(
+        () => identityService.getPermanentIdentity(any(), 'did:test:alice'),
+      ).thenThrow(StateError('not this wallet'));
+
+      await expectLater(
+        service.setModerator(
+          groupId: 'group-1',
+          memberDid: 'did:test:bob',
+          isModerator: true,
+        ),
+        throwsA(
+          isA<GroupException>().having(
+            (e) => e.code,
+            'code',
+            MeetingPlaceCoreSDKErrorCode.groupCallerIsNotOwnerError,
+          ),
+        ),
+      );
+    });
+  });
+
   group('GroupService.createGroup — group DID', () {
     const ownerDid = 'did:web:mpx.example:owner';
     const oobDid = 'did:key:oob';

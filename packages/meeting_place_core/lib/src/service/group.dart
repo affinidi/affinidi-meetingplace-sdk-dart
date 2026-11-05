@@ -766,6 +766,36 @@ class GroupService {
     );
   }
 
+  /// Gives the member [memberDid] of the group [groupId] the rights to
+  /// moderate the group's chat, or takes them away.
+  ///
+  /// Only the group's owner can do this; the owner moderates by owning.
+  Future<void> setModerator({
+    required String groupId,
+    required String memberDid,
+    required bool isModerator,
+  }) async {
+    final group = await _loadOwnedGroupForRemoval(
+      groupId: groupId,
+      memberDid: memberDid,
+    );
+    final ownerIdentity = await _resolveOwnerIdentityOrThrow(group);
+    final groupChannel = await _channelService
+        .getChannelByOtherPartyPermanentChannelDid(group.did);
+    await _channelTransport.setModerator(
+      channel: groupChannel,
+      participantDid: memberDid,
+      isModerator: isModerator,
+      didManager: ownerIdentity.didManager,
+    );
+    _logger.info(
+      '${isModerator ? 'Gave' : 'Took'} moderator rights '
+      '${isModerator ? 'to' : 'from'} ${memberDid.topAndTail()} in group '
+      '$groupId',
+      name: 'setModerator',
+    );
+  }
+
   Future<void> _kickMemberFromRoom({
     required Group group,
     required String memberDid,

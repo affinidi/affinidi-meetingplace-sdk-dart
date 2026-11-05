@@ -46,6 +46,14 @@ class NopTransport implements MeetingPlaceTransport {
   }) async {}
 
   @override
+  Future<void> setModerator({
+    required Channel channel,
+    required String participantDid,
+    required bool isModerator,
+    required DidManager didManager,
+  }) async {}
+
+  @override
   Stream<TransportEvent> subscribeToEvents({
     required Channel channel,
     required DidManager didManager,

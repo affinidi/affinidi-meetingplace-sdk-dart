@@ -67,6 +67,16 @@ abstract interface class MeetingPlaceTransport {
     required DidManager didManager,
   });
 
+  /// Gives [participantDid] the rights to moderate [channel], such as
+  /// removing members and their messages, or takes them away when
+  /// [isModerator] is false. The caller must be allowed to change rights.
+  Future<void> setModerator({
+    required Channel channel,
+    required String participantDid,
+    required bool isModerator,
+    required DidManager didManager,
+  });
+
   // ---------------------------------------------------------------------------
   // Messaging
   // ---------------------------------------------------------------------------

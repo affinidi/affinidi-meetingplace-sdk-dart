@@ -960,6 +960,23 @@ class MeetingPlaceCoreSDK {
     });
   }
 
+  /// Gives a member of a group the rights to moderate its chat, such as
+  /// removing members and their messages, or takes them away.
+  ///
+  /// Only the wallet that manages `group.ownerDid` can do this; others are
+  /// rejected with [MeetingPlaceCoreSDKErrorCode.groupCallerIsNotOwnerError].
+  /// The owner's own rights cannot change, rejected with
+  /// [MeetingPlaceCoreSDKErrorCode.groupCannotRemoveOwnerError].
+  Future<void> setGroupModerator(sdk.SetGroupModeratorRequest request) {
+    return _withSdkExceptionHandling(() {
+      return _groupService.setModerator(
+        groupId: request.groupId,
+        memberDid: request.memberDid,
+        isModerator: request.isModerator,
+      );
+    });
+  }
+
   /// Sends outreach invitation to the owner of
   /// [SendOutreachInvitationRequest.outreachConnectionOffer].
   Future<void> sendOutreachInvitation(

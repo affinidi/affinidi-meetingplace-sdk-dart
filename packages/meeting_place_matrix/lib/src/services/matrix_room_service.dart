@@ -58,6 +58,13 @@ class MatrixRoomService {
   /// replaces the whole default map, so they are re-asserted explicitly.
   static const _protectedStatePowerLevel = 100;
 
+  /// Power level of a moderator: Matrix's default for kicking, banning and
+  /// redacting others' events.
+  static const _moderatorPowerLevel = 50;
+
+  /// Power level of a member with no extra rights.
+  static const _defaultPowerLevel = 0;
+
   // Matrix event type strings not covered by matrix.EventTypes.
   static const _eventTypeRead = 'm.read';
   static const _eventTypeTyping = 'm.typing';
@@ -265,6 +272,31 @@ class MatrixRoomService {
     }
     if (_isAlreadyOutOfRoom(room, userId)) return;
     await room.kick(userId);
+  }
+
+  /// Gives the member [did] a moderator's power level in [roomId], enough
+  /// to remove members and redact their messages, or the default level when
+  /// [isModerator] is false.
+  ///
+  /// The caller (identified by [didManager]) must have power-level
+  /// permission to change power levels in [roomId]; otherwise the
+  /// underlying Matrix call will fail.
+  Future<void> setModerator(
+    String roomId, {
+    required String did,
+    required bool isModerator,
+    required DidManager didManager,
+  }) async {
+    final client = await _ensureSession(didManager);
+    final room = client.getRoomById(roomId);
+    if (room == null) {
+      throw StateError('Matrix room $roomId not found');
+    }
+    final userId = _sessionManager.deriveUserId(did, _serverName);
+    await room.setPower(
+      userId,
+      isModerator ? _moderatorPowerLevel : _defaultPowerLevel,
+    );
   }
 
   /// Returns whether [userId] is no longer a participant in [room] — i.e.

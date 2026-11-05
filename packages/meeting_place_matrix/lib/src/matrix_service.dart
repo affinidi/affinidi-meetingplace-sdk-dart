@@ -187,6 +187,20 @@ class MatrixService {
     required DidManager didManager,
   }) => _roomService.kickUser(roomId, did: did, didManager: didManager);
 
+  /// Gives a member moderator rights in a Matrix room, or takes them away.
+  /// See [MatrixRoomService.setModerator].
+  Future<void> setModerator(
+    String roomId, {
+    required String did,
+    required bool isModerator,
+    required DidManager didManager,
+  }) => _roomService.setModerator(
+    roomId,
+    did: did,
+    isModerator: isModerator,
+    didManager: didManager,
+  );
+
   /// Sends a Matrix room event with [eventType] and [content] to [roomId].
   ///
   /// See [MatrixRoomService.sendRoomEvent].

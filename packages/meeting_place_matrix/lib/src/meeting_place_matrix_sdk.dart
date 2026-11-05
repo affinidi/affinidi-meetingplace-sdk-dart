@@ -416,6 +416,10 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
       _coreSDK.removeMemberFromGroup(request);
 
   @override
+  Future<void> setGroupModerator(SetGroupModeratorRequest request) =>
+      _coreSDK.setGroupModerator(request);
+
+  @override
   Future<void> sendOutreachInvitation(SendOutreachInvitationRequest request) =>
       _coreSDK.sendOutreachInvitation(request);
 

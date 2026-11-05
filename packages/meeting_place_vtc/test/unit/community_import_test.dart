@@ -69,6 +69,26 @@ void main() {
       expect(other, isNull);
     });
 
+    test('lists every membership card the VTA holds', () async {
+      vta.answers[VtaTask.credentialsGet] = {
+        'credential': {
+          'id': 'urn:uuid:vmc',
+          'issuer': _vtcDid,
+          'credentialSubject': {'id': _persona},
+        },
+      };
+
+      final cards = await CommunityImport(client).membershipCards();
+
+      expect(cards.single['id'], 'urn:uuid:vmc');
+      expect(
+        vta.received
+            .where((task) => task['type'] == VtaTask.credentialsQuery)
+            .single['payload'],
+        {'purpose': 'membership'},
+      );
+    });
+
     test("archives the persona's cards from the community", () async {
       vta.answers[VtaTask.credentialsGet] = {
         'credential': {

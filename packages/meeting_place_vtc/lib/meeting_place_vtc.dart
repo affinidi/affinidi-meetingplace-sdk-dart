@@ -3,6 +3,7 @@ library;
 
 export 'src/community/community_import.dart';
 export 'src/community/community_profile.dart';
+export 'src/community_offer/community_offer.dart';
 export 'src/credentials/community_role_card.dart';
 export 'src/join/join_models.dart';
 export 'src/join/vtc_join_client.dart';

@@ -20,6 +20,7 @@ import 'transport/trust_task_http_transport.dart';
 import 'trigger_link/trigger_link.dart';
 import 'trigger_link/trigger_link_config.dart';
 import 'trigger_link/trigger_link_result.dart';
+import 'vetting/vetting_applicant.dart';
 import 'vta/vta_client.dart';
 import 'vta/vta_link.dart';
 import 'vta/vta_models.dart';
@@ -44,25 +45,29 @@ class MeetingPlaceVtcSDK {
   /// Creates a [MeetingPlaceVtcSDK].
   ///
   /// [didResolver] defaults to a resolver that verifies `did:webvh` logs.
-  /// [openVtaMailbox] opens a manager key's inbox on the VTA's mediator, and
-  /// [openMediatorInbox] a persona's inbox on its mediator; by default,
-  /// through the mediator's own API.
+  /// [openVtaMailbox] opens a manager key's inbox on the VTA's mediator,
+  /// [openMediatorInbox] a persona's inbox on its mediator, and
+  /// [openMediatorOutbox] a session with another member's mediator to send
+  /// through; by default, through the mediator's own API.
   MeetingPlaceVtcSDK({
     DidResolver? didResolver,
     Dio? dio,
     VtaMailboxOpener? openVtaMailbox,
     MediatorInboxOpener? openMediatorInbox,
+    MediatorOutboxOpener? openMediatorOutbox,
   }) : _didResolver = didResolver ?? UniversalDIDResolver.defaultResolver,
        _dio = dio,
        _transport = TrustTaskHttpTransport(dio: dio),
        _openVtaMailbox = openVtaMailbox,
-       _openMediatorInbox = openMediatorInbox;
+       _openMediatorInbox = openMediatorInbox,
+       _openMediatorOutbox = openMediatorOutbox;
 
   final DidResolver _didResolver;
   final Dio? _dio;
   final TrustTaskHttpTransport _transport;
   final VtaMailboxOpener? _openVtaMailbox;
   final MediatorInboxOpener? _openMediatorInbox;
+  final MediatorOutboxOpener? _openMediatorOutbox;
 
   /// Reads scanned or pasted [text] as a trigger link, offline.
   TriggerLinkResult readTriggerLink(String text) =>
@@ -112,7 +117,21 @@ class MeetingPlaceVtcSDK {
   /// Sends Trust Tasks as [persona], whose keys its VTA lent
   /// ([VtaClient.borrowPersonaKeys]), to other members such as a vetter.
   PersonaMessenger personaMessenger(PersonaDidManager persona) =>
-      PersonaMessenger(persona: persona, didResolver: _didResolver);
+      PersonaMessenger(
+        persona: persona,
+        didResolver: _didResolver,
+        openOutbox: _openMediatorOutbox,
+      );
+
+  /// Runs the applicant's side of in-person vetting as [persona], whose keys
+  /// its VTA lent ([VtaClient.borrowPersonaKeys]).
+  VettingApplicant vettingApplicant(PersonaDidManager persona) =>
+      VettingApplicant(
+        persona: persona,
+        messenger: personaMessenger(persona),
+        didResolver: _didResolver,
+        statusList: statusListClient(),
+      );
 
   /// A client that reads whether a credential's issuer revoked it.
   StatusListClient statusListClient() =>

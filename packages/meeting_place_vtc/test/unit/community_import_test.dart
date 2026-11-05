@@ -69,6 +69,119 @@ void main() {
       expect(other, isNull);
     });
 
+    group('role', () {
+      Map<String, dynamic> roleCard({
+        String issuer = _vtcDid,
+        String holder = _persona,
+        String scope = _vtcDid,
+        List<String> actions = const ['role:member'],
+      }) => {
+        'type': [
+          'VerifiableCredential',
+          'DTGCredential',
+          'AuthorityCredential',
+        ],
+        'issuer': issuer,
+        'credentialSubject': {
+          'id': holder,
+          'authority': {
+            'scope': scope,
+            'actions': actions,
+            'maxAttenuation': 0,
+          },
+        },
+      };
+
+      Future<String?> role() =>
+          CommunityImport(client).role(_vtcDid, personaDid: _persona);
+
+      setUp(() {
+        vta.answers[VtaTask.credentialsQuery] = {
+          'credentials': [
+            {
+              'id': 'role-1',
+              'types': ['AuthorityCredential'],
+            },
+          ],
+        };
+      });
+
+      test("reads the role the persona's card grants", () async {
+        vta.answers[VtaTask.credentialsGet] = {'credential': roleCard()};
+
+        expect(await role(), 'member');
+        expect(
+          vta.received
+              .where((task) => task['type'] == VtaTask.credentialsQuery)
+              .single['payload'],
+          {
+            'type': 'AuthorityCredential',
+            'issuerDid': _vtcDid,
+            'subjectDid': _persona,
+            'status': 'valid',
+          },
+        );
+      });
+
+      test('skips actions that grant no role', () async {
+        vta.answers[VtaTask.credentialsGet] = {
+          'credential': roleCard(
+            actions: ['issue-membership', 'role:moderator'],
+          ),
+        };
+
+        expect(await role(), 'moderator');
+      });
+
+      test('takes the newest card after a role change', () async {
+        vta.answers[VtaTask.credentialsQuery] = {
+          'credentials': [
+            {
+              'id': 'old',
+              'types': ['AuthorityCredential'],
+              'validFrom': '2026-10-01T10:00:00Z',
+            },
+            {
+              'id': 'new',
+              'types': ['AuthorityCredential'],
+              'validFrom': '2026-11-01T10:00:00Z',
+            },
+          ],
+        };
+        vta.answerTo[VtaTask.credentialsGet] = (payload) => {
+          'credential': roleCard(
+            actions: [
+              payload['id'] == 'new' ? 'role:moderator' : 'role:member',
+            ],
+          ),
+        };
+
+        expect(await role(), 'moderator');
+      });
+
+      test(
+        'finds none in a card for another scope, holder or issuer',
+        () async {
+          for (final card in [
+            roleCard(scope: 'did:web:other.example'),
+            roleCard(holder: 'did:webvh:QmSomeoneElse:host.example'),
+            roleCard(issuer: 'did:web:other.example'),
+            roleCard(actions: ['issue-membership']),
+          ]) {
+            vta.answers[VtaTask.credentialsGet] = {'credential': card};
+
+            expect(await role(), isNull);
+          }
+        },
+      );
+
+      test('finds none while the VTA holds no role card', () async {
+        vta.answers[VtaTask.credentialsQuery] = {'credentials': <Object>[]};
+
+        expect(await role(), isNull);
+      });
+    });
+
     test('lists every membership card the VTA holds', () async {
       vta.answers[VtaTask.credentialsGet] = {
         'credential': {

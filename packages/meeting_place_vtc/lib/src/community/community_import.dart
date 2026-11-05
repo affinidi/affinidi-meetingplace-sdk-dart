@@ -5,6 +5,14 @@ import '../vta/vta_models.dart';
 /// Vault purpose of membership credentials.
 const _membershipPurpose = 'membership';
 
+/// VC type of the role card a community issues its members. The vault files
+/// it under no purpose, so it is found by type.
+const _roleCardType = 'AuthorityCredential';
+
+/// Prefix of the action by which a role card grants a role, as in
+/// `role:member`.
+const _roleActionPrefix = 'role:';
+
 /// A community the member belongs to, and the persona they are known by.
 class CommunityMembership {
   /// Creates a [CommunityMembership].
@@ -46,6 +54,62 @@ class CommunityImport {
     return cards
         .where((card) => _isCard(card, communityDid, personaDid))
         .firstOrNull;
+  }
+
+  /// Returns the role, e.g. `member` or `moderator`, that [communityDid]
+  /// grants [personaDid] in the newest valid role card the VTA keeps, or
+  /// null when it holds none, e.g. while the community has yet to deliver
+  /// it. The community re-issues the card on every role change, so the
+  /// newest is the role in force.
+  Future<String?> role(
+    String communityDid, {
+    required String personaDid,
+  }) async {
+    final held = await _vta.findCredentials(
+      type: _roleCardType,
+      issuerDid: communityDid,
+      subjectDid: personaDid,
+    );
+    final newestFirst = [...held]
+      ..sort((a, b) => _issuedAt(b).compareTo(_issuedAt(a)));
+    for (final record in newestFirst) {
+      final card = await _vta.credential(record.id);
+      if (card == null) continue;
+      if (_roleOf(card, communityDid, personaDid) case final role?) {
+        return role;
+      }
+    }
+    return null;
+  }
+
+  static DateTime _issuedAt(HeldCredential record) =>
+      record.validFrom ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+
+  /// The role [card] grants [personaDid] in [communityDid], when the
+  /// community issued it about that persona.
+  static String? _roleOf(
+    Map<String, dynamic> card,
+    String communityDid,
+    String personaDid,
+  ) {
+    if (credentialIssuer(card) != communityDid) return null;
+    final subject = card['credentialSubject'];
+    for (final entry in subject is List ? subject : [subject]) {
+      if (entry case {
+        'id': final String id,
+        'authority': {
+          'scope': final String scope,
+          'actions': final List<dynamic> actions,
+        },
+      } when id == personaDid && scope == communityDid) {
+        for (final action in actions.whereType<String>()) {
+          if (action.startsWith(_roleActionPrefix)) {
+            return action.substring(_roleActionPrefix.length);
+          }
+        }
+      }
+    }
+    return null;
   }
 
   /// Every membership card the VTA holds, of any community and persona,

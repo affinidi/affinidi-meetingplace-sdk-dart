@@ -82,6 +82,10 @@ abstract final class VtaTask {
   /// Reads a profile kept in one context.
   static const localProfileGet = '$_base/persona/local/profile/get/1.0';
 
+  /// Has a persona wear a profile kept in its context, taking its values as
+  /// they are now.
+  static const localBindingSet = '$_base/persona/local/binding/set/1.0';
+
   /// Lists the `did:webvh` DIDs the VTA hosts keys for.
   static const didsList = '$_base/vta/webvh/dids/list/1.0';
 
@@ -595,10 +599,15 @@ class VtaClient implements PersonaSigningAgent {
     return profile;
   }
 
-  /// Replaces the details of the profile [profileId] that the identity in
-  /// [contextId] wears with [profile].
+  /// Replaces the details of the profile [profileId] that the identity
+  /// [personaDid] in [contextId] wears with [profile].
+  ///
+  /// The persona then wears the profile again: what the VTA discloses as the
+  /// persona is a copy taken when it put the profile on, and writing the
+  /// profile alone leaves that copy as it was.
   Future<void> updateProfile({
     required String contextId,
+    required String personaDid,
     required String profileId,
     required VtaProfile profile,
   }) async {
@@ -607,6 +616,11 @@ class VtaClient implements PersonaSigningAgent {
       'profileId': profileId,
       'name': _identityLabel,
       'entries': profile.toEntries(),
+    });
+    await _task(VtaTask.localBindingSet, {
+      'contextId': contextId,
+      'personaDid': personaDid,
+      'profileId': profileId,
     });
   }
 

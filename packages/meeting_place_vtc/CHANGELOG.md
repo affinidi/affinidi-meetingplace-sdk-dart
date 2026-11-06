@@ -14,3 +14,4 @@
  - Add `VtcJoinClient.renew` (`vtc/members/renew/0.1`) to fetch a member's current membership and role cards.
  - Add the vetter's side of in-person vetting (`VettingVetter`, `VetterTicket`), with issued statements recorded on the VTA (`vta/app-state`).
  - Find one community's membership card without fetching every membership card the VTA keeps, reporting each step (`MembershipCardStep`).
+ - Let the applicant end being vetted with a `vetting/decline` (`VettingApplicant.decline`).

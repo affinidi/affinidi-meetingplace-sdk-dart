@@ -451,6 +451,22 @@ void main() {
       });
     });
 
+    test('ends the request, signed as the persona', () async {
+      await applicant.decline(
+        vetter: accepted,
+        parentThreadId: 'urn:uuid:request',
+        code: 'matchCodeDiffers',
+      );
+
+      final sent = messenger.sent.single;
+      expect(sent.type, VettingTask.decline);
+      expect(sent.issuer, applicant.joinDid);
+      expect(sent.recipient, vetter.did);
+      expect(sent.parentThreadId, 'urn:uuid:request');
+      expect(sent.payload, {'requestId': 'vr-1', 'code': 'matchCodeDiffers'});
+      expect(sent.toJson()['proof'], isNotNull);
+    });
+
     test('reads a decline', () async {
       final decline = await fromVetter(VettingTask.decline, {
         'requestId': 'vr-1',

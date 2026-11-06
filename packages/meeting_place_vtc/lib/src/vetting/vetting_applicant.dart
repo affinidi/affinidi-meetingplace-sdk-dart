@@ -242,6 +242,33 @@ class VettingApplicant {
     return request;
   }
 
+  /// Ends being vetted by [vetter] with a `vetting/decline`, e.g. because
+  /// the match codes differ or the applicant will not share their details:
+  /// the vetter's session for the request ends. [parentThreadId] is the
+  /// request's id, as the session names it.
+  ///
+  /// Throws [MeetingPlaceVtcSDKException] when the vetter cannot be
+  /// reached.
+  Future<void> decline({
+    required AcceptedVetter vetter,
+    String? parentThreadId,
+    String? code,
+    String? message,
+  }) async {
+    final decline = await TrustTaskDocument.create(
+      type: VettingTask.decline,
+      issuer: joinDid,
+      recipient: vetter.vetterDid,
+      parentThreadId: parentThreadId,
+      payload: {
+        'requestId': vetter.requestId,
+        'code': ?code,
+        'message': ?message,
+      },
+    ).sign(_persona.signer, purpose: ProofPurpose.authentication);
+    await _messenger.send(decline);
+  }
+
   /// Reads the vetter's answer to [request]: an acceptance whose
   /// presentation shows the vetter holds [vetterRole] in [communityDid],
   /// granted by the community, valid now and not revoked.

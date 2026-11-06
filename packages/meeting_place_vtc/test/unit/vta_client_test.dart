@@ -826,6 +826,7 @@ void main() {
         );
         await client.updateProfile(
           contextId: 'mpx-1',
+          personaDid: 'did:webvh:QmP:host.example',
           profileId: '01PROFILE',
           profile: const VtaProfile(displayName: 'Ada L', firstName: 'Ada'),
         );
@@ -856,6 +857,24 @@ void main() {
             },
           ],
         });
+        // Worn again, so what the persona discloses is the new values.
+        expect(payloadOf(VtaTask.localBindingSet), {
+          'contextId': 'mpx-1',
+          'personaDid': 'did:webvh:QmP:host.example',
+          'profileId': '01PROFILE',
+        });
+        expect(
+          vta.received
+              .map((task) => task['type'])
+              .toList()
+              .indexOf(VtaTask.localBindingSet),
+          greaterThan(
+            vta.received
+                .map((task) => task['type'])
+                .toList()
+                .indexOf(VtaTask.localProfilePut),
+          ),
+        );
       });
 
       test('reads the profile as the VTA keeps it', () async {
@@ -926,6 +945,7 @@ void main() {
         );
         await client.updateProfile(
           contextId: 'mpx-1',
+          personaDid: 'did:webvh:QmP:host.example',
           profileId: '01PROFILE',
           profile: VtaProfile(
             displayName: 'Ada',

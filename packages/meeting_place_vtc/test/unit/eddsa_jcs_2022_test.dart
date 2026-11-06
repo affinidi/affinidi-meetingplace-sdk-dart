@@ -157,4 +157,64 @@ void main() {
       );
     });
   });
+
+  group('EddsaJcs2022.verify a proof set', () {
+    late Ed25519DidKeySigner signer;
+    late Map<String, dynamic> unsigned;
+    late Map<String, dynamic> eddsaProof;
+
+    /// A proof of a suite this client does not know, as a hybrid issuer
+    /// adds beside its `eddsa-jcs-2022` one.
+    Map<String, dynamic> otherSuite(String did) => {
+      'type': 'DataIntegrityProof',
+      'cryptosuite': 'mldsa44-jcs-2024',
+      'proofPurpose': 'assertionMethod',
+      'verificationMethod': '$did#key-2',
+      'proofValue': 'zUnchecked',
+    };
+
+    Future<void> verify(List<Object> proofs) => EddsaJcs2022.verify(
+      {...unsigned, 'proof': proofs},
+      purpose: ProofPurpose.assertionMethod,
+      resolver: resolver,
+      expectedSigner: signer.did,
+    );
+
+    setUp(() async {
+      signer = Ed25519DidKeySigner.generate();
+      unsigned = {'issuer': signer.did, 'n': 1};
+      final signed = await EddsaJcs2022.sign(
+        unsigned,
+        signer: signer,
+        purpose: ProofPurpose.assertionMethod,
+      );
+      eddsaProof = signed['proof'] as Map<String, dynamic>;
+    });
+
+    test('accepts its eddsa-jcs-2022 proof beside one it cannot check', () {
+      expect(verify([eddsaProof, otherSuite(signer.did)]), completes);
+    });
+
+    test('rejects a set whose eddsa-jcs-2022 proof does not verify', () {
+      expect(
+        verify([
+          {...eddsaProof, 'proofValue': 'z${'1' * 80}'},
+          otherSuite(signer.did),
+        ]),
+        _throwsInvalidProof(),
+      );
+    });
+
+    test('rejects a set by more than one signer', () {
+      expect(
+        verify([eddsaProof, otherSuite('did:key:z6MkSomeoneElse')]),
+        _throwsInvalidProof(),
+      );
+    });
+
+    test('rejects a set with no proof it can check', () {
+      expect(verify([otherSuite(signer.did)]), _throwsInvalidProof());
+      expect(verify([]), _throwsInvalidProof());
+    });
+  });
 }

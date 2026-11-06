@@ -988,16 +988,31 @@ class VtaClient implements PersonaSigningAgent {
     String? issuerDid,
     String? subjectDid,
   }) async {
+    return [
+      for (final record in await credentialRecords(
+        purpose,
+        issuerDid: issuerDid,
+        subjectDid: subjectDid,
+      ))
+        if (await credential(record.id) case final credential?)
+          StoredCredential(record: record, credential: credential),
+    ];
+  }
+
+  /// Describes the credentials stored in the vault for [purpose], narrowed
+  /// as [credentials] narrows, without fetching any: [credential] fetches
+  /// one.
+  Future<List<HeldCredential>> credentialRecords(
+    String purpose, {
+    String? issuerDid,
+    String? subjectDid,
+  }) async {
     final answer = await _task(VtaTask.credentialsQuery, {
       'purpose': purpose,
       'issuerDid': ?issuerDid,
       'subjectDid': ?subjectDid,
     });
-    return [
-      for (final record in _heldOf(_maps(answer['credentials'])))
-        if (await credential(record.id) case final credential?)
-          StoredCredential(record: record, credential: credential),
-    ];
+    return _heldOf(_maps(answer['credentials']));
   }
 
   /// Returns the stored credential [id], or null when the vault answers

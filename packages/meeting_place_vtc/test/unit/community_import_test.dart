@@ -70,6 +70,38 @@ void main() {
       expect(other, isNull);
     });
 
+    test('reports each step of finding the card', () async {
+      vta.answers[VtaTask.credentialsGet] = {
+        'credential': {
+          'issuer': _vtcDid,
+          'credentialSubject': {'id': _persona},
+        },
+      };
+      final steps = <MembershipCardStep>[];
+
+      await CommunityImport(
+        client,
+      ).membershipCard(_vtcDid, personaDid: _persona, onStep: steps.add);
+
+      expect(steps, [MembershipCardStep.finding, MembershipCardStep.reading]);
+    });
+
+    test('reads nothing when the VTA keeps no card', () async {
+      vta.answers[VtaTask.credentialsQuery] = {'credentials': <Object>[]};
+      final steps = <MembershipCardStep>[];
+
+      final card = await CommunityImport(
+        client,
+      ).membershipCard(_vtcDid, personaDid: _persona, onStep: steps.add);
+
+      expect(card, isNull);
+      expect(steps, [MembershipCardStep.finding]);
+      expect(
+        vta.received.where((task) => task['type'] == VtaTask.credentialsGet),
+        isEmpty,
+      );
+    });
+
     test("asks the VTA for that community's card only", () async {
       vta.answers[VtaTask.credentialsGet] = {'credential': null};
 

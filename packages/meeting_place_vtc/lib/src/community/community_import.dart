@@ -16,6 +16,15 @@ const _roleCardType = 'AuthorityCredential';
 /// `role:member`.
 const _roleActionPrefix = 'role:';
 
+/// A step of finding a membership card on the member's VTA, in order.
+enum MembershipCardStep {
+  /// Asking the VTA which cards it keeps from the community.
+  finding,
+
+  /// Fetching the card the VTA found.
+  reading,
+}
+
 /// A community the member belongs to, and the persona they are known by.
 class CommunityMembership {
   /// Creates a [CommunityMembership].
@@ -51,19 +60,26 @@ class CommunityImport {
   /// community has yet to deliver it.
   ///
   /// Asks the VTA for that card only: every card it finds is fetched on its
-  /// own, and a member of many communities would wait for each.
+  /// own, and a member of many communities would wait for each. Each step
+  /// is reported to [onStep] as it starts.
   Future<Map<String, dynamic>?> membershipCard(
     String communityDid, {
     required String personaDid,
+    void Function(MembershipCardStep step)? onStep,
   }) async {
-    final cards = await _vta.credentials(
+    onStep?.call(MembershipCardStep.finding);
+    final records = await _vta.credentialRecords(
       _membershipPurpose,
       issuerDid: communityDid,
       subjectDid: personaDid,
     );
-    return cards
-        .where((card) => _isCard(card, communityDid, personaDid))
-        .firstOrNull;
+    if (records.isEmpty) return null;
+    onStep?.call(MembershipCardStep.reading);
+    for (final record in records) {
+      final card = await _vta.credential(record.id);
+      if (card != null && _isCard(card, communityDid, personaDid)) return card;
+    }
+    return null;
   }
 
   /// Returns the role, e.g. `member` or `moderator`, that [communityDid]

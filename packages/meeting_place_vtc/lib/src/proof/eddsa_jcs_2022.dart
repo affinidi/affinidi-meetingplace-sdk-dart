@@ -55,6 +55,12 @@ abstract final class EddsaJcs2022 {
   /// DID document, resolved with [resolver]. When [expectedSigner] is given,
   /// the verification method must belong to that DID.
   ///
+  /// [document] may carry a proof set, as a hybrid issuer signs one proof
+  /// per suite, each over the document without its proofs. The set is read
+  /// as upstream reads it: one signer for every proof; suites this client
+  /// does not know are skipped; every `eddsa-jcs-2022` proof must verify,
+  /// and there must be at least one.
+  ///
   /// Throws [MeetingPlaceVtcSDKException] when the proof does not verify.
   static Future<void> verify(
     Map<String, dynamic> document, {
@@ -62,13 +68,47 @@ abstract final class EddsaJcs2022 {
     required DidResolver resolver,
     String? expectedSigner,
   }) async {
-    final proof = document['proof'];
-    if (proof is! Map<String, dynamic>) {
-      throw MeetingPlaceVtcSDKException.invalidProof('missing proof');
+    final proofs = switch (document['proof']) {
+      final Map<String, dynamic> proof => [proof],
+      final List<dynamic> set
+          when set.isNotEmpty && set.every((p) => p is Map<String, dynamic>) =>
+        set.cast<Map<String, dynamic>>(),
+      _ => throw MeetingPlaceVtcSDKException.invalidProof('missing proof'),
+    };
+    final signers = {
+      for (final proof in proofs)
+        '${proof['verificationMethod']}'.split('#').first,
+    };
+    if (signers.length != 1) {
+      throw MeetingPlaceVtcSDKException.invalidProof('more than one signer');
     }
-    if (proof['type'] != _proofType || proof['cryptosuite'] != _cryptosuite) {
+    final checkable = proofs.where(
+      (proof) =>
+          proof['type'] == _proofType && proof['cryptosuite'] == _cryptosuite,
+    );
+    if (checkable.isEmpty) {
       throw MeetingPlaceVtcSDKException.invalidProof('unsupported cryptosuite');
     }
+    final unsecured = Map<String, dynamic>.of(document)..remove('proof');
+    for (final proof in checkable) {
+      await _verifyOne(
+        proof,
+        unsecured,
+        purpose: purpose,
+        resolver: resolver,
+        expectedSigner: expectedSigner,
+      );
+    }
+  }
+
+  /// Verifies [proof], one `eddsa-jcs-2022` proof, over [unsecured].
+  static Future<void> _verifyOne(
+    Map<String, dynamic> proof,
+    Map<String, dynamic> unsecured, {
+    required ProofPurpose purpose,
+    required DidResolver resolver,
+    String? expectedSigner,
+  }) async {
     if (proof['proofPurpose'] != purpose.value) {
       throw MeetingPlaceVtcSDKException.invalidProof('unexpected purpose');
     }
@@ -84,7 +124,6 @@ abstract final class EddsaJcs2022 {
       throw MeetingPlaceVtcSDKException.invalidProof('unexpected signer');
     }
 
-    final unsecured = Map<String, dynamic>.of(document)..remove('proof');
     final proofConfig = Map<String, dynamic>.of(proof)..remove('proofValue');
     if (proofConfig.containsKey('@context') &&
         !const DeepCollectionEquality().equals(

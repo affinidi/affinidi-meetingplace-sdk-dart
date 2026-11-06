@@ -44,6 +44,10 @@ class _ExternalKeys implements ExternalConnectionKeys {
   /// DIDs made before.
   KeyType agreementType = KeyType.ed25519;
 
+  /// Whether it also creates a P-256 key to agree with the control plane,
+  /// as a VTA does for a new DID.
+  bool withControlPlaneKey = false;
+
   @override
   Future<ExternalDidKeys?> createKeys(String did) async {
     if (isOff) return null;
@@ -54,6 +58,9 @@ class _ExternalKeys implements ExternalConnectionKeys {
         : P256KeyPair.generate();
     final agreementId = 'vta-agreement-$created';
     _secrets[agreementId] = secret;
+    final controlPlaneId = 'vta-control-plane-$created';
+    final (controlPlane, controlPlaneSecret) = P256KeyPair.generate();
+    if (withControlPlaneKey) _secrets[controlPlaneId] = controlPlaneSecret;
     return byDid[did] = ExternalDidKeys(
       signing: ExternalKey(
         keyId: 'vta-signing-$created',
@@ -63,6 +70,12 @@ class _ExternalKeys implements ExternalConnectionKeys {
         keyId: agreementId,
         publicKey: Uint8List.fromList(agreement.publicKey.bytes),
       ),
+      controlPlaneAgreement: withControlPlaneKey
+          ? ExternalKey(
+              keyId: controlPlaneId,
+              publicKey: Uint8List.fromList(controlPlane.publicKey.bytes),
+            )
+          : null,
     );
   }
 
@@ -150,6 +163,32 @@ void main() {
 
       expect(await deviceKeys.contains("m/44'/60'/0'/0'/2'"), isFalse);
       expect(externalKeys.lent, isEmpty);
+    });
+
+    test('adds the P-256 key the external keys offer for the control '
+        'plane, and borrows it to seal', () async {
+      externalKeys.withControlPlaneKey = true;
+      final didManager = await manager().generateDidWeb(
+        wallet,
+        baseHost: baseHost,
+      );
+      final document = await didManager.getDidDocument();
+
+      expect(document.keyAgreement, hasLength(2));
+      final controlPlane = document.keyAgreement.last.id;
+      final walletKeyId = (await didManager.getWalletKeyId(controlPlane))!;
+      final key = await didManager.wallet.getPublicKey(walletKeyId);
+      expect(key.type, KeyType.p256);
+      expect(
+        key.bytes,
+        externalKeys.byDid[document.id]!.controlPlaneAgreement!.publicKey,
+      );
+      expect(externalKeys.lent, isEmpty);
+
+      await didManager.getKeyPairByDidKeyId(controlPlane);
+
+      expect(externalKeys.lent, ['vta-control-plane-1']);
+      expect(await deviceKeys.contains("m/44'/60'/0'/0'/2'"), isFalse);
     });
 
     test('rebuilds the same document for a known DID', () async {
@@ -293,7 +332,7 @@ void main() {
       )).getDidDocument();
 
       expect(restored.toJson(), created.toJson());
-      expect(_deviceKeyIds(restored), hasLength(2));
+      expect(_deviceKeyIds(restored), hasLength(3));
       expect(externalKeys.created, 0);
     });
 
@@ -306,7 +345,7 @@ void main() {
         baseHost: baseHost,
       )).getDidDocument();
 
-      expect(_deviceKeyIds(document), hasLength(2));
+      expect(_deviceKeyIds(document), hasLength(3));
       expect(externalKeys.created, 0);
     });
 
@@ -355,21 +394,24 @@ void main() {
   return (Ed25519KeyPair.fromSeed(seed), seed);
 }
 
-/// The ids of [document]'s keys when one Ed25519 device key makes them: the
-/// key itself, which signs, and the X25519 key derived from it, which
-/// agrees keys.
+/// The ids of [document]'s keys when device keys make them: an Ed25519
+/// key, which signs; the X25519 key derived from it, which agrees keys;
+/// and, on a did:web, a P-256 key, which agrees keys with the control plane.
 Set<String> _deviceKeyIds(DidDocument document) {
-  final agreement = document.keyAgreement.single.id;
+  final agreement = [for (final method in document.keyAgreement) method.id];
   final signing = document.authentication.single.id;
   expect(document.assertionMethod.single.id, signing);
-  expect(agreement, isNot(signing));
+  expect(agreement, isNot(contains(signing)));
   final multibase = {
     for (final method in document.verificationMethod)
       method.id: method.toJson()['publicKeyMultibase'],
   };
   expect(multibase[signing], startsWith('z6Mk'));
-  expect(multibase[agreement], startsWith('z6LS'));
-  return {signing, agreement};
+  expect(multibase[agreement.first], startsWith('z6LS'));
+  for (final controlPlane in agreement.skip(1)) {
+    expect(multibase[controlPlane], startsWith('zDn'));
+  }
+  return {signing, ...agreement};
 }
 
 Future<DidManager> _peer([KeyType keyType = KeyType.ed25519]) async {

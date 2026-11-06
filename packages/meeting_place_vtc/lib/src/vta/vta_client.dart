@@ -133,6 +133,9 @@ const _connectionKeysLabel = 'Meeting Place connections';
 /// Multicodec prefix of an Ed25519 public key.
 const _ed25519Codec = [0xed, 0x01];
 
+/// Multicodec prefix of a compressed P-256 public key.
+const _p256Codec = [0x80, 0x24];
+
 /// Vault secret kind of a persona's sign-in entry, as `vault/upsert/0.4`
 /// spells it.
 const didSelfIssuedSecretKind = 'didSelfIssued';
@@ -350,11 +353,20 @@ class VtaClient implements PersonaSigningAgent {
   ///   derived from it, agrees keys with. The VTA lends it through
   ///   [lendConnectionKey] when DIDComm needs it. Ed25519, so the DID agrees
   ///   keys over X25519, the curve every DIDComm mediator supports.
+  /// - `controlPlaneAgreement`, a P-256 key it agrees keys with the hosted
+  ///   control plane over, as that cannot decrypt X25519. Lent like
+  ///   `agreement`.
   ///
   /// The keys live in [connectionKeysContextId], which is created on first
   /// use. Throws [MeetingPlaceVtcSDKException] when the VTA refuses or
   /// cannot be reached.
-  Future<({VtaConnectionKey signing, VtaConnectionKey agreement})>
+  Future<
+    ({
+      VtaConnectionKey signing,
+      VtaConnectionKey agreement,
+      VtaConnectionKey controlPlaneAgreement,
+    })
+  >
   createConnectionKeys() async {
     await _ensureContext(connectionKeysContextId, name: _connectionKeysLabel);
     return (
@@ -368,12 +380,17 @@ class VtaClient implements PersonaSigningAgent {
         codec: _ed25519Codec,
         length: 32,
       ),
+      controlPlaneAgreement: await _createConnectionKey(
+        'p256',
+        codec: _p256Codec,
+        length: 33,
+      ),
     );
   }
 
   /// Borrows the private half of the connection key [keyId] from
-  /// [createConnectionKeys], as its 32 bytes: an Ed25519 seed, or, for a key
-  /// created before, a P-256 private key.
+  /// [createConnectionKeys], as its 32 bytes: an Ed25519 seed, or a P-256
+  /// private key.
   ///
   /// The VTA lends keys over DIDComm only, and audits each loan. Keep the
   /// key in memory and zero-fill it when done. Throws

@@ -51,7 +51,7 @@ void main() {
 
   Future<void> expectX25519Agreement(DidManager didManager) async {
     final document = await didManager.getDidDocument();
-    final agreement = document.keyAgreement.single.id;
+    final agreement = document.keyAgreement.first.id;
     final method = document.verificationMethod.firstWhere(
       (method) => method.id == agreement,
     );
@@ -79,6 +79,50 @@ void main() {
     final didManager = await manager.generateDidWeb(wallet, baseHost: baseHost);
 
     await expectX25519Agreement(didManager);
+  });
+
+  test('gives a new did:web a P-256 key to agree with the control '
+      'plane', () async {
+    final didManager = await manager.generateDidWeb(wallet, baseHost: baseHost);
+
+    final document = await didManager.getDidDocument();
+    expect(document.keyAgreement, hasLength(2));
+    final controlPlane = document.keyAgreement.last.id;
+    final key = await wallet.getPublicKey(
+      (await didManager.getWalletKeyId(controlPlane))!,
+    );
+    expect(key.type, KeyType.p256);
+    expect(document.authentication.map((method) => method.id), [
+      isNot(controlPlane),
+    ]);
+  });
+
+  test('keeps a did:web made before without a control plane key', () async {
+    const keyId = "m/44'/60'/0'/0'/7'";
+    await wallet.generateKey(keyId: keyId, keyType: KeyType.ed25519);
+    final existing = DidWebManager(
+      store: InMemoryDidStore(),
+      wallet: wallet,
+      domain: Uri.parse('https://mpx.example/user/before'),
+    );
+    await existing.addVerificationMethod(
+      keyId,
+      relationships: {
+        VerificationRelationship.authentication,
+        VerificationRelationship.keyAgreement,
+        VerificationRelationship.assertionMethod,
+      },
+    );
+    final created = await existing.getDidDocument();
+    final repository = _KeyRepository();
+    await repository.saveKeyIdForDid(keyId: keyId, did: created.id);
+
+    final restored = await (await ConnectionManager(
+      keyRepository: repository,
+    ).getDidManagerForDid(wallet, created.id)).getDidDocument();
+
+    expect(restored.toJson(), created.toJson());
+    expect(restored.keyAgreement, hasLength(1));
   });
 
   test('seals a message the new DID opens over X25519', () async {

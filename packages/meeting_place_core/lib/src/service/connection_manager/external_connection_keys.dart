@@ -17,7 +17,11 @@ class ExternalKey {
 /// The keys of one permanent channel DID, held outside this device.
 class ExternalDidKeys {
   /// Creates [ExternalDidKeys].
-  const ExternalDidKeys({required this.signing, required this.agreement});
+  const ExternalDidKeys({
+    required this.signing,
+    required this.agreement,
+    this.controlPlaneAgreement,
+  });
 
   /// An Ed25519 key, the DID's only assertion method. It never leaves its
   /// holder: credentials are signed there.
@@ -28,6 +32,11 @@ class ExternalDidKeys {
   /// DID publishes an X25519 key for agreement, or, for a DID made before,
   /// a P-256 key.
   final ExternalKey agreement;
+
+  /// A P-256 key for key agreement only, lent like [agreement], so the DID
+  /// can seal messages to the hosted control plane, which cannot decrypt
+  /// X25519. Null for a DID made before, whose [agreement] is P-256.
+  final ExternalKey? controlPlaneAgreement;
 }
 
 /// Keys held outside this device for permanent channel DIDs, so this device
@@ -39,7 +48,9 @@ class ExternalDidKeys {
 /// agreement, that is lent to this device when it signs in, seals or
 /// unseals. The agreement key is Ed25519, so the DID agrees keys over
 /// X25519, the curve every DIDComm mediator supports; a DID made before
-/// keeps the P-256 key it was made with.
+/// keeps the P-256 key it was made with. A new DID also carries a P-256
+/// key for agreement only, lent the same way, for the hosted control
+/// plane, which cannot decrypt X25519.
 abstract interface class ExternalConnectionKeys {
   /// Creates the keys of the new permanent channel DID [did], and remembers
   /// them for [findKeys]. Returns null when there is nowhere to hold them,

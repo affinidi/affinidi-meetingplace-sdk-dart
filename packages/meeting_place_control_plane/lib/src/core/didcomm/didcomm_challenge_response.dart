@@ -127,9 +127,15 @@ class DidCommChallengeResponse {
     final senderDidDocument = await senderDidManager.getDidDocument();
     final authenticationKeyId = senderDidDocument.authentication.first.id;
 
-    final keyAgreementKeyId = senderDidDocument
-        .matchKeysInKeyAgreement(otherDidDocuments: [recipientDidDocument])
-        .first;
+    // The hosted control plane publishes an X25519 key but cannot decrypt
+    // with it, so another shared curve is used when the sender has one.
+    final matched = senderDidDocument.matchKeysInKeyAgreement(
+      otherDidDocuments: [recipientDidDocument],
+    );
+    final keyAgreementKeyId = matched.firstWhere(
+      (keyId) => !_isX25519(senderDidDocument, keyId),
+      orElse: () => matched.first,
+    );
 
     final signedMessage = await SignedMessage.pack(
       message,
@@ -143,4 +149,12 @@ class DidCommChallengeResponse {
       recipientDidDocuments: [recipientDidDocument],
     );
   }
+
+  /// Whether the key agreement key [keyId] of [document] is on X25519.
+  static bool _isX25519(DidDocument document, String keyId) =>
+      document.keyAgreement
+          .firstWhere((method) => method.didKeyId == keyId)
+          .asJwk()
+          .doc['crv'] ==
+      'X25519';
 }

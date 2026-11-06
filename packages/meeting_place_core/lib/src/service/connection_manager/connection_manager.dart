@@ -152,6 +152,11 @@ class ConnectionManager {
   /// control plane accepts P-256 only. It never talks to a mediator.
   static const _rootKeyType = KeyType.p256;
 
+  /// The key type of a new did:web DID's second agreement key: P-256, for
+  /// sealing messages to the hosted control plane, which cannot decrypt
+  /// X25519. Every other party is reached over X25519.
+  static const _controlPlaneKeyType = KeyType.p256;
+
   String _buildKeyId(int index) {
     return "m/44'/60'/0'/0'/$index'";
   }
@@ -200,6 +205,17 @@ class ConnectionManager {
           VerificationRelationship.assertionMethod,
         },
       );
+      final controlPlaneKeyId = _controlPlaneKeyId(keyId);
+      if (isNew || await _hasKey(wallet, controlPlaneKeyId)) {
+        await wallet.generateKey(
+          keyId: controlPlaneKeyId,
+          keyType: _controlPlaneKeyType,
+        );
+        await didManager.addVerificationMethod(
+          controlPlaneKeyId,
+          relationships: {VerificationRelationship.keyAgreement},
+        );
+      }
       return didManager;
     }
 
@@ -220,7 +236,29 @@ class ConnectionManager {
       externalWallet.addSigningKey(heldKeys.signing),
       relationships: {VerificationRelationship.assertionMethod},
     );
+    if (heldKeys.controlPlaneAgreement case final key?) {
+      await didManager.addVerificationMethod(
+        externalWallet.addAgreementKey(key),
+        relationships: {VerificationRelationship.keyAgreement},
+      );
+    }
     return didManager;
+  }
+
+  /// The wallet id of the P-256 agreement key that goes with the device key
+  /// [keyId].
+  static String _controlPlaneKeyId(String keyId) => '$keyId/control-plane';
+
+  /// Whether [wallet] holds the key [keyId]: a DID made before the control
+  /// plane key has none, and must not gain one its published document
+  /// lacks.
+  static Future<bool> _hasKey(Wallet wallet, String keyId) async {
+    try {
+      await wallet.getPublicKey(keyId);
+      return true;
+    } on Exception {
+      return false;
+    }
   }
 
   Uri _domainFromDidWeb(String did) {

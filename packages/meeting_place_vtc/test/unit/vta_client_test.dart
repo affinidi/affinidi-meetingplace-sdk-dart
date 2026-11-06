@@ -1097,6 +1097,7 @@ void main() {
             VtaTask.contextsCreate,
             VtaTask.keysCreate,
             VtaTask.keysCreate,
+            VtaTask.keysCreate,
           ]),
         );
         expect(
@@ -1114,11 +1115,18 @@ void main() {
             'contextId': connectionKeysContextId,
             'label': 'Meeting Place connections',
           },
+          {
+            'keyType': 'p256',
+            'contextId': connectionKeysContextId,
+            'label': 'Meeting Place connections',
+          },
         ]);
         expect(keys.signing.keyId, 'key-ed25519');
         expect(keys.signing.publicKey, hasLength(32));
         expect(keys.agreement.keyId, 'key-ed25519');
         expect(keys.agreement.publicKey, hasLength(32));
+        expect(keys.controlPlaneAgreement.keyId, 'key-p256');
+        expect(keys.controlPlaneAgreement.publicKey, hasLength(33));
       });
 
       test('reuses the connections context', () async {

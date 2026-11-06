@@ -956,9 +956,20 @@ class VtaClient implements PersonaSigningAgent {
   }
 
   /// Returns the credentials stored in the vault for [purpose], e.g.
-  /// `membership`.
-  Future<List<Map<String, dynamic>>> credentials(String purpose) async => [
-    ...(await heldCredentials(purpose)).values,
+  /// `membership`, issued by [issuerDid] and made out to [subjectDid] when
+  /// given. Each one found is fetched on its own, so narrowing the query
+  /// saves a request per credential left out.
+  Future<List<Map<String, dynamic>>> credentials(
+    String purpose, {
+    String? issuerDid,
+    String? subjectDid,
+  }) async => [
+    for (final stored in await storedCredentials(
+      purpose,
+      issuerDid: issuerDid,
+      subjectDid: subjectDid,
+    ))
+      stored.credential,
   ];
 
   /// Returns the credentials stored in the vault for [purpose], by the
@@ -971,9 +982,17 @@ class VtaClient implements PersonaSigningAgent {
   };
 
   /// Returns the credentials stored in the vault for [purpose], each with
-  /// the vault's record of it.
-  Future<List<StoredCredential>> storedCredentials(String purpose) async {
-    final answer = await _task(VtaTask.credentialsQuery, {'purpose': purpose});
+  /// the vault's record of it, narrowed as [credentials] narrows.
+  Future<List<StoredCredential>> storedCredentials(
+    String purpose, {
+    String? issuerDid,
+    String? subjectDid,
+  }) async {
+    final answer = await _task(VtaTask.credentialsQuery, {
+      'purpose': purpose,
+      'issuerDid': ?issuerDid,
+      'subjectDid': ?subjectDid,
+    });
     return [
       for (final record in _heldOf(_maps(answer['credentials'])))
         if (await credential(record.id) case final credential?)

@@ -49,11 +49,18 @@ class CommunityImport {
   /// Returns the membership card [communityDid] issued to [personaDid], as
   /// the VTA keeps it, or null when it holds none, e.g. while the
   /// community has yet to deliver it.
+  ///
+  /// Asks the VTA for that card only: every card it finds is fetched on its
+  /// own, and a member of many communities would wait for each.
   Future<Map<String, dynamic>?> membershipCard(
     String communityDid, {
     required String personaDid,
   }) async {
-    final cards = await _vta.credentials(_membershipPurpose);
+    final cards = await _vta.credentials(
+      _membershipPurpose,
+      issuerDid: communityDid,
+      subjectDid: personaDid,
+    );
     return cards
         .where((card) => _isCard(card, communityDid, personaDid))
         .firstOrNull;

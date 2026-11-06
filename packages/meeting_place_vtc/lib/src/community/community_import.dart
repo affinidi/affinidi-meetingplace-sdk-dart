@@ -1,4 +1,7 @@
 import '../credentials/credential_fields.dart';
+import '../meeting_place_vtc_sdk_exception.dart';
+import '../status/status_list_client.dart';
+import '../vetting/vetter_role_card.dart';
 import '../vta/vta_client.dart';
 import '../vta/vta_models.dart';
 
@@ -78,6 +81,44 @@ class CommunityImport {
       if (roleOf(card, communityDid, personaDid) case final role?) {
         return role;
       }
+    }
+    return null;
+  }
+
+  /// Returns the newest role card in which [communityDid] makes
+  /// [personaDid] a vetter, as the VTA keeps it, when it holds at [now] and
+  /// [statusList] reads it as not revoked. Null when there is none: a card
+  /// without a revocation status cannot be shown to hold, so it does not.
+  ///
+  /// Throws [MeetingPlaceVtcSDKException] when the status list cannot be
+  /// read.
+  Future<Map<String, dynamic>?> vetterCard(
+    String communityDid, {
+    required String personaDid,
+    required StatusListClient statusList,
+    DateTime? now,
+  }) async {
+    final held = await _vta.findCredentials(
+      type: _roleCardType,
+      issuerDid: communityDid,
+      subjectDid: personaDid,
+    );
+    final newestFirst = [...held]
+      ..sort((a, b) => _issuedAt(b).compareTo(_issuedAt(a)));
+    for (final record in newestFirst) {
+      final card = await _vta.credential(record.id);
+      if (card == null ||
+          !grantsCommunityRole(
+            card,
+            communityDid: communityDid,
+            holderDid: personaDid,
+            role: vetterRole,
+          ) ||
+          !roleCardInDate(card, now ?? DateTime.now())) {
+        continue;
+      }
+      final status = await statusList.check(card);
+      if (status.state == CredentialStatusState.valid) return card;
     }
     return null;
   }

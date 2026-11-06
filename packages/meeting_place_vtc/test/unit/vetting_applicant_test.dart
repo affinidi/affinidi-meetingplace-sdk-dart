@@ -3,6 +3,7 @@ import 'package:ssi/ssi.dart';
 import 'package:test/test.dart';
 
 import '../utils/fake_persona.dart';
+import '../utils/fake_status_list.dart';
 
 /// Keeps what would go to the vetter.
 class _FakeMessenger implements PersonaMessenger {
@@ -10,21 +11,6 @@ class _FakeMessenger implements PersonaMessenger {
 
   @override
   Future<void> send(TrustTaskDocument document) async => sent.add(document);
-}
-
-/// Answers every status check with [state].
-class _FakeStatusList implements StatusListClient {
-  CredentialStatusState state = CredentialStatusState.noStatus;
-  final List<Map<String, dynamic>> checked = [];
-
-  @override
-  Future<CredentialStatusCheck> check(Map<String, dynamic> credential) async {
-    checked.add(credential);
-    return CredentialStatusCheck(state: state, checkedAt: DateTime.now());
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// Resolves `did:key`s offline, and the persona's `did:peer`.
@@ -48,7 +34,7 @@ void main() {
   late Ed25519DidKeySigner vetter;
   late FakePersona persona;
   late _FakeMessenger messenger;
-  late _FakeStatusList statusList;
+  late FakeStatusList statusList;
   late VettingApplicant applicant;
 
   VettingTicket ticket({String? communityDid}) => VettingTicket.spoken(
@@ -130,7 +116,7 @@ void main() {
     vetter = Ed25519DidKeySigner.generate();
     persona = FakePersona();
     messenger = _FakeMessenger();
-    statusList = _FakeStatusList();
+    statusList = FakeStatusList();
     applicant = VettingApplicant(
       persona: await PersonaDidManager.borrow(
         document: persona.document,

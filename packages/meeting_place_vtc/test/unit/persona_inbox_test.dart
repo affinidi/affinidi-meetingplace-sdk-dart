@@ -409,6 +409,45 @@ void main() {
         expect(documents, isEmpty);
         expect(inbox.deleted, isEmpty);
       });
+
+      test('picks up any sender only on what that sender signed', () async {
+        final stranger = Ed25519DidKeySigner.generate();
+        final fromStranger = await TrustTaskDocument.create(
+          type: session,
+          issuer: stranger.did,
+          recipient: persona.did,
+          payload: const {'requestId': 'r-2'},
+        ).sign(stranger, purpose: ProofPurpose.authentication);
+        inbox.messages
+          ..['vetter'] = await sealed(
+            (await sent()).toJson(),
+            from: vetter,
+            type: session,
+          )
+          ..['stranger'] = await sealed(
+            fromStranger.toJson(),
+            from: stranger,
+            type: session,
+          )
+          ..['relayed'] = await sealed(
+            (await sent()).toJson(),
+            from: stranger,
+            type: session,
+          )
+          ..['anonymous'] = await sealed(
+            fromStranger.toJson(),
+            anonymously: true,
+            type: session,
+          );
+        await personaInbox.open();
+
+        final documents = await personaInbox.peerDocuments(types: {session});
+
+        expect(documents.map((document) => document.messageId), [
+          'vetter',
+          'stranger',
+        ]);
+      });
     });
 
     test('ends the session on close', () async {

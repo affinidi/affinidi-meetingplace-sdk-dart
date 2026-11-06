@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:crypto/crypto.dart';
 
 import '../proof/digest_multibase.dart';
+import 'crockford_code.dart';
 
 /// The longest a vetting card may hold.
 const maxVettingCardValidity = Duration(minutes: 15);
@@ -20,18 +21,8 @@ String vettingMatchCode(String sessionDocumentId) {
     0,
     ...utf8.encode(sessionDocumentId),
   ]).bytes;
-  // 40 bits: past what bitwise operators hold on the web.
-  final bits = digest
-      .take(5)
-      .fold(BigInt.zero, (bits, byte) => (bits << 8) | BigInt.from(byte));
-  final code = [
-    for (var i = 0; i < 8; i++)
-      _crockford[((bits >> (35 - 5 * i)) & BigInt.from(31)).toInt()],
-  ].join();
-  return '${code.substring(0, 4)}-${code.substring(4)}';
+  return crockfordCode(digest);
 }
-
-const _crockford = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 
 /// A claim on a vetting card, as the applicant states it.
 class VettingCardClaim {

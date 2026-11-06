@@ -43,6 +43,7 @@ export 'src/vetting/vetting_card.dart';
 export 'src/vetting/vetting_requirements.dart';
 export 'src/vetting/vetting_statement.dart';
 export 'src/vetting/vetting_ticket.dart';
+export 'src/vetting/vetting_vetter.dart';
 export 'src/vta/vta_client.dart';
 export 'src/vta/vta_link.dart';
 export 'src/vta/vta_models.dart';

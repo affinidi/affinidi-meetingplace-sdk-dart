@@ -148,6 +148,37 @@ await join.apply(
 Vetting failures are thrown as `VettingException`, whose `VettingFailure`
 names the outcome to word for the person.
 
+A member the community made a vetter vets applicants with a `VettingVetter`.
+Its tickets stay on the phone; the VTA signs each statement as the persona
+and keeps a record of it, without the applicant's details:
+
+```dart
+final roleCard = await sdk.communityImport(vta).vetterCard(
+  communityDid,
+  personaDid: persona.did,
+  statusList: sdk.statusListClient(),
+); // null: no vetting for this community.
+final vetter = sdk.vettingVetter(
+  communityDid: communityDid,
+  persona: persona,
+  personaKeys: keys,
+  vta: vta,
+);
+final ticket = VetterTicket.mint(community: communityDid, vetter: persona.did);
+// Show '${ticket.scanned}' as a QR code and ticket.code to read out. Pick
+// requests up with sdk.personaInbox(keys).peerDocuments(
+// types: VettingTask.toVetter), then:
+final taken = await vetter.takeRequest(request, tickets: [ticket], roleCard: roleCard);
+final session = await vetter.openSession(taken!.accepted!, requiredClaims: claims);
+// Show session.matchCode; once the vetter confirms it matches:
+final card = await vetter.receiveCard(answer, session: session);
+await vetter.issue(session, card: card!, matchConfirmed: true, documentClasses: ['passport']);
+// Or: await vetter.decline(taken.accepted!, code: 'couldNotVerify');
+final issued = await vetter.issuedStatements();
+```
+
+A card that fails a check is thrown as `VettingCardException`.
+
 A community that admits a request later pushes the cards to the persona's
 messaging service. Personas created here advertise none, so the app only
 learns the decision through `status`.

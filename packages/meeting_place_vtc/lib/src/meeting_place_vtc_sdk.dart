@@ -21,6 +21,7 @@ import 'trigger_link/trigger_link.dart';
 import 'trigger_link/trigger_link_config.dart';
 import 'trigger_link/trigger_link_result.dart';
 import 'vetting/vetting_applicant.dart';
+import 'vetting/vetting_vetter.dart';
 import 'vta/vta_client.dart';
 import 'vta/vta_link.dart';
 import 'vta/vta_models.dart';
@@ -132,6 +133,23 @@ class MeetingPlaceVtcSDK {
         didResolver: _didResolver,
         statusList: statusListClient(),
       );
+
+  /// Runs the vetter's side of in-person vetting for [communityDid] as
+  /// [persona] on [vta], whose keys the VTA lent as [personaKeys]
+  /// ([VtaClient.borrowPersonaKeys]).
+  VettingVetter vettingVetter({
+    required String communityDid,
+    required VtaPersona persona,
+    required PersonaDidManager personaKeys,
+    required VtaClient vta,
+  }) => VettingVetter(
+    communityDid: communityDid,
+    persona: persona,
+    personaKeys: personaKeys,
+    messenger: personaMessenger(personaKeys),
+    vta: vta,
+    didResolver: _didResolver,
+  );
 
   /// A client that reads whether a credential's issuer revoked it.
   StatusListClient statusListClient() =>

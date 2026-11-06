@@ -3,8 +3,9 @@ import 'dart:typed_data';
 import 'package:ssi/ssi.dart';
 import 'package:x25519/x25519.dart' as x25519;
 
-/// A persona as a VTA mints it: an Ed25519 key it signs with and a separate
-/// X25519 key it agrees keys with.
+/// A persona as a VTA mints it: an Ed25519 key it signs with, for
+/// authentication and assertions, and a separate X25519 key it agrees keys
+/// with.
 ///
 /// Its DID is a `did:peer:2`, which names both keys and resolves offline, as
 /// DIDComm resolves a sender while it unpacks. With a `mediatorDid`, its
@@ -30,6 +31,9 @@ class FakePersona {
       },
     );
     final json = DidPeer.resolve(did).toJson();
+    // did:peer:2 gives a key one purpose; a VTA's persona signs assertions
+    // with its authentication key too.
+    json['assertionMethod'] = json['authentication'];
     if (mediatorDid != null) {
       json['service'] = [
         {

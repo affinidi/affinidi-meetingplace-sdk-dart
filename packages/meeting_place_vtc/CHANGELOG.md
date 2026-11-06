@@ -12,3 +12,4 @@
  - Add the join client (`vtc/join-requests/*`), persona creation and credential storage on the VTA.
  - Include the underlying cause in `MeetingPlaceVtcSDKException.toString`.
  - Add `VtcJoinClient.renew` (`vtc/members/renew/0.1`) to fetch a member's current membership and role cards.
+ - Add the vetter's side of in-person vetting (`VettingVetter`, `VetterTicket`), with issued statements recorded on the VTA (`vta/app-state`).

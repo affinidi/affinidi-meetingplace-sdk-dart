@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'dart:math';
 
 import 'crockford_code.dart';
+import 'vetting_random.dart';
 import 'vetting_ticket.dart';
 
 /// A ticket as the vetter who minted it keeps it: what an applicant's
@@ -36,15 +36,11 @@ class VetterTicket {
     if (validity <= Duration.zero) {
       throw ArgumentError.value(validity, 'validity', 'not positive');
     }
-    final random = Random.secure();
-    List<int> bytes(int count) => [
-      for (var i = 0; i < count; i++) random.nextInt(256),
-    ];
-    final hex = bytes(16).map((b) => b.toRadixString(16).padLeft(2, '0'));
+    final hex = randomBytes(16).map((b) => b.toRadixString(16).padLeft(2, '0'));
     return VetterTicket(
       id: 'vt-${hex.join()}',
-      code: crockfordCode(bytes(5)),
-      secret: base64Url.encode(bytes(32)).replaceAll('=', ''),
+      code: crockfordCode(randomBytes(5)),
+      secret: randomBase64Url(32),
       community: community,
       vetter: vetter,
       usesLeft: uses,

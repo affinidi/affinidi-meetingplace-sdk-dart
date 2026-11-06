@@ -10,6 +10,7 @@ import '../trust_task/trust_task_document.dart';
 import '../trust_task/trust_task_exchange.dart';
 import '../trust_task/trust_task_receipt.dart';
 import '../vetting/listed_vetter.dart';
+import '../vetting/vetter_profile.dart';
 import '../vetting/vetting_requirements.dart';
 import '../vetting/vetting_statement.dart';
 import '../vta/vta_models.dart';
@@ -42,6 +43,14 @@ abstract final class VettingCommunityTask {
   /// Lists the vetters the community lets applicants find.
   static const vettersList =
       'https://trusttasks.org/spec/vtc/vetting/vetters/list/0.1';
+
+  /// Publishes, replaces or unlists the vetter's own profile.
+  static const vettersProfile =
+      'https://trusttasks.org/spec/vtc/vetting/vetters/profile/0.1';
+
+  /// The community's refusal of a profile from a sender holding no live
+  /// vetter grant there.
+  static const profileNotEligible = 'vtc/vetting/vetters/profile:notEligible';
 }
 
 /// The `vtc/members` Trust Task types this client sends.
@@ -528,6 +537,41 @@ class VtcJoinClient {
       if (cursor == null) break;
     }
     return vetters;
+  }
+
+  /// Publishes [profile] as [persona]'s vetter profile with the community
+  /// [communityDid] (`vtc/vetting/vetters/profile/0.1`), replacing what it
+  /// held.
+  ///
+  /// Throws [MeetingPlaceVtcSDKException] with an `invalidDocument` code
+  /// for a profile [VetterProfile.check] refuses, before anything is sent;
+  /// refused with [VettingCommunityTask.profileNotEligible] when [persona]
+  /// holds no live vetter grant there; and when the VTA or the community
+  /// cannot be reached or answers with something else.
+  Future<PublishedVetterProfile> publishVetterProfile(
+    String communityDid,
+    VetterProfile profile, {
+    required SignInAgent agent,
+    required SignInPersona persona,
+  }) async {
+    final payload = profile.toJson();
+    final community = await _vtcResolver.resolveCommunity(communityDid);
+    final request = await _signedByPersona(
+      agent,
+      persona,
+      community,
+      type: VettingCommunityTask.vettersProfile,
+      payload: payload,
+    );
+    final answer = await _ask(community, request);
+    final listed = answer['listed'];
+    final updatedAt = DateTime.tryParse('${answer['updatedAt']}');
+    if (listed is! bool || updatedAt == null) {
+      throw MeetingPlaceVtcSDKException.invalidDocument(
+        'not a stored vetter profile',
+      );
+    }
+    return PublishedVetterProfile(listed: listed, updatedAt: updatedAt);
   }
 
   /// Confirms [persona]'s membership back to the community [communityDid]:

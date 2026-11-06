@@ -158,6 +158,9 @@ class PersonaMessenger {
     final client = await MediatorClient.init(
       mediatorDidDocument: mediatorDocument,
       didManager: manager,
+      // Signed, as to a VTA: a mediator that refuses anonymous envelopes
+      // refuses the forward otherwise.
+      forwardMessageOptions: vtaForwardMessageOptions,
       authorizationProvider: await AffinidiAuthorizationProvider.init(
         mediatorDidDocument: mediatorDocument,
         didManager: manager,

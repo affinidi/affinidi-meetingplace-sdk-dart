@@ -9,6 +9,8 @@
 /// or made from a code the vetter reads out, once the applicant has picked
 /// the vetter ([VettingTicket.spoken]).
 ///
+/// A vetter mints one with `VetterTicket.mint`.
+///
 /// It carries no expiry and no proof of the vetter's role: the vetter keeps
 /// the first to themselves and presents the second when they accept.
 class VettingTicket {
@@ -19,6 +21,26 @@ class VettingTicket {
     this.secret,
     this.code,
   });
+
+  /// The QR form of a ticket a vetter minted (`VetterTicket`).
+  const VettingTicket.scanned({
+    required String community,
+    required String vetter,
+    required String ticketId,
+    required String secret,
+  }) : this._(
+         community: community,
+         vetter: vetter,
+         ticketId: ticketId,
+         secret: secret,
+       );
+
+  /// The spoken form of a ticket a vetter minted (`VetterTicket`).
+  const VettingTicket.withCode({
+    required String community,
+    required String vetter,
+    required String code,
+  }) : this._(community: community, vetter: vetter, code: code);
 
   /// The scheme of a ticket URI.
   static const scheme = 'vetting-ticket';

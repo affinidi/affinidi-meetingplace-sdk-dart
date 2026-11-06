@@ -1279,6 +1279,57 @@ void main() {
     });
   });
 
+  group('VtcJoinClient.publishVetterProfile', () {
+    Future<PublishedVetterProfile> publish(VetterProfile profile) =>
+        client().publishVetterProfile(
+          vtcDid,
+          profile,
+          agent: agent,
+          persona: agent.signInPersona,
+        );
+
+    test('publishes the whole profile as the persona', () async {
+      const profile = VetterProfile(
+        listed: true,
+        displayName: 'Bob',
+        languages: ['de'],
+        methods: [VettingMethod.inPerson],
+      );
+
+      final published = await publish(profile);
+
+      final request = vtc.received.single;
+      expect(request['type'], VettingCommunityTask.vettersProfile);
+      expect(request['issuer'], agent.persona.did);
+      expect(request['payload'], profile.toJson());
+      expect(published.listed, isTrue);
+      expect(published.updatedAt, DateTime.utc(2026, 11, 6, 9));
+    });
+
+    test('sends nothing for a profile the community would refuse', () async {
+      await expectLater(
+        publish(const VetterProfile(methods: [])),
+        _throwsCode(MeetingPlaceVtcSDKErrorCode.invalidDocument),
+      );
+      expect(vtc.received, isEmpty);
+    });
+
+    test('passes on the refusal of a member who is no vetter', () {
+      vtc.refusal = {'code': VettingCommunityTask.profileNotEligible};
+
+      expect(
+        publish(const VetterProfile(methods: [VettingMethod.video])),
+        throwsA(
+          isA<MeetingPlaceVtcSDKException>().having(
+            (e) => e.refusalCode,
+            'refusalCode',
+            VettingCommunityTask.profileNotEligible,
+          ),
+        ),
+      );
+    });
+  });
+
   group('VtcJoinClient.withdraw', () {
     Future<TrustTaskReceipt> withdraw() => client().withdraw(
       vtcDid,

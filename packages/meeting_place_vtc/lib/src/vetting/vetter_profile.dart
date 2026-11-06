@@ -285,3 +285,15 @@ String _calendarDate(DateTime date) =>
     '${date.year.toString().padLeft(4, '0')}-'
     '${date.month.toString().padLeft(2, '0')}-'
     '${date.day.toString().padLeft(2, '0')}';
+
+/// What the community answered to a published [VetterProfile].
+class PublishedVetterProfile {
+  /// Creates a [PublishedVetterProfile].
+  const PublishedVetterProfile({required this.listed, required this.updatedAt});
+
+  /// Whether the stored profile is in the community's listing.
+  final bool listed;
+
+  /// When the community stored it.
+  final DateTime updatedAt;
+}

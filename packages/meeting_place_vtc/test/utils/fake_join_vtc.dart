@@ -215,6 +215,10 @@ class FakeJoinVtc {
         'vetters': vetterPages[_vetterPage],
         if (++_vetterPage < vetterPages.length) 'nextCursor': 'page-2',
       },
+      VettingCommunityTask.vettersProfile => {
+        'listed': (request['payload'] as Map)['listed'],
+        'updatedAt': '2026-11-06T09:00:00Z',
+      },
       _ =>
         answerTo[type]?.call(request['payload'] as Map<String, dynamic>) ??
             (throw StateError('unexpected task')),

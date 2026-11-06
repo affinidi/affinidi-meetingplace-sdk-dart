@@ -14,6 +14,7 @@ class ListedVetter {
     this.displayName,
     this.languages = const [],
     this.place,
+    this.acceptsDocumentation = const [],
     this.events = const [],
     this.availability,
     this.contactHint,
@@ -38,6 +39,7 @@ class ListedVetter {
       displayName: _string(json['displayName']),
       languages: _strings(json['languages']),
       place: _place(json['location']),
+      acceptsDocumentation: _strings(json['acceptsDocumentation']),
       events: [
         for (final event
             in json['events'] is List ? json['events'] as List : [])
@@ -62,6 +64,10 @@ class ListedVetter {
 
   /// Where the vetter meets people, coarsest last, e.g. `Berlin, BE, DE`.
   final String? place;
+
+  /// The documentation the vetter relies on, in lowerCamelCase, e.g.
+  /// `passport`, `nationalId`, `driverLicence`, or `none`.
+  final List<String> acceptsDocumentation;
 
   /// The names of the events the vetter will vet at, not yet ended.
   final List<String> events;

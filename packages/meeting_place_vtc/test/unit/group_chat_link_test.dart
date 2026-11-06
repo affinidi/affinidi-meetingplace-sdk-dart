@@ -29,6 +29,55 @@ void main() {
       expect(link.toService(_groupDid)['id'], '$_groupDid#meeting-place');
     });
 
+    test('reads who may post, as the community set it', () {
+      const link = GroupChatLink(
+        mnemonic: 'announcements',
+        controlPlaneDid: _controlPlaneDid,
+        posting: GroupChatPosting.managers,
+      );
+
+      final read = GroupChatLink.fromDidDocument(
+        _document([link.toService(_groupDid)]),
+      );
+
+      expect(read!.posting, GroupChatPosting.managers);
+    });
+
+    test('lets everyone post in a chat linked without a rule', () {
+      final read = GroupChatLink.fromDidDocument(
+        _document([
+          {
+            'id': '$_groupDid#meeting-place',
+            'type': meetingPlaceGroupServiceType,
+            'serviceEndpoint': {
+              'uri': _controlPlaneDid,
+              'mnemonic': 'book club',
+            },
+          },
+        ]),
+      );
+
+      expect(read!.posting, GroupChatPosting.everyone);
+    });
+
+    test('reads a rule it does not know as managers only', () {
+      final read = GroupChatLink.fromDidDocument(
+        _document([
+          {
+            'id': '$_groupDid#meeting-place',
+            'type': meetingPlaceGroupServiceType,
+            'serviceEndpoint': {
+              'uri': _controlPlaneDid,
+              'mnemonic': 'board',
+              'post': 'chairs',
+            },
+          },
+        ]),
+      );
+
+      expect(read!.posting, GroupChatPosting.managers);
+    });
+
     test('finds no link in a document without the service', () {
       expect(
         GroupChatLink.fromDidDocument(

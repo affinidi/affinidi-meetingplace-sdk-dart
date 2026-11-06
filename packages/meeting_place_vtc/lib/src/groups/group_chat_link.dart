@@ -4,6 +4,23 @@ import 'package:ssi/ssi.dart';
 /// Place chat.
 const meetingPlaceGroupServiceType = 'MeetingPlaceGroup';
 
+/// Who may post in a community group's chat. Every member reads it.
+enum GroupChatPosting {
+  /// Every member of the group.
+  everyone,
+
+  /// The group's managers only, as for announcements.
+  managers;
+
+  /// The rule [value] names in a link: [everyone] when it names none, as
+  /// links made before the rule do, and [managers] for one this app does not
+  /// know, so a stricter rule is never read as a looser one.
+  static GroupChatPosting fromLink(Object? value) => switch (value) {
+    null || 'everyone' => everyone,
+    _ => managers,
+  };
+}
+
 /// A community group's link to its Meeting Place chat, published as a
 /// [meetingPlaceGroupServiceType] service in the group's DID document.
 ///
@@ -16,13 +33,20 @@ const meetingPlaceGroupServiceType = 'MeetingPlaceGroup';
 /// owner admits only members presenting the group's credential.
 class GroupChatLink {
   /// Creates a [GroupChatLink].
-  const GroupChatLink({required this.mnemonic, required this.controlPlaneDid});
+  const GroupChatLink({
+    required this.mnemonic,
+    required this.controlPlaneDid,
+    this.posting = GroupChatPosting.everyone,
+  });
 
   /// The chat's offer phrase, to find the offer with.
   final String mnemonic;
 
   /// The DID of the Meeting Place control plane the offer is published on.
   final String controlPlaneDid;
+
+  /// Who may post in the chat, as the community set it.
+  final GroupChatPosting posting;
 
   /// The id fragment of the service in the group's DID document.
   static const serviceFragment = '#meeting-place';
@@ -47,6 +71,7 @@ class GroupChatLink {
           return GroupChatLink(
             mnemonic: mnemonic,
             controlPlaneDid: controlPlaneDid,
+            posting: GroupChatPosting.fromLink(data['post']),
           );
         }
       }
@@ -59,6 +84,10 @@ class GroupChatLink {
   Map<String, dynamic> toService(String groupDid) => {
     'id': '$groupDid$serviceFragment',
     'type': meetingPlaceGroupServiceType,
-    'serviceEndpoint': {'uri': controlPlaneDid, 'mnemonic': mnemonic},
+    'serviceEndpoint': {
+      'uri': controlPlaneDid,
+      'mnemonic': mnemonic,
+      'post': posting.name,
+    },
   };
 }

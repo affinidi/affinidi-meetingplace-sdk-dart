@@ -299,6 +299,33 @@ class MatrixRoomService {
     );
   }
 
+  /// Returns the ones among [dids] who may moderate [roomId]: the members
+  /// [setModerator] gave the rights, and its owner.
+  ///
+  /// Read from the room's power levels, which are room state every member
+  /// can read, so any member can tell who moderates.
+  Future<Set<String>> moderators(
+    String roomId, {
+    required Iterable<String> dids,
+    required DidManager didManager,
+  }) async {
+    final client = await _ensureSession(didManager);
+    final room = client.getRoomById(roomId);
+    if (room == null) {
+      throw StateError('Matrix room $roomId not found');
+    }
+    return {
+      for (final did in dids)
+        if (room
+                .getPowerLevelByUserId(
+                  _sessionManager.deriveUserId(did, _serverName),
+                )
+                .level >=
+            _moderatorPowerLevel)
+          did,
+    };
+  }
+
   /// Returns whether [userId] is no longer a participant in [room] — i.e.
   /// their last membership state is `leave` or `ban`. Used to make
   /// membership-mutating calls (`leave`, `kick`) idempotent.

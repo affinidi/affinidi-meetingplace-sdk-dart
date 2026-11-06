@@ -77,6 +77,14 @@ abstract interface class MeetingPlaceTransport {
     required DidManager didManager,
   });
 
+  /// Returns the ones among [participantDids] who may moderate [channel], as
+  /// the channel itself records it, so every participant can check.
+  Future<Set<String>> moderators({
+    required Channel channel,
+    required List<String> participantDids,
+    required DidManager didManager,
+  });
+
   // ---------------------------------------------------------------------------
   // Messaging
   // ---------------------------------------------------------------------------

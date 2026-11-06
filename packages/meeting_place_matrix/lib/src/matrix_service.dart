@@ -201,6 +201,14 @@ class MatrixService {
     didManager: didManager,
   );
 
+  /// The ones among [dids] who may moderate a Matrix room.
+  /// See [MatrixRoomService.moderators].
+  Future<Set<String>> moderators(
+    String roomId, {
+    required Iterable<String> dids,
+    required DidManager didManager,
+  }) => _roomService.moderators(roomId, dids: dids, didManager: didManager);
+
   /// Sends a Matrix room event with [eventType] and [content] to [roomId].
   ///
   /// See [MatrixRoomService.sendRoomEvent].

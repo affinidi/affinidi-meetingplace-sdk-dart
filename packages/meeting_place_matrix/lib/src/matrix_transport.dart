@@ -133,6 +133,23 @@ class MatrixTransport implements MeetingPlaceTransport {
   }
 
   @override
+  Future<Set<String>> moderators({
+    required Channel channel,
+    required List<String> participantDids,
+    required DidManager didManager,
+  }) async {
+    final roomId = await _matrixService.resolveRoomIdForChannel(
+      didManager: didManager,
+      channel: channel,
+    );
+    return _matrixService.moderators(
+      roomId,
+      dids: participantDids,
+      didManager: didManager,
+    );
+  }
+
+  @override
   Stream<TransportEvent> subscribeToEvents({
     required Channel channel,
     required DidManager didManager,

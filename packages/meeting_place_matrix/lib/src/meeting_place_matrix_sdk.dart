@@ -420,6 +420,10 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
       _coreSDK.setGroupModerator(request);
 
   @override
+  Future<Set<String>> groupModerators(Channel channel) =>
+      _coreSDK.groupModerators(channel);
+
+  @override
   Future<void> sendOutreachInvitation(SendOutreachInvitationRequest request) =>
       _coreSDK.sendOutreachInvitation(request);
 

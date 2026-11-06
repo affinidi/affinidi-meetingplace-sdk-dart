@@ -977,6 +977,13 @@ class MeetingPlaceCoreSDK {
     });
   }
 
+  /// The members of the group [channel] talks in who moderate its chat:
+  /// its owner, and those [setGroupModerator] gave the rights. Any member
+  /// can ask.
+  Future<Set<String>> groupModerators(Channel channel) {
+    return _withSdkExceptionHandling(() => _groupService.moderators(channel));
+  }
+
   /// Sends outreach invitation to the owner of
   /// [SendOutreachInvitationRequest.outreachConnectionOffer].
   Future<void> sendOutreachInvitation(

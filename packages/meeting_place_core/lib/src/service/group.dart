@@ -796,6 +796,25 @@ class GroupService {
     );
   }
 
+  /// The members of the group [channel] talks in who moderate its chat:
+  /// its owner, and those [setModerator] gave the rights. Read from the chat
+  /// itself, so every member can check, not only the owner.
+  Future<Set<String>> moderators(Channel channel) async {
+    final group = await _groupRepository.findGroupByOfferLink(
+      channel.offerLink,
+    );
+    if (group == null) return const {};
+    final identity = await _identityService.getPermanentIdentity(
+      _wallet,
+      channel.permanentChannelDid!,
+    );
+    return _channelTransport.moderators(
+      channel: channel,
+      participantDids: [for (final member in group.members) member.did],
+      didManager: identity.didManager,
+    );
+  }
+
   Future<void> _kickMemberFromRoom({
     required Group group,
     required String memberDid,

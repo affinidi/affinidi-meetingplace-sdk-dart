@@ -747,6 +747,39 @@ void main() {
         ),
       );
     });
+
+    test("asks the chat which of the group's members moderate, as the "
+        "caller's own identity", () async {
+      when(
+        () => groupRepository.findGroupByOfferLink('offer://test'),
+      ).thenAnswer((_) async => _group());
+      when(
+        () => channelTransport.moderators(
+          channel: any(named: 'channel'),
+          participantDids: any(named: 'participantDids'),
+          didManager: any(named: 'didManager'),
+        ),
+      ).thenAnswer((_) async => {'did:test:alice'});
+
+      final moderators = await service.moderators(groupChannel);
+
+      expect(moderators, {'did:test:alice'});
+      verify(
+        () => channelTransport.moderators(
+          channel: groupChannel,
+          participantDids: ['did:test:alice', 'did:test:bob'],
+          didManager: ownerDidManager,
+        ),
+      ).called(1);
+    });
+
+    test('finds no moderators for a group it does not know', () async {
+      when(
+        () => groupRepository.findGroupByOfferLink('offer://test'),
+      ).thenAnswer((_) async => null);
+
+      expect(await service.moderators(groupChannel), isEmpty);
+    });
   });
 
   group('GroupService.createGroup — group DID', () {

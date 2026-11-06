@@ -70,6 +70,23 @@ void main() {
       expect(other, isNull);
     });
 
+    test("asks the VTA for that community's card only", () async {
+      vta.answers[VtaTask.credentialsGet] = {'credential': null};
+
+      await CommunityImport(
+        client,
+      ).membershipCard(_vtcDid, personaDid: _persona);
+
+      final query = vta.received.lastWhere(
+        (task) => task['type'] == VtaTask.credentialsQuery,
+      );
+      expect(query['payload'], {
+        'purpose': 'membership',
+        'issuerDid': _vtcDid,
+        'subjectDid': _persona,
+      });
+    });
+
     group('role', () {
       Map<String, dynamic> roleCard({
         String issuer = _vtcDid,

@@ -1246,6 +1246,7 @@ void main() {
       expect(bob.methods, [VettingMethod.inPerson, VettingMethod.video]);
       expect(bob.languages, ['de', 'en']);
       expect(bob.place, 'Berlin, DE');
+      expect(bob.acceptsDocumentation, ['passport']);
       expect(bob.events, ['Club day']);
       expect(bob.contactHint, 'At the club bar');
       final [first, second] = vtc.received;

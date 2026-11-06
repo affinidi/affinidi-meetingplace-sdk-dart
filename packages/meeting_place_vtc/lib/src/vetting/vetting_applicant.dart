@@ -15,7 +15,7 @@ import 'vetting_requirements.dart';
 import 'vetting_statement.dart';
 import 'vetting_ticket.dart';
 
-/// The `vetting` Trust Task types an applicant exchanges with a vetter.
+/// The `vetting` Trust Task types an applicant and a vetter exchange.
 abstract final class VettingTask {
   static const _base = 'https://trusttasks.org/spec/vetting';
 
@@ -52,6 +52,10 @@ abstract final class VettingTask {
     issue,
     ...errors,
   };
+
+  /// Everything an applicant sends a vetter. An applicant ends a session
+  /// with a decline too, as Keyring's do.
+  static const toVetter = {request, sessionResponse, decline};
 }
 
 /// Why a vetting step could not go ahead, for a screen to word.

@@ -202,29 +202,32 @@ class PersonaInbox {
     return InboxPickup(waiting: messages.length, credentials: credentials);
   }
 
-  /// The documents of [types] that [senderDid] sent the persona and signed,
-  /// oldest first as the mediator lists them. Leaves them there.
+  /// The documents of [types] that [senderDid], or anyone when null, sent
+  /// the persona and signed, oldest first as the mediator lists them.
+  /// Leaves them there.
   ///
-  /// Only an authcrypt message from [senderDid] counts, typed as the task
-  /// its document is, whose document [senderDid] issued to the persona and
+  /// Only an authcrypt message counts, typed as the task its document is,
+  /// whose document its authenticated sender issued to the persona and
   /// signed for `authentication`. Throws [MeetingPlaceVtcSDKException] with
   /// a `transportFailed` code when the inbox cannot be read.
   Future<List<PeerDocument>> peerDocuments({
-    required String senderDid,
+    String? senderDid,
     required Set<String> types,
   }) async {
     final documents = <PeerDocument>[];
     for (final (id, raw) in await _messages()) {
       final message = await _unpack(raw, authenticatedOnly: true);
+      final from = message?.from;
       if (message == null ||
-          message.from != senderDid ||
+          from == null ||
+          (senderDid != null && from != senderDid) ||
           !types.contains(message.type.toString())) {
         continue;
       }
       final document = await _readDocument(
         message,
         type: message.type.toString(),
-        issuerDid: senderDid,
+        issuerDid: from,
       );
       if (document != null) {
         documents.add(PeerDocument(messageId: id, document: document));

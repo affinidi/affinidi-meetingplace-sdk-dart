@@ -103,6 +103,12 @@ abstract final class VtaTask {
   /// Discloses an approved preview, and records that it was disclosed.
   static const disclosurePresent = '$_base/persona/disclosure/present/1.0';
 
+  /// Stores one application record in a context.
+  static const appStatePut = '$_base/vta/app-state/put/1.1';
+
+  /// Lists the application records of a context.
+  static const appStateList = '$_base/vta/app-state/list/1.1';
+
   /// Registers this phone as a device.
   static const deviceRegister = '$_base/device/register/0.2';
 
@@ -705,6 +711,66 @@ class VtaClient implements PersonaSigningAgent {
       if (credential['id'] case final String id) 'id': id,
     });
     return !const {'revoked', 'expired'}.contains(answer['status']);
+  }
+
+  /// Stores [value] as the record [key] of the application [namespace] in
+  /// the context [contextId], replacing what it held, and returns the
+  /// version the write took. With [expectedVersion] the write applies only
+  /// over that version, or only when no record exists for `0`.
+  ///
+  /// The store is not for secrets. Throws [MeetingPlaceVtcSDKException]
+  /// refused with `vta/app-state/put:versionConflict` when [expectedVersion]
+  /// does not hold.
+  Future<int> putAppState({
+    required String contextId,
+    required String namespace,
+    required String key,
+    required Object? value,
+    int? expectedVersion,
+  }) async {
+    final answer = await _task(VtaTask.appStatePut, {
+      'contextId': contextId,
+      'namespace': namespace,
+      'key': key,
+      'value': value,
+      'expectedVersion': ?expectedVersion,
+    });
+    final version = answer['version'];
+    if (version is! int) {
+      throw MeetingPlaceVtcSDKException.invalidDocument('no record version');
+    }
+    return version;
+  }
+
+  /// The live records of the application [namespace] in the context
+  /// [contextId] whose keys start with [prefix], with their values, in key
+  /// order. Reads every page.
+  Future<List<AppStateRecord>> listAppState({
+    required String contextId,
+    required String namespace,
+    String? prefix,
+  }) async {
+    final records = <AppStateRecord>[];
+    String? cursor;
+    do {
+      final answer = await _task(VtaTask.appStateList, {
+        'contextId': contextId,
+        'namespace': namespace,
+        'prefix': ?prefix,
+        'includeValues': true,
+        'cursor': ?cursor,
+      });
+      final page = answer['records'];
+      if (page is! List) {
+        throw MeetingPlaceVtcSDKException.invalidDocument('no records');
+      }
+      for (final record in page.whereType<Map<String, dynamic>>()) {
+        if (record['deleted'] == true) continue;
+        records.add(AppStateRecord.fromJson(record));
+      }
+      cursor = answer['nextCursor'] as String?;
+    } while (cursor != null);
+    return records;
   }
 
   @override

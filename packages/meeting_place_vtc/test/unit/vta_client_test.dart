@@ -1266,6 +1266,77 @@ void main() {
       );
     });
 
+    group('app state', () {
+      test('stores a record and returns its version', () async {
+        vta.answers[VtaTask.appStatePut] = {
+          'contextId': 'ctx',
+          'namespace': 'meeting-place',
+          'key': 'vetting/issued/s-1',
+          'version': 7,
+          'wasCreated': true,
+          'updatedAt': '2026-11-06T09:00:00Z',
+        };
+
+        final version = await client.putAppState(
+          contextId: 'ctx',
+          namespace: 'meeting-place',
+          key: 'vetting/issued/s-1',
+          value: const {'statementId': 's-1'},
+          expectedVersion: 0,
+        );
+
+        expect(version, 7);
+        expect(vta.received.last['payload'], {
+          'contextId': 'ctx',
+          'namespace': 'meeting-place',
+          'key': 'vetting/issued/s-1',
+          'value': {'statementId': 's-1'},
+          'expectedVersion': 0,
+        });
+      });
+
+      test('lists every page of live records, with values', () async {
+        final pages = [
+          {
+            'records': [
+              {'key': 'a', 'version': 1, 'deleted': false, 'value': 1},
+              {'key': 'b', 'version': 2, 'deleted': true},
+            ],
+            'nextCursor': 'next',
+          },
+          {
+            'records': [
+              {'key': 'c', 'version': 3, 'deleted': false, 'value': 3},
+            ],
+          },
+        ];
+        vta.answerTo[VtaTask.appStateList] = (payload) =>
+            pages[payload['cursor'] == 'next' ? 1 : 0];
+
+        final records = await client.listAppState(
+          contextId: 'ctx',
+          namespace: 'meeting-place',
+          prefix: 'vetting/issued/',
+        );
+
+        expect(records.map((record) => (record.key, record.value)), [
+          ('a', 1),
+          ('c', 3),
+        ]);
+        expect(
+          vta.received
+              .where((task) => task['type'] == VtaTask.appStateList)
+              .first['payload'],
+          {
+            'contextId': 'ctx',
+            'namespace': 'meeting-place',
+            'prefix': 'vetting/issued/',
+            'includeValues': true,
+          },
+        );
+      });
+    });
+
     group('disclosure', () {
       const persona = VtaPersona(
         did: 'did:webvh:QmP:host.example',

@@ -319,3 +319,29 @@ class VtaConnectionKey {
   /// The public key: 32 bytes for Ed25519, 33 compressed bytes for P-256.
   final Uint8List publicKey;
 }
+
+/// One application record the VTA keeps in a context (`vta/app-state`).
+class AppStateRecord {
+  /// Creates an [AppStateRecord].
+  const AppStateRecord({
+    required this.key,
+    required this.version,
+    required this.value,
+  });
+
+  /// Reads a record as `vta/app-state/list` returns it.
+  factory AppStateRecord.fromJson(Map<String, dynamic> json) => AppStateRecord(
+    key: json['key'] as String,
+    version: json['version'] as int,
+    value: json['value'],
+  );
+
+  /// The record's key within its namespace.
+  final String key;
+
+  /// The version its latest write took.
+  final int version;
+
+  /// The stored JSON.
+  final Object? value;
+}

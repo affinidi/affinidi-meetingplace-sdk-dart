@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:crypto/crypto.dart';
 
 import '../proof/digest_multibase.dart';
 import 'crockford_code.dart';
+import 'vetting_random.dart';
 
 /// The longest a vetting card may hold.
 const maxVettingCardValidity = Duration(minutes: 15);
@@ -47,11 +47,7 @@ class VettingCardClaim {
 /// A fresh salt for an application's identity commitments: 32 random bytes,
 /// base64url without padding. One per application, so every card in it
 /// commits to the same identity.
-String newCommitmentSalt() {
-  final random = Random.secure();
-  final bytes = [for (var i = 0; i < 32; i++) random.nextInt(256)];
-  return base64Url.encode(bytes).replaceAll('=', '');
-}
+String newCommitmentSalt() => randomBase64Url(32);
 
 /// The commitment a card makes to the claims of [identityTypes]: the
 /// `digestMultibase` of `{"salt", "claims": [{"type", "value"}…]}`, the

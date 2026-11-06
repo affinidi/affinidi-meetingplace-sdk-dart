@@ -1,6 +1,7 @@
 import 'package:meeting_place_vtc/meeting_place_vtc.dart';
 import 'package:test/test.dart';
 
+import '../utils/fake_status_list.dart';
 import '../utils/fake_vta.dart';
 
 const _vtcDid = 'did:web:community.example';
@@ -198,6 +199,87 @@ void main() {
         vta.answers[VtaTask.credentialsQuery] = {'credentials': <Object>[]};
 
         expect(await role(), isNull);
+      });
+    });
+
+    group('vetterCard', () {
+      final now = DateTime.utc(2026, 11, 6, 9);
+      late FakeStatusList statusList;
+
+      Map<String, dynamic> vetterCard({
+        String validUntil = '2026-12-01T00:00:00Z',
+        List<String> actions = const ['role:vetter'],
+        String issuerScope = 'public',
+      }) => {
+        'type': ['VerifiableCredential', 'AuthorityCredential'],
+        'issuer': _vtcDid,
+        'issuerScope': issuerScope,
+        'validFrom': '2026-11-01T00:00:00Z',
+        'validUntil': validUntil,
+        'credentialSubject': {
+          'id': _persona,
+          'authority': {'scope': _vtcDid, 'actions': actions},
+        },
+      };
+
+      Future<Map<String, dynamic>?> find() =>
+          CommunityImport(client).vetterCard(
+            _vtcDid,
+            personaDid: _persona,
+            statusList: statusList,
+            now: now,
+          );
+
+      setUp(() {
+        statusList = FakeStatusList()..state = CredentialStatusState.valid;
+        vta.answers[VtaTask.credentialsQuery] = {
+          'credentials': [
+            {
+              'id': 'role-1',
+              'types': ['AuthorityCredential'],
+            },
+          ],
+        };
+      });
+
+      test('finds a vetter card in date and not revoked', () async {
+        vta.answers[VtaTask.credentialsGet] = {'credential': vetterCard()};
+
+        expect(await find(), vetterCard());
+        expect(statusList.checked, [vetterCard()]);
+      });
+
+      test('reads the custom vetter role too', () async {
+        vta.answers[VtaTask.credentialsGet] = {
+          'credential': vetterCard(actions: ['role:custom:vetter']),
+        };
+
+        expect(await find(), isNotNull);
+      });
+
+      test('finds none that is revoked or without a status', () async {
+        vta.answers[VtaTask.credentialsGet] = {'credential': vetterCard()};
+
+        for (final state in [
+          CredentialStatusState.revoked,
+          CredentialStatusState.noStatus,
+        ]) {
+          statusList.state = state;
+          expect(await find(), isNull, reason: '$state');
+        }
+      });
+
+      test('finds none that has expired or grants another role', () async {
+        for (final card in [
+          vetterCard(validUntil: '2026-11-06T08:59:59Z'),
+          vetterCard(actions: ['role:member']),
+          vetterCard(issuerScope: 'directed'),
+        ]) {
+          vta.answers[VtaTask.credentialsGet] = {'credential': card};
+
+          expect(await find(), isNull);
+        }
+        expect(statusList.checked, isEmpty);
       });
     });
 

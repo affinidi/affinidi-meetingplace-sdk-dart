@@ -9,6 +9,7 @@ import '../persona/persona_messenger.dart';
 import '../proof/eddsa_jcs_2022.dart';
 import '../status/status_list_client.dart';
 import '../trust_task/trust_task_document.dart';
+import 'vetter_role_card.dart';
 import 'vetting_card.dart';
 import 'vetting_requirements.dart';
 import 'vetting_statement.dart';
@@ -472,7 +473,12 @@ class VettingApplicant {
     final credentials = vp['verifiableCredential'];
     for (final card in credentials is List ? credentials : [credentials]) {
       if (card is! Map<String, dynamic> ||
-          !_grants(card, communityDid, vetterDid, role)) {
+          !grantsCommunityRole(
+            card,
+            communityDid: communityDid,
+            holderDid: vetterDid,
+            role: role,
+          )) {
         continue;
       }
       _checkValidity(card);
@@ -486,59 +492,8 @@ class VettingApplicant {
     throw const VettingException(VettingFailure.notVetter, detail: 'role');
   }
 
-  /// Whether [card] is [communityDid]'s own grant of [role] to [holderDid]:
-  /// an `AuthorityCredential` it issued as itself (`issuerScope` `public`),
-  /// not attenuated from another, scoped to the community.
-  static bool _grants(
-    Map<String, dynamic> card,
-    String communityDid,
-    String holderDid,
-    String role,
-  ) {
-    if (!credentialTypes(card).contains('AuthorityCredential') ||
-        credentialIssuer(card) != communityDid ||
-        card['issuerScope'] != 'public') {
-      return false;
-    }
-    final subject = card['credentialSubject'];
-    return switch (subject) {
-      {
-        'id': final String id,
-        'authority':
-            {
-              'scope': final String scope,
-              'actions': final List<dynamic> actions,
-            } &&
-            final Map<String, dynamic> authority,
-      } =>
-        id == holderDid &&
-            scope == communityDid &&
-            authority['parent'] == null &&
-            actions.any((action) => _roleMatches(action, role)),
-      _ => false,
-    };
-  }
-
-  /// Whether the action `role:<held>` grants [required]: equal, or both the
-  /// vetter role with or without the `custom:` prefix.
-  static bool _roleMatches(Object? action, String required) {
-    if (action is! String || !action.startsWith('role:')) return false;
-    String bare(String role) =>
-        role.startsWith('custom:') ? role.substring('custom:'.length) : role;
-    final held = action.substring('role:'.length);
-    return held == required ||
-        (bare(held) == _vetterRole && bare(required) == _vetterRole);
-  }
-
-  /// A role card is bounded: one without `validUntil` is refused rather
-  /// than taken to hold for ever.
   void _checkValidity(Map<String, dynamic> card) {
-    final now = _now();
-    final validFrom = DateTime.tryParse('${card['validFrom']}');
-    final validUntil = DateTime.tryParse('${card['validUntil']}');
-    if (validUntil == null ||
-        now.isAfter(validUntil.add(clockSkew)) ||
-        (validFrom != null && validFrom.isAfter(now.add(clockSkew)))) {
+    if (!roleCardInDate(card, _now(), skew: clockSkew)) {
       throw const VettingException(
         VettingFailure.notVetter,
         detail: 'role expired',
@@ -592,6 +547,5 @@ class VettingApplicant {
     _ => VettingFailure.refused,
   };
 
-  static const _vetterRole = 'vetter';
   static final _challenge = RegExp(r'^[A-Za-z0-9_-]{43}$');
 }

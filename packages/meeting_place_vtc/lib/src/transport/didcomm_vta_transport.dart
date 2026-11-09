@@ -61,9 +61,10 @@ typedef VtaMailboxOpener =
 ///   on the same mediator, where it is picked up.
 ///
 /// The authcrypt envelope authenticates the manager key: there is no login.
-/// One task is in flight at a time, so any other message in the inbox is a
-/// stale answer and is dropped. A task without an answer in [timeout] is
-/// not sent again: the VTA may have run it. Nothing is logged.
+/// Tasks may be in flight together: one reader of the inbox hands each
+/// answer to the task it is threaded on, and drops any other message as a
+/// stale answer. A task without an answer in [timeout] is not sent again:
+/// the VTA may have run it. Nothing is logged.
 class DidcommVtaTransport implements VtaTransport {
   /// Creates a [DidcommVtaTransport] to [vtaDid], from [manager].
   DidcommVtaTransport({
@@ -93,29 +94,14 @@ class DidcommVtaTransport implements VtaTransport {
   DidDocument? _vtaDocument;
   String? _mediatorDid;
   DidManager? _managerDidManager;
-  VtaMailbox? _mailbox;
-  bool _isBusy = false;
-  final List<Completer<void>> _waiting = [];
+  Future<VtaMailbox>? _mailbox;
+
+  /// The answers awaited, by the id of the message each answers.
+  final Map<String, Completer<PlainTextMessage>> _awaited = {};
+  bool _isPolling = false;
 
   @override
   Future<TrustTaskDocument> send(TrustTaskDocument request) async {
-    // Futures are made per call, in the caller's zone: a queue kept across
-    // calls would deliver in the zone it was made in.
-    while (_isBusy) {
-      final turn = Completer<void>();
-      _waiting.add(turn);
-      await turn.future;
-    }
-    _isBusy = true;
-    try {
-      return await _send(request);
-    } finally {
-      _isBusy = false;
-      if (_waiting.isNotEmpty) _waiting.removeAt(0).complete();
-    }
-  }
-
-  Future<TrustTaskDocument> _send(TrustTaskDocument request) async {
     final vta = await _resolveVta();
     final mailbox = await _openInbox();
     final message = PlainTextMessage(
@@ -152,47 +138,75 @@ class DidcommVtaTransport implements VtaTransport {
       ],
     );
 
+    // Awaited before it is sent, so an answer read for another task in the
+    // meantime is not dropped as stale. The poller may fail it before this
+    // task awaits it: that is not an unhandled error.
+    final answered = Completer<PlainTextMessage>();
+    answered.future.ignore();
+    _awaited[message.id] = answered;
     try {
-      await mailbox.send(forward);
-    } on MeetingPlaceVtcSDKException {
-      rethrow;
-    } catch (error) {
-      throw MeetingPlaceVtcSDKException.transportFailed(
-        'mediator refused the message',
-        innerException: error,
-      );
-    }
-    return _awaitAnswer(mailbox, message.id);
-  }
-
-  Future<TrustTaskDocument> _awaitAnswer(
-    VtaMailbox mailbox,
-    String messageId,
-  ) async {
-    final deadline = DateTime.now().add(timeout);
-    while (true) {
-      final List<Map<String, dynamic>> messages;
       try {
-        messages = await mailbox.take();
+        await mailbox.send(forward);
+      } on MeetingPlaceVtcSDKException {
+        rethrow;
       } catch (error) {
         throw MeetingPlaceVtcSDKException.transportFailed(
-          'mediator inbox unreadable',
+          'mediator refused the message',
           innerException: error,
         );
       }
-      for (final raw in messages) {
-        final answer = await _unpack(raw);
-        if (answer == null || answer.from != vtaDid) continue;
-        if (answer.threadId != messageId &&
-            answer.parentThreadId != messageId) {
-          continue;
+      _startPolling(mailbox);
+      final answer = await answered.future.timeout(
+        timeout,
+        onTimeout: () =>
+            throw MeetingPlaceVtcSDKException.transportFailed('no answer'),
+      );
+      return _readAnswer(answer);
+    } finally {
+      _awaited.remove(message.id);
+    }
+  }
+
+  void _startPolling(VtaMailbox mailbox) {
+    if (_isPolling) return;
+    _isPolling = true;
+    unawaited(_poll(mailbox));
+  }
+
+  /// Reads the inbox while any answer is awaited, handing each answer to
+  /// the task it is threaded on.
+  Future<void> _poll(VtaMailbox mailbox) async {
+    try {
+      while (_awaited.isNotEmpty) {
+        final List<Map<String, dynamic>> messages;
+        try {
+          messages = await mailbox.take();
+        } catch (error) {
+          final failure = MeetingPlaceVtcSDKException.transportFailed(
+            'mediator inbox unreadable',
+            innerException: error,
+          );
+          for (final awaited in _awaited.values) {
+            if (!awaited.isCompleted) awaited.completeError(failure);
+          }
+          return;
         }
-        return _readAnswer(answer);
+        for (final raw in messages) {
+          final answer = await _unpack(raw);
+          if (answer == null || answer.from != vtaDid) continue;
+          final awaited =
+              _awaited[answer.threadId] ?? _awaited[answer.parentThreadId];
+          if (awaited != null && !awaited.isCompleted) {
+            awaited.complete(answer);
+          }
+        }
+        if (_awaited.values.every((awaited) => awaited.isCompleted)) return;
+        await Future<void>.delayed(pollInterval);
       }
-      if (DateTime.now().isAfter(deadline)) {
-        throw MeetingPlaceVtcSDKException.transportFailed('no answer');
-      }
-      await Future<void>.delayed(pollInterval);
+    } finally {
+      // Cleared in the same turn as the check that ended the loop, so a
+      // task sent after it starts a poller of its own.
+      _isPolling = false;
     }
   }
 
@@ -258,8 +272,19 @@ class DidcommVtaTransport implements VtaTransport {
     return _vtaDocument = document;
   }
 
+  /// The inbox, opened once for the tasks sent together; opened again on
+  /// the next task when opening failed.
   Future<VtaMailbox> _openInbox() async {
-    if (_mailbox case final mailbox?) return mailbox;
+    final opening = _mailbox ??= _connectInbox();
+    try {
+      return await opening;
+    } catch (_) {
+      if (identical(_mailbox, opening)) _mailbox = null;
+      rethrow;
+    }
+  }
+
+  Future<VtaMailbox> _connectInbox() async {
     final mediatorDid = _mediatorDid!;
     final DidDocument mediatorDocument;
     try {
@@ -270,7 +295,7 @@ class DidcommVtaTransport implements VtaTransport {
       );
     }
     try {
-      return _mailbox = await _openMailbox(
+      return await _openMailbox(
         mediatorDid: mediatorDid,
         mediatorDocument: mediatorDocument,
         manager: await _managerManager(),

@@ -22,6 +22,17 @@ void main() {
     isA<MeetingPlaceVtcSDKException>().having((e) => e.code, 'code', code),
   );
 
+  /// Waits until [count] tasks reached the VTA.
+  Future<void> untilReceived(int count) async {
+    final deadline = DateTime.now().add(const Duration(seconds: 1));
+    while (vta.received.length < count) {
+      if (DateTime.now().isAfter(deadline)) {
+        fail('${vta.received.length} of $count tasks reached the VTA');
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+    }
+  }
+
   setUp(() {
     vta = FakeVta();
     manager = Ed25519DidKeySigner.generate();
@@ -115,19 +126,91 @@ void main() {
       );
     });
 
-    test('sends one task at a time, each with its own answer', () async {
-      vta.answers[VtaTask.whoAmI] = {'roles': <String>[]};
+    test(
+      'carries several tasks at once, matching each answer to its task',
+      () async {
+        vta.answers[VtaTask.whoAmI] = {'roles': <String>[]};
+        vta.answers[VtaTask.didsList] = {'dids': <Object>[]};
+        vta.holdsAnswers = true;
+        final first = await request(VtaTask.whoAmI);
+        final second = await request(VtaTask.didsList);
+
+        final answers = Future.wait([
+          transport.send(first),
+          transport.send(second),
+        ]);
+        await untilReceived(2);
+        vta.releaseAnswers(reversed: true);
+
+        final [firstAnswer, secondAnswer] = await answers;
+        expect(firstAnswer.threadId, first.id);
+        expect(secondAnswer.threadId, second.id);
+      },
+    );
+
+    test('fails only the task the VTA refused', () async {
+      vta.refusals[VtaTask.whoAmI] = {'code': 'auth/whoami:notAuthorized'};
       vta.answers[VtaTask.didsList] = {'dids': <Object>[]};
+      final refused = await request(VtaTask.whoAmI);
+      final answered = await request(VtaTask.didsList);
+
+      final refusal = transport.send(refused);
+      final answer = transport.send(answered);
+
+      await expectLater(
+        refusal,
+        failsWith(MeetingPlaceVtcSDKErrorCode.refused),
+      );
+      expect((await answer).threadId, answered.id);
+    });
+
+    test('fails every waiting task when the inbox is unreadable', () async {
+      vta.holdsAnswers = true;
       final first = await request(VtaTask.whoAmI);
       final second = await request(VtaTask.didsList);
 
-      final answers = await Future.wait([
-        transport.send(first),
-        transport.send(second),
+      final sends = [transport.send(first), transport.send(second)];
+      await untilReceived(2);
+      vta.isMediatorDown = true;
+
+      for (final send in sends) {
+        await expectLater(
+          send,
+          failsWith(MeetingPlaceVtcSDKErrorCode.transportFailed),
+        );
+      }
+    });
+
+    test('opens the mailbox once for tasks sent together', () async {
+      vta.answers[VtaTask.whoAmI] = {'roles': <String>[]};
+      var opened = 0;
+      final counting = DidcommVtaTransport(
+        vtaDid: vta.did,
+        manager: manager,
+        didResolver: FakeVtaResolver(vta),
+        openMailbox:
+            ({
+              required mediatorDid,
+              required mediatorDocument,
+              required manager,
+            }) {
+              opened++;
+              return vta.openMailbox(
+                mediatorDid: mediatorDid,
+                mediatorDocument: mediatorDocument,
+                manager: manager,
+              );
+            },
+        timeout: const Duration(seconds: 1),
+        pollInterval: const Duration(milliseconds: 5),
+      );
+
+      await Future.wait([
+        counting.send(await request(VtaTask.whoAmI)),
+        counting.send(await request(VtaTask.whoAmI)),
       ]);
 
-      expect(answers[0].threadId, first.id);
-      expect(answers[1].threadId, second.id);
+      expect(opened, 1);
     });
   });
 

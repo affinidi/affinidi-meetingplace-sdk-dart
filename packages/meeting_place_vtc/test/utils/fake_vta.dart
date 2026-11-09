@@ -61,6 +61,16 @@ class FakeVta {
   /// When true, requests reach the VTA but it never answers.
   bool isSilent = false;
 
+  /// When true, answers wait until [releaseAnswers] puts them in the inbox.
+  bool holdsAnswers = false;
+  final List<Map<String, dynamic>> _heldAnswers = [];
+
+  /// Puts the answers held so far in the inbox, last first when [reversed].
+  void releaseAnswers({bool reversed = false}) {
+    inbox.addAll(reversed ? _heldAnswers.reversed : _heldAnswers);
+    _heldAnswers.clear();
+  }
+
   /// When set, the VTA answers with a DIDComm problem report of this code.
   String? problemCode;
 
@@ -159,7 +169,7 @@ class FakeVta {
       recipientDidDocuments: [DidKey.resolve(request.from!)],
     );
     sentAnswers.add(packed.toJson());
-    inbox.add(packed.toJson());
+    (holdsAnswers ? _heldAnswers : inbox).add(packed.toJson());
   }
 
   DidManager? _manager;

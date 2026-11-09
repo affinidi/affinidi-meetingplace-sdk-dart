@@ -141,6 +141,64 @@ void main() {
       expect(proof.authority, authority);
     });
 
+    group('for a credential that names only its subject, as a '
+        "group's does", () {
+      setUp(() {
+        vta.answerTo[VtaTask.credentialsGet] = (payload) => {
+          'credential': payload['id'] == 'held-card'
+              ? {
+                  'id': 'urn:uuid:group-card',
+                  'credentialSubject': {'id': _personaDid},
+                }
+              : authority,
+        };
+        vta.answerTo[VtaTask.signDocument] = (payload) => {
+          'document': {
+            ...payload['document'] as Map<String, dynamic>,
+            'proof': {'proofPurpose': payload['proofPurpose']},
+          },
+        };
+      });
+
+      test("has the VTA sign the presentation with the persona's key, "
+          'bound to the chat and the joiner', () async {
+        final proof = await GroupJoinProof.prove(
+          client,
+          groupDid: _groupDid,
+          communityDid: _communityDid,
+          personaDid: _personaDid,
+          memberDid: _memberDid,
+          signingKeyId: 'persona-key',
+        );
+
+        final signing = sent(VtaTask.signDocument);
+        expect(signing['keyId'], 'persona-key');
+        expect(signing['proofPurpose'], 'authentication');
+        expect(proof!.presentation['holder'], _personaDid);
+        expect(proof.presentation['domain'], _groupDid);
+        expect(proof.presentation['nonce'], _memberDid);
+        expect(proof.presentation['verifiableCredential'], [
+          {
+            'id': 'urn:uuid:group-card',
+            'credentialSubject': {'id': _personaDid},
+          },
+        ]);
+        expect(proof.authority, authority);
+        expect(
+          vta.received.map((r) => r['type']),
+          isNot(contains(VtaTask.credentialsPresent)),
+        );
+      });
+
+      test("proves nothing without the persona's key", () async {
+        expect(await prove(), isNull);
+        expect(
+          vta.received.map((r) => r['type']),
+          isNot(contains(VtaTask.signDocument)),
+        );
+      });
+    });
+
     test('proves nothing without a membership credential', () async {
       vta.answerTo[VtaTask.credentialsQuery] = (_) => {
         'credentials': const <Object>[],

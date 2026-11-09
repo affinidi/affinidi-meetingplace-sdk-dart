@@ -37,9 +37,14 @@ class GroupJoinProof {
   ///
   /// The VTA presents the group's membership credential it keeps for the
   /// persona, as the persona, bound to the chat and [memberDid], so the
-  /// proof cannot be replayed for another joiner. Returns null when the
-  /// VTA keeps no valid membership credential of the group for the
-  /// persona, or no grant from the community to the group.
+  /// proof cannot be replayed for another joiner. A credential that says
+  /// nothing of its subject but who they are, as a group's does, is one the
+  /// VTA's presentation task cannot present, as it asks for a claim to
+  /// disclose: the VTA signs the same presentation with the persona's key
+  /// [signingKeyId] instead. Returns null when the VTA keeps no valid
+  /// membership credential of the group for the persona, or no grant from
+  /// the community to the group, or when such a credential needs a key not
+  /// given.
   ///
   /// Throws [MeetingPlaceVtcSDKException] when the VTA refuses or cannot be
   /// reached.
@@ -49,6 +54,7 @@ class GroupJoinProof {
     required String communityDid,
     required String personaDid,
     required String memberDid,
+    String? signingKeyId,
   }) async {
     final membership = (await vta.findCredentials(
       type: GroupAdmissionVerifier.membershipType,
@@ -65,10 +71,29 @@ class GroupJoinProof {
     final authority = await vta.credential(grant.id);
     final card = await vta.credential(membership.id);
     if (authority == null || card == null) return null;
+    // A Data Integrity credential discloses all its claims or none.
+    final claims = _subjectClaims(card);
+    if (claims.isEmpty) {
+      if (signingKeyId == null) return null;
+      return GroupJoinProof(
+        presentation: await vta.signDocument(
+          keyId: signingKeyId,
+          purpose: 'authentication',
+          document: {
+            '@context': ['https://www.w3.org/ns/credentials/v2'],
+            'type': ['VerifiablePresentation'],
+            'holder': personaDid,
+            'verifiableCredential': [card],
+            'domain': groupDid,
+            'nonce': memberDid,
+          },
+        ),
+        authority: authority,
+      );
+    }
     final presented = await vta.presentCredential(
       id: membership.id,
-      // A Data Integrity credential discloses all its claims or none.
-      claims: _subjectClaims(card),
+      claims: claims,
       audience: groupDid,
       nonce: memberDid,
       purpose: 'Join the group chat',

@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:meeting_place_vtc/meeting_place_vtc.dart';
 import 'package:test/test.dart';
@@ -338,6 +341,137 @@ void main() {
       vtc.refusal = {'code': DirectoryTask.cardPublicNotFound};
 
       expect(await read(), isNull);
+    });
+  });
+
+  group('VtcDirectoryClient pictures', () {
+    final bytes = Uint8List.fromList([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3]);
+    const image = {
+      'sha256':
+          'a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90',
+      'mediaType': 'image/jpeg',
+      'size': 7,
+    };
+
+    test('uploads a picture, unpadded base64url', () async {
+      vtc.answerTo[DirectoryTask.imagesUpload] = (_) => {
+        'image': image,
+        'expiresAt': '2026-11-10T10:00:00Z',
+      };
+
+      final uploaded = await client().uploadImage(
+        vtcDid,
+        agent: agent,
+        persona: agent.signInPersona,
+        bytes: bytes,
+        mediaType: 'image/jpeg',
+      );
+
+      final payload = vtc.received.single['payload'] as Map;
+      expect(payload['mediaType'], 'image/jpeg');
+      expect(payload['data'], isNot(contains('=')));
+      expect(
+        base64Url.decode(base64Url.normalize(payload['data'] as String)),
+        bytes,
+      );
+      expect(uploaded, image);
+    });
+
+    test(
+      'puts the picture on the card for members, and takes it off',
+      () async {
+        await client().setAvatar(
+          vtcDid,
+          agent: agent,
+          persona: agent.signInPersona,
+          image: image,
+        );
+        await client().setAvatar(
+          vtcDid,
+          agent: agent,
+          persona: agent.signInPersona,
+          image: null,
+        );
+
+        expect(vtc.received.first['payload'], {
+          'values': {'avatar': image},
+          'visibility': {'avatar': 'members'},
+        });
+        expect(vtc.received.last['payload'], {
+          'values': {'avatar': null},
+          'visibility': {'avatar': null},
+        });
+      },
+    );
+
+    test('fetches the picture a member shows', () async {
+      vtc.answerTo[DirectoryTask.imagesGet] = (_) => {
+        'image': image,
+        'data': base64Url.encode(bytes).replaceAll('=', ''),
+      };
+
+      final fetched = await client().avatar(
+        vtcDid,
+        agent: agent,
+        persona: agent.signInPersona,
+        entryId: 'dir_bob',
+        sha256: image['sha256']! as String,
+      );
+
+      expect(fetched, bytes);
+      expect(vtc.received.single['payload'], {
+        'entryId': 'dir_bob',
+        'field': 'avatar',
+        'sha256': image['sha256'],
+      });
+    });
+
+    test('answers null for a picture the member does not show', () async {
+      vtc.refusal = {'code': DirectoryTask.imageNotFound};
+
+      expect(
+        await client().avatar(
+          vtcDid,
+          agent: agent,
+          persona: agent.signInPersona,
+          entryId: 'dir_bob',
+        ),
+        isNull,
+      );
+    });
+
+    test('reads the pictures entries and the own card hold', () async {
+      vtc.answerTo[DirectoryTask.entriesList] = (_) => {
+        'items': [
+          {
+            'entryId': 'dir_bob',
+            'fields': {'displayName': 'Bob', 'avatar': image},
+          },
+        ],
+      };
+      vtc.answerTo[DirectoryTask.cardShow] = (_) => {
+        'card': {
+          'entryId': 'dir_me',
+          'values': {'avatar': image},
+          'visibility': {'avatar': 'members'},
+        },
+        'missingRequired': <String>[],
+      };
+
+      final entries = await client().search(
+        vtcDid,
+        agent: agent,
+        persona: agent.signInPersona,
+        query: 'Bob',
+      );
+      final mine = await client().myCard(
+        vtcDid,
+        agent: agent,
+        persona: agent.signInPersona,
+      );
+
+      expect(entries.single.avatarSha256, image['sha256']);
+      expect(mine.avatarSha256, image['sha256']);
     });
   });
 }

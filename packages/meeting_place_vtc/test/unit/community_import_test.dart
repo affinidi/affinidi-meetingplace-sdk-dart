@@ -386,6 +386,33 @@ void main() {
       expect(vta.received.last['payload'], {'id': 'card-1'});
     });
 
+    test(
+      "asks the VTA for the persona's cards from the community only",
+      () async {
+        vta.answers[VtaTask.credentialsGet] = {
+          'credential': {
+            'issuer': _vtcDid,
+            'credentialSubject': {'id': _persona},
+          },
+        };
+
+        await CommunityImport(
+          client,
+        ).archiveMembershipCards(_vtcDid, personaDid: _persona);
+
+        expect(
+          vta.received
+              .where((task) => task['type'] == VtaTask.credentialsQuery)
+              .single['payload'],
+          {
+            'purpose': 'membership',
+            'issuerDid': _vtcDid,
+            'subjectDid': _persona,
+          },
+        );
+      },
+    );
+
     test("keeps another persona's cards", () async {
       vta.answers[VtaTask.credentialsGet] = {
         'credential': {

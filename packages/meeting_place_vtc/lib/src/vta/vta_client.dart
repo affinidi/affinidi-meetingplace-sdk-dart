@@ -972,15 +972,6 @@ class VtaClient implements PersonaSigningAgent {
       stored.credential,
   ];
 
-  /// Returns the credentials stored in the vault for [purpose], by the
-  /// vault's own id for each, which [archiveCredential] takes.
-  Future<Map<String, Map<String, dynamic>>> heldCredentials(
-    String purpose,
-  ) async => {
-    for (final stored in await storedCredentials(purpose))
-      stored.record.id: stored.credential,
-  };
-
   /// Returns the credentials stored in the vault for [purpose], each with
   /// the vault's record of it, narrowed as [credentials] narrows.
   Future<List<StoredCredential>> storedCredentials(
@@ -1144,7 +1135,7 @@ class VtaClient implements PersonaSigningAgent {
     );
   }
 
-  /// Archives the stored credential [id], one of [heldCredentials]: the VTA
+  /// Archives the stored credential [id], one of [storedCredentials]: the VTA
   /// hides it from queries and refuses to present it, but can restore it.
   Future<void> archiveCredential(String id) async {
     await _task(VtaTask.credentialsArchive, {'id': id});

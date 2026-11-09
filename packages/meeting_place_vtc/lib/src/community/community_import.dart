@@ -185,14 +185,20 @@ class CommunityImport {
   /// Archives the membership cards [communityDid] issued to [personaDid] on
   /// the VTA, once the persona left: neither [find] nor another app of the
   /// member then takes the persona for a member.
+  ///
+  /// Asks the VTA for those cards only, as [membershipCard] does.
   Future<void> archiveMembershipCards(
     String communityDid, {
     required String personaDid,
   }) async {
-    final cards = await _vta.heldCredentials(_membershipPurpose);
-    for (final MapEntry(key: id, value: card) in cards.entries) {
-      if (_isCard(card, communityDid, personaDid)) {
-        await _vta.archiveCredential(id);
+    final cards = await _vta.storedCredentials(
+      _membershipPurpose,
+      issuerDid: communityDid,
+      subjectDid: personaDid,
+    );
+    for (final stored in cards) {
+      if (_isCard(stored.credential, communityDid, personaDid)) {
+        await _vta.archiveCredential(stored.record.id);
       }
     }
   }

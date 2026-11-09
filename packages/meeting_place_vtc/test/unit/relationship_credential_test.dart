@@ -73,6 +73,7 @@ void main() {
       expect(edge.subjectDid, subject);
       expect(edge.vrcDigestMultibase, 'zQm1');
       expect(edge.createdAt, DateTime.utc(2026, 11, 9, 10, 30, 15));
+      expect(edge.vrc, {'type': 'VerifiableCredential'});
     });
 
     test('reads a publish answer, which has no creation time', () {

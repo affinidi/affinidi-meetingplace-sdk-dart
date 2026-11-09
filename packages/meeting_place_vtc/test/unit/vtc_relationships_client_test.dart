@@ -76,6 +76,7 @@ void main() {
       );
       expect(published.id, 'edge-1');
       expect(published.subjectDid, _subject);
+      expect(published.vrc, vrc, reason: 'the credential the VTA signed');
     });
 
     test('sends no DID but the two personas and the community', () async {

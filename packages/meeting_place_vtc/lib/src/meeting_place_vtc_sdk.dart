@@ -11,6 +11,7 @@ import 'persona/persona_did_manager.dart';
 import 'persona/persona_inbox.dart';
 import 'persona/persona_messenger.dart';
 import 'proof/trust_task_signer.dart';
+import 'relationships/vtc_relationships_client.dart';
 import 'sign_in/oob_sign_in_client.dart';
 import 'sign_in/sign_in_agent.dart';
 import 'sign_in/sign_in_failure.dart';
@@ -158,6 +159,11 @@ class MeetingPlaceVtcSDK {
   /// A client to read a community's groups as a member's persona.
   VtcGroupsClient groupsClient() =>
       VtcGroupsClient(didResolver: _didResolver, transport: _transport);
+
+  /// A client to vouch for other members in a community's trust graph as
+  /// a member's persona.
+  VtcRelationshipsClient relationshipsClient() =>
+      VtcRelationshipsClient(didResolver: _didResolver, transport: _transport);
 
   /// A verifier for requests to join a community group's chat.
   GroupAdmissionVerifier groupAdmissionVerifier() => GroupAdmissionVerifier(

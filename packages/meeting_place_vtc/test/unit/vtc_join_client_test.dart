@@ -1332,7 +1332,7 @@ void main() {
   });
 
   group('VtcJoinClient.withdraw', () {
-    Future<TrustTaskReceipt> withdraw() => client().withdraw(
+    Future<TrustTaskExchange> withdraw() => client().withdraw(
       vtcDid,
       requestId: 'request-1',
       agent: agent,
@@ -1340,15 +1340,18 @@ void main() {
     );
 
     test('withdraws the request as the persona', () async {
-      final receipt = await withdraw();
+      final exchange = await withdraw();
 
       final request = vtc.received.single;
       expect(request['type'], JoinTask.withdraw);
       expect(request['issuer'], agent.persona.did);
       expect(request['recipient'], vtcDid);
       expect(request['payload'], {'requestId': 'request-1'});
-      expect(receipt.type, JoinTask.withdraw);
-      expect(receipt.answeredBy, vtcDid);
+      expect(exchange.receipt.type, JoinTask.withdraw);
+      expect(exchange.receipt.answeredBy, vtcDid);
+      // The signed request and the answer, as they were on the wire.
+      expect(exchange.request.toJson(), request);
+      expect(exchange.answer.payload['status'], 'withdrawn');
     });
 
     test('passes on that the community decided already', () async {

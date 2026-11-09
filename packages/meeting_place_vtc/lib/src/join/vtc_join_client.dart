@@ -8,7 +8,6 @@ import '../sign_in/sign_in_agent.dart';
 import '../transport/trust_task_http_transport.dart';
 import '../trust_task/trust_task_document.dart';
 import '../trust_task/trust_task_exchange.dart';
-import '../trust_task/trust_task_receipt.dart';
 import '../vetting/listed_vetter.dart';
 import '../vetting/vetter_profile.dart';
 import '../vetting/vetting_requirements.dart';
@@ -370,7 +369,7 @@ class VtcJoinClient {
   /// refuses, cannot be reached, or answers with something else: refused
   /// with a code ending in `:notFound` when no such request of [persona] is
   /// open, and in `:alreadyDecided` when the community decided on it.
-  Future<TrustTaskReceipt> withdraw(
+  Future<TrustTaskExchange> withdraw(
     String communityDid, {
     required String requestId,
     required SignInAgent agent,
@@ -389,7 +388,7 @@ class VtcJoinClient {
     if (payload['requestId'] != requestId || payload['status'] != 'withdrawn') {
       throw MeetingPlaceVtcSDKException.invalidDocument('not withdrawn');
     }
-    return TrustTaskReceipt.exchange(request, answer);
+    return TrustTaskExchange(request: request, answer: answer);
   }
 
   /// Takes [persona]'s card in the community [communityDid] out of the

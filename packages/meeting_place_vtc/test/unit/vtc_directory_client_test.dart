@@ -45,7 +45,11 @@ void main() {
         'items': [
           {
             'entryId': 'dir_bob',
-            'fields': {'displayName': 'Bob Meyer', 'did': _bob},
+            'fields': {
+              'displayName': 'Bob Meyer',
+              'did': _bob,
+              'role': 'moderator',
+            },
             'connected': true,
           },
           {
@@ -65,6 +69,8 @@ void main() {
       expect(entries.map((e) => e.entryId), ['dir_bob', 'dir_bobby']);
       expect(entries.first.displayName, 'Bob Meyer');
       expect(entries.first.did, _bob);
+      expect(entries.first.role, 'moderator');
+      expect(entries.last.role, isNull, reason: 'Bobby shows no role');
       expect(entries.first.isConnected, isTrue);
       expect(entries.last.did, isNull, reason: 'Bobby shows no DID');
       expect(entries.last.isConnected, isFalse);

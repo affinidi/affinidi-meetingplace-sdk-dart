@@ -71,6 +71,14 @@ abstract final class MemberTask {
 
   /// Refusal code of a renewal by someone who is not a member.
   static const notMember = 'vtc/members/renew:notMember';
+
+  /// Reads the membership pair the community holds for a member, which
+  /// only administrators who manage members may.
+  static const credentials =
+      'https://trusttasks.org/spec/vtc/members/credentials/0.1';
+
+  /// Refusal code of [credentials] for a DID that is no member.
+  static const credentialsNotFound = 'vtc/members/credentials:notFound';
 }
 
 /// Refusals of a confirmation naming a request the community no longer
@@ -498,6 +506,49 @@ class VtcJoinClient {
       persona: persona.did,
     );
     return MembershipCards(membership: membership, role: role);
+  }
+
+  /// The membership pair the community [communityDid] holds for the member
+  /// [did], read as [persona], or null when [did] is no member.
+  ///
+  /// Only an administrator who manages members may read it: anyone else is
+  /// refused `permissionDenied`. Throws [MeetingPlaceVtcSDKException] when
+  /// the VTA or the community refuses, cannot be reached, or answers with
+  /// something else.
+  Future<MemberCredentials?> memberCredentials(
+    String communityDid, {
+    required SignInAgent agent,
+    required SignInPersona persona,
+    required String did,
+  }) async {
+    final community = await _vtcResolver.resolveCommunity(communityDid);
+    final request = await _signedByPersona(
+      agent,
+      persona,
+      community,
+      type: MemberTask.credentials,
+      payload: {'did': did},
+    );
+    final Map<String, dynamic> payload;
+    try {
+      payload = await _ask(community, request);
+    } on MeetingPlaceVtcSDKException catch (error) {
+      if (error.refusalCode == MemberTask.credentialsNotFound) return null;
+      rethrow;
+    }
+    if (payload['did'] != did) {
+      throw MeetingPlaceVtcSDKException.invalidDocument('another member');
+    }
+    Map<String, dynamic>? credential(String key) =>
+        payload[key] is Map<String, dynamic>
+        ? payload[key] as Map<String, dynamic>
+        : null;
+    return MemberCredentials(
+      membershipCredential: credential('membershipCredential'),
+      roleCredential: credential('roleCredential'),
+      memberVmc: credential('memberVmc'),
+      isMemberVmcBound: payload['memberVmcBound'] == true,
+    );
   }
 
   /// The most pages of vetters [listVetters] reads.

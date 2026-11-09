@@ -301,4 +301,37 @@ void main() {
       );
     });
   });
+
+  group('VtcDirectoryClient.publicCard', () {
+    Future<Map<String, dynamic>?> read() => client().publicCard(
+      vtcDid,
+      agent: agent,
+      persona: agent.signInPersona,
+      entryId: 'dir_bob',
+    );
+
+    test('reads a published card as its member signed it', () async {
+      vtc.answerTo[DirectoryTask.cardPublic] = (_) => {
+        'card': {
+          '@type': 'Card',
+          'name': {'full': 'Bob'},
+          'proof': {'type': 'DataIntegrityProof'},
+        },
+        'cardDigest': 'zQmCard',
+        'publishedAt': '2026-11-09T10:00:00Z',
+      };
+
+      final card = await read();
+
+      expect(vtc.received.single['payload'], {'entryId': 'dir_bob'});
+      expect(card?['name'], {'full': 'Bob'});
+      expect(card?['proof'], isNotNull);
+    });
+
+    test('answers null for a member who published none', () async {
+      vtc.refusal = {'code': DirectoryTask.cardPublicNotFound};
+
+      expect(await read(), isNull);
+    });
+  });
 }

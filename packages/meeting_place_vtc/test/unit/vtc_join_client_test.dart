@@ -1459,4 +1459,61 @@ void main() {
       );
     });
   });
+
+  group('VtcJoinClient.memberCredentials', () {
+    const member = 'did:webvh:QmBob:vta.example:bob';
+
+    Future<MemberCredentials?> read() => client().memberCredentials(
+      vtcDid,
+      agent: agent,
+      persona: agent.signInPersona,
+      did: member,
+    );
+
+    test('reads the membership pair the community holds', () async {
+      vtc.answerTo[MemberTask.credentials] = (payload) => {
+        'did': payload['did'],
+        'membershipCredential': {'id': 'urn:uuid:vmc'},
+        'roleCredential': {'id': 'urn:uuid:vac'},
+        'memberVmc': {'id': 'urn:uuid:ack'},
+        'memberVmcBound': true,
+      };
+
+      final credentials = await read();
+
+      expect(vtc.received.single['type'], MemberTask.credentials);
+      expect(vtc.received.single['payload'], {'did': member});
+      expect(credentials?.membershipCredential?['id'], 'urn:uuid:vmc');
+      expect(credentials?.roleCredential?['id'], 'urn:uuid:vac');
+      expect(credentials?.memberVmc?['id'], 'urn:uuid:ack');
+      expect(credentials?.isMemberVmcBound, isTrue);
+    });
+
+    test('answers null for a DID that is no member', () async {
+      vtc.refusal = {'code': MemberTask.credentialsNotFound};
+
+      expect(await read(), isNull);
+    });
+
+    test('passes on a caller who may not read it', () async {
+      vtc.refusal = {'code': 'permissionDenied'};
+
+      await expectLater(
+        read(),
+        _throwsCode(MeetingPlaceVtcSDKErrorCode.refused),
+      );
+    });
+
+    test('refuses an answer about another member', () async {
+      vtc.answerTo[MemberTask.credentials] = (_) => {
+        'did': 'did:webvh:QmCarol:vta.example:carol',
+        'memberVmcBound': false,
+      };
+
+      await expectLater(
+        read(),
+        _throwsCode(MeetingPlaceVtcSDKErrorCode.invalidDocument),
+      );
+    });
+  });
 }

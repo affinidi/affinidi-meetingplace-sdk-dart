@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:ssi/ssi.dart';
 
 import '../join/vtc_join_client.dart';
@@ -27,6 +30,15 @@ abstract final class DirectoryTask {
 
   /// No external card published for the entry.
   static const cardPublicNotFound = 'vtc/directory/card/public:notFound';
+
+  /// Hands the community a picture for a card.
+  static const imagesUpload = '$_base/images/upload/0.1';
+
+  /// Reads a picture's bytes, where the caller's projection shows it.
+  static const imagesGet = '$_base/images/get/0.1';
+
+  /// No picture the caller may see, or another than the one expected.
+  static const imageNotFound = 'vtc/directory/images/get:notFound';
 
   /// Changes the caller's own card.
   static const cardUpdate = MemberTask.directoryCardUpdate;
@@ -66,6 +78,9 @@ class VtcDirectoryClient {
 
   /// The field a member's name is shown in.
   static const displayNameField = 'displayName';
+
+  /// The field a member's picture is shown in.
+  static const avatarField = 'avatar';
 
   /// The audiences that let every member see a field.
   static const _membersOrWider = {'members', 'public'};
@@ -177,12 +192,16 @@ class VtcDirectoryClient {
     final visibility = card['visibility'];
     final values = card['values'];
     final name = values is Map ? values[displayNameField] : null;
+    final avatar = values is Map ? values[avatarField] : null;
     return MyDirectoryCard(
       entryId: card['entryId'] as String,
       isDidVisibleToMembers:
           visibility is Map && _membersOrWider.contains(visibility[didField]),
       displayName: name is String && name.trim().isNotEmpty ? name : null,
       isHidden: _discoverability(card)['listing'] == _hidden,
+      avatarSha256: avatar is Map && avatar['sha256'] is String
+          ? avatar['sha256'] as String
+          : null,
     );
   }
 
@@ -209,6 +228,89 @@ class VtcDirectoryClient {
         },
       },
     );
+  }
+
+  /// Hands the community [communityDid] [bytes], a picture of [mediaType]
+  /// (PNG, JPEG or WebP, at most 256 KiB), for [persona]'s card, and
+  /// returns the reference a card holds. The community keeps its own
+  /// re-encoding, and erases it within a day unless a card takes it up.
+  ///
+  /// Throws [MeetingPlaceVtcSDKException] as [search] does.
+  Future<Map<String, dynamic>> uploadImage(
+    String communityDid, {
+    required SignInAgent agent,
+    required SignInPersona persona,
+    required Uint8List bytes,
+    required String mediaType,
+  }) async {
+    final payload = await _ask(
+      communityDid,
+      agent: agent,
+      persona: persona,
+      type: DirectoryTask.imagesUpload,
+      payload: {
+        'mediaType': mediaType,
+        'data': base64Url.encode(bytes).replaceAll('=', ''),
+      },
+    );
+    final image = payload['image'];
+    if (image is! Map<String, dynamic> || image['sha256'] is! String) {
+      throw MeetingPlaceVtcSDKException.invalidDocument('no image');
+    }
+    return image;
+  }
+
+  /// Puts [image], a reference [uploadImage] answered, on [persona]'s card
+  /// as the picture every member sees, or takes the picture off and returns
+  /// it to the community's default, administrators only, when null.
+  ///
+  /// Throws [MeetingPlaceVtcSDKException] as [search] does.
+  Future<void> setAvatar(
+    String communityDid, {
+    required SignInAgent agent,
+    required SignInPersona persona,
+    required Map<String, dynamic>? image,
+  }) => _ask(
+    communityDid,
+    agent: agent,
+    persona: persona,
+    type: DirectoryTask.cardUpdate,
+    payload: {
+      'values': {avatarField: image},
+      'visibility': {avatarField: image == null ? null : 'members'},
+    },
+  );
+
+  /// The bytes of the picture on the entry [entryId] of the community
+  /// [communityDid], where [persona] may see it, or null when there is none
+  /// they may see, or another than [sha256] when given.
+  ///
+  /// Throws [MeetingPlaceVtcSDKException] as [search] does.
+  Future<Uint8List?> avatar(
+    String communityDid, {
+    required SignInAgent agent,
+    required SignInPersona persona,
+    required String entryId,
+    String? sha256,
+  }) async {
+    final Map<String, dynamic> payload;
+    try {
+      payload = await _ask(
+        communityDid,
+        agent: agent,
+        persona: persona,
+        type: DirectoryTask.imagesGet,
+        payload: {'entryId': entryId, 'field': avatarField, 'sha256': ?sha256},
+      );
+    } on MeetingPlaceVtcSDKException catch (error) {
+      if (error.refusalCode == DirectoryTask.imageNotFound) return null;
+      rethrow;
+    }
+    final data = payload['data'];
+    if (data is! String) {
+      throw MeetingPlaceVtcSDKException.invalidDocument('no image data');
+    }
+    return base64Url.decode(base64Url.normalize(data));
   }
 
   /// Lets every member of the community [communityDid] find [persona] when

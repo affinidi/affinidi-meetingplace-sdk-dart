@@ -8,6 +8,7 @@ class DirectoryEntry {
     this.nickname,
     this.did,
     this.role,
+    this.avatarSha256,
     this.isConnected = false,
   });
 
@@ -28,6 +29,10 @@ class DirectoryEntry {
       nickname: text('nickname'),
       did: text('did'),
       role: text('role'),
+      avatarSha256: switch (fields['avatar']) {
+        {'sha256': final String sha256} => sha256,
+        _ => null,
+      },
       isConnected: entry['connected'] == true,
     );
   }
@@ -48,6 +53,10 @@ class DirectoryEntry {
   /// `custom:<name>`, when the community shows it to the caller.
   final String? role;
 
+  /// The digest of the member's picture, when they show it to the caller:
+  /// it names the picture to fetch, and stays the same while it does.
+  final String? avatarSha256;
+
   /// Whether the caller and the member vouched for one another, either way
   /// round, as the community sees it.
   final bool isConnected;
@@ -61,6 +70,7 @@ class MyDirectoryCard {
     required this.isDidVisibleToMembers,
     this.displayName,
     this.isHidden = false,
+    this.avatarSha256,
   });
 
   /// The id of the caller's own entry.
@@ -72,6 +82,9 @@ class MyDirectoryCard {
   /// Whether the card is hidden from every member, so no member can find
   /// the caller, whatever else it shows.
   final bool isHidden;
+
+  /// The digest of the picture on the card, if it holds one.
+  final String? avatarSha256;
 
   /// Whether other members can find the caller to vouch for them: the card
   /// is not hidden, and shows them the DID the caller joined with.

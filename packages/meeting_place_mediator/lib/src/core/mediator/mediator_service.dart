@@ -18,6 +18,8 @@ import '../../utils/error_handler_utils.dart';
 import '../../utils/string.dart';
 import '../acl/acl_body.dart';
 import '../acl/acl_update_sender.dart';
+import '../acl/methods/access_list_add.dart';
+import '../acl/methods/acl_set.dart';
 import '../message/send_message_queue.dart';
 import '../message/trust_task_response_filter.dart';
 import 'fetch_message_result.dart';
@@ -431,17 +433,28 @@ class MediatorService {
       );
 
       final ownerDidDocument = await ownerDidManager.getDidDocument();
-
-      await _aclUpdateSender.send(
-        client: client,
-        issuerDid: ownerDidDocument.id,
-        acl: acl,
-        expiresInSeconds: expiresInSeconds,
-        retry: _retry<void>,
-        signer: await ownerDidManager.getSigner(
-          ownerDidDocument.authentication.first.id,
-        ),
+      final signer = await ownerDidManager.getSigner(
+        ownerDidDocument.authentication.first.id,
       );
+
+      // A DID that lets some DIDs message it lets only them: its access list
+      // is an allowlist. A mediator that opens new inboxes to everyone keeps
+      // the list as a denylist instead, so it is made one first.
+      final updates = [
+        if (acl is AccessListAdd)
+          AccessListSet.toPrivate(ownerDid: ownerDidDocument.id),
+        acl,
+      ];
+      for (final update in updates) {
+        await _aclUpdateSender.send(
+          client: client,
+          issuerDid: ownerDidDocument.id,
+          acl: update,
+          expiresInSeconds: expiresInSeconds,
+          retry: _retry<void>,
+          signer: signer,
+        );
+      }
 
       _logger.info(
         'Updated ACL for owner ${ownerDidDocument.id.topAndTail()} on '

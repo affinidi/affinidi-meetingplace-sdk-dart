@@ -43,8 +43,19 @@ class AccessListSet implements TrustTaskAclBody {
     return AccessListSet(ownerDid: ownerDid, acls: publicAclFlag);
   }
 
+  /// Creates an [AccessListSet] that lets only the DIDs on [ownerDid]'s
+  /// access list message it, by switching its access list to explicit
+  /// allow.
+  factory AccessListSet.toPrivate({required String ownerDid}) {
+    return AccessListSet(ownerDid: ownerDid, acls: privateAclFlag);
+  }
+
   /// The legacy ACL bitmask that grants public access.
   static final publicAclFlag = 524283;
+
+  /// [publicAclFlag] with the access list an allowlist instead: the same
+  /// rights, so a mediator applying the whole bitmask takes none away.
+  static final privateAclFlag = publicAclFlag & ~1;
 
   /// The ACL method identifier used when serializing this action.
   static final method = 'acl_set';

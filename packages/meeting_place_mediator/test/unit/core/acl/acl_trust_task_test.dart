@@ -78,6 +78,22 @@ void main() {
       });
     });
 
+    test('toPrivate only switches the access list to explicit allow', () {
+      final task = AccessListSet.toPrivate(
+        ownerDid: owner,
+      ).toTrustTask(issuer: owner, mediatorDid: mediator);
+
+      expect(task, isA<AccountUpdateTask>());
+      expect(task.payload, {
+        'did': hash(owner),
+        'acl': {'accessListMode': 'explicitAllow'},
+      });
+    });
+
+    test("toPrivate's legacy bitmask keeps the public rights", () {
+      expect(AccessListSet.privateAclFlag, AccessListSet.publicAclFlag - 1);
+    });
+
     test('bitmask constructor only applies the access-list mode', () {
       final task = AccessListSet(
         ownerDid: owner,

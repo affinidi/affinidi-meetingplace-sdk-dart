@@ -7,6 +7,7 @@ class DirectoryEntry {
     this.displayName,
     this.nickname,
     this.did,
+    this.role,
     this.isConnected = false,
   });
 
@@ -26,6 +27,7 @@ class DirectoryEntry {
       displayName: text('displayName'),
       nickname: text('nickname'),
       did: text('did'),
+      role: text('role'),
       isConnected: entry['connected'] == true,
     );
   }
@@ -41,6 +43,10 @@ class DirectoryEntry {
 
   /// The DID the member joined with, when they show it to the caller.
   final String? did;
+
+  /// The member's role in the community, such as `member`, `admin` or
+  /// `custom:<name>`, when the community shows it to the caller.
+  final String? role;
 
   /// Whether the caller and the member vouched for one another, either way
   /// round, as the community sees it.

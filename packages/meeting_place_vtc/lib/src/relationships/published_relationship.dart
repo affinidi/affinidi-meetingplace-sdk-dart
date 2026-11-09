@@ -10,12 +10,17 @@ class PublishedRelationship {
     required this.subjectDid,
     required this.vrcDigestMultibase,
     this.createdAt,
+    this.vrc,
   });
 
-  /// Reads [item], an answer to `publish` or an item of `list`.
+  /// Reads [item], an answer to `publish` or an item of `list`. [vrc] is
+  /// the signed credential when the item does not carry it.
   ///
   /// Throws [MeetingPlaceVtcSDKException] when it is malformed.
-  factory PublishedRelationship.read(Map<String, dynamic> item) {
+  factory PublishedRelationship.read(
+    Map<String, dynamic> item, {
+    Map<String, dynamic>? vrc,
+  }) {
     final id = item['id'];
     final issuerDid = item['issuerDid'];
     final subjectDid = item['subjectDid'];
@@ -35,6 +40,9 @@ class PublishedRelationship {
       subjectDid: subjectDid,
       vrcDigestMultibase: digest,
       createdAt: createdAt is String ? DateTime.tryParse(createdAt) : null,
+      vrc: item['vrcJsonld'] is Map<String, dynamic>
+          ? item['vrcJsonld'] as Map<String, dynamic>
+          : vrc,
     );
   }
 
@@ -52,4 +60,7 @@ class PublishedRelationship {
 
   /// When the community stored it: absent from an answer to `publish`.
   final DateTime? createdAt;
+
+  /// The signed credential, as the issuer's VTA signed it.
+  final Map<String, dynamic>? vrc;
 }

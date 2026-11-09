@@ -97,7 +97,7 @@ class VtcRelationshipsClient {
       payload: {'vrc': vrc},
     );
     final answer = await exchangeWithCommunity(_transport, community, request);
-    final edge = PublishedRelationship.read(answer.payload);
+    final edge = PublishedRelationship.read(answer.payload, vrc: vrc);
     if (edge.issuerDid != persona.did || edge.subjectDid != subjectDid) {
       throw MeetingPlaceVtcSDKException.invalidDocument(
         'the community stored another edge',

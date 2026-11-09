@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:ssi/ssi.dart';
 
 import 'community/community_import.dart';
+import 'directory/vtc_directory_client.dart';
 import 'groups/group_admission.dart';
 import 'groups/group_chat_link.dart';
 import 'groups/vtc_groups_client.dart';
@@ -159,6 +160,11 @@ class MeetingPlaceVtcSDK {
   /// A client to read a community's groups as a member's persona.
   VtcGroupsClient groupsClient() =>
       VtcGroupsClient(didResolver: _didResolver, transport: _transport);
+
+  /// A client to find other members in a community's directory, and be
+  /// found, as a member's persona.
+  VtcDirectoryClient directoryClient() =>
+      VtcDirectoryClient(didResolver: _didResolver, transport: _transport);
 
   /// A client to vouch for other members in a community's trust graph as
   /// a member's persona.

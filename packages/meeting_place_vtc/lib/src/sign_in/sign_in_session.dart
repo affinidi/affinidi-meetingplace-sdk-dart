@@ -13,7 +13,8 @@ enum SignInAudience {
 
 /// What the browser reported about itself, as relayed by the community.
 ///
-/// Not verified by the wallet: show it as reported by the community.
+/// Not verified by the wallet: show it as reported by the community. A
+/// detail the community could not tell is null, never a guess.
 class SignInRequester {
   /// Creates a [SignInRequester].
   const SignInRequester({
@@ -24,17 +25,18 @@ class SignInRequester {
     required this.createdAt,
   });
 
-  /// Browser family, or `unknown`.
-  final String browser;
+  /// Browser family, or null when unknown.
+  final String? browser;
 
-  /// Operating system, or `unknown`.
-  final String os;
+  /// Operating system, or null when unknown.
+  final String? os;
 
-  /// Approximate city and country, or `unknown`.
-  final String location;
+  /// Approximate city and country, or null when unknown.
+  final String? location;
 
-  /// Whether the browser and this phone share a network.
-  final bool sameNetwork;
+  /// Whether the browser and this phone share a network, or null when the
+  /// community cannot tell, e.g. off HTTPS or across IPv4 and IPv6.
+  final bool? sameNetwork;
 
   /// When the browser opened the request, as reported.
   final String createdAt;

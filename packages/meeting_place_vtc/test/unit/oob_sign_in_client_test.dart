@@ -173,6 +173,29 @@ void main() {
       );
     });
 
+    test('reads what the community could not tell as unknown', () async {
+      vtc.requester = {
+        'browser': 'unknown',
+        'os': 'unknown',
+        'location': 'unknown',
+        'sameNetwork': 'unknown',
+      };
+      final signIn = client();
+      final claimed = await signIn.claim(_trigger());
+
+      final proved = await signIn.prove(
+        claimed,
+        enteredNumber: '47',
+        persona: agent.signInPersona,
+        agent: agent,
+      );
+
+      expect(proved.requester.browser, isNull);
+      expect(proved.requester.os, isNull);
+      expect(proved.requester.location, isNull);
+      expect(proved.requester.sameNetwork, isNull);
+    });
+
     test('reads the signing scope the community offers', () async {
       vtc.signingScope = ['vtc/directory', 'git-ns/view'];
       final signIn = client();

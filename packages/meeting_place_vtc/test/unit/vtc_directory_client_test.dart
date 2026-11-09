@@ -127,10 +127,13 @@ void main() {
   });
 
   group('VtcDirectoryClient.myCard', () {
-    Map<String, dynamic> card(Map<String, dynamic> visibility) => {
+    Map<String, dynamic> card(
+      Map<String, dynamic> visibility, {
+      Map<String, dynamic> values = const {},
+    }) => {
       'card': {
         'entryId': 'dir_me',
-        'values': <String, dynamic>{},
+        'values': values,
         'visibility': visibility,
         'discoverability': {'listing': 'listed', 'search': 'byName'},
         'introductions': {'accept': 'members'},
@@ -151,6 +154,14 @@ void main() {
       expect(vtc.received.single['type'], DirectoryTask.cardShow);
       expect(mine.entryId, 'dir_me');
       expect(mine.isDidVisibleToMembers, isTrue);
+      expect(mine.displayName, isNull, reason: 'a new card has no name');
+    });
+
+    test('tells the name members see', () async {
+      vtc.answerTo[DirectoryTask.cardShow] = (_) =>
+          card({}, values: {'displayName': 'Ada'});
+
+      expect((await myCard()).displayName, 'Ada');
     });
 
     test('tells the DID kept to administrators', () async {
@@ -163,6 +174,39 @@ void main() {
       vtc.answerTo[DirectoryTask.cardShow] = (_) => card({});
 
       expect((await myCard()).isDidVisibleToMembers, isFalse);
+    });
+  });
+
+  group('VtcDirectoryClient.setDisplayName', () {
+    Future<void> set(String? name) => client().setDisplayName(
+      vtcDid,
+      agent: agent,
+      persona: agent.signInPersona,
+      name: name,
+    );
+
+    test('sets the name members see, trimmed', () async {
+      await set('  Ada Lovelace ');
+
+      final request = vtc.received.single;
+      expect(request['type'], DirectoryTask.cardUpdate);
+      expect(request['payload'], {
+        'values': {'displayName': 'Ada Lovelace'},
+      });
+    });
+
+    test('clears a blank name', () async {
+      await set('  ');
+
+      expect(vtc.received.single['payload'], {
+        'values': {'displayName': null},
+      });
+    });
+
+    test('passes on a name the community refuses', () async {
+      vtc.refusal = {'code': DirectoryTask.valueRefused};
+
+      await expectLater(set('Ada'), _refusedWith(DirectoryTask.valueRefused));
     });
   });
 

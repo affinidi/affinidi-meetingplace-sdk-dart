@@ -33,6 +33,12 @@ abstract final class DirectoryTask {
 
   /// The community does not let members show a field that widely.
   static const aboveCeiling = 'vtc/directory/card/update:aboveCeiling';
+
+  /// A value does not fit its field.
+  static const valueInvalid = 'vtc/directory/card/update:valueInvalid';
+
+  /// The community's directory policy refused a value.
+  static const valueRefused = 'vtc/directory/card/update:valueRefused';
 }
 
 /// Finds other members in a community's directory, and lets the member be
@@ -51,6 +57,9 @@ class VtcDirectoryClient {
 
   /// The field a member's DID is shown in.
   static const didField = 'did';
+
+  /// The field a member's name is shown in.
+  static const displayNameField = 'displayName';
 
   /// The audiences that let every member see a field.
   static const _membersOrWider = {'members', 'public'};
@@ -137,10 +146,38 @@ class VtcDirectoryClient {
       throw MeetingPlaceVtcSDKException.invalidDocument('malformed card');
     }
     final visibility = card['visibility'];
+    final values = card['values'];
+    final name = values is Map ? values[displayNameField] : null;
     return MyDirectoryCard(
       entryId: entryId,
       isDidVisibleToMembers:
           visibility is Map && _membersOrWider.contains(visibility[didField]),
+      displayName: name is String && name.trim().isNotEmpty ? name : null,
+    );
+  }
+
+  /// Sets the name other members of the community [communityDid] see for
+  /// [persona] to [name], or clears it when [name] is null or blank.
+  ///
+  /// Throws [MeetingPlaceVtcSDKException] as [search] does, such as with
+  /// [DirectoryTask.valueInvalid] for a name the field does not take.
+  Future<void> setDisplayName(
+    String communityDid, {
+    required SignInAgent agent,
+    required SignInPersona persona,
+    required String? name,
+  }) {
+    final trimmed = name?.trim();
+    return _ask(
+      communityDid,
+      agent: agent,
+      persona: persona,
+      type: DirectoryTask.cardUpdate,
+      payload: {
+        'values': {
+          displayNameField: trimmed == null || trimmed.isEmpty ? null : trimmed,
+        },
+      },
     );
   }
 

@@ -53,10 +53,14 @@ class MyDirectoryCard {
   const MyDirectoryCard({
     required this.entryId,
     required this.isDidVisibleToMembers,
+    this.displayName,
   });
 
   /// The id of the caller's own entry.
   final String entryId;
+
+  /// The name other members see, if the caller gave one.
+  final String? displayName;
 
   /// Whether other members see the DID the caller joined with, so they can
   /// find the caller to vouch for them.

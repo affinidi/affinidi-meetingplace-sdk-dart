@@ -19,6 +19,8 @@ export 'src/persona/persona_messenger.dart';
 export 'src/proof/digest_multibase.dart';
 export 'src/proof/eddsa_jcs_2022.dart';
 export 'src/proof/trust_task_signer.dart';
+export 'src/relationships/published_relationship.dart';
+export 'src/relationships/relationship_credential.dart';
 export 'src/sign_in/oob_sign_in_client.dart';
 export 'src/sign_in/sign_in_agent.dart';
 export 'src/sign_in/sign_in_failure.dart';

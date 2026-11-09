@@ -22,6 +22,12 @@ abstract final class DirectoryTask {
   /// Shows the caller's own card, whole.
   static const cardShow = '$_base/card/show/0.1';
 
+  /// Reads a member's external card, as they signed it.
+  static const cardPublic = '$_base/card/public/0.1';
+
+  /// No external card published for the entry.
+  static const cardPublicNotFound = 'vtc/directory/card/public:notFound';
+
   /// Changes the caller's own card.
   static const cardUpdate = MemberTask.directoryCardUpdate;
 
@@ -126,6 +132,37 @@ class VtcDirectoryClient {
       throw MeetingPlaceVtcSDKException.invalidDocument('not this entry');
     }
     return entry;
+  }
+
+  /// The external card the member of entry [entryId] published in the
+  /// community [communityDid], exactly as they signed it, or null when they
+  /// published none.
+  ///
+  /// Throws [MeetingPlaceVtcSDKException] as [search] does.
+  Future<Map<String, dynamic>?> publicCard(
+    String communityDid, {
+    required SignInAgent agent,
+    required SignInPersona persona,
+    required String entryId,
+  }) async {
+    final Map<String, dynamic> payload;
+    try {
+      payload = await _ask(
+        communityDid,
+        agent: agent,
+        persona: persona,
+        type: DirectoryTask.cardPublic,
+        payload: {'entryId': entryId},
+      );
+    } on MeetingPlaceVtcSDKException catch (error) {
+      if (error.refusalCode == DirectoryTask.cardPublicNotFound) return null;
+      rethrow;
+    }
+    final card = payload['card'];
+    if (card is! Map<String, dynamic>) {
+      throw MeetingPlaceVtcSDKException.invalidDocument('no card');
+    }
+    return card;
   }
 
   /// [persona]'s own card in the community [communityDid].

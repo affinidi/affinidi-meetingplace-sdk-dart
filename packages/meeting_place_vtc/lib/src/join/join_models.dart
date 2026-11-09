@@ -427,6 +427,32 @@ class MembershipCards {
   List<Map<String, dynamic>> get credentials => [membership, role];
 }
 
+/// The membership pair a community holds for one member
+/// (`vtc/members/credentials/0.1`): the cards it issued them and their
+/// acknowledgement, each as signed.
+class MemberCredentials {
+  /// Creates [MemberCredentials].
+  const MemberCredentials({
+    this.membershipCredential,
+    this.roleCredential,
+    this.memberVmc,
+    this.isMemberVmcBound = false,
+  });
+
+  /// The membership card the community issued the member.
+  final Map<String, dynamic>? membershipCredential;
+
+  /// The role card the community issued the member.
+  final Map<String, dynamic>? roleCredential;
+
+  /// The member's acknowledgement of their membership card.
+  final Map<String, dynamic>? memberVmc;
+
+  /// Whether the acknowledgement names the membership card the community
+  /// holds, which completes the membership.
+  final bool isMemberVmcBound;
+}
+
 /// The community's receipt for a member leaving it
 /// (`vtc/members/self-remove/0.1`).
 class LeaveReceipt {

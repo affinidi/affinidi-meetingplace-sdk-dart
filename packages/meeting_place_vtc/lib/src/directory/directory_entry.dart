@@ -54,6 +54,7 @@ class MyDirectoryCard {
     required this.entryId,
     required this.isDidVisibleToMembers,
     this.displayName,
+    this.isHidden = false,
   });
 
   /// The id of the caller's own entry.
@@ -61,6 +62,14 @@ class MyDirectoryCard {
 
   /// The name other members see, if the caller gave one.
   final String? displayName;
+
+  /// Whether the card is hidden from every member, so no member can find
+  /// the caller, whatever else it shows.
+  final bool isHidden;
+
+  /// Whether other members can find the caller to vouch for them: the card
+  /// is not hidden, and shows them the DID the caller joined with.
+  bool get isFindable => isDidVisibleToMembers && !isHidden;
 
   /// Whether other members see the DID the caller joined with, so they can
   /// find the caller to vouch for them.

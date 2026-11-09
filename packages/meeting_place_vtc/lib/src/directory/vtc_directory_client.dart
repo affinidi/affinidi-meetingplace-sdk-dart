@@ -64,6 +64,9 @@ class VtcDirectoryClient {
   /// The audiences that let every member see a field.
   static const _membersOrWider = {'members', 'public'};
 
+  /// The listing of a card no member can find.
+  static const _hidden = 'hidden';
+
   final TrustTaskHttpTransport _transport;
   final VtcResolver _vtcResolver;
 
@@ -133,26 +136,16 @@ class VtcDirectoryClient {
     required SignInAgent agent,
     required SignInPersona persona,
   }) async {
-    final payload = await _ask(
-      communityDid,
-      agent: agent,
-      persona: persona,
-      type: DirectoryTask.cardShow,
-      payload: const {},
-    );
-    final card = payload['card'];
-    final entryId = card is Map<String, dynamic> ? card['entryId'] : null;
-    if (card is! Map<String, dynamic> || entryId is! String) {
-      throw MeetingPlaceVtcSDKException.invalidDocument('malformed card');
-    }
+    final card = await _card(communityDid, agent: agent, persona: persona);
     final visibility = card['visibility'];
     final values = card['values'];
     final name = values is Map ? values[displayNameField] : null;
     return MyDirectoryCard(
-      entryId: entryId,
+      entryId: card['entryId'] as String,
       isDidVisibleToMembers:
           visibility is Map && _membersOrWider.contains(visibility[didField]),
       displayName: name is String && name.trim().isNotEmpty ? name : null,
+      isHidden: _discoverability(card)['listing'] == _hidden,
     );
   }
 
@@ -181,10 +174,16 @@ class VtcDirectoryClient {
     );
   }
 
-  /// Shows [persona]'s DID in the community [communityDid] to every member
-  /// when [visible], so they can find [persona] to vouch for them, and
-  /// returns it to the community's default, administrators only,
-  /// otherwise.
+  /// Lets every member of the community [communityDid] find [persona] when
+  /// [visible], so they can vouch for them: shows them the DID [persona]
+  /// joined with and, for a card hidden from them, makes it findable by a
+  /// search or a look-up, though not listed for browsing. A card already
+  /// listed, its search and whether it is published outside the community
+  /// stay as they are, except that a search set to nothing matches the
+  /// name.
+  ///
+  /// When not [visible], returns the DID to the community's default,
+  /// administrators only, and leaves the card where it is found.
   ///
   /// Throws [MeetingPlaceVtcSDKException] as [search] does, such as with
   /// [DirectoryTask.aboveCeiling] when the community does not let members
@@ -194,15 +193,60 @@ class VtcDirectoryClient {
     required SignInAgent agent,
     required SignInPersona persona,
     required bool visible,
-  }) => _ask(
-    communityDid,
-    agent: agent,
-    persona: persona,
-    type: DirectoryTask.cardUpdate,
-    payload: {
-      'visibility': {didField: visible ? 'members' : null},
-    },
-  );
+  }) async {
+    final Map<String, dynamic>? discoverability;
+    if (visible) {
+      final current = _discoverability(
+        await _card(communityDid, agent: agent, persona: persona),
+      );
+      discoverability = {
+        'listing': current['listing'] == 'listed' ? 'listed' : 'findable',
+        'search': switch (current['search']) {
+          final String search when search != 'off' => search,
+          _ => 'byName',
+        },
+        'external': current['external'] == true,
+      };
+    } else {
+      discoverability = null;
+    }
+    await _ask(
+      communityDid,
+      agent: agent,
+      persona: persona,
+      type: DirectoryTask.cardUpdate,
+      payload: {
+        'visibility': {didField: visible ? 'members' : null},
+        'discoverability': ?discoverability,
+      },
+    );
+  }
+
+  /// [persona]'s own card, whole (`card/show`).
+  Future<Map<String, dynamic>> _card(
+    String communityDid, {
+    required SignInAgent agent,
+    required SignInPersona persona,
+  }) async {
+    final payload = await _ask(
+      communityDid,
+      agent: agent,
+      persona: persona,
+      type: DirectoryTask.cardShow,
+      payload: const {},
+    );
+    final card = payload['card'];
+    if (card is! Map<String, dynamic> || card['entryId'] is! String) {
+      throw MeetingPlaceVtcSDKException.invalidDocument('malformed card');
+    }
+    return card;
+  }
+
+  static Map<String, dynamic> _discoverability(Map<String, dynamic> card) =>
+      switch (card['discoverability']) {
+        final Map<String, dynamic> discoverability => discoverability,
+        _ => const {},
+      };
 
   Future<Map<String, dynamic>> _ask(
     String communityDid, {

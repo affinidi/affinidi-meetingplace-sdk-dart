@@ -157,6 +157,24 @@ void main() {
       expect(mine.displayName, isNull, reason: 'a new card has no name');
     });
 
+    test('tells a card no member can find, whatever it shows', () async {
+      vtc.answerTo[DirectoryTask.cardShow] = (_) {
+        final answer = card({'did': 'members'});
+        (answer['card'] as Map)['discoverability'] = {
+          'listing': 'hidden',
+          'search': 'off',
+          'external': false,
+        };
+        return answer;
+      };
+
+      final mine = await myCard();
+
+      expect(mine.isDidVisibleToMembers, isTrue);
+      expect(mine.isHidden, isTrue);
+      expect(mine.isFindable, isFalse);
+    });
+
     test('tells the name members see', () async {
       vtc.answerTo[DirectoryTask.cardShow] = (_) =>
           card({}, values: {'displayName': 'Ada'});
@@ -219,13 +237,50 @@ void main() {
           visible: visible,
         );
 
-    test('shows the DID to members', () async {
+    void holdCard(Map<String, dynamic> discoverability) =>
+        vtc.answerTo[DirectoryTask.cardShow] = (_) => {
+          'card': {
+            'entryId': 'dir_me',
+            'values': <String, dynamic>{},
+            'visibility': <String, dynamic>{},
+            'discoverability': discoverability,
+          },
+          'missingRequired': <String>[],
+        };
+
+    test(
+      'makes a hidden card findable, with the DID shown to members',
+      () async {
+        holdCard({'listing': 'hidden', 'search': 'off', 'external': false});
+
+        await set(visible: true);
+
+        final update = vtc.received.last;
+        expect(update['type'], DirectoryTask.cardUpdate);
+        expect(update['payload'], {
+          'visibility': {'did': 'members'},
+          'discoverability': {
+            'listing': 'findable',
+            'search': 'byName',
+            'external': false,
+          },
+        });
+      },
+    );
+
+    test('keeps a listed card listed, and what it publishes', () async {
+      holdCard({
+        'listing': 'listed',
+        'search': 'exactNickname',
+        'external': true,
+      });
+
       await set(visible: true);
 
-      final request = vtc.received.single;
-      expect(request['type'], DirectoryTask.cardUpdate);
-      expect(request['payload'], {
-        'visibility': {'did': 'members'},
+      expect((vtc.received.last['payload'] as Map)['discoverability'], {
+        'listing': 'listed',
+        'search': 'exactNickname',
+        'external': true,
       });
     });
 
@@ -234,7 +289,7 @@ void main() {
 
       expect(vtc.received.single['payload'], {
         'visibility': {'did': null},
-      });
+      }, reason: 'the card stays where it is found');
     });
 
     test('passes on a community that does not let members show it', () async {

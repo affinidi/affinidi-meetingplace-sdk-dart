@@ -91,6 +91,15 @@ class FakeVtc {
   /// The task families step 2 offers the browser key, or null for none.
   List<String>? signingScope;
 
+  /// What step 2 reports about the browser.
+  Map<String, Object> requester = {
+    'browser': 'Chrome',
+    'os': 'macOS',
+    'location': 'Berlin, DE',
+    'sameNetwork': true,
+    'createdAt': '2026-10-08T12:00:00Z',
+  };
+
   /// The decision deadline the answers carry.
   Object decisionClosesAt = _instant(fakeNow + 120);
   String? refuseWith;
@@ -140,13 +149,7 @@ class FakeVtc {
         ...step1,
         'sessionKey': browserKey.did,
         'identifiedAs': identify['issuer'],
-        'requester': {
-          'browser': 'Chrome',
-          'os': 'macOS',
-          'location': 'Berlin, DE',
-          'sameNetwork': true,
-          'createdAt': '2026-10-08T12:00:00Z',
-        },
+        'requester': requester,
         'signingScope': ?signingScope,
       };
     } else if (type == OobTask.respond) {

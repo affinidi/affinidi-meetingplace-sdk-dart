@@ -231,11 +231,18 @@ class OobSignInClient {
       sessionKey: payload['sessionKey'] as String,
       signingScope: signingScope?.cast<String>(),
       requester: SignInRequester(
-        browser: _text(requester['browser']),
-        os: _text(requester['os']),
-        location: _text(requester['location']),
-        sameNetwork: requester['sameNetwork'] == true,
-        createdAt: _text(requester['createdAt'], fallback: ''),
+        browser: _known(requester['browser']),
+        os: _known(requester['os']),
+        location: _known(requester['location']),
+        // `"unknown"` when the community cannot compare the two networks.
+        sameNetwork: switch (requester['sameNetwork']) {
+          final bool same => same,
+          _ => null,
+        },
+        createdAt: switch (requester['createdAt']) {
+          final String at => at,
+          _ => '',
+        },
       ),
     );
   }
@@ -624,8 +631,10 @@ class OobSignInClient {
   static Map<String, dynamic> _payload(TrustTaskDocument document) =>
       document.payload;
 
-  static String _text(Object? value, {String fallback = 'unknown'}) =>
-      value is String ? value : fallback;
+  /// A reported detail, or null where the community sent `unknown`, an
+  /// empty value or none.
+  static String? _known(Object? value) =>
+      value is String && value.isNotEmpty && value != 'unknown' ? value : null;
 }
 
 /// Serves one already-resolved DID document.

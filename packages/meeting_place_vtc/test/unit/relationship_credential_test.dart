@@ -25,7 +25,11 @@ void main() {
       expect(vrc['id'], startsWith('urn:uuid:'));
       expect(vrc['issuer'], issuer);
       expect(vrc['issuerScope'], 'directed');
-      expect(vrc['validFrom'], '2026-11-09T10:30:15Z');
+      expect(
+        vrc['validFrom'],
+        '2026-11-09T10:25:15Z',
+        reason: 'valid from a little before now, for a clock running ahead',
+      );
       expect(vrc['credentialSubject'], {'id': subject});
       expect(vrc.containsKey('validUntil'), isFalse);
       expect(vrc.containsKey('proof'), isFalse);

@@ -1,4 +1,5 @@
 import '../meeting_place_vtc_sdk_exception.dart';
+import '../trust_task/trust_task_time.dart';
 
 /// A relationship credential a community keeps in its trust graph: one
 /// member's vouch for another, as `vtc/relationships/*` show it.
@@ -63,4 +64,17 @@ class PublishedRelationship {
 
   /// The signed credential, as the issuer's VTA signed it.
   final Map<String, dynamic>? vrc;
+
+  /// This edge as the community lists it: its own record of the edge, with
+  /// the signed credential in `vrcJsonld`. The record is the community's
+  /// and carries no proof of its own; the credential does.
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'issuerDid': issuerDid,
+    'subjectDid': subjectDid,
+    'vrcDigestMultibase': vrcDigestMultibase,
+    if (createdAt case final createdAt?)
+      'createdAt': formatTrustTaskTime(createdAt),
+    'vrcJsonld': ?vrc,
+  };
 }

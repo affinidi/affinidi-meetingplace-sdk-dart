@@ -80,6 +80,19 @@ void main() {
       expect(edge.vrc, {'type': 'VerifiableCredential'});
     });
 
+    test('gives back the community\'s record as it lists it', () {
+      final item = {
+        'id': '6f1c',
+        'issuerDid': issuer,
+        'subjectDid': subject,
+        'vrcDigestMultibase': 'zQm1',
+        'createdAt': '2026-11-09T10:30:15Z',
+        'vrcJsonld': {'type': 'VerifiableCredential'},
+      };
+
+      expect(PublishedRelationship.read(item).toJson(), item);
+    });
+
     test('reads a publish answer, which has no creation time', () {
       final edge = PublishedRelationship.read({
         'id': '6f1c',

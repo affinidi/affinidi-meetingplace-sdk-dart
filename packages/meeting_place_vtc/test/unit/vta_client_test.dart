@@ -464,6 +464,59 @@ void main() {
         });
       });
 
+      group('stored', () {
+        setUp(() {
+          vta.answers[VtaTask.credentialsQuery] = {
+            'credentials': [
+              {'id': 'card-1'},
+              {'id': 'gone'},
+              {'id': 'card-3'},
+            ],
+          };
+          vta.answerTo[VtaTask.credentialsGet] = (payload) => {
+            if (payload['id'] != 'gone')
+              'credential': {'id': 'urn:${payload['id']}'},
+          };
+        });
+
+        /// Waits until [count] tasks reached the VTA.
+        Future<void> untilReceived(int count) async {
+          final deadline = DateTime.now().add(const Duration(seconds: 1));
+          while (vta.received.length < count) {
+            if (DateTime.now().isAfter(deadline)) {
+              fail('${vta.received.length} of $count tasks reached the VTA');
+            }
+            await Future<void>.delayed(const Duration(milliseconds: 5));
+          }
+        }
+
+        test(
+          'fetches every stored credential, in the order of the vault',
+          () async {
+            final stored = await client.storedCredentials('membership');
+
+            expect([for (final s in stored) s.record.id], ['card-1', 'card-3']);
+            expect(
+              [for (final s in stored) s.credential['id']],
+              ['urn:card-1', 'urn:card-3'],
+            );
+          },
+        );
+
+        test('fetches the stored credentials together', () async {
+          vta.holdsAnswers = true;
+
+          final stored = client.storedCredentials('membership');
+          await untilReceived(1);
+          vta.releaseAnswers();
+          // The query, then every fetch before any is answered.
+          await untilReceived(4);
+          vta.releaseAnswers(reversed: true);
+
+          expect(await stored, hasLength(2));
+        });
+      });
+
       test('matches each credential asked for from the community', () async {
         vta.answers[VtaTask.credentialsQuery] = {
           'credentials': [

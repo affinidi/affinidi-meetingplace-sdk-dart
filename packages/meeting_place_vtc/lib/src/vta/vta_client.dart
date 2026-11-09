@@ -957,8 +957,8 @@ class VtaClient implements PersonaSigningAgent {
 
   /// Returns the credentials stored in the vault for [purpose], e.g.
   /// `membership`, issued by [issuerDid] and made out to [subjectDid] when
-  /// given. Each one found is fetched on its own, so narrowing the query
-  /// saves a request per credential left out.
+  /// given. Each one found is fetched on its own, all together, so
+  /// narrowing the query saves a request per credential left out.
   Future<List<Map<String, dynamic>>> credentials(
     String purpose, {
     String? issuerDid,
@@ -979,13 +979,17 @@ class VtaClient implements PersonaSigningAgent {
     String? issuerDid,
     String? subjectDid,
   }) async {
+    final records = await credentialRecords(
+      purpose,
+      issuerDid: issuerDid,
+      subjectDid: subjectDid,
+    );
+    final credentials = await Future.wait([
+      for (final record in records) credential(record.id),
+    ]);
     return [
-      for (final record in await credentialRecords(
-        purpose,
-        issuerDid: issuerDid,
-        subjectDid: subjectDid,
-      ))
-        if (await credential(record.id) case final credential?)
+      for (final (index, record) in records.indexed)
+        if (credentials[index] case final credential?)
           StoredCredential(record: record, credential: credential),
     ];
   }

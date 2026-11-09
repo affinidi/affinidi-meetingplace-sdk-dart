@@ -83,6 +83,9 @@ class GroupJoinProof {
             '@context': ['https://www.w3.org/ns/credentials/v2'],
             'type': ['VerifiablePresentation'],
             'holder': personaDid,
+            // The VTA signs a document as the DID it names as its issuer
+            // or controller; a presentation's signer is its holder.
+            'controller': personaDid,
             'verifiableCredential': [card],
             'domain': groupDid,
             'nonce': memberDid,

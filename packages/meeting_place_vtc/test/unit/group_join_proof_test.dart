@@ -175,6 +175,7 @@ void main() {
         expect(signing['keyId'], 'persona-key');
         expect(signing['proofPurpose'], 'authentication');
         expect(proof!.presentation['holder'], _personaDid);
+        expect(proof.presentation['controller'], _personaDid);
         expect(proof.presentation['domain'], _groupDid);
         expect(proof.presentation['nonce'], _memberDid);
         expect(proof.presentation['verifiableCredential'], [

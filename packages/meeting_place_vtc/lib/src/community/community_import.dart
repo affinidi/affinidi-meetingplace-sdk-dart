@@ -213,8 +213,14 @@ class CommunityImport {
 
   /// Returns the membership in [communityDid], or null when no backed-up
   /// card issued by that community names one of the VTA's personas.
+  ///
+  /// Asks the VTA for that community's cards only, as [membershipCard]
+  /// does: a member of many communities would otherwise wait for each.
   Future<CommunityMembership?> find(String communityDid) async {
-    final cards = await _vta.credentials(_membershipPurpose);
+    final cards = await _vta.credentials(
+      _membershipPurpose,
+      issuerDid: communityDid,
+    );
     final issuedHere = cards.where(
       (card) => credentialIssuer(card) == communityDid,
     );

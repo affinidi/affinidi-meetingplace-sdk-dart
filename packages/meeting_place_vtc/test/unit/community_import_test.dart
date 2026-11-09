@@ -442,6 +442,17 @@ void main() {
       expect(await CommunityImport(client).find(_vtcDid), isNull);
     });
 
+    test("finds among that community's cards only", () async {
+      vta.answers[VtaTask.credentialsGet] = {'credential': null};
+
+      await CommunityImport(client).find(_vtcDid);
+
+      final query = vta.received.lastWhere(
+        (task) => task['type'] == VtaTask.credentialsQuery,
+      );
+      expect(query['payload'], {'purpose': 'membership', 'issuerDid': _vtcDid});
+    });
+
     test('finds nothing when the card names no persona of the VTA', () async {
       vta.answers[VtaTask.credentialsGet] = {
         'credential': {

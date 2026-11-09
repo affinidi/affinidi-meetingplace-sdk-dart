@@ -3,6 +3,8 @@ library;
 
 export 'src/community/community_import.dart';
 export 'src/community/community_profile.dart';
+export 'src/directory/directory_entry.dart';
+export 'src/directory/vtc_directory_client.dart';
 export 'src/groups/group_admission.dart';
 export 'src/groups/group_chat_link.dart';
 export 'src/groups/group_join_proof.dart';

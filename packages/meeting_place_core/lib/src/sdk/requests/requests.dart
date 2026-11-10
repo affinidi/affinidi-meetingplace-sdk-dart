@@ -8,6 +8,7 @@ export 'register_for_didcomm_notifications_request.dart';
 export 'remove_member_from_group_request.dart';
 export 'send_media_message_request.dart';
 export 'send_outreach_invitation_request.dart';
+export 'set_group_members_can_post_request.dart';
 export 'set_group_moderator_request.dart';
 export 'update_message_sync_marker_request.dart';
 export 'update_offers_score_request.dart';

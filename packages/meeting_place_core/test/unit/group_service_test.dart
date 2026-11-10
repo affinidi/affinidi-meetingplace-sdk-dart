@@ -748,6 +748,68 @@ void main() {
       );
     });
 
+    group('setMembersCanPost', () {
+      setUp(() {
+        when(
+          () => channelTransport.setMembersCanPost(
+            channel: any(named: 'channel'),
+            membersCanPost: any(named: 'membersCanPost'),
+            didManager: any(named: 'didManager'),
+          ),
+        ).thenAnswer((_) async {});
+      });
+
+      test('changes who may post in the chat as the owner', () async {
+        await service.setMembersCanPost(
+          groupId: 'group-1',
+          membersCanPost: false,
+        );
+
+        verify(
+          () => channelTransport.setMembersCanPost(
+            channel: groupChannel,
+            membersCanPost: false,
+            didManager: ownerDidManager,
+          ),
+        ).called(1);
+      });
+
+      test('refuses a caller that does not own the group', () async {
+        when(
+          () => identityService.getPermanentIdentity(any(), 'did:test:alice'),
+        ).thenThrow(StateError('not this wallet'));
+
+        await expectLater(
+          service.setMembersCanPost(groupId: 'group-1', membersCanPost: false),
+          throwsA(
+            isA<GroupException>().having(
+              (e) => e.code,
+              'code',
+              MeetingPlaceCoreSDKErrorCode.groupCallerIsNotOwnerError,
+            ),
+          ),
+        );
+        verifyNever(
+          () => channelTransport.setMembersCanPost(
+            channel: any(named: 'channel'),
+            membersCanPost: any(named: 'membersCanPost'),
+            didManager: any(named: 'didManager'),
+          ),
+        );
+      });
+
+      test('refuses a group it does not know', () async {
+        when(
+          () => groupRepository.findGroupById('group-1'),
+        ).thenAnswer((_) async => null);
+
+        await expectLater(
+          service.setMembersCanPost(groupId: 'group-1', membersCanPost: false),
+          throwsA(isA<GroupException>()),
+        );
+      });
+    });
+
     test("asks the chat which of the group's members moderate, as the "
         "caller's own identity", () async {
       when(

@@ -77,6 +77,15 @@ abstract interface class MeetingPlaceTransport {
     required DidManager didManager,
   });
 
+  /// Lets every participant of [channel] post, or, when [membersCanPost] is
+  /// false, only its moderators, so the others can only read. The caller
+  /// must be allowed to change rights.
+  Future<void> setMembersCanPost({
+    required Channel channel,
+    required bool membersCanPost,
+    required DidManager didManager,
+  });
+
   /// Returns the ones among [participantDids] who may moderate [channel], as
   /// the channel itself records it, so every participant can check.
   Future<Set<String>> moderators({

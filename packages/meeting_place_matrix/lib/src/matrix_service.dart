@@ -201,6 +201,18 @@ class MatrixService {
     didManager: didManager,
   );
 
+  /// Lets every member of a Matrix room post, or only its moderators.
+  /// See [MatrixRoomService.setMembersCanPost].
+  Future<void> setMembersCanPost(
+    String roomId, {
+    required bool membersCanPost,
+    required DidManager didManager,
+  }) => _roomService.setMembersCanPost(
+    roomId,
+    membersCanPost: membersCanPost,
+    didManager: didManager,
+  );
+
   /// The ones among [dids] who may moderate a Matrix room.
   /// See [MatrixRoomService.moderators].
   Future<Set<String>> moderators(

@@ -19,6 +19,9 @@ class MockTimeline extends Mock implements matrix.Timeline {}
 
 class MockEvent extends Mock implements matrix.Event {}
 
+class MockStrippedStateEvent extends Mock
+    implements matrix.StrippedStateEvent {}
+
 class MockMatrixSessionManager extends Mock implements MatrixSessionManager {}
 
 class MockDidManager extends Mock implements DidManager {}
@@ -261,6 +264,118 @@ void main() {
 
       await expectLater(
         service.kickUser(_roomId, did: 'did:test:bob', didManager: didManager),
+        throwsA(isA<StateError>()),
+      );
+    });
+  });
+
+  group('setMembersCanPost', () {
+    const owner = '@owner:matrix.example.com';
+    const memberEvents = [
+      matrix.EventTypes.Reaction,
+      matrix.EventTypes.Redaction,
+      matrix.EventTypes.GroupCallMember,
+    ];
+
+    MockMatrixRoom roomWithPowerLevels(Map<String, Object?> content) {
+      final room = MockMatrixRoom();
+      final state = MockStrippedStateEvent();
+      when(() => state.content).thenReturn(content);
+      when(
+        () => room.getState(matrix.EventTypes.RoomPowerLevels),
+      ).thenReturn(state);
+      when(() => client.getRoomById(_roomId)).thenReturn(room);
+      return room;
+    }
+
+    setUp(() {
+      when(
+        () => client.setRoomStateWithKey(any(), any(), any(), any()),
+      ).thenAnswer((_) async => 'state-event');
+    });
+
+    test('raises every member event to the moderator level, keeping the '
+        'rest of the power levels', () async {
+      roomWithPowerLevels({
+        'users': {owner: 100},
+        'events_default': 0,
+        'events': {matrix.EventTypes.RoomPowerLevels: 100},
+      });
+
+      await service.setMembersCanPost(
+        _roomId,
+        membersCanPost: false,
+        didManager: didManager,
+      );
+
+      final content =
+          verify(
+                () => client.setRoomStateWithKey(
+                  _roomId,
+                  matrix.EventTypes.RoomPowerLevels,
+                  '',
+                  captureAny(),
+                ),
+              ).captured.single
+              as Map<String, Object?>;
+      expect(content['users'], {owner: 100});
+      expect(content['events_default'], 50);
+      expect(content['events'], {
+        matrix.EventTypes.RoomPowerLevels: 100,
+        for (final type in memberEvents) type: 50,
+      });
+    });
+
+    test('lowers every member event back to the default level', () async {
+      roomWithPowerLevels({
+        'events_default': 50,
+        'events': {for (final type in memberEvents) type: 50},
+      });
+
+      await service.setMembersCanPost(
+        _roomId,
+        membersCanPost: true,
+        didManager: didManager,
+      );
+
+      final content =
+          verify(
+                () => client.setRoomStateWithKey(
+                  any(),
+                  any(),
+                  any(),
+                  captureAny(),
+                ),
+              ).captured.single
+              as Map<String, Object?>;
+      expect(content['events_default'], 0);
+      expect(content['events'], {for (final type in memberEvents) type: 0});
+    });
+
+    test('sends nothing when the room already says so', () async {
+      roomWithPowerLevels({
+        'events_default': 50,
+        'events': {for (final type in memberEvents) type: 50},
+      });
+
+      await service.setMembersCanPost(
+        _roomId,
+        membersCanPost: false,
+        didManager: didManager,
+      );
+
+      verifyNever(() => client.setRoomStateWithKey(any(), any(), any(), any()));
+    });
+
+    test('throws StateError when the room is not found', () async {
+      when(() => client.getRoomById(_roomId)).thenReturn(null);
+
+      await expectLater(
+        service.setMembersCanPost(
+          _roomId,
+          membersCanPost: false,
+          didManager: didManager,
+        ),
         throwsA(isA<StateError>()),
       );
     });

@@ -526,6 +526,33 @@ class VtaClient implements PersonaSigningAgent {
     );
   }
 
+  /// Creates a new persona for the identity in [contextId], wearing the
+  /// identity's profile [profileId], so a community sees the identity's
+  /// details under a DID no other community knows.
+  ///
+  /// The persona is published as [createPersona] publishes one, in
+  /// [contextId], and is not the identity's primary DID.
+  ///
+  /// Throws as [createPersona] does.
+  Future<VtaPersona> createPersonaFor({
+    required String contextId,
+    required String profileId,
+    required String label,
+  }) async {
+    final persona = await _createDid(
+      contextId: contextId,
+      serverId: await _firstServerId(),
+      label: label,
+      setPrimary: false,
+    );
+    await _task(VtaTask.localBindingSet, {
+      'contextId': contextId,
+      'personaDid': persona.did,
+      'profileId': profileId,
+    });
+    return persona;
+  }
+
   /// Creates an identity showing [profile]: a context of its own, a persona
   /// DID published on the VTA's first DID hosting server, and a profile kept
   /// in that context which the persona wears.

@@ -714,6 +714,82 @@ void main() {
       });
     });
 
+    group('createPersonaFor', () {
+      Map<String, dynamic> payloadOf(String type) =>
+          vta.received.lastWhere(
+                (request) => request['type'] == type,
+              )['payload']
+              as Map<String, dynamic>;
+
+      setUp(() {
+        vta.answers[VtaTask.serversList] = {
+          'servers': [
+            {'id': 'webvh-1'},
+          ],
+        };
+        vta.answers[VtaTask.didsCreate] = {
+          'did': 'did:webvh:QmP:host.example:club',
+          'contextId': 'mpx-ada',
+          'signingKeyId': 'did:webvh:QmP:host.example:club#key-0',
+        };
+      });
+
+      test(
+        "publishes a persona in the identity's context, wearing its profile",
+        () async {
+          final persona = await client.createPersonaFor(
+            contextId: 'mpx-ada',
+            profileId: '01PROFILE',
+            label: 'Football club',
+          );
+
+          expect(persona.did, 'did:webvh:QmP:host.example:club');
+          expect(persona.contextId, 'mpx-ada');
+          expect(
+            vta.received.map((request) => request['type']),
+            isNot(contains(VtaTask.contextsList)),
+          );
+          expect(payloadOf(VtaTask.didsCreate), {
+            'contextId': 'mpx-ada',
+            'serverId': 'webvh-1',
+            'label': 'Football club',
+            'addMediatorService': true,
+            'addTspService': false,
+            'setPrimary': false,
+          });
+          expect(vta.received.last['type'], VtaTask.localBindingSet);
+          expect(payloadOf(VtaTask.localBindingSet), {
+            'contextId': 'mpx-ada',
+            'personaDid': 'did:webvh:QmP:host.example:club',
+            'profileId': '01PROFILE',
+          });
+        },
+      );
+
+      test('says when the VTA has no DID hosting server', () async {
+        vta.answers[VtaTask.serversList] = {'servers': <Object>[]};
+
+        await expectLater(
+          client.createPersonaFor(
+            contextId: 'mpx-ada',
+            profileId: '01PROFILE',
+            label: 'Football club',
+          ),
+          throwsA(
+            isA<MeetingPlaceVtcSDKException>().having(
+              (error) => error.code,
+              'code',
+              MeetingPlaceVtcSDKErrorCode.didHostingMissing,
+            ),
+          ),
+        );
+        expect(
+          vta.received.map((request) => request['type']),
+          isNot(contains(VtaTask.localBindingSet)),
+        );
+      });
+    });
+
     group('identities', () {
       const profile = VtaProfile(
         displayName: 'Ada',

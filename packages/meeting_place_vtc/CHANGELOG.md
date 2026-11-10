@@ -17,3 +17,4 @@
  - Let the applicant end being vetted with a `vetting/decline` (`VettingApplicant.decline`).
  - Add `PersonaInbox.arrivals`, firing as messages reach the persona's mediator inbox over a live connection, e.g. a role card a community pushes.
  - Add `PersonaInbox.removalNotices`, reading a community's signed notice that it removed the persona (`vtc/members/removal-notice/0.1`).
+ - Add `VtaClient.createPersonaFor`, a new persona in an identity's context wearing its profile, so each community can see a different DID.

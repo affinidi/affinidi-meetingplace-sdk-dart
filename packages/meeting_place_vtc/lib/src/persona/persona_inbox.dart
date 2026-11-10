@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:didcomm/didcomm.dart' hide TrustTaskDocument;
 import 'package:ssi/ssi.dart';
 
@@ -23,6 +25,11 @@ abstract interface class MediatorInbox {
 
   /// Deletes the messages [ids] from the inbox.
   Future<void> delete(List<String> ids);
+
+  /// Fires each time a message reaches the inbox, over a live connection to
+  /// the mediator held while listened to; also for those waiting when it
+  /// connects. Leaves them in the inbox.
+  Stream<void> arrivals();
 
   /// Ends the session with the mediator.
   Future<void> close();
@@ -153,13 +160,12 @@ class PersonaInbox {
   /// envelope may be authcrypt or anoncrypt; an authcrypt sender must be
   /// [issuerDid]. Throws [MeetingPlaceVtcSDKException] with a
   /// `transportFailed` code when the inbox cannot be read.
-  Future<InboxPickup> issuedCredentials({required String issuerDid}) =>
-      _pickUp(
-        issuerDid,
-        accepts: (credential) =>
-            credentialIssuer(credential) == issuerDid &&
-            credentialSubjects(credential).contains(_persona.did),
-      );
+  Future<InboxPickup> issuedCredentials({required String issuerDid}) => _pickUp(
+    issuerDid,
+    accepts: (credential) =>
+        credentialIssuer(credential) == issuerDid &&
+        credentialSubjects(credential).contains(_persona.did),
+  );
 
   /// The credentials of the community [communityDid]'s groups [groupDids]
   /// that wait in the inbox, each in a `credential-exchange/issue` document
@@ -252,6 +258,19 @@ class PersonaInbox {
       );
     }
   }
+
+  /// Fires each time a message reaches the persona's inbox, while listened
+  /// to, e.g. to [issuedCredentials] again; what arrived is read only
+  /// there, where it is checked. Requires [open].
+  ///
+  /// Errors with [MeetingPlaceVtcSDKException] with a `transportFailed` code
+  /// when the live connection fails.
+  Stream<void> arrivals() => _openedInbox().arrivals().handleError(
+    (Object error) => throw MeetingPlaceVtcSDKException.transportFailed(
+      'mediator connection failed',
+      innerException: error,
+    ),
+  );
 
   /// Deletes the messages [messageIds] from the inbox, once handled.
   ///
@@ -378,6 +397,9 @@ class PersonaInbox {
     required DidDocument mediatorDocument,
     required DidManager manager,
   }) async {
+    // A pool of its own: starting it leaves the app's other mediator
+    // connections, in the shared pool, as they are.
+    final pool = ConnectionPool();
     final client = await MediatorClient.init(
       mediatorDidDocument: mediatorDocument,
       didManager: manager,
@@ -385,15 +407,31 @@ class PersonaInbox {
         mediatorDidDocument: mediatorDocument,
         didManager: manager,
       ),
+      connectionPool: pool,
+      // Messages stay until handled: the caller removes them once kept.
+      webSocketOptions: const WebSocketOptions(
+        deleteOnReceive: false,
+        statusRequestMessageOptions: StatusRequestMessageOptions(
+          shouldSend: true,
+          shouldSign: true,
+          shouldEncrypt: true,
+        ),
+        liveDeliveryChangeMessageOptions: LiveDeliveryChangeMessageOptions(
+          shouldSend: true,
+          shouldSign: true,
+          shouldEncrypt: true,
+        ),
+      ),
     );
-    return _MediatorClientInbox(client);
+    return _MediatorClientInbox(client, pool);
   }
 }
 
 class _MediatorClientInbox implements MediatorInbox {
-  _MediatorClientInbox(this._client);
+  _MediatorClientInbox(this._client, this._pool);
 
   final MediatorClient _client;
+  final ConnectionPool _pool;
 
   @override
   Future<List<String>> listIds() => _client.listInboxMessageIds();
@@ -407,6 +445,25 @@ class _MediatorClientInbox implements MediatorInbox {
   @override
   Future<void> delete(List<String> ids) =>
       _client.deleteMessages(messageIds: ids);
+
+  @override
+  Stream<void> arrivals() {
+    late final StreamController<void> arrived;
+    arrived = StreamController<void>(
+      onListen: () {
+        _client.listenForIncomingMessages(
+          (_) {
+            if (!arrived.isClosed) arrived.add(null);
+          },
+          onError: arrived.addError,
+          onDone: ({closeCode, closeReason}) => arrived.close(),
+        );
+        _pool.startConnections().catchError(arrived.addError);
+      },
+      onCancel: _client.disconnect,
+    );
+    return arrived.stream;
+  }
 
   @override
   Future<void> close() => _client.disconnect();

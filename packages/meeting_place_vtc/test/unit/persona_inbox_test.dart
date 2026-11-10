@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:didcomm/didcomm.dart' hide TrustTaskDocument;
@@ -11,6 +12,7 @@ import '../utils/fake_persona.dart';
 class _FakeInbox implements MediatorInbox {
   final Map<String, Map<String, dynamic>> messages = {};
   final List<String> deleted = [];
+  final arrived = StreamController<void>();
   bool isClosed = false;
 
   @override
@@ -24,6 +26,9 @@ class _FakeInbox implements MediatorInbox {
     deleted.addAll(ids);
     ids.forEach(messages.remove);
   }
+
+  @override
+  Stream<void> arrivals() => arrived.stream;
 
   @override
   Future<void> close() async => isClosed = true;
@@ -447,6 +452,44 @@ void main() {
           'vetter',
           'stranger',
         ]);
+      });
+    });
+
+    group('arrivals', () {
+      test('fires each time a message reaches the inbox', () async {
+        await personaInbox.open();
+        final arrivals = <void>[];
+        final listening = personaInbox.arrivals().listen(arrivals.add);
+        addTearDown(listening.cancel);
+
+        inbox.arrived
+          ..add(null)
+          ..add(null);
+        await pumpEventQueue();
+
+        expect(arrivals, hasLength(2));
+      });
+
+      test('says when the live connection fails', () async {
+        await personaInbox.open();
+        final failure = expectLater(
+          personaInbox.arrivals(),
+          emitsError(
+            isA<MeetingPlaceVtcSDKException>().having(
+              (error) => error.code,
+              'code',
+              MeetingPlaceVtcSDKErrorCode.transportFailed,
+            ),
+          ),
+        );
+
+        inbox.arrived.addError(StateError('dropped'));
+
+        await failure;
+      });
+
+      test('needs the inbox open', () {
+        expect(personaInbox.arrivals, throwsStateError);
       });
     });
 

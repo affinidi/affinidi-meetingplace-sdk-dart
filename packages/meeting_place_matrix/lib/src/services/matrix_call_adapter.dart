@@ -117,6 +117,13 @@ class MatrixCallAdapter {
     _cancelTargetResolution ??= _resolveCancelTarget(channel);
     await _cancelTargetResolution;
     final isGroupCall = _isGroupCall;
+    // The homeserver refuses the call membership of a member who may only
+    // read the group chat; refuse up front with a clear error instead.
+    if (isGroupCall && !await _coreSDK.canPostInGroup(channel)) {
+      throw const MeetingPlaceLiveKitCallOperationException(
+        'Joining a call in a group chat only its moderators post in',
+      );
+    }
     final roomName = isGroupCall
         ? deriveRoomAliasLocalpart(channelDid: _otherPartyChannelDid)
         : deriveRoomAliasLocalpart(

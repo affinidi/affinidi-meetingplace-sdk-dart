@@ -284,6 +284,8 @@ void main() {
         ).thenAnswer((_) async => _channel(_card('did:test:group-stale')));
 
         when(() => coreSDK.updateChannel(any())).thenAnswer((_) async {});
+
+        when(() => coreSDK.canPostInGroup(any())).thenAnswer((_) async => true);
       });
 
       tearDown(() async {

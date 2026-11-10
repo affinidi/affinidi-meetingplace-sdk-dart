@@ -150,6 +150,13 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   ChannelNotification buildChannelNotification(String type) =>
       IndividualChannelNotification(recipientDid: otherPartyDid, type: type);
 
+  /// Hook for subclasses to block what a member who may only read the chat
+  /// would send to it: posts, reactions, edits, deletions, effects, custom
+  /// events and contact details. Read receipts and typing notices stay
+  /// allowed. Default: no-op.
+  @protected
+  Future<void> assertCanPost() async {}
+
   @override
   Future<Chat> startChatSession() => withSdkExceptionHandling(() async {
     chatStream = ChatStream();
@@ -338,6 +345,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     List<ChatAttachment> attachments = const [],
   }) => withSdkExceptionHandling(() async {
     assertCanSend();
+    await assertCanPost();
 
     final Message message;
     final notification = buildChannelNotification('chat-activity');
@@ -415,6 +423,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     required String reaction,
   }) => withSdkExceptionHandling(() async {
     assertCanSend();
+    await assertCanPost();
     final methodName = 'reactOnMessage';
     logger.info('Started reacting on message', name: methodName);
 
@@ -484,6 +493,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   Future<void> editTextMessage(Message message, String newText) =>
       withSdkExceptionHandling(() async {
         assertCanSend();
+        await assertCanPost();
         final methodName = 'editTextMessage';
 
         if (!message.isFromMe) {
@@ -561,6 +571,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     }
 
     assertCanSend();
+    await assertCanPost();
     final transportId = message.transportId;
     if (transportId == null) {
       throw StateError(
@@ -629,6 +640,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
     required Map<String, dynamic> payload,
   }) => withSdkExceptionHandling(() async {
     assertCanSend();
+    await assertCanPost();
     await coreSDK.sendMessage(
       MatrixCustomOutgoingMessage(senderDid: did, type: type, content: payload),
     );
@@ -639,6 +651,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   @override
   Future<void> sendEffect(Effect effect) => withSdkExceptionHandling(() async {
     assertCanSend();
+    await assertCanPost();
     final roomEvent = EffectRoomEvent(senderDid: did, effect: effect.name);
 
     chatStream.pushData(StreamData(event: roomEvent.toChatEvent()));
@@ -693,6 +706,7 @@ abstract class MeetingPlaceMatrixChatSDK extends BaseChatSDK
   Future<void> sendChatContactDetailsUpdate(ConciergeMessage message) =>
       withSdkExceptionHandling(() async {
         assertCanSend();
+        await assertCanPost();
         final c = currentContactCard;
         if (c == null) {
           throw StateError('ContactCard missing for contact details update');

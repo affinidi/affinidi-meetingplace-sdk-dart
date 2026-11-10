@@ -70,6 +70,7 @@ void main() {
         () => logger.warning(any(), name: any(named: 'name')),
       ).thenReturn(null);
       when(() => coreSDK.updateChannel(any())).thenAnswer((_) async {});
+      when(() => coreSDK.canPostInGroup(any())).thenAnswer((_) async => true);
       when(
         () => chatRepository.updateMesssage(any()),
       ).thenAnswer((inv) async => inv.positionalArguments.first as ChatItem);
@@ -104,5 +105,19 @@ void main() {
         expect(emitted.single.chatItem, same(existing));
       },
     );
+
+    test('proposes nothing to a member who may only read', () async {
+      final channel = _channel(_card('Stale'));
+      when(() => chatSDK.currentContactCard).thenReturn(_card('Fresh'));
+      when(() => chatSDK.getChannel()).thenAnswer((_) async => channel);
+      when(
+        () => coreSDK.canPostInGroup(channel),
+      ).thenAnswer((_) async => false);
+
+      await ProposeProfileUpdateAction(chatSDK).execute();
+
+      verifyNever(() => coreSDK.updateChannel(any()));
+      verifyNever(() => chatRepository.createMessage(any()));
+    });
   });
 }

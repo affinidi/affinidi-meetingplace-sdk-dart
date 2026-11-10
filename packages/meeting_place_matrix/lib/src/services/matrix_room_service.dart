@@ -303,15 +303,20 @@ class MatrixRoomService {
     required DidManager didManager,
   }) async {
     final client = await _ensureSession(didManager);
-    final room = client.getRoomById(roomId);
-    if (room == null) {
+    if (client.getRoomById(roomId) == null) {
       throw StateError('Matrix room $roomId not found');
     }
     final userId = _sessionManager.deriveUserId(did, _serverName);
-    await room.setPower(
-      userId,
-      isModerator ? _moderatorPowerLevel : _defaultPowerLevel,
-    );
+    final level = isModerator ? _moderatorPowerLevel : _defaultPowerLevel;
+    await _updatePowerLevels(client, roomId, (powerLevels) {
+      final users = switch (powerLevels[_powerLevelUsersKey]) {
+        final Map<String, Object?> users => users,
+        _ => <String, Object?>{},
+      };
+      if (users[userId] == level) return false;
+      powerLevels[_powerLevelUsersKey] = {...users, userId: level};
+      return true;
+    });
   }
 
   /// Lets every member of [roomId] post, or, when [membersCanPost] is false,
@@ -332,28 +337,47 @@ class MatrixRoomService {
     required DidManager didManager,
   }) async {
     final client = await _ensureSession(didManager);
-    final room = client.getRoomById(roomId);
-    if (room == null) {
+    if (client.getRoomById(roomId) == null) {
       throw StateError('Matrix room $roomId not found');
     }
     final level = membersCanPost ? _defaultPowerLevel : _moderatorPowerLevel;
-    final powerLevels =
-        room.getState(matrix.EventTypes.RoomPowerLevels)?.content.copy() ??
-        <String, Object?>{};
-    final events = switch (powerLevels[_powerLevelEventsKey]) {
-      final Map<String, Object?> events => events,
-      _ => <String, Object?>{},
-    };
-    final alreadySet =
-        powerLevels[_powerLevelEventsDefaultKey] == level &&
-        _memberEventTypes.every((type) => events[type] == level);
-    if (alreadySet) return;
+    await _updatePowerLevels(client, roomId, (powerLevels) {
+      final events = switch (powerLevels[_powerLevelEventsKey]) {
+        final Map<String, Object?> events => events,
+        _ => <String, Object?>{},
+      };
+      final alreadySet =
+          powerLevels[_powerLevelEventsDefaultKey] == level &&
+          _memberEventTypes.every((type) => events[type] == level);
+      if (alreadySet) return false;
 
-    powerLevels[_powerLevelEventsDefaultKey] = level;
-    powerLevels[_powerLevelEventsKey] = {
-      ...events,
-      for (final type in _memberEventTypes) type: level,
-    };
+      powerLevels[_powerLevelEventsDefaultKey] = level;
+      powerLevels[_powerLevelEventsKey] = {
+        ...events,
+        for (final type in _memberEventTypes) type: level,
+      };
+      return true;
+    });
+  }
+
+  /// Rewrites [roomId]'s power levels as [update] changes them, sending
+  /// nothing when it returns false.
+  ///
+  /// The power levels are one state event, replaced whole on every write, so
+  /// they are read from the homeserver rather than this client's copy: that
+  /// copy lags until the next sync, and a write built from it would undo
+  /// any write made since, such as one moderator made just before another.
+  Future<void> _updatePowerLevels(
+    matrix.Client client,
+    String roomId,
+    bool Function(Map<String, Object?> powerLevels) update,
+  ) async {
+    final powerLevels = (await client.getRoomStateWithKey(
+      roomId,
+      matrix.EventTypes.RoomPowerLevels,
+      '',
+    )).copy();
+    if (!update(powerLevels)) return;
     await client.setRoomStateWithKey(
       roomId,
       matrix.EventTypes.RoomPowerLevels,

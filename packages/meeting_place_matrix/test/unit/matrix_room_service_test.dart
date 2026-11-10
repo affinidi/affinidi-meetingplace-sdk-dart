@@ -19,9 +19,6 @@ class MockTimeline extends Mock implements matrix.Timeline {}
 
 class MockEvent extends Mock implements matrix.Event {}
 
-class MockStrippedStateEvent extends Mock
-    implements matrix.StrippedStateEvent {}
-
 class MockMatrixSessionManager extends Mock implements MatrixSessionManager {}
 
 class MockDidManager extends Mock implements DidManager {}
@@ -277,15 +274,15 @@ void main() {
       matrix.EventTypes.GroupCallMember,
     ];
 
-    MockMatrixRoom roomWithPowerLevels(Map<String, Object?> content) {
-      final room = MockMatrixRoom();
-      final state = MockStrippedStateEvent();
-      when(() => state.content).thenReturn(content);
+    void roomWithPowerLevels(Map<String, Object?> content) {
+      when(() => client.getRoomById(_roomId)).thenReturn(MockMatrixRoom());
       when(
-        () => room.getState(matrix.EventTypes.RoomPowerLevels),
-      ).thenReturn(state);
-      when(() => client.getRoomById(_roomId)).thenReturn(room);
-      return room;
+        () => client.getRoomStateWithKey(
+          _roomId,
+          matrix.EventTypes.RoomPowerLevels,
+          '',
+        ),
+      ).thenAnswer((_) async => content);
     }
 
     setUp(() {
@@ -374,6 +371,107 @@ void main() {
         service.setMembersCanPost(
           _roomId,
           membersCanPost: false,
+          didManager: didManager,
+        ),
+        throwsA(isA<StateError>()),
+      );
+    });
+  });
+
+  group('setModerator', () {
+    const owner = '@owner:matrix.example.com';
+    const aliceDid = 'did:key:alice';
+    const bobDid = 'did:key:bob';
+    const alice = '@alice:matrix.example.com';
+    const bob = '@bob:matrix.example.com';
+
+    /// The power levels as the homeserver holds them, changed by every write.
+    late Map<String, Object?> served;
+
+    setUp(() {
+      served = {
+        'users': {owner: 100},
+        'events_default': 50,
+      };
+      when(() => client.getRoomById(_roomId)).thenReturn(MockMatrixRoom());
+      when(
+        () => sessionManager.deriveUserId(aliceDid, 'matrix.example.com'),
+      ).thenReturn(alice);
+      when(
+        () => sessionManager.deriveUserId(bobDid, 'matrix.example.com'),
+      ).thenReturn(bob);
+      when(
+        () => client.getRoomStateWithKey(
+          _roomId,
+          matrix.EventTypes.RoomPowerLevels,
+          '',
+        ),
+      ).thenAnswer((_) async => served);
+      when(
+        () => client.setRoomStateWithKey(
+          _roomId,
+          matrix.EventTypes.RoomPowerLevels,
+          '',
+          any(),
+        ),
+      ).thenAnswer((invocation) async {
+        served = invocation.positionalArguments[3] as Map<String, Object?>;
+        return 'state-event';
+      });
+    });
+
+    test('keeps a moderator made just before another', () async {
+      await service.setModerator(
+        _roomId,
+        did: aliceDid,
+        isModerator: true,
+        didManager: didManager,
+      );
+      await service.setModerator(
+        _roomId,
+        did: bobDid,
+        isModerator: true,
+        didManager: didManager,
+      );
+
+      expect(served['users'], {owner: 100, alice: 50, bob: 50});
+      expect(served['events_default'], 50);
+    });
+
+    test('takes the rights away', () async {
+      served['users'] = {owner: 100, alice: 50};
+
+      await service.setModerator(
+        _roomId,
+        did: aliceDid,
+        isModerator: false,
+        didManager: didManager,
+      );
+
+      expect(served['users'], {owner: 100, alice: 0});
+    });
+
+    test('sends nothing when the member already has the level', () async {
+      served['users'] = {owner: 100, alice: 50};
+
+      await service.setModerator(
+        _roomId,
+        did: aliceDid,
+        isModerator: true,
+        didManager: didManager,
+      );
+
+      verifyNever(() => client.setRoomStateWithKey(any(), any(), any(), any()));
+    });
+
+    test('throws StateError when the room is not found', () async {
+      when(() => client.getRoomById(_roomId)).thenReturn(null);
+
+      await expectLater(
+        service.setModerator(
+          _roomId,
+          did: aliceDid,
+          isModerator: true,
           didManager: didManager,
         ),
         throwsA(isA<StateError>()),

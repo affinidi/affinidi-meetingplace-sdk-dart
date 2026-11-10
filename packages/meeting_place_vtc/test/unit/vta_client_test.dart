@@ -1626,5 +1626,84 @@ void main() {
         );
       });
     });
+
+    group('rooms', () {
+      const room = 'did:webvh:QmRoom:community.example:room-dids:talks';
+
+      test('returns the document the VTA completed as the member', () async {
+        final completed = {'id': 'urn:uuid:1', 'proof': <String, dynamic>{}};
+        vta.answers[RoomTask.act] = {
+          'document': completed,
+          'principal': 'did:key:member',
+        };
+
+        final document = await client.actAsMember({'id': 'urn:uuid:1'});
+
+        expect(document, completed);
+        expect(vta.received.single['payload'], {
+          'document': {'id': 'urn:uuid:1'},
+        });
+      });
+
+      test('mints a key package and joins with the Welcome', () async {
+        vta.answers[RoomTask.keyPackage] = {
+          'keyPackage': 'kp',
+          'alreadyMinted': true,
+          'expiresAt': '2026-11-23T10:00:00Z',
+        };
+        vta.answers[RoomTask.welcome] = {'epoch': 4};
+
+        final keyPackage = await client.roomKeyPackage(
+          roomId: room,
+          invitation: 'vic',
+        );
+        final epoch = await client.joinRoomGroup(
+          roomId: room,
+          invitation: 'vic',
+          welcome: 'w',
+        );
+
+        expect(keyPackage.keyPackage, 'kp');
+        expect(keyPackage.alreadyMinted, isTrue);
+        expect(epoch, 4);
+        expect(vta.received.last['payload'], {
+          'roomId': room,
+          'invitation': 'vic',
+          'welcome': 'w',
+        });
+      });
+
+      test('lists the rooms it holds, per member', () async {
+        vta.answers[RoomTask.keysList] = {
+          'rooms': [
+            {'roomId': room, 'member': 'did:key:member', 'epoch': 2},
+            {'roomId': room},
+          ],
+        };
+
+        final held = await client.heldRooms();
+
+        expect(held.single.member, 'did:key:member');
+      });
+
+      test('keeps a renewed credential in place of the old one', () async {
+        vta.answers[VtaTask.credentialsReceive] = {
+          'id': 'old-vmc',
+          'status': 'valid',
+          'types': ['MembershipCredential'],
+        };
+
+        await client.keepCredential(
+          {'id': 'urn:uuid:new-vmc'},
+          contextId: 'members',
+          replacing: 'old-vmc',
+        );
+
+        expect(
+          (vta.received.single['payload'] as Map<String, dynamic>)['id'],
+          'old-vmc',
+        );
+      });
+    });
   });
 }

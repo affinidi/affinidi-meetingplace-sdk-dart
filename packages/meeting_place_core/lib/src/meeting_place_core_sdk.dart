@@ -977,6 +977,31 @@ class MeetingPlaceCoreSDK {
     });
   }
 
+  /// Lets every member of a group post in its chat, or only its owner and
+  /// moderators, so the other members can only read. The chat itself
+  /// refuses anything else a member sends: no message, reaction, deletion,
+  /// profile update or call.
+  ///
+  /// Only the wallet that manages `group.ownerDid` can do this; others are
+  /// rejected with [MeetingPlaceCoreSDKErrorCode.groupCallerIsNotOwnerError].
+  Future<void> setGroupMembersCanPost(
+    sdk.SetGroupMembersCanPostRequest request,
+  ) {
+    return _withSdkExceptionHandling(() {
+      return _groupService.setMembersCanPost(
+        groupId: request.groupId,
+        membersCanPost: request.membersCanPost,
+      );
+    });
+  }
+
+  /// Whether the member on this wallet may post in the group chat
+  /// [channel]: false where [setGroupMembersCanPost] left only the owner
+  /// and moderators posting, for everyone else. Any member can ask.
+  Future<bool> canPostInGroup(Channel channel) {
+    return _withSdkExceptionHandling(() => _groupService.canPost(channel));
+  }
+
   /// The members of the group [channel] talks in who moderate its chat:
   /// its owner, and those [setGroupModerator] gave the rights. Any member
   /// can ask.

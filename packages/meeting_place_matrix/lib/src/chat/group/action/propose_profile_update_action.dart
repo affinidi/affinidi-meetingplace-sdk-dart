@@ -39,6 +39,14 @@ class ProposeProfileUpdateAction implements GroupAction<void> {
       return;
     }
 
+    if (!await _chatSDK.coreSDK.canPostInGroup(channel)) {
+      _chatSDK.logger.info(
+        'Member may only read the chat. Skipping profile update proposal.',
+        name: _logkey,
+      );
+      return;
+    }
+
     final existing = await _findPendingProfileUpdateConcierge();
 
     channel.contactCard = card;

@@ -83,6 +83,19 @@ class GroupMatrixChatSDK extends MeetingPlaceMatrixChatSDK
     }
   }
 
+  /// Refuses to send in a group chat only its owner and moderators post in,
+  /// see [MeetingPlaceCoreSDK.setGroupMembersCanPost], so a member who may
+  /// only read gets a clear error rather than the homeserver's refusal.
+  @override
+  @protected
+  Future<void> assertCanPost() async {
+    if (!await coreSDK.canPostInGroup(await getChannel())) {
+      throw MeetingPlaceChatSDKException.operationNotSupported(
+        operation: 'Posting in a group chat only its moderators post in',
+      );
+    }
+  }
+
   @override
   @protected
   ChannelNotification buildChannelNotification(String type) =>
@@ -187,7 +200,8 @@ class GroupMatrixChatSDK extends MeetingPlaceMatrixChatSDK
 
   /// Creates a local concierge prompting the user to confirm sharing the new
   /// contact card with the group. The card is broadcast to the group only when
-  /// the user approves via [sendChatContactDetailsUpdate].
+  /// the user approves via [sendChatContactDetailsUpdate]. Proposes nothing
+  /// where the member may only read, as the card could not be sent.
   @override
   Future<void> proposeProfileUpdate() => withSdkExceptionHandling(() async {
     assertCanSend();
@@ -208,6 +222,7 @@ class GroupMatrixChatSDK extends MeetingPlaceMatrixChatSDK
   Future<void> sendChatContactDetailsUpdate(ConciergeMessage message) =>
       withSdkExceptionHandling(() async {
         assertCanSend();
+        await assertCanPost();
         final c = currentContactCard;
         if (c == null) {
           throw StateError('ContactCard missing for contact details update');

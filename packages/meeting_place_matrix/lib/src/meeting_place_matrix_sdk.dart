@@ -420,6 +420,14 @@ class MeetingPlaceMatrixSDK implements MeetingPlaceCoreSDK {
       _coreSDK.setGroupModerator(request);
 
   @override
+  Future<void> setGroupMembersCanPost(SetGroupMembersCanPostRequest request) =>
+      _coreSDK.setGroupMembersCanPost(request);
+
+  @override
+  Future<bool> canPostInGroup(Channel channel) =>
+      _coreSDK.canPostInGroup(channel);
+
+  @override
   Future<Set<String>> groupModerators(Channel channel) =>
       _coreSDK.groupModerators(channel);
 

@@ -52,6 +52,21 @@ class MatrixRoomService {
   /// `state_default` for individual state event types.
   static const _powerLevelEventsKey = 'events';
 
+  /// Key for the power level required to send any room event not listed in
+  /// the `events` map, in the Matrix `m.room.power_levels` content. Every
+  /// encrypted event is an `m.room.encrypted` event, so this gates posts,
+  /// edits and every other encrypted event alike.
+  static const _powerLevelEventsDefaultKey = 'events_default';
+
+  /// The room events a member sends besides encrypted ones, which
+  /// [setMembersCanPost] gates together with them: reacting, deleting and
+  /// joining a call.
+  static const _memberEventTypes = [
+    matrix.EventTypes.Reaction,
+    matrix.EventTypes.Redaction,
+    matrix.EventTypes.GroupCallMember,
+  ];
+
   /// Power level required to send the protected room-management state events
   /// (power levels, tombstone, encryption, history visibility, server ACL).
   /// The homeserver defaults these to 100, but a partial `events` override
@@ -297,6 +312,66 @@ class MatrixRoomService {
       userId,
       isModerator ? _moderatorPowerLevel : _defaultPowerLevel,
     );
+  }
+
+  /// Lets every member of [roomId] post, or, when [membersCanPost] is false,
+  /// only its moderators and owner, so the others can only read.
+  ///
+  /// Enforced by the homeserver through the room's power levels: a member
+  /// who may not post can send no room event at all, neither a message, a
+  /// reaction, a deletion, a profile update nor a call. Read receipts and
+  /// typing notices are not room events and keep working. Sends nothing
+  /// when the room already says so.
+  ///
+  /// The caller (identified by [didManager]) must have power-level
+  /// permission to change power levels in [roomId]; otherwise the
+  /// underlying Matrix call will fail.
+  Future<void> setMembersCanPost(
+    String roomId, {
+    required bool membersCanPost,
+    required DidManager didManager,
+  }) async {
+    final client = await _ensureSession(didManager);
+    final room = client.getRoomById(roomId);
+    if (room == null) {
+      throw StateError('Matrix room $roomId not found');
+    }
+    final level = membersCanPost ? _defaultPowerLevel : _moderatorPowerLevel;
+    final powerLevels =
+        room.getState(matrix.EventTypes.RoomPowerLevels)?.content.copy() ??
+        <String, Object?>{};
+    final events = switch (powerLevels[_powerLevelEventsKey]) {
+      final Map<String, Object?> events => events,
+      _ => <String, Object?>{},
+    };
+    final alreadySet =
+        powerLevels[_powerLevelEventsDefaultKey] == level &&
+        _memberEventTypes.every((type) => events[type] == level);
+    if (alreadySet) return;
+
+    powerLevels[_powerLevelEventsDefaultKey] = level;
+    powerLevels[_powerLevelEventsKey] = {
+      ...events,
+      for (final type in _memberEventTypes) type: level,
+    };
+    await client.setRoomStateWithKey(
+      roomId,
+      matrix.EventTypes.RoomPowerLevels,
+      '',
+      powerLevels,
+    );
+  }
+
+  /// Whether the caller (identified by [didManager]) may post in [roomId],
+  /// as the room's power levels say: false in a room only its moderators
+  /// post in, see [setMembersCanPost], for everyone else.
+  Future<bool> canPost(String roomId, {required DidManager didManager}) async {
+    final client = await _ensureSession(didManager);
+    final room = client.getRoomById(roomId);
+    if (room == null) {
+      throw StateError('Matrix room $roomId not found');
+    }
+    return room.canSendDefaultMessages;
   }
 
   /// Returns the ones among [dids] who may moderate [roomId]: the members

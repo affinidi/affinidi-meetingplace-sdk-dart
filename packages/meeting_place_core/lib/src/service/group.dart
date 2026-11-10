@@ -796,6 +796,47 @@ class GroupService {
     );
   }
 
+  /// Lets every member of the group [groupId] post in its chat, or, when
+  /// [membersCanPost] is false, only its owner and moderators, so the other
+  /// members can only read.
+  ///
+  /// Only the group's owner can do this.
+  Future<void> setMembersCanPost({
+    required String groupId,
+    required bool membersCanPost,
+  }) async {
+    final group = await _groupRepository.findGroupById(groupId);
+    if (group == null || group.ownerDid == null) {
+      throw GroupException.notFoundError();
+    }
+    final ownerIdentity = await _resolveOwnerIdentityOrThrow(group);
+    final groupChannel = await _channelService
+        .getChannelByOtherPartyPermanentChannelDid(group.did);
+    await _channelTransport.setMembersCanPost(
+      channel: groupChannel,
+      membersCanPost: membersCanPost,
+      didManager: ownerIdentity.didManager,
+    );
+    _logger.info(
+      '${membersCanPost ? 'Let' : 'Stopped'} members post in group $groupId',
+      name: 'setMembersCanPost',
+    );
+  }
+
+  /// Whether the member on this wallet may post in the group chat
+  /// [channel]: false where [setMembersCanPost] left only the owner and
+  /// moderators posting, for everyone else. Read from the chat itself.
+  Future<bool> canPost(Channel channel) async {
+    final identity = await _identityService.getPermanentIdentity(
+      _wallet,
+      channel.permanentChannelDid!,
+    );
+    return _channelTransport.canPost(
+      channel: channel,
+      didManager: identity.didManager,
+    );
+  }
+
   /// The members of the group [channel] talks in who moderate its chat:
   /// its owner, and those [setModerator] gave the rights. Read from the chat
   /// itself, so every member can check, not only the owner.

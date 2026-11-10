@@ -115,6 +115,7 @@ void main() {
     when(
       () => coreSDK.findGroupByOfferLink(any()),
     ).thenAnswer((_) async => null);
+    when(() => coreSDK.canPostInGroup(any())).thenAnswer((_) async => true);
     adapter = _buildAdapter(
       matrixService: matrixService,
       coreSDK: coreSDK,
@@ -175,6 +176,24 @@ void main() {
         );
       },
     );
+
+    test('refuses a group call to a member who may only read', () async {
+      final channel = _stubChannel(isGroup: false);
+      when(
+        () => coreSDK.findChannelByOtherPartyPermanentDid(_otherPartyDid),
+      ).thenAnswer((_) async => channel);
+      when(
+        () => coreSDK.findGroupByOfferLink(channel.offerLink),
+      ).thenAnswer((_) async => _stubGroup());
+      when(
+        () => coreSDK.canPostInGroup(channel),
+      ).thenAnswer((_) async => false);
+
+      await expectLater(
+        adapter.resolveChannel(),
+        throwsA(isA<MeetingPlaceLiveKitCallOperationException>()),
+      );
+    });
   });
 
   group('fetchCallCredentials', () {

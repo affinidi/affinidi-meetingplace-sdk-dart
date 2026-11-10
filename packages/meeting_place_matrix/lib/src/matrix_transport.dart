@@ -150,6 +150,18 @@ class MatrixTransport implements MeetingPlaceTransport {
   }
 
   @override
+  Future<bool> canPost({
+    required Channel channel,
+    required DidManager didManager,
+  }) async {
+    final roomId = await _matrixService.resolveRoomIdForChannel(
+      didManager: didManager,
+      channel: channel,
+    );
+    return _matrixService.canPost(roomId, didManager: didManager);
+  }
+
+  @override
   Future<Set<String>> moderators({
     required Channel channel,
     required List<String> participantDids,

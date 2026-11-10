@@ -213,6 +213,11 @@ class MatrixService {
     didManager: didManager,
   );
 
+  /// Whether the caller may post in a Matrix room.
+  /// See [MatrixRoomService.canPost].
+  Future<bool> canPost(String roomId, {required DidManager didManager}) =>
+      _roomService.canPost(roomId, didManager: didManager);
+
   /// The ones among [dids] who may moderate a Matrix room.
   /// See [MatrixRoomService.moderators].
   Future<Set<String>> moderators(

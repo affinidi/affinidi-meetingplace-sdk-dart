@@ -823,6 +823,20 @@ class GroupService {
     );
   }
 
+  /// Whether the member on this wallet may post in the group chat
+  /// [channel]: false where [setMembersCanPost] left only the owner and
+  /// moderators posting, for everyone else. Read from the chat itself.
+  Future<bool> canPost(Channel channel) async {
+    final identity = await _identityService.getPermanentIdentity(
+      _wallet,
+      channel.permanentChannelDid!,
+    );
+    return _channelTransport.canPost(
+      channel: channel,
+      didManager: identity.didManager,
+    );
+  }
+
   /// The members of the group [channel] talks in who moderate its chat:
   /// its owner, and those [setModerator] gave the rights. Read from the chat
   /// itself, so every member can check, not only the owner.

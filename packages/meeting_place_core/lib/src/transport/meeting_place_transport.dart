@@ -86,6 +86,14 @@ abstract interface class MeetingPlaceTransport {
     required DidManager didManager,
   });
 
+  /// Whether the caller may post in [channel], as the channel itself
+  /// records it: false where [setMembersCanPost] left only its moderators
+  /// posting, for everyone else.
+  Future<bool> canPost({
+    required Channel channel,
+    required DidManager didManager,
+  });
+
   /// Returns the ones among [participantDids] who may moderate [channel], as
   /// the channel itself records it, so every participant can check.
   Future<Set<String>> moderators({

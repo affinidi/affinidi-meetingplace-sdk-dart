@@ -995,6 +995,13 @@ class MeetingPlaceCoreSDK {
     });
   }
 
+  /// Whether the member on this wallet may post in the group chat
+  /// [channel]: false where [setGroupMembersCanPost] left only the owner
+  /// and moderators posting, for everyone else. Any member can ask.
+  Future<bool> canPostInGroup(Channel channel) {
+    return _withSdkExceptionHandling(() => _groupService.canPost(channel));
+  }
+
   /// The members of the group [channel] talks in who moderate its chat:
   /// its owner, and those [setGroupModerator] gave the rights. Any member
   /// can ask.

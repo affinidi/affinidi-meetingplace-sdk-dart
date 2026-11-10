@@ -362,6 +362,18 @@ class MatrixRoomService {
     );
   }
 
+  /// Whether the caller (identified by [didManager]) may post in [roomId],
+  /// as the room's power levels say: false in a room only its moderators
+  /// post in, see [setMembersCanPost], for everyone else.
+  Future<bool> canPost(String roomId, {required DidManager didManager}) async {
+    final client = await _ensureSession(didManager);
+    final room = client.getRoomById(roomId);
+    if (room == null) {
+      throw StateError('Matrix room $roomId not found');
+    }
+    return room.canSendDefaultMessages;
+  }
+
   /// Returns the ones among [dids] who may moderate [roomId]: the members
   /// [setModerator] gave the rights, and its owner.
   ///

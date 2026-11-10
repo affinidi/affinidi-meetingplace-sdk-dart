@@ -810,6 +810,24 @@ void main() {
       });
     });
 
+    test("asks the chat whether the caller may post, as the caller's own "
+        'identity', () async {
+      when(
+        () => channelTransport.canPost(
+          channel: any(named: 'channel'),
+          didManager: any(named: 'didManager'),
+        ),
+      ).thenAnswer((_) async => false);
+
+      expect(await service.canPost(groupChannel), isFalse);
+      verify(
+        () => channelTransport.canPost(
+          channel: groupChannel,
+          didManager: ownerDidManager,
+        ),
+      ).called(1);
+    });
+
     test("asks the chat which of the group's members moderate, as the "
         "caller's own identity", () async {
       when(

@@ -61,6 +61,12 @@ class NopTransport implements MeetingPlaceTransport {
   }) async {}
 
   @override
+  Future<bool> canPost({
+    required Channel channel,
+    required DidManager didManager,
+  }) async => true;
+
+  @override
   Future<Set<String>> moderators({
     required Channel channel,
     required List<String> participantDids,

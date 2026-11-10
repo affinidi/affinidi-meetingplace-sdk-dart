@@ -381,6 +381,25 @@ void main() {
     });
   });
 
+  group('canPost', () {
+    test('answers as the room says', () async {
+      final room = MockMatrixRoom();
+      when(() => room.canSendDefaultMessages).thenReturn(false);
+      when(() => client.getRoomById(_roomId)).thenReturn(room);
+
+      expect(await service.canPost(_roomId, didManager: didManager), isFalse);
+    });
+
+    test('throws StateError when the room is not found', () async {
+      when(() => client.getRoomById(_roomId)).thenReturn(null);
+
+      await expectLater(
+        service.canPost(_roomId, didManager: didManager),
+        throwsA(isA<StateError>()),
+      );
+    });
+  });
+
   group('getLatestEventId', () {
     test('returns null when the room is unknown to the client', () async {
       when(client.oneShotSync).thenAnswer((_) async {});

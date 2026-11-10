@@ -283,6 +283,18 @@ class RoomAcceptance {
   final bool alreadyJoined;
 }
 
+/// A record the member wrote to a room.
+class RoomWrite {
+  /// Creates a [RoomWrite].
+  const RoomWrite({required this.key, required this.version});
+
+  /// The record's key, opaque.
+  final String key;
+
+  /// The version the host stored it at.
+  final int version;
+}
+
 /// One record of a room as a listing shows it: never its content.
 ///
 /// On a sealed room the title and description are sealed with the body, so

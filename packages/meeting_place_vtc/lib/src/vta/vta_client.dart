@@ -1234,6 +1234,36 @@ class VtaClient implements PersonaSigningAgent, RoomKeyHolder {
     required String key,
   }) => _task(RoomTask.read, {'roomId': roomId, 'host': host, 'key': key});
 
+  @override
+  Future<SealedRoomRecord> sealAsMember({
+    required String roomId,
+    required String key,
+    required int version,
+    required Map<String, dynamic> body,
+  }) async {
+    final answer = await _task(RoomTask.seal, {
+      'roomId': roomId,
+      'key': key,
+      'version': version,
+      'plaintext': base64Url
+          .encode(utf8.encode(jsonEncode(body)))
+          .replaceAll('=', ''),
+      'signAsPrincipal': true,
+    });
+    final sealed = answer['sealed'];
+    if (sealed is! Map<String, dynamic> ||
+        sealed['ciphertext'] is! String ||
+        sealed['nonce'] is! String ||
+        sealed['epoch'] is! int) {
+      throw MeetingPlaceVtcSDKException.invalidDocument('no sealed record');
+    }
+    return SealedRoomRecord(
+      ciphertext: sealed['ciphertext'] as String,
+      nonce: sealed['nonce'] as String,
+      epoch: sealed['epoch'] as int,
+    );
+  }
+
   /// Sends a signed task and returns the answer's payload.
   Future<Map<String, dynamic>> _task(
     String type,

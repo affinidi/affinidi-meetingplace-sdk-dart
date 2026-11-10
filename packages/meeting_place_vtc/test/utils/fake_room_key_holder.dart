@@ -25,14 +25,26 @@ class FakeRoomKeyHolder implements RoomKeyHolder {
   bool tamper = false;
   bool keyPackageAlreadyMinted = false;
   String? refuseWelcomeWith;
+  String? refuseActWith;
 
   @override
   Future<Map<String, dynamic>> actAsMember(
     Map<String, dynamic> unsigned,
   ) async {
+    if (refuseActWith case final code?) {
+      throw MeetingPlaceVtcSDKException.refused(code);
+    }
     acted.add(unsigned);
+    final document = Map<String, dynamic>.of(unsigned);
+    if (!unsigned['type'].toString().contains('/vtc/')) {
+      // A host's request: the VTA puts the member's presentation in.
+      document['payload'] = {
+        ...unsigned['payload'] as Map<String, dynamic>,
+        'presentation': {'type': 'VerifiablePresentation'},
+      };
+    }
     final signed = await EddsaJcs2022.sign(
-      unsigned,
+      document,
       signer: persona,
       purpose: ProofPurpose.authentication,
     );
@@ -86,6 +98,20 @@ class FakeRoomKeyHolder implements RoomKeyHolder {
     required String host,
     required String key,
   }) async => read;
+
+  /// Bodies [sealAsMember] was asked to seal, signed as the member.
+  final List<Map<String, dynamic>> sealedBodies = [];
+
+  @override
+  Future<SealedRoomRecord> sealAsMember({
+    required String roomId,
+    required String key,
+    required int version,
+    required Map<String, dynamic> body,
+  }) async {
+    sealedBodies.add(body);
+    return SealedRoomRecord(ciphertext: 'ct-$version', nonce: 'n', epoch: 1);
+  }
 
   @override
   Future<bool> keepCredential(

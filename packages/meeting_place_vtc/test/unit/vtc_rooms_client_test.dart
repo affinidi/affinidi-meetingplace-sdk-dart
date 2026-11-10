@@ -267,6 +267,117 @@ void main() {
     });
   });
 
+  group('VtcRoomsClient.write', () {
+    Future<RoomWrite> write(RoomVisibility visibility) => client().write(
+      vtcDid,
+      holder: holder,
+      memberDid: holder.member.did,
+      roomId: _room,
+      visibility: visibility,
+      title: 'Opening keynote',
+      body: 'Welcome to DevCon 2026',
+    );
+
+    test(
+      'seals a sealed room record as the member at the next version',
+      () async {
+        vtc.answerTo[RoomTask.recordsList] = (_) => {
+          'records': <Object>[],
+          'headVersion': 4,
+        };
+        vtc.answerTo[RoomTask.recordsPut] = (payload) => {
+          'key': payload['key'],
+          'version': 5,
+        };
+
+        final written = await write(RoomVisibility.attributed);
+
+        expect(written.version, 5);
+        final body = holder.sealedBodies.single;
+        expect(body['author'], holder.member.did);
+        expect(body['roomId'], _room);
+        expect(body['key'], written.key);
+        expect(body['version'], 5);
+        expect(body['title'], 'Opening keynote');
+        expect(body.containsKey('proof'), isFalse);
+
+        final put = vtc.received.last;
+        expect(put['type'], RoomTask.recordsPut);
+        expect(put['issuer'], holder.member.did);
+        expect(put['recipient'], vtcDid);
+        final payload = put['payload'] as Map<String, dynamic>;
+        expect(payload['sealed'], {
+          'ciphertext': 'ct-5',
+          'nonce': 'n',
+          'epoch': 1,
+        });
+        expect(payload['presentation'], isNotNull);
+        expect(payload.containsKey('cleartext'), isFalse);
+      },
+    );
+
+    test('seals again for the version the host gave', () async {
+      vtc.answerTo[RoomTask.recordsList] = (_) => {
+        'records': <Object>[],
+        'headVersion': 4,
+      };
+      var puts = 0;
+      vtc.answerTo[RoomTask.recordsPut] = (payload) => {
+        'key': payload['key'],
+        'version': puts++ == 0 ? 6 : 7,
+      };
+
+      final written = await write(RoomVisibility.attributed);
+
+      expect(written.version, 7);
+      expect(holder.sealedBodies.map((b) => b['version']), [5, 7]);
+      final retry = vtc.received.last['payload'] as Map<String, dynamic>;
+      expect(retry['expectedVersion'], 6);
+    });
+
+    test('writes an open room record in the clear', () async {
+      vtc.answerTo[RoomTask.recordsPut] = (payload) => {
+        'key': payload['key'],
+        'version': 1,
+      };
+
+      await write(RoomVisibility.open);
+
+      expect(holder.sealedBodies, isEmpty);
+      final payload = vtc.received.single['payload'] as Map<String, dynamic>;
+      expect(payload['cleartext'], {
+        'title': 'Opening keynote',
+        'body': 'Welcome to DevCon 2026',
+      });
+    });
+
+    test('passes on the VTA refusing a member who may only read', () async {
+      holder.refuseActWith = 'rooms/keys/act:actionNotHeld';
+
+      await expectLater(
+        write(RoomVisibility.open),
+        throwsA(
+          isA<MeetingPlaceVtcSDKException>().having(
+            (e) => e.refusalCode,
+            'refusalCode',
+            'rooms/keys/act:actionNotHeld',
+          ),
+        ),
+      );
+      expect(vtc.received, isEmpty);
+    });
+
+    test('refuses a host request the VTA changed', () async {
+      holder.tamper = true;
+
+      await expectLater(
+        write(RoomVisibility.open),
+        _throwsCode(MeetingPlaceVtcSDKErrorCode.invalidDocument),
+      );
+      expect(vtc.received, isEmpty);
+    });
+  });
+
   group('VtcRoomsClient.collectRenewal', () {
     RoomRenewal renewal() => RoomRenewal(
       roomId: _room,

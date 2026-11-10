@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:collection/collection.dart';
 import 'package:ssi/ssi.dart';
@@ -356,14 +357,123 @@ class VtcRoomsClient {
     );
   }
 
+  /// Writes a record titled [title] with [body] to [roomId], hosted by the
+  /// community [communityDid], as [memberDid].
+  ///
+  /// On a sealed room the member's VTA signs the record as the member and
+  /// seals it, so the host never reads it. The host numbers records from a
+  /// room-wide counter, so a record sealed for a version another write took
+  /// is sealed again for the one the host gave it.
+  ///
+  /// Throws [MeetingPlaceVtcSDKException] when the VTA refuses, e.g. refused
+  /// with a code ending in `:actionNotHeld` when the member may only read,
+  /// or the host refuses or cannot be reached.
+  Future<RoomWrite> write(
+    String communityDid, {
+    required RoomKeyHolder holder,
+    required String memberDid,
+    required String roomId,
+    required RoomVisibility visibility,
+    required String title,
+    String? body,
+  }) async {
+    if (title.trim().isEmpty) {
+      throw MeetingPlaceVtcSDKException.invalidDocument(
+        'a record needs a title',
+      );
+    }
+    final community = await _vtcResolver.resolveCommunity(communityDid);
+    final key = _opaqueKey();
+
+    Future<RoomWrite> put(Map<String, dynamic> payload) async {
+      final answer = await _asMember(
+        community,
+        holder: holder,
+        memberDid: memberDid,
+        type: RoomTask.recordsPut,
+        payload: {'roomId': roomId, 'key': key, ...payload},
+        presented: true,
+      );
+      final version = answer['version'];
+      if (answer['key'] != key || version is! int) {
+        throw MeetingPlaceVtcSDKException.invalidDocument('malformed put');
+      }
+      return RoomWrite(key: key, version: version);
+    }
+
+    if (!visibility.isSealed) {
+      return put({
+        'cleartext': {'title': title, 'body': ?body},
+      });
+    }
+
+    final listing = await _asMember(
+      community,
+      holder: holder,
+      memberDid: memberDid,
+      type: RoomTask.recordsList,
+      payload: {'roomId': roomId},
+      presented: true,
+    );
+    final head = listing['headVersion'];
+    var intended = (head is int ? head : 0) + 1;
+    int? expected;
+    for (var attempt = 0; attempt < maxSealAttempts; attempt++) {
+      final sealed = await holder.sealAsMember(
+        roomId: roomId,
+        key: key,
+        version: intended,
+        body: {
+          'roomId': roomId,
+          'key': key,
+          'version': intended,
+          'author': memberDid,
+          'title': title,
+          'body': ?body,
+          'basis': 'declared',
+        },
+      );
+      final written = await put({
+        'sealed': {
+          'ciphertext': sealed.ciphertext,
+          'nonce': sealed.nonce,
+          'epoch': sealed.epoch,
+        },
+        'expectedVersion': ?expected,
+      });
+      if (written.version == intended) return written;
+      // Stored, sealed for a version another write took: seal it again,
+      // over only what just landed.
+      expected = written.version;
+      intended = written.version + 1;
+    }
+    throw MeetingPlaceVtcSDKException.invalidDocument(
+      'the room kept moving while the record was written',
+    );
+  }
+
+  /// Most times [write] seals a record again for the version the host
+  /// gave it.
+  static const maxSealAttempts = 4;
+
+  static String _opaqueKey() {
+    final random = Random.secure();
+    final bytes = List<int>.generate(16, (_) => random.nextInt(256));
+    return base64Url.encode(bytes).replaceAll('=', '');
+  }
+
   /// Has [holder] complete a [type] request to [community] as [memberDid]
   /// and sends it, returning the community's answer.
+  ///
+  /// A [presented] request is one to the room's host, into whose payload
+  /// the VTA puts the member's presentation.
   Future<Map<String, dynamic>> _asMember(
     VtcCommunityEndpoint community, {
     required RoomKeyHolder holder,
     required String memberDid,
     required String type,
     required Map<String, dynamic> payload,
+    bool presented = false,
   }) async {
     final unsigned = TrustTaskDocument.create(
       type: type,
@@ -372,9 +482,20 @@ class VtcRoomsClient {
       payload: payload,
     ).toJson();
     final completed = await holder.actAsMember(unsigned);
-    // The community's types take no presentation: the VTA adds its proof
+    // The VTA adds its proof, and to a host's request the presentation,
     // and changes nothing else.
     final withoutProof = Map<String, dynamic>.of(completed)..remove('proof');
+    if (presented) {
+      final completedPayload = withoutProof['payload'];
+      if (completedPayload is! Map<String, dynamic> ||
+          completedPayload['presentation'] is! Map<String, dynamic>) {
+        throw MeetingPlaceVtcSDKException.invalidDocument(
+          'the VTA added no presentation',
+        );
+      }
+      withoutProof['payload'] = Map<String, dynamic>.of(completedPayload)
+        ..remove('presentation');
+    }
     if (!const DeepCollectionEquality().equals(withoutProof, unsigned)) {
       throw MeetingPlaceVtcSDKException.invalidDocument(
         'the VTA changed the document it completed',

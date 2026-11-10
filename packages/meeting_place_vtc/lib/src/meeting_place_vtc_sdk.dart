@@ -13,6 +13,7 @@ import 'persona/persona_inbox.dart';
 import 'persona/persona_messenger.dart';
 import 'proof/trust_task_signer.dart';
 import 'relationships/vtc_relationships_client.dart';
+import 'rooms/vtc_rooms_client.dart';
 import 'sign_in/oob_sign_in_client.dart';
 import 'sign_in/sign_in_agent.dart';
 import 'sign_in/sign_in_failure.dart';
@@ -160,6 +161,11 @@ class MeetingPlaceVtcSDK {
   /// A client to read a community's groups as a member's persona.
   VtcGroupsClient groupsClient() =>
       VtcGroupsClient(didResolver: _didResolver, transport: _transport);
+
+  /// A client to use a community's data rooms as a member, through the
+  /// member's VTA.
+  VtcRoomsClient roomsClient() =>
+      VtcRoomsClient(didResolver: _didResolver, transport: _transport);
 
   /// A client to find other members in a community's directory, and be
   /// found, as a member's persona.

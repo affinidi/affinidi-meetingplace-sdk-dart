@@ -1686,6 +1686,49 @@ void main() {
         expect(held.single.member, 'did:key:member');
       });
 
+      test('has a record body signed as the member and sealed', () async {
+        vta.answers[RoomTask.seal] = {
+          'sealed': {'ciphertext': 'ct', 'nonce': 'n', 'epoch': 3},
+        };
+        final body = {'roomId': room, 'key': 'k', 'version': 2, 'title': 'T'};
+
+        final sealed = await client.sealAsMember(
+          roomId: room,
+          key: 'k',
+          version: 2,
+          body: body,
+        );
+
+        expect(sealed.ciphertext, 'ct');
+        expect(sealed.epoch, 3);
+        final payload = vta.received.single['payload'] as Map<String, dynamic>;
+        expect(payload['signAsPrincipal'], isTrue);
+        expect(payload['version'], 2);
+        final plaintext = payload['plaintext'] as String;
+        expect(plaintext, isNot(contains('=')));
+        expect(
+          jsonDecode(
+            utf8.decode(base64Url.decode(base64Url.normalize(plaintext))),
+          ),
+          body,
+        );
+      });
+
+      test('refuses a seal answer with no sealed record', () async {
+        vta.answers[RoomTask.seal] = {'sealed': <String, dynamic>{}};
+
+        await expectLater(
+          client.sealAsMember(roomId: room, key: 'k', version: 1, body: {}),
+          throwsA(
+            isA<MeetingPlaceVtcSDKException>().having(
+              (e) => e.code,
+              'code',
+              MeetingPlaceVtcSDKErrorCode.invalidDocument,
+            ),
+          ),
+        );
+      });
+
       test('keeps a renewed credential in place of the old one', () async {
         vta.answers[VtaTask.credentialsReceive] = {
           'id': 'old-vmc',

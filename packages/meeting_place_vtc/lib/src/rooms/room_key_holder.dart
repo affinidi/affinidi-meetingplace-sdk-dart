@@ -30,6 +30,34 @@ abstract final class RoomTask {
 
   /// Has the member's VTA read and open one record from its host.
   static const read = '$_spec/rooms/keys/read/0.1';
+
+  /// Has the member's VTA sign a record body as the member and seal it.
+  static const seal = '$_spec/rooms/keys/seal/0.2';
+
+  /// Writes one record to a room's host.
+  static const recordsPut = '$_spec/rooms/records/put/0.3';
+
+  /// Lists a room's records from its host, metadata only.
+  static const recordsList = '$_spec/rooms/records/list/0.5';
+}
+
+/// A record body the member's VTA signed and sealed for one room.
+class SealedRoomRecord {
+  /// Creates a [SealedRoomRecord].
+  const SealedRoomRecord({
+    required this.ciphertext,
+    required this.nonce,
+    required this.epoch,
+  });
+
+  /// The sealed body, base64url.
+  final String ciphertext;
+
+  /// The AEAD nonce, base64url.
+  final String nonce;
+
+  /// The key epoch it was sealed under.
+  final int epoch;
 }
 
 /// A KeyPackage the member's VTA minted for one room's invitation.
@@ -97,6 +125,16 @@ abstract interface class RoomKeyHolder {
     required String roomId,
     required String host,
     required String key,
+  });
+
+  /// Has the VTA sign [body], a record body naming the member as author,
+  /// as the member and seal it for [key] at [version] of [roomId]
+  /// (`rooms/keys/seal`, `signAsPrincipal`).
+  Future<SealedRoomRecord> sealAsMember({
+    required String roomId,
+    required String key,
+    required int version,
+    required Map<String, dynamic> body,
   });
 
   /// Stores [credential] in [contextId], in place of the stored credential

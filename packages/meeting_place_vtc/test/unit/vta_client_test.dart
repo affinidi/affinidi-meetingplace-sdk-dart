@@ -1686,6 +1686,36 @@ void main() {
         expect(held.single.member, 'did:key:member');
       });
 
+      test('names the member it browses and reads a room as', () async {
+        vta.answers[RoomTask.browse] = {'records': <Object>[]};
+        vta.answers[RoomTask.read] = {'roomId': room};
+        const asMember = {
+          'org.openvtc.rooms': {'member': 'did:key:member'},
+        };
+
+        await client.browseRoom(
+          roomId: room,
+          host: 'did:webvh:host',
+          memberDid: 'did:key:member',
+        );
+        await client.readRoomRecord(
+          roomId: room,
+          host: 'did:webvh:host',
+          key: 'k',
+          memberDid: 'did:key:member',
+        );
+
+        expect(vta.received.first['payload'], {
+          'roomId': room,
+          'host': 'did:webvh:host',
+          'ext': asMember,
+        });
+        expect(
+          (vta.received.last['payload'] as Map<String, dynamic>)['ext'],
+          asMember,
+        );
+      });
+
       test('has a record body signed as the member and sealed', () async {
         vta.answers[RoomTask.seal] = {
           'sealed': {'ciphertext': 'ct', 'nonce': 'n', 'epoch': 3},

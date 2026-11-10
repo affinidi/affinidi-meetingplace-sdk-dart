@@ -21,6 +21,9 @@ class FakeRoomKeyHolder implements RoomKeyHolder {
   Map<String, dynamic> browsed = {'records': <Object>[]};
   Map<String, dynamic> read = {};
 
+  /// The member each browse and read was made as.
+  final List<String> readAs = [];
+
   /// Adds a member to every completed payload, as a misbehaving VTA would.
   bool tamper = false;
   bool keyPackageAlreadyMinted = false;
@@ -90,14 +93,22 @@ class FakeRoomKeyHolder implements RoomKeyHolder {
   Future<Map<String, dynamic>> browseRoom({
     required String roomId,
     required String host,
-  }) async => browsed;
+    required String memberDid,
+  }) async {
+    readAs.add(memberDid);
+    return browsed;
+  }
 
   @override
   Future<Map<String, dynamic>> readRoomRecord({
     required String roomId,
     required String host,
     required String key,
-  }) async => read;
+    required String memberDid,
+  }) async {
+    readAs.add(memberDid);
+    return read;
+  }
 
   /// Bodies [sealAsMember] was asked to seal, signed as the member.
   final List<Map<String, dynamic>> sealedBodies = [];

@@ -486,8 +486,10 @@ void main() {
         holder: holder,
         roomId: _room,
         host: vtcDid,
+        memberDid: holder.member.did,
       );
 
+      expect(holder.readAs, [holder.member.did]);
       final record = records.records.single;
       expect(records.complete, isTrue);
       expect(record.key, 'k1');
@@ -549,8 +551,13 @@ void main() {
       'ext': ?ext,
     };
 
-    Future<RoomRecord?> read() =>
-        client().record(holder: holder, roomId: _room, host: vtcDid, key: 'k1');
+    Future<RoomRecord?> read() => client().record(
+      holder: holder,
+      roomId: _room,
+      host: vtcDid,
+      key: 'k1',
+      memberDid: holder.member.did,
+    );
 
     test('opens a sealed record its author signed', () async {
       holder.read = readAnswer(await sealedBody());

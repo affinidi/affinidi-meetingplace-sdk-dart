@@ -1225,14 +1225,31 @@ class VtaClient implements PersonaSigningAgent, RoomKeyHolder {
   Future<Map<String, dynamic>> browseRoom({
     required String roomId,
     required String host,
-  }) => _task(RoomTask.browse, {'roomId': roomId, 'host': host});
+    required String memberDid,
+  }) => _task(RoomTask.browse, {
+    'roomId': roomId,
+    'host': host,
+    'ext': _asRoomMember(memberDid),
+  });
 
   @override
   Future<Map<String, dynamic>> readRoomRecord({
     required String roomId,
     required String host,
     required String key,
-  }) => _task(RoomTask.read, {'roomId': roomId, 'host': host, 'key': key});
+    required String memberDid,
+  }) => _task(RoomTask.read, {
+    'roomId': roomId,
+    'host': host,
+    'key': key,
+    'ext': _asRoomMember(memberDid),
+  });
+
+  /// Names the member a room task acts as, for a VTA that may act as more
+  /// than one member of the room.
+  static Map<String, dynamic> _asRoomMember(String memberDid) => {
+    'org.openvtc.rooms': {'member': memberDid},
+  };
 
   @override
   Future<SealedRoomRecord> sealAsMember({

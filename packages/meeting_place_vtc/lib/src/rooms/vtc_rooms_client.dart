@@ -238,7 +238,7 @@ class VtcRoomsClient {
   }
 
   /// The records of [roomId], which the member's VTA lists from the room's
-  /// [host]. Never their content: [record] reads one.
+  /// [host] as [memberDid]. Never their content: [record] reads one.
   ///
   /// Throws [MeetingPlaceVtcSDKException] when the VTA refuses, e.g. when it
   /// holds no place in the room for the member, or the host cannot be
@@ -247,8 +247,13 @@ class VtcRoomsClient {
     required RoomKeyHolder holder,
     required String roomId,
     required String host,
+    required String memberDid,
   }) async {
-    final answer = await holder.browseRoom(roomId: roomId, host: host);
+    final answer = await holder.browseRoom(
+      roomId: roomId,
+      host: host,
+      memberDid: memberDid,
+    );
     final records = answer['records'];
     if (records is! List) {
       throw MeetingPlaceVtcSDKException.invalidDocument('no records');
@@ -276,11 +281,13 @@ class VtcRoomsClient {
     required String roomId,
     required String host,
     required String key,
+    required String memberDid,
   }) async {
     final answer = await holder.readRoomRecord(
       roomId: roomId,
       host: host,
       key: key,
+      memberDid: memberDid,
     );
     final ext = answer['ext'];
     final details = ext is Map<String, dynamic> ? ext[memberExt] : null;

@@ -113,18 +113,22 @@ abstract interface class RoomKeyHolder {
   /// The rooms the VTA holds group state for (`rooms/keys/list`).
   Future<List<HeldRoom>> heldRooms();
 
-  /// The VTA's listing of [roomId]'s records at [host] (`rooms/keys/browse`).
+  /// The VTA's listing of [roomId]'s records at [host] (`rooms/keys/browse`),
+  /// read as [memberDid]: a VTA that may act as more than one member of the
+  /// room, such as the community's own, is told which.
   Future<Map<String, dynamic>> browseRoom({
     required String roomId,
     required String host,
+    required String memberDid,
   });
 
-  /// The VTA's read of [key] from [roomId] at [host], opened on a sealed
-  /// room (`rooms/keys/read`).
+  /// The VTA's read of [key] from [roomId] at [host] as [memberDid], opened
+  /// on a sealed room (`rooms/keys/read`).
   Future<Map<String, dynamic>> readRoomRecord({
     required String roomId,
     required String host,
     required String key,
+    required String memberDid,
   });
 
   /// Has the VTA sign [body], a record body naming the member as author,

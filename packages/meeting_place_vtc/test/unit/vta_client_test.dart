@@ -1702,5 +1702,157 @@ void main() {
         );
       });
     });
+
+    group('rooms', () {
+      const room = 'did:webvh:QmRoom:community.example:room-dids:talks';
+
+      test('returns the document the VTA completed as the member', () async {
+        final completed = {'id': 'urn:uuid:1', 'proof': <String, dynamic>{}};
+        vta.answers[RoomTask.act] = {
+          'document': completed,
+          'principal': 'did:key:member',
+        };
+
+        final document = await client.actAsMember({'id': 'urn:uuid:1'});
+
+        expect(document, completed);
+        expect(vta.received.single['payload'], {
+          'document': {'id': 'urn:uuid:1'},
+        });
+      });
+
+      test('mints a key package and joins with the Welcome', () async {
+        vta.answers[RoomTask.keyPackage] = {
+          'keyPackage': 'kp',
+          'alreadyMinted': true,
+          'expiresAt': '2026-11-23T10:00:00Z',
+        };
+        vta.answers[RoomTask.welcome] = {'epoch': 4};
+
+        final keyPackage = await client.roomKeyPackage(
+          roomId: room,
+          invitation: 'vic',
+        );
+        final epoch = await client.joinRoomGroup(
+          roomId: room,
+          invitation: 'vic',
+          welcome: 'w',
+        );
+
+        expect(keyPackage.keyPackage, 'kp');
+        expect(keyPackage.alreadyMinted, isTrue);
+        expect(epoch, 4);
+        expect(vta.received.last['payload'], {
+          'roomId': room,
+          'invitation': 'vic',
+          'welcome': 'w',
+        });
+      });
+
+      test('lists the rooms it holds, per member', () async {
+        vta.answers[RoomTask.keysList] = {
+          'rooms': [
+            {'roomId': room, 'member': 'did:key:member', 'epoch': 2},
+            {'roomId': room},
+          ],
+        };
+
+        final held = await client.heldRooms();
+
+        expect(held.single.member, 'did:key:member');
+      });
+
+      test('names the member it browses and reads a room as', () async {
+        vta.answers[RoomTask.browse] = {'records': <Object>[]};
+        vta.answers[RoomTask.read] = {'roomId': room};
+        const asMember = {
+          'org.openvtc.rooms': {'member': 'did:key:member'},
+        };
+
+        await client.browseRoom(
+          roomId: room,
+          host: 'did:webvh:host',
+          memberDid: 'did:key:member',
+        );
+        await client.readRoomRecord(
+          roomId: room,
+          host: 'did:webvh:host',
+          key: 'k',
+          memberDid: 'did:key:member',
+        );
+
+        expect(vta.received.first['payload'], {
+          'roomId': room,
+          'host': 'did:webvh:host',
+          'ext': asMember,
+        });
+        expect(
+          (vta.received.last['payload'] as Map<String, dynamic>)['ext'],
+          asMember,
+        );
+      });
+
+      test('has a record body signed as the member and sealed', () async {
+        vta.answers[RoomTask.seal] = {
+          'sealed': {'ciphertext': 'ct', 'nonce': 'n', 'epoch': 3},
+        };
+        final body = {'roomId': room, 'key': 'k', 'version': 2, 'title': 'T'};
+
+        final sealed = await client.sealAsMember(
+          roomId: room,
+          key: 'k',
+          version: 2,
+          body: body,
+        );
+
+        expect(sealed.ciphertext, 'ct');
+        expect(sealed.epoch, 3);
+        final payload = vta.received.single['payload'] as Map<String, dynamic>;
+        expect(payload['signAsPrincipal'], isTrue);
+        expect(payload['version'], 2);
+        final plaintext = payload['plaintext'] as String;
+        expect(plaintext, isNot(contains('=')));
+        expect(
+          jsonDecode(
+            utf8.decode(base64Url.decode(base64Url.normalize(plaintext))),
+          ),
+          body,
+        );
+      });
+
+      test('refuses a seal answer with no sealed record', () async {
+        vta.answers[RoomTask.seal] = {'sealed': <String, dynamic>{}};
+
+        await expectLater(
+          client.sealAsMember(roomId: room, key: 'k', version: 1, body: {}),
+          throwsA(
+            isA<MeetingPlaceVtcSDKException>().having(
+              (e) => e.code,
+              'code',
+              MeetingPlaceVtcSDKErrorCode.invalidDocument,
+            ),
+          ),
+        );
+      });
+
+      test('keeps a renewed credential in place of the old one', () async {
+        vta.answers[VtaTask.credentialsReceive] = {
+          'id': 'old-vmc',
+          'status': 'valid',
+          'types': ['MembershipCredential'],
+        };
+
+        await client.keepCredential(
+          {'id': 'urn:uuid:new-vmc'},
+          contextId: 'members',
+          replacing: 'old-vmc',
+        );
+
+        expect(
+          (vta.received.single['payload'] as Map<String, dynamic>)['id'],
+          'old-vmc',
+        );
+      });
+    });
   });
 }

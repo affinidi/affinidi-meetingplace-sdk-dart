@@ -10,6 +10,7 @@ import '../meeting_place_vtc_sdk_error_code.dart';
 import '../meeting_place_vtc_sdk_exception.dart';
 import '../persona/persona_did_manager.dart';
 import '../proof/trust_task_signer.dart';
+import '../rooms/room_key_holder.dart';
 import '../sign_in/sign_in_agent.dart';
 import '../transport/didcomm_vta_transport.dart';
 import '../trust_task/trust_task_document.dart';
@@ -163,7 +164,7 @@ const _vaultSecretMessageType =
 /// Signs every request as the phone's manager key, which the VTA's access
 /// list must hold; the authcrypt envelope authenticates the key, so there is
 /// no login. Nothing is logged.
-class VtaClient implements PersonaSigningAgent {
+class VtaClient implements PersonaSigningAgent, RoomKeyHolder {
   /// Creates a [VtaClient] for the VTA [vtaDid], acting as [manager].
   ///
   /// [transport] defaults to DIDComm through the VTA's mediator.
@@ -739,17 +740,25 @@ class VtaClient implements PersonaSigningAgent {
   /// stores it, and files a membership credential under purpose
   /// `membership`.
   ///
+  /// Stored under the handle [replacing] when given, so it takes the place
+  /// of that credential, such as a renewed room membership.
+  ///
   /// Returns whether the VTA keeps it as usable: false for a card it found
   /// revoked or expired.
+  @override
   Future<bool> keepCredential(
     Map<String, dynamic> credential, {
     required String contextId,
+    String? replacing,
   }) async {
     final answer = await _task(VtaTask.credentialsReceive, {
       'credential': credential,
       'contextId': contextId,
       // Its own id, so storing the same card again replaces it.
-      if (credential['id'] case final String id) 'id': id,
+      if (replacing != null)
+        'id': replacing
+      else if (credential['id'] case final String id)
+        'id': id,
     });
     return !const {'revoked', 'expired'}.contains(answer['status']);
   }
@@ -1048,6 +1057,7 @@ class VtaClient implements PersonaSigningAgent {
   /// Finds the valid credentials the vault holds, carrying the VC type
   /// [type], issued by [issuerDid] and made out to [subjectDid] when given.
   /// Returns descriptions only, never a credential's claims.
+  @override
   Future<List<HeldCredential>> findCredentials({
     String? type,
     String? issuerDid,
@@ -1170,6 +1180,132 @@ class VtaClient implements PersonaSigningAgent {
   /// hides it from queries and refuses to present it, but can restore it.
   Future<void> archiveCredential(String id) async {
     await _task(VtaTask.credentialsArchive, {'id': id});
+  }
+
+  @override
+  Future<Map<String, dynamic>> actAsMember(
+    Map<String, dynamic> unsigned,
+  ) async {
+    final answer = await _task(RoomTask.act, {'document': unsigned});
+    final document = answer['document'];
+    if (document is! Map<String, dynamic>) {
+      throw MeetingPlaceVtcSDKException.invalidDocument(
+        'no completed document in the answer',
+      );
+    }
+    return document;
+  }
+
+  @override
+  Future<RoomKeyPackage> roomKeyPackage({
+    required String roomId,
+    required String invitation,
+  }) async {
+    final answer = await _task(RoomTask.keyPackage, {
+      'roomId': roomId,
+      'invitation': invitation,
+    });
+    final keyPackage = answer['keyPackage'];
+    if (keyPackage is! String) {
+      throw MeetingPlaceVtcSDKException.invalidDocument('no keyPackage');
+    }
+    return RoomKeyPackage(
+      keyPackage: keyPackage,
+      alreadyMinted: answer['alreadyMinted'] == true,
+    );
+  }
+
+  @override
+  Future<int> joinRoomGroup({
+    required String roomId,
+    required String invitation,
+    required String welcome,
+    String? ratchetTree,
+  }) async {
+    final answer = await _task(RoomTask.welcome, {
+      'roomId': roomId,
+      'invitation': invitation,
+      'welcome': welcome,
+      'ratchetTree': ?ratchetTree,
+    });
+    final epoch = answer['epoch'];
+    if (epoch is! int) {
+      throw MeetingPlaceVtcSDKException.invalidDocument('no epoch');
+    }
+    return epoch;
+  }
+
+  @override
+  Future<List<HeldRoom>> heldRooms() async {
+    final answer = await _task(RoomTask.keysList, const {});
+    return [
+      for (final room in _maps(answer['rooms']))
+        if ((room['roomId'], room['member']) case (
+          final String roomId,
+          final String member,
+        ))
+          HeldRoom(roomId: roomId, member: member),
+    ];
+  }
+
+  @override
+  Future<Map<String, dynamic>> browseRoom({
+    required String roomId,
+    required String host,
+    required String memberDid,
+  }) => _task(RoomTask.browse, {
+    'roomId': roomId,
+    'host': host,
+    'ext': _asRoomMember(memberDid),
+  });
+
+  @override
+  Future<Map<String, dynamic>> readRoomRecord({
+    required String roomId,
+    required String host,
+    required String key,
+    required String memberDid,
+  }) => _task(RoomTask.read, {
+    'roomId': roomId,
+    'host': host,
+    'key': key,
+    'ext': _asRoomMember(memberDid),
+  });
+
+  /// Names the member a room task acts as, for a VTA that may act as more
+  /// than one member of the room.
+  static Map<String, dynamic> _asRoomMember(String memberDid) => {
+    'org.openvtc.rooms': {'member': memberDid},
+  };
+
+  @override
+  Future<SealedRoomRecord> sealAsMember({
+    required String roomId,
+    required String key,
+    required int version,
+    required Map<String, dynamic> body,
+  }) async {
+    final answer = await _task(RoomTask.seal, {
+      'roomId': roomId,
+      'key': key,
+      'version': version,
+      'plaintext': base64Url
+          .encode(utf8.encode(jsonEncode(body)))
+          .replaceAll('=', ''),
+      'signAsPrincipal': true,
+    });
+    final sealed = answer['sealed'];
+    if (sealed is! Map<String, dynamic> ||
+        sealed['ciphertext'] is! String ||
+        sealed['nonce'] is! String ||
+        sealed['epoch'] is! int) {
+      throw MeetingPlaceVtcSDKException.invalidDocument('no sealed record');
+    }
+    return SealedRoomRecord(
+      ciphertext: sealed['ciphertext'] as String,
+      nonce: sealed['nonce'] as String,
+      epoch: sealed['epoch'] as int,
+    );
   }
 
   /// Sends a signed task and returns the answer's payload.

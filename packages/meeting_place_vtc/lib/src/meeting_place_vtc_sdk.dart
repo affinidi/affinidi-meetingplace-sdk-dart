@@ -27,6 +27,7 @@ import 'vetting/vetting_vetter.dart';
 import 'vta/vta_client.dart';
 import 'vta/vta_link.dart';
 import 'vta/vta_models.dart';
+import 'vtc/caching_did_resolver.dart';
 
 /// Entry point to Verifiable Trust Community (VTC) support.
 ///
@@ -47,7 +48,8 @@ import 'vta/vta_models.dart';
 class MeetingPlaceVtcSDK {
   /// Creates a [MeetingPlaceVtcSDK].
   ///
-  /// [didResolver] defaults to a resolver that verifies `did:webvh` logs.
+  /// [didResolver] defaults to a resolver that verifies `did:webvh` logs
+  /// and keeps what it resolved for a few minutes.
   /// [openVtaMailbox] opens a manager key's inbox on the VTA's mediator,
   /// [openMediatorInbox] a persona's inbox on its mediator, and
   /// [openMediatorOutbox] a session with another member's mediator to send
@@ -58,7 +60,9 @@ class MeetingPlaceVtcSDK {
     VtaMailboxOpener? openVtaMailbox,
     MediatorInboxOpener? openMediatorInbox,
     MediatorOutboxOpener? openMediatorOutbox,
-  }) : _didResolver = didResolver ?? UniversalDIDResolver.defaultResolver,
+  }) : _didResolver =
+           didResolver ??
+           CachingDidResolver(UniversalDIDResolver.defaultResolver),
        _dio = dio,
        _transport = TrustTaskHttpTransport(dio: dio),
        _openVtaMailbox = openVtaMailbox,

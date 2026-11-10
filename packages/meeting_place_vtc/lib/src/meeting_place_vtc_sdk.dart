@@ -64,6 +64,7 @@ class MeetingPlaceVtcSDK {
   }) : _didResolver =
            didResolver ??
            CachingDidResolver(UniversalDIDResolver.defaultResolver),
+       _freshDidResolver = didResolver ?? UniversalDIDResolver.defaultResolver,
        _dio = dio,
        _transport = TrustTaskHttpTransport(dio: dio),
        _openVtaMailbox = openVtaMailbox,
@@ -71,6 +72,10 @@ class MeetingPlaceVtcSDK {
        _openMediatorOutbox = openMediatorOutbox;
 
   final DidResolver _didResolver;
+
+  /// Resolves without keeping what it resolved, for what a member checks
+  /// precisely to see it change, such as a group's chat link.
+  final DidResolver _freshDidResolver;
   final Dio? _dio;
   final TrustTaskHttpTransport _transport;
   final VtaMailboxOpener? _openVtaMailbox;
@@ -190,9 +195,15 @@ class MeetingPlaceVtcSDK {
   /// The link to a Meeting Place chat that the community published in the
   /// DID document of its group [groupDid], or null when it published none.
   ///
+  /// Resolved afresh each time, not from the documents kept for a few
+  /// minutes: a member's app checks for the link to join a chat as soon as
+  /// the community publishes it.
+  ///
   /// Throws when the group's DID cannot be resolved.
   Future<GroupChatLink?> groupChatLink(String groupDid) async =>
-      GroupChatLink.fromDidDocument(await _didResolver.resolveDid(groupDid));
+      GroupChatLink.fromDidDocument(
+        await _freshDidResolver.resolveDid(groupDid),
+      );
 
   /// A client to join communities.
   VtcJoinClient joinClient() =>

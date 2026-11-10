@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:didcomm/didcomm.dart' hide TrustTaskDocument;
@@ -11,6 +12,7 @@ import '../utils/fake_persona.dart';
 class _FakeInbox implements MediatorInbox {
   final Map<String, Map<String, dynamic>> messages = {};
   final List<String> deleted = [];
+  final arrived = StreamController<void>();
   bool isClosed = false;
 
   @override
@@ -24,6 +26,9 @@ class _FakeInbox implements MediatorInbox {
     deleted.addAll(ids);
     ids.forEach(messages.remove);
   }
+
+  @override
+  Stream<void> arrivals() => arrived.stream;
 
   @override
   Future<void> close() async => isClosed = true;
@@ -447,6 +452,130 @@ void main() {
           'vetter',
           'stranger',
         ]);
+      });
+    });
+
+    group('removalNotices', () {
+      Map<String, dynamic> removal({String? did}) => {
+        'did': did ?? persona.did,
+        'code': 'adminRemoved',
+        'disposition': 'tombstone',
+        'reason': 'Repeated code-of-conduct breach.',
+        'decidedAt': '2026-08-23T09:14:02Z',
+        'decidedBy': 'did:key:zAdmin',
+      };
+
+      Future<TrustTaskDocument> notice({
+        Map<String, dynamic>? payload,
+        Ed25519DidKeySigner? signer,
+      }) => TrustTaskDocument.create(
+        type: memberRemovalNoticeTask,
+        issuer: (signer ?? community).did,
+        recipient: persona.did,
+        payload: payload ?? removal(),
+      ).sign(signer ?? community, purpose: ProofPurpose.authentication);
+
+      Future<List<RemovalNotice>> pickUp() async {
+        await personaInbox.open();
+        return personaInbox.removalNotices(communityDid: community.did);
+      }
+
+      test('picks up the community removing the persona, and leaves '
+          'it', () async {
+        final document = await notice();
+        inbox.messages['m-1'] = await sealed(document.toJson());
+
+        final found = (await pickUp()).single;
+
+        expect(found.messageId, 'm-1');
+        expect(found.document.toJson(), document.toJson());
+        expect(found.code, 'adminRemoved');
+        expect(found.disposition, 'tombstone');
+        expect(found.reason, 'Repeated code-of-conduct breach.');
+        expect(found.decidedAt, DateTime.utc(2026, 8, 23, 9, 14, 2));
+        expect(found.decidedBy, 'did:key:zAdmin');
+        expect(inbox.messages, contains('m-1'));
+      });
+
+      test('picks up a notice sealed anonymously, on its proof', () async {
+        inbox.messages['m-1'] = await sealed(
+          (await notice()).toJson(),
+          anonymously: true,
+        );
+
+        expect((await pickUp()).single.messageId, 'm-1');
+      });
+
+      test('reads a notice without a reason as giving none', () async {
+        inbox.messages['m-1'] = await sealed(
+          (await notice(payload: removal()..remove('reason'))).toJson(),
+        );
+
+        expect((await pickUp()).single.reason, isNull);
+      });
+
+      test('leaves everything else where it is', () async {
+        final stranger = Ed25519DidKeySigner.generate();
+        inbox.messages
+          ..['card'] = await sealed((await issue()).toJson())
+          ..['stranger'] = await sealed(
+            (await notice()).toJson(),
+            from: stranger,
+          )
+          ..['issued-by-another'] = await sealed(
+            (await notice(signer: stranger)).toJson(),
+          )
+          ..['forged'] = await sealed(
+            // Signed over another member: the proof no longer holds.
+            (await notice()).toJson()..['payload'] = removal(did: stranger.did),
+          )
+          ..['about-another'] = await sealed(
+            (await notice(payload: removal(did: stranger.did))).toJson(),
+          )
+          ..['incomplete'] = await sealed(
+            (await notice(payload: removal()..remove('decidedAt'))).toJson(),
+          );
+
+        expect(await pickUp(), isEmpty);
+        expect(inbox.deleted, isEmpty);
+      });
+    });
+
+    group('arrivals', () {
+      test('fires each time a message reaches the inbox', () async {
+        await personaInbox.open();
+        final arrivals = <void>[];
+        final listening = personaInbox.arrivals().listen(arrivals.add);
+        addTearDown(listening.cancel);
+
+        inbox.arrived
+          ..add(null)
+          ..add(null);
+        await pumpEventQueue();
+
+        expect(arrivals, hasLength(2));
+      });
+
+      test('says when the live connection fails', () async {
+        await personaInbox.open();
+        final failure = expectLater(
+          personaInbox.arrivals(),
+          emitsError(
+            isA<MeetingPlaceVtcSDKException>().having(
+              (error) => error.code,
+              'code',
+              MeetingPlaceVtcSDKErrorCode.transportFailed,
+            ),
+          ),
+        );
+
+        inbox.arrived.addError(StateError('dropped'));
+
+        await failure;
+      });
+
+      test('needs the inbox open', () {
+        expect(personaInbox.arrivals, throwsStateError);
       });
     });
 

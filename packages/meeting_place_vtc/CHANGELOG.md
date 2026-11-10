@@ -15,3 +15,5 @@
  - Add the vetter's side of in-person vetting (`VettingVetter`, `VetterTicket`), with issued statements recorded on the VTA (`vta/app-state`).
  - Find one community's membership card without fetching every membership card the VTA keeps, reporting each step (`MembershipCardStep`).
  - Let the applicant end being vetted with a `vetting/decline` (`VettingApplicant.decline`).
+ - Add `PersonaInbox.arrivals`, firing as messages reach the persona's mediator inbox over a live connection, e.g. a role card a community pushes.
+ - Add `PersonaInbox.removalNotices`, reading a community's signed notice that it removed the persona (`vtc/members/removal-notice/0.1`).

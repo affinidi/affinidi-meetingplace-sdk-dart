@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:didcomm/didcomm.dart' hide TrustTaskDocument;
 import 'package:ssi/ssi.dart';
 
@@ -13,6 +15,10 @@ import 'persona_did_manager.dart';
 const credentialIssueTask =
     'https://trusttasks.org/spec/credential-exchange/issue/0.1';
 
+/// Trust Task a community tells a member it removed them with.
+const memberRemovalNoticeTask =
+    'https://trusttasks.org/spec/vtc/members/removal-notice/0.1';
+
 /// A DID's inbox on its mediator.
 abstract interface class MediatorInbox {
   /// Ids of the messages waiting.
@@ -23,6 +29,11 @@ abstract interface class MediatorInbox {
 
   /// Deletes the messages [ids] from the inbox.
   Future<void> delete(List<String> ids);
+
+  /// Fires each time a message reaches the inbox, over a live connection to
+  /// the mediator held while listened to; also for those waiting when it
+  /// connects. Leaves them in the inbox.
+  Stream<void> arrivals();
 
   /// Ends the session with the mediator.
   Future<void> close();
@@ -67,6 +78,44 @@ class PeerDocument {
 
   /// The peer's signed document, exactly as received.
   final TrustTaskDocument document;
+}
+
+/// A community's signed notice that it removed the persona, as it lies in
+/// the persona's inbox.
+class RemovalNotice {
+  /// Creates a [RemovalNotice].
+  const RemovalNotice({
+    required this.messageId,
+    required this.document,
+    required this.code,
+    required this.disposition,
+    required this.decidedAt,
+    required this.decidedBy,
+    this.reason,
+  });
+
+  /// Id of the message in the inbox, to [PersonaInbox.remove] it by.
+  final String messageId;
+
+  /// The community's signed `members/removal-notice` document, exactly as
+  /// received, to show to someone else, e.g. in an appeal.
+  final TrustTaskDocument document;
+
+  /// Which removal happened, e.g. `adminRemoved` or `purged`.
+  final String code;
+
+  /// How the community handled the member's published record, e.g.
+  /// `tombstone`.
+  final String disposition;
+
+  /// When the community decided the removal, not when it sent the notice.
+  final DateTime decidedAt;
+
+  /// DID of who decided it.
+  final String decidedBy;
+
+  /// Why, as the community gave it; null when it gave no reason.
+  final String? reason;
 }
 
 /// What one look into the inbox found.
@@ -153,13 +202,12 @@ class PersonaInbox {
   /// envelope may be authcrypt or anoncrypt; an authcrypt sender must be
   /// [issuerDid]. Throws [MeetingPlaceVtcSDKException] with a
   /// `transportFailed` code when the inbox cannot be read.
-  Future<InboxPickup> issuedCredentials({required String issuerDid}) =>
-      _pickUp(
-        issuerDid,
-        accepts: (credential) =>
-            credentialIssuer(credential) == issuerDid &&
-            credentialSubjects(credential).contains(_persona.did),
-      );
+  Future<InboxPickup> issuedCredentials({required String issuerDid}) => _pickUp(
+    issuerDid,
+    accepts: (credential) =>
+        credentialIssuer(credential) == issuerDid &&
+        credentialSubjects(credential).contains(_persona.did),
+  );
 
   /// The credentials of the community [communityDid]'s groups [groupDids]
   /// that wait in the inbox, each in a `credential-exchange/issue` document
@@ -186,6 +234,55 @@ class PersonaInbox {
               types.contains(GroupAdmissionVerifier.authorityType));
     },
   );
+
+  /// The notices waiting in the inbox that [communityDid] removed the
+  /// persona, each in a `members/removal-notice` document [communityDid]
+  /// signed for the persona about the persona. Leaves them there.
+  ///
+  /// Read as [issuedCredentials] reads cards: the proof authenticates the
+  /// community. A notice missing what it must say is left alone. Throws as
+  /// [issuedCredentials] does.
+  Future<List<RemovalNotice>> removalNotices({
+    required String communityDid,
+  }) async {
+    final notices = <RemovalNotice>[];
+    for (final (id, raw) in await _messages()) {
+      final document = await _readEnveloped(
+        raw,
+        type: memberRemovalNoticeTask,
+        issuerDid: communityDid,
+      );
+      if (document == null) continue;
+      final notice = switch (document.payload) {
+        {
+          'did': final String did,
+          'code': final String code,
+          'disposition': final String disposition,
+          'decidedAt': final String decidedAt,
+          'decidedBy': final String decidedBy,
+        }
+            when did == _persona.did =>
+          switch (DateTime.tryParse(decidedAt)) {
+            final decided? => RemovalNotice(
+              messageId: id,
+              document: document,
+              code: code,
+              disposition: disposition,
+              decidedAt: decided,
+              decidedBy: decidedBy,
+              reason: switch (document.payload['reason']) {
+                final String reason when reason.trim().isNotEmpty => reason,
+                _ => null,
+              },
+            ),
+            null => null,
+          },
+        _ => null,
+      };
+      if (notice != null) notices.add(notice);
+    }
+    return notices;
+  }
 
   /// The credentials in `credential-exchange/issue` documents [senderDid]
   /// signed for the persona that [accepts], waiting in the inbox.
@@ -253,6 +350,19 @@ class PersonaInbox {
     }
   }
 
+  /// Fires each time a message reaches the persona's inbox, while listened
+  /// to, e.g. to [issuedCredentials] again; what arrived is read only
+  /// there, where it is checked. Requires [open].
+  ///
+  /// Errors with [MeetingPlaceVtcSDKException] with a `transportFailed` code
+  /// when the live connection fails.
+  Stream<void> arrivals() => _openedInbox().arrivals().handleError(
+    (Object error) => throw MeetingPlaceVtcSDKException.transportFailed(
+      'mediator connection failed',
+      innerException: error,
+    ),
+  );
+
   /// Deletes the messages [messageIds] from the inbox, once handled.
   ///
   /// Throws [MeetingPlaceVtcSDKException] with a `transportFailed` code when
@@ -292,12 +402,8 @@ class PersonaInbox {
     String issuerDid,
     bool Function(Map<String, dynamic> credential) accepts,
   ) async {
-    final message = await _unpack(raw, authenticatedOnly: false);
-    if (message == null) return null;
-    if (message.from case final from? when from != issuerDid) return null;
-    if (message.type.toString() != trustTaskEnvelopeType) return null;
-    final document = await _readDocument(
-      message,
+    final document = await _readEnveloped(
+      raw,
       type: credentialIssueTask,
       issuerDid: issuerDid,
     );
@@ -313,6 +419,22 @@ class PersonaInbox {
       document: document,
       credential: credential,
     );
+  }
+
+  /// [raw] read as a [type] document [issuerDid] signed for the persona, in
+  /// a Trust Task envelope, or null when it is anything else. The envelope
+  /// may be anoncrypt, as the proof authenticates [issuerDid]; an authcrypt
+  /// sender must be [issuerDid].
+  Future<TrustTaskDocument?> _readEnveloped(
+    Map<String, dynamic> raw, {
+    required String type,
+    required String issuerDid,
+  }) async {
+    final message = await _unpack(raw, authenticatedOnly: false);
+    if (message == null) return null;
+    if (message.from case final from? when from != issuerDid) return null;
+    if (message.type.toString() != trustTaskEnvelopeType) return null;
+    return _readDocument(message, type: type, issuerDid: issuerDid);
   }
 
   /// [raw] unpacked as a message sealed to the persona, or null when it is
@@ -378,6 +500,9 @@ class PersonaInbox {
     required DidDocument mediatorDocument,
     required DidManager manager,
   }) async {
+    // A pool of its own: starting it leaves the app's other mediator
+    // connections, in the shared pool, as they are.
+    final pool = ConnectionPool();
     final client = await MediatorClient.init(
       mediatorDidDocument: mediatorDocument,
       didManager: manager,
@@ -385,15 +510,31 @@ class PersonaInbox {
         mediatorDidDocument: mediatorDocument,
         didManager: manager,
       ),
+      connectionPool: pool,
+      // Messages stay until handled: the caller removes them once kept.
+      webSocketOptions: const WebSocketOptions(
+        deleteOnReceive: false,
+        statusRequestMessageOptions: StatusRequestMessageOptions(
+          shouldSend: true,
+          shouldSign: true,
+          shouldEncrypt: true,
+        ),
+        liveDeliveryChangeMessageOptions: LiveDeliveryChangeMessageOptions(
+          shouldSend: true,
+          shouldSign: true,
+          shouldEncrypt: true,
+        ),
+      ),
     );
-    return _MediatorClientInbox(client);
+    return _MediatorClientInbox(client, pool);
   }
 }
 
 class _MediatorClientInbox implements MediatorInbox {
-  _MediatorClientInbox(this._client);
+  _MediatorClientInbox(this._client, this._pool);
 
   final MediatorClient _client;
+  final ConnectionPool _pool;
 
   @override
   Future<List<String>> listIds() => _client.listInboxMessageIds();
@@ -407,6 +548,25 @@ class _MediatorClientInbox implements MediatorInbox {
   @override
   Future<void> delete(List<String> ids) =>
       _client.deleteMessages(messageIds: ids);
+
+  @override
+  Stream<void> arrivals() {
+    late final StreamController<void> arrived;
+    arrived = StreamController<void>(
+      onListen: () {
+        _client.listenForIncomingMessages(
+          (_) {
+            if (!arrived.isClosed) arrived.add(null);
+          },
+          onError: arrived.addError,
+          onDone: ({closeCode, closeReason}) => arrived.close(),
+        );
+        _pool.startConnections().catchError(arrived.addError);
+      },
+      onCancel: _client.disconnect,
+    );
+    return arrived.stream;
+  }
 
   @override
   Future<void> close() => _client.disconnect();

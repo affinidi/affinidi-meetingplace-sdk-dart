@@ -86,7 +86,9 @@ class CommunityImport {
   /// grants [personaDid] in the newest valid role card the VTA keeps, or
   /// null when it holds none, e.g. while the community has yet to deliver
   /// it. The community re-issues the card on every role change, so the
-  /// newest is the role in force.
+  /// newest is the role in force. A vetter card is held alongside that
+  /// role, e.g. by an administrator, so it stands for the role only when
+  /// the VTA keeps no other.
   Future<String?> role(
     String communityDid, {
     required String personaDid,
@@ -98,14 +100,19 @@ class CommunityImport {
     );
     final newestFirst = [...held]
       ..sort((a, b) => _issuedAt(b).compareTo(_issuedAt(a)));
+    String? heldAlongside;
     for (final record in newestFirst) {
       final card = await _vta.credential(record.id);
       if (card == null) continue;
-      if (roleOf(card, communityDid, personaDid) case final role?) {
-        return role;
+      switch (roleOf(card, communityDid, personaDid)) {
+        case vetterRole:
+          heldAlongside ??= vetterRole;
+        case final role?:
+          return role;
+        case null:
       }
     }
-    return null;
+    return heldAlongside;
   }
 
   /// Returns the newest role card in which [communityDid] makes

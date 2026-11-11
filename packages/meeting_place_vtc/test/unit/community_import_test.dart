@@ -209,6 +209,49 @@ void main() {
         expect(await role(), 'moderator');
       });
 
+      group('with a vetter card', () {
+        setUp(() {
+          vta.answers[VtaTask.credentialsQuery] = {
+            'credentials': [
+              {
+                'id': 'admin',
+                'types': ['AuthorityCredential'],
+                'validFrom': '2026-10-01T10:00:00Z',
+              },
+              {
+                'id': 'vetter',
+                'types': ['AuthorityCredential'],
+                'validFrom': '2026-11-01T10:00:00Z',
+              },
+            ],
+          };
+        });
+
+        test('keeps the role the vetter card is held alongside', () async {
+          vta.answerTo[VtaTask.credentialsGet] = (payload) => {
+            'credential': roleCard(
+              actions: [
+                payload['id'] == 'vetter' ? 'role:vetter' : 'role:admin',
+              ],
+            ),
+          };
+
+          expect(await role(), 'admin');
+        });
+
+        test('takes the vetter role when no other is held', () async {
+          vta.answerTo[VtaTask.credentialsGet] = (payload) => {
+            'credential': roleCard(
+              actions: [
+                payload['id'] == 'vetter' ? 'role:vetter' : 'issue-membership',
+              ],
+            ),
+          };
+
+          expect(await role(), 'vetter');
+        });
+      });
+
       test(
         'finds none in a card for another scope, holder or issuer',
         () async {

@@ -189,6 +189,11 @@ class MediatorService {
         maxDelay: _options.maxRetriesDelay,
       );
     } catch (e, stackTrace) {
+      if (e is DioException && e.response?.statusCode == HttpStatus.notFound) {
+        _logger.warning('OOB invitation not found at $oobUrl', name: 'findOob');
+        return null;
+      }
+
       _logger.error(
         'Failed to fetch OOB invitation from $oobUrl after retries',
         error: e,

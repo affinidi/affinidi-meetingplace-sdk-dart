@@ -1,3 +1,7 @@
+## 1.1.1
+
+ - **FIX**: return null when mediator answers 404 for unknown OOB (#353).
+
 ## 1.1.0
 
  - **FEAT**: send mediator ACL updates as Trust Tasks (#348).

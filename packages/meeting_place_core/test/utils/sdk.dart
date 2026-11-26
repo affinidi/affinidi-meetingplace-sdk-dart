@@ -129,19 +129,8 @@ Future<(MeetingPlaceCoreSDK, DIDCommTransport?)> _initSdkAndOptionalDidcomm({
       className: 'MediatorIntegrationTest',
     ),
   );
-  final didResolver = CachedDidResolver(
-    resolverAddress: defaultOptions.didResolverAddress,
-    logger: logger,
-  );
-  final mediatorSDK = MeetingPlaceMediatorSDK(
-    mediatorDid: config.mediatorDid,
-    didResolver: didResolver,
-    logger: LoggerAdapter(
-      className: MeetingPlaceMediatorSDK.className,
-      sdkName: mediatorSDKName,
-      logger: DefaultMeetingPlaceMediatorSDKLogger(),
-    ),
-  );
+  final didResolver = _createDidResolver(logger);
+  final mediatorSDK = _createMediatorSDK(config.mediatorDid, didResolver);
   final connectionManager = ConnectionManager(
     keyRepository: keyRepository,
     logger: logger,
@@ -176,6 +165,38 @@ Future<(MeetingPlaceCoreSDK, DIDCommTransport?)> _initSdkAndOptionalDidcomm({
 
   return (sdk, didcomm);
 }
+
+/// A standalone mediator SDK on the test mediator, for tests that read a
+/// DID's mediator queue directly — for example to see what another party,
+/// such as the control plane, delivered there.
+MeetingPlaceMediatorSDK initMediatorSDK() {
+  final logger = LoggerAdapter(
+    className: 'MediatorIntegrationTest',
+    sdkName: coreSDKName,
+    logger: DefaultMeetingPlaceCoreSDKLogger(
+      className: 'MediatorIntegrationTest',
+    ),
+  );
+  return _createMediatorSDK(getMediatorDid(), _createDidResolver(logger));
+}
+
+CachedDidResolver _createDidResolver(LoggerAdapter logger) => CachedDidResolver(
+  resolverAddress: const MeetingPlaceCoreSDKOptions().didResolverAddress,
+  logger: logger,
+);
+
+MeetingPlaceMediatorSDK _createMediatorSDK(
+  String mediatorDid,
+  CachedDidResolver didResolver,
+) => MeetingPlaceMediatorSDK(
+  mediatorDid: mediatorDid,
+  didResolver: didResolver,
+  logger: LoggerAdapter(
+    className: MeetingPlaceMediatorSDK.className,
+    sdkName: mediatorSDKName,
+    logger: DefaultMeetingPlaceMediatorSDKLogger(),
+  ),
+);
 
 String getControlPlaneDid() =>
     Platform.environment['CONTROL_PLANE_DID'] ??

@@ -15,6 +15,7 @@ import '../models/call_credentials.dart';
 import '../models/call_session_preparation.dart';
 import '../models/participant_directory.dart';
 import '../transport/matrix/outgoing/call_outcome_room_event.dart';
+import '../transport/matrix/outgoing/call_started_room_event.dart';
 import 'sfu_token_service.dart';
 import 'sfu_url_validator.dart';
 
@@ -409,6 +410,41 @@ class MatrixCallAdapter {
     } catch (error, stackTrace) {
       _logger.error(
         'Failed to send call outcome for callId $callId',
+        error: error,
+        stackTrace: stackTrace,
+        name: _logKey,
+      );
+    }
+  }
+
+  /// Posts a `mpx.call.started` room event so peers can read this call's
+  /// authoritative start time from the event's homeserver timestamp.
+  ///
+  /// Sent once by whichever device first observes the call connect. Carries
+  /// no client clock; a client-supplied start time is exactly what allowed a
+  /// participant to inflate the call duration shown to everyone, so this
+  /// event intentionally has nothing for a sender to forge.
+  /// Fire-and-forget: failures are logged and swallowed.
+  Future<void> sendCallStarted({required String callId}) async {
+    final roomId = _matrixRoomId;
+    if (roomId == null) return;
+    try {
+      final ownChannelDid = await _resolveOwnChannelDidForCancel();
+      if (ownChannelDid == null) return;
+      final didManager = await _coreSDK.getDidManager(ownChannelDid);
+      final event = CallStartedRoomEvent(
+        senderDid: ownChannelDid,
+        callId: callId,
+      );
+      await _matrixService.sendRoomEvent(
+        roomId,
+        event.type,
+        event.content,
+        didManager: didManager,
+      );
+    } catch (error, stackTrace) {
+      _logger.error(
+        'Failed to send call started for callId $callId',
         error: error,
         stackTrace: stackTrace,
         name: _logKey,

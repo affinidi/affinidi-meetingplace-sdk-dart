@@ -3,6 +3,7 @@ import 'package:meeting_place_chat/meeting_place_chat.dart';
 import '../../../entity/call_outcome_record.dart';
 import '../../../matrix_room_event.dart';
 import '../matrix_media_attachment.dart';
+import 'trusted_call_start_time_store.dart';
 
 /// Handles incoming `mpx.call.outcome` events by surfacing the canonical call
 /// outcome to chat consumers as a [CallOutcomeChatEvent].
@@ -16,8 +17,10 @@ class CallOutcomeHandler {
   CallOutcomeHandler({
     required ChatStream chatStream,
     required MeetingPlaceChatSDKLogger logger,
+    TrustedCallStartTimeStore? startTimeStore,
   }) : _chatStream = chatStream,
-       _logger = logger;
+       _logger = logger,
+       _startTimeStore = startTimeStore;
 
   static const _maxRememberedCallOutcomes = 1000;
 
@@ -25,6 +28,7 @@ class CallOutcomeHandler {
 
   final ChatStream _chatStream;
   final MeetingPlaceChatSDKLogger _logger;
+  final TrustedCallStartTimeStore? _startTimeStore;
   final Map<String, DateTime> _latestEndedAtByCallId = {};
 
   Future<void> handle(MatrixRoomEvent event) async {
@@ -71,7 +75,7 @@ class CallOutcomeHandler {
         event: CallOutcomeChatEvent(
           callId: record.callId,
           outcome: record.outcome.name,
-          startedAt: record.startedAt,
+          startedAt: _startTimeStore?[record.callId] ?? record.startedAt,
           endedAt: endedAt,
         ),
       ),

@@ -8,6 +8,7 @@ import '../../../matrix_room_event.dart';
 import '../matrix_chat_event_type.dart';
 import 'call_item_handler.dart';
 import 'call_outcome_handler.dart';
+import 'call_started_handler.dart';
 import 'chat_effect_handler.dart';
 import 'incoming_reaction_state_store.dart';
 import 'message_edit_handler.dart';
@@ -15,6 +16,7 @@ import 'reaction_handler.dart';
 import 'receipt_handler.dart';
 import 'redaction_handler.dart';
 import 'text_message_handler.dart';
+import 'trusted_call_start_time_store.dart';
 import 'typing_handler.dart';
 
 /// Routes incoming [MatrixRoomEvent]s for a [MeetingPlaceMatrixChatSDK].
@@ -51,6 +53,7 @@ class IncomingRoomEventRouter {
     MeetingPlaceMatrixChatSDK chatSDK,
   ) {
     final reactionStateStore = IncomingReactionStateStore();
+    final startTimeStore = TrustedCallStartTimeStore();
     return {
       'm.receipt': ReceiptHandler(
         chatRepository: chatSDK.chatRepository,
@@ -86,9 +89,14 @@ class IncomingRoomEventRouter {
         serverEventIdToMessageId: chatSDK.serverEventIdToMessageId,
         logger: chatSDK.logger,
       ).handle,
+      MpxCallEventType.callStarted: CallStartedHandler(
+        startTimeStore: startTimeStore,
+        logger: chatSDK.logger,
+      ).handle,
       MpxCallEventType.callOutcome: CallOutcomeHandler(
         chatStream: chatSDK.chatStream,
         logger: chatSDK.logger,
+        startTimeStore: startTimeStore,
       ).handle,
       matrix.EventTypes.Message: TextMessageHandler(
         chatRepository: chatSDK.chatRepository,
